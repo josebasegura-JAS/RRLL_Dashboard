@@ -5,6 +5,78 @@
 
 // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
+
+    function ensureParitariaConfirmModal() {
+      let modal = document.getElementById("paritariaConfirmModal");
+      if (modal) return modal;
+
+      modal = document.createElement("div");
+      modal.id = "paritariaConfirmModal";
+      modal.className = "modal-backdrop rrll-confirm-delete-modal";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "paritariaConfirmTitle");
+      modal.innerHTML = `
+        <div class="modal-box rrll-confirm-delete-box" role="document">
+          <div class="rrll-confirm-delete-icon" aria-hidden="true">!</div>
+          <h3 id="paritariaConfirmTitle">Confirmar acción</h3>
+          <p id="paritariaConfirmText" class="muted">Revisa la acción antes de continuar.</p>
+          <div class="modal-actions rrll-confirm-delete-actions">
+            <button type="button" class="secondary" data-confirm-cancel>Cancelar</button>
+            <button type="button" class="danger" data-confirm-accept>Confirmar</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function confirmParitariaAction(options) {
+      const modal = ensureParitariaConfirmModal();
+      const titleEl = modal.querySelector("#paritariaConfirmTitle");
+      const textEl = modal.querySelector("#paritariaConfirmText");
+      const cancelButton = modal.querySelector("[data-confirm-cancel]");
+      const acceptButton = modal.querySelector("[data-confirm-accept]");
+      const action = options && typeof options.onConfirm === "function" ? options.onConfirm : null;
+
+      if (titleEl) titleEl.textContent = (options && options.title) || "Confirmar acción";
+      if (textEl) textEl.textContent = (options && options.message) || "Revisa la acción antes de continuar.";
+      if (acceptButton) acceptButton.textContent = (options && options.confirmLabel) || "Confirmar";
+      if (acceptButton) acceptButton.className = (options && options.danger === false) ? "" : "danger";
+
+      function close() {
+        modal.classList.remove("open");
+        modal.removeEventListener("click", handleBackdropClick);
+        document.removeEventListener("keydown", handleEscape);
+        cancelButton?.removeEventListener("click", handleCancel);
+        acceptButton?.removeEventListener("click", handleConfirm);
+      }
+
+      function handleCancel() {
+        close();
+      }
+
+      function handleConfirm() {
+        close();
+        if (action) action();
+      }
+
+      function handleBackdropClick(event) {
+        if (event.target === modal) close();
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape" && modal.classList.contains("open")) close();
+      }
+
+      cancelButton?.addEventListener("click", handleCancel);
+      acceptButton?.addEventListener("click", handleConfirm);
+      modal.addEventListener("click", handleBackdropClick);
+      document.addEventListener("keydown", handleEscape);
+      modal.classList.add("open");
+      setTimeout(() => cancelButton?.focus(), 0);
+    }
+
     function getParitariaItems() {
       return load("rrll_paritaria_items", []);
     }
@@ -67,7 +139,7 @@
       toggleParitariaCreateForm(false);
     }
 
-    function moveParitariaItem(id, status) {
+    function executeMoveParitariaItem(id, status) {
       const now = new Date().toISOString();
       const items = getParitariaItems().map(item => {
         if (item.id !== id) return item;
@@ -81,7 +153,19 @@
       renderParitariaItems();
     }
 
-    function deleteParitariaItem(id) {
+    function moveParitariaItem(id, status) {
+      const item = getParitariaItems().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "este punto";
+      const nextStatus = paritariaStatusLabel(status).toLowerCase();
+      confirmParitariaAction({
+        title: "Cambiar estado del punto",
+        message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeMoveParitariaItem(id, status)
+      });
+    }
+
+    function executeDeleteParitariaItem(id) {
       const items = getParitariaItems();
       const item = items.find(i => i.id === id);
       if (item) moveToTrash("paritaria", item);
@@ -90,6 +174,17 @@
       renderTrash();
       restoreAlertsPanelState();
       renderAlertsPanel();
+    }
+
+    function deleteParitariaItem(id) {
+      const item = getParitariaItems().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "este punto";
+      confirmParitariaAction({
+        title: "Eliminar punto de Paritaria",
+        message: `¿Quieres eliminar ${title}? Se moverá a la papelera.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteParitariaItem(id)
+      });
     }
 
     let activeParitariaUpdateId = null;
@@ -512,12 +607,8 @@
       updateQuickCounts();
     }
 
-    function deleteParitariaSession(sessionId) {
+    function executeDeleteParitariaSession(sessionId) {
       const sessions = getParitariaSessions();
-      const session = sessions.find(s => s.id === sessionId);
-      if (!session) return;
-      const confirmed = confirm("Eliminar esta sesión? No eliminará los puntos, solo la agrupación de sesión.");
-      if (!confirmed) return;
       setParitariaSessions(sessions.filter(s => s.id !== sessionId));
       const paritaria = getParitariaItems().map(item => item.paritariaSessionId === sessionId ? {
         ...item,
@@ -530,6 +621,17 @@
       setParitariaItems(paritaria);
       renderParitariaSessions();
       renderParitariaItems();
+    }
+
+    function deleteParitariaSession(sessionId) {
+      const session = getParitariaSessions().find(s => s.id === sessionId);
+      if (!session) return;
+      confirmParitariaAction({
+        title: "Eliminar sesión de Paritaria",
+        message: `¿Quieres eliminar la sesión ${sessionLabel(session)}? No eliminará los puntos, solo la agrupación de sesión.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteParitariaSession(sessionId)
+      });
     }
 
     function getParitariaSessionView() {
@@ -669,7 +771,7 @@
       card.innerHTML = `
         <div class="session-card-toolbar" onclick="event.stopPropagation()">
           <button class="session-card-icon" type="button" onclick="printParitariaSession('${session.id}')" title="Imprimir esta sesión">🖨️</button>
-          <button class="session-card-icon excel-icon" type="button" onclick="exportParitariaSessionExcel('${session.id}')" title="Exportar esta sesión a Excel">X</button>
+          <button class="session-card-icon excel-icon" type="button" onclick="exportParitariaSessionExcel('${session.id}')" title="Exportar esta sesión a Excel" aria-label="Exportar esta sesión a Excel">📊</button>
         </div>
         <div class="rrll-session-card-head">
           <button class="rrll-session-card-toggle" type="button" onclick="event.stopPropagation(); toggleParitariaSessionCard('${session.id}')" aria-expanded="${collapsed ? "false" : "true"}" title="Plegar/desplegar sesión">${collapsed ? "▸" : "▾"}</button>
@@ -688,7 +790,7 @@
           <div class="session-items">${itemsHtml}</div>
           <div class="task-actions section-gap" onclick="event.stopPropagation()">
             ${!isClosed ? `<button class="small secondary" onclick="openParitariaSessionOrderModal('${session.id}')">Ordenar puntos</button><button class="small" onclick="closeParitariaSession('${session.id}')">Cerrar sesión</button>` : `<button class="small secondary" onclick="openParitariaSessionOrderModal('${session.id}')">Editar histórico</button><button class="small secondary" onclick="reopenParitariaSession('${session.id}')">Reabrir</button>`}
-            <button class="small danger" onclick="deleteParitariaSession('${session.id}')">Eliminar sesión</button>
+            <button class="small danger rrll-delete-icon-button" onclick="deleteParitariaSession('${session.id}')" title="Eliminar sesión" aria-label="Eliminar sesión"><span aria-hidden="true">🗑️</span></button>
           </div>
         </div>
       `;
@@ -998,7 +1100,7 @@
             ${item.status !== "paritaria-progress" ? `<button class="small black" onclick="event.stopPropagation(); moveParitariaItem('${item.id}', 'paritaria-progress')">En curso</button>` : ""}
             ${item.status === "paritaria-progress" ? `<button class="small" onclick="event.stopPropagation(); addParitariaItemToParitariaSession('${item.id}')">Añadir a Paritaria</button>` : ""}
             ${item.status !== "paritaria-closed" ? `<button class="small" onclick="event.stopPropagation(); moveParitariaItem('${item.id}', 'paritaria-closed')">Cerrar</button>` : ""}
-            <button class="small danger" onclick="event.stopPropagation(); deleteParitariaItem('${item.id}')">Eliminar</button>
+            <button class="small danger rrll-delete-icon-button" onclick="event.stopPropagation(); deleteParitariaItem('${item.id}')" title="Eliminar punto" aria-label="Eliminar punto"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
       `;
