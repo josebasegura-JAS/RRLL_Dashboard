@@ -1,4 +1,11 @@
 /*
+  LEGACY / NO USADO.
+  Este archivo era app/styles/styles.css y NO está cargado por app/dashboard.html.
+  Se conserva solo como referencia histórica para evitar confundir futuras fases de saneamiento visual.
+  No reactivar sin revisar antes la cadena real de CSS: app/dashboard.html -> app/styles.css.
+*/
+
+/*
   RRLL Dashboard — hoja principal de estilos.
   CSS consolidado: nombres estables y sin referencias temporales de fase.
   dashboard.html sigue cargando app/styles.css.
@@ -14,5 +21,3 @@
 @import url("./styles/60-overrides.css");
 @import url("./styles/65-normalize.css");
 @import url("./styles/70-components-final.css");
-
-@import url("./styles/80-light-foundation.css");

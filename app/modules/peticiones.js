@@ -85,7 +85,7 @@
       renderPetitions();
     }
 
-    function deletePetition(id) {
+    function executeDeletePetition(id) {
       const items = getPetitions();
       const item = items.find(i => i.id === id);
       if (item) moveToTrash("petitions", item);
@@ -94,6 +94,18 @@
       renderTrash();
       restoreAlertsPanelState();
       renderAlertsPanel();
+    }
+
+    function deletePetition(id) {
+      if (typeof confirmDangerAction !== "function") return;
+      const item = getPetitions().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "esta petición";
+      confirmDangerAction({
+        title: "Eliminar petición",
+        message: `¿Quieres eliminar ${title}? Se enviará a la papelera.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeletePetition(id)
+      });
     }
 
     let activePetitionUpdateId = null;

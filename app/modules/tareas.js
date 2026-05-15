@@ -5,6 +5,77 @@
 
   // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
+
+      function ensureDangerConfirmModal() {
+        let modal = document.getElementById("dangerConfirmModal");
+        if (modal) return modal;
+
+        modal = document.createElement("div");
+        modal.id = "dangerConfirmModal";
+        modal.className = "modal-backdrop rrll-confirm-delete-modal";
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        modal.setAttribute("aria-labelledby", "dangerConfirmTitle");
+        modal.innerHTML = `
+          <div class="modal-box rrll-confirm-delete-box" role="document">
+            <div class="rrll-confirm-delete-icon" aria-hidden="true">!</div>
+            <h3 id="dangerConfirmTitle">Confirmar eliminación</h3>
+            <p id="dangerConfirmText" class="muted">Esta acción enviará el elemento a la papelera.</p>
+            <div class="modal-actions rrll-confirm-delete-actions">
+              <button type="button" class="secondary" data-confirm-cancel>Cancelar</button>
+              <button type="button" class="danger" data-confirm-delete>Eliminar</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        return modal;
+      }
+
+      function confirmDangerAction(options) {
+        const modal = ensureDangerConfirmModal();
+        const titleEl = modal.querySelector("#dangerConfirmTitle");
+        const textEl = modal.querySelector("#dangerConfirmText");
+        const cancelButton = modal.querySelector("[data-confirm-cancel]");
+        const deleteButton = modal.querySelector("[data-confirm-delete]");
+        const action = options && typeof options.onConfirm === "function" ? options.onConfirm : null;
+
+        if (titleEl) titleEl.textContent = (options && options.title) || "Confirmar eliminación";
+        if (textEl) textEl.textContent = (options && options.message) || "Esta acción enviará el elemento a la papelera.";
+        if (deleteButton) deleteButton.textContent = (options && options.confirmLabel) || "Eliminar";
+
+        function close() {
+          modal.classList.remove("open");
+          modal.removeEventListener("click", handleBackdropClick);
+          document.removeEventListener("keydown", handleEscape);
+          cancelButton?.removeEventListener("click", handleCancel);
+          deleteButton?.removeEventListener("click", handleConfirm);
+        }
+
+        function handleCancel() {
+          close();
+        }
+
+        function handleConfirm() {
+          close();
+          if (action) action();
+        }
+
+        function handleBackdropClick(event) {
+          if (event.target === modal) close();
+        }
+
+        function handleEscape(event) {
+          if (event.key === "Escape" && modal.classList.contains("open")) close();
+        }
+
+        cancelButton?.addEventListener("click", handleCancel);
+        deleteButton?.addEventListener("click", handleConfirm);
+        modal.addEventListener("click", handleBackdropClick);
+        document.addEventListener("keydown", handleEscape);
+        modal.classList.add("open");
+        setTimeout(() => cancelButton?.focus(), 0);
+      }
+
       function getTasks() {
         return load("rrll_tasks", []);
       }
@@ -78,7 +149,7 @@
         renderTasks();
       }
 
-      function deleteTask(id) {
+      function executeDeleteTask(id) {
         const tasks = getTasks();
         const item = tasks.find(task => task.id === id);
         if (item) moveToTrash("tasks", item);
@@ -89,6 +160,17 @@
         renderAlertsPanel();
       }
 
+      function deleteTask(id) {
+        const item = getTasks().find(task => task.id === id);
+        const title = item && item.title ? `“${item.title}”` : "esta tarea";
+        confirmDangerAction({
+          title: "Eliminar tarea",
+          message: `¿Quieres eliminar ${title}? Se enviará a la papelera.`,
+          confirmLabel: "Eliminar",
+          onConfirm: () => executeDeleteTask(id)
+        });
+      }
+
       function isClosedWithinLastMonth(task) {
         if (task.status !== "closed") return false;
         const closed = new Date(task.closedAt || task.createdAt);
@@ -97,7 +179,7 @@
         return closed >= limit;
       }
 
-      function deleteVisibleClosedTasks() {
+      function executeDeleteVisibleClosedTasks() {
         const tasks = getTasks();
         const visibleClosed = tasks.filter(task => isClosedWithinLastMonth(task));
         visibleClosed.forEach(task => moveToTrash("tasks", task));
@@ -106,6 +188,16 @@
         renderTrash();
         restoreAlertsPanelState();
         renderAlertsPanel();
+      }
+
+      function deleteVisibleClosedTasks() {
+        const count = getTasks().filter(task => isClosedWithinLastMonth(task)).length;
+        confirmDangerAction({
+          title: "Eliminar tareas cerradas",
+          message: `¿Quieres eliminar ${count} tareas cerradas visibles? Se enviarán a la papelera.`,
+          confirmLabel: "Eliminar",
+          onConfirm: executeDeleteVisibleClosedTasks
+        });
       }
 
       let activeTaskUpdateId = null;
@@ -546,6 +638,7 @@
   };
 
   window.TareasModule = api;
+  window.confirmDangerAction = confirmDangerAction;
 
   // Compatibilidad temporal con HTML/app.js mientras se completa Fase 3.
   window.getTasks = getTasks;
