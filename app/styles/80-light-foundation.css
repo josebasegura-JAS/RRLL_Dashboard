@@ -1739,3 +1739,148 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
   color: var(--muted);
   line-height: 1.35;
 }
+
+/* Sesiones Paritaria: añadir puntos abiertos/en curso desde el popup de orden del día. */
+#paritariaSessionOrderModal .paritaria-session-order-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 10px 0 12px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#paritariaSessionOrderModal #paritariaSessionAddPointButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-box,
+#paritariaSessionOrderModal .modal-box {
+  overflow-x: hidden !important;
+}
+
+#paritariaSessionOrderModal #paritariaSessionOrderList.session-order-list {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+#paritariaSessionOrderModal .session-order-row {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) 32px !important;
+  align-items: start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+#paritariaSessionOrderModal .session-order-content {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+#paritariaSessionOrderModal .session-order-edit {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 76px !important;
+  height: auto !important;
+  padding: 10px 12px !important;
+  resize: vertical !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  overflow-x: hidden !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+}
+
+#paritariaSessionOrderModal .session-item-meta {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  white-space: normal !important;
+}
+
+#paritariaSessionOrderModal .session-order-handle {
+  justify-self: end !important;
+  align-self: stretch !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  max-height: 430px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--red);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, .72);
+  color: var(--text);
+  padding: 10px;
+  cursor: pointer;
+  overflow-x: hidden;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-row:hover {
+  border-color: var(--red);
+  background: rgba(127, 29, 29, .18);
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-row input {
+  margin-top: 3px;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-content {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-content strong,
+#paritariaSessionAddPointModal .paritaria-session-add-point-content small,
+#paritariaSessionAddPointModal .paritaria-session-add-point-content span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-content small {
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+}

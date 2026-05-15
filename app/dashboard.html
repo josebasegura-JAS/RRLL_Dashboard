@@ -1475,6 +1475,12 @@
             <option value="paritaria-closed">Cerrado</option>
           </select>
         </div>
+        <div>
+          <label for="paritariaEditSession">Sesión</label>
+          <select id="paritariaEditSession">
+            <option value="">Sin sesión</option>
+          </select>
+        </div>
         <div class="full">
           <label for="paritariaEditNotes">Notas</label>
           <textarea id="paritariaEditNotes" placeholder="Notas, reunión, referencia, personas implicadas..."></textarea>
@@ -1511,11 +1517,27 @@
     <div class="modal-box" onclick="event.stopPropagation()">
       <h3>Orden del día</h3>
       <p class="muted" id="paritariaSessionOrderTitle"></p>
+      <div class="paritaria-session-order-toolbar">
+        <button type="button" id="paritariaSessionAddPointButton" onclick="openParitariaSessionAddPointModal()">Añadir punto</button>
+      </div>
       <p class="muted">Arrastra los puntos para cambiar el orden. Al guardar se renumerarán automáticamente.</p>
       <div id="paritariaSessionOrderList" class="session-order-list"></div>
       <div class="modal-actions">
         <button class="secondary" onclick="closeParitariaSessionOrderModal()">Cancelar</button>
         <button onclick="saveParitariaSessionOrderFromModal()">Guardar orden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="paritariaSessionAddPointModal" class="modal-backdrop" onclick="closeParitariaSessionAddPointModal()">
+    <div class="modal-box paritaria-session-add-point-box" onclick="event.stopPropagation()">
+      <h3>Añadir punto</h3>
+      <p class="muted" id="paritariaSessionAddPointTitle"></p>
+      <p class="muted">Selecciona uno o varios puntos de Paritaria abiertos o en curso disponibles para esta sesión.</p>
+      <div id="paritariaSessionAddPointList" class="paritaria-session-add-point-list"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeParitariaSessionAddPointModal()">Cancelar</button>
+        <button onclick="confirmAddSelectedParitariaPoints()">Añadir seleccionados</button>
       </div>
     </div>
   </div>
