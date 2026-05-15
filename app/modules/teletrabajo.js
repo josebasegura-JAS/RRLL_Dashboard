@@ -410,9 +410,24 @@
     refreshTeleworkDependents();
   }
 
-  function moveTeleworkToProcessing(id) {
+  function executeMoveTeleworkToProcessing(id) {
     setTeleworkItems(getTeleworkItems().map(item => item.id === id ? { ...item, status: "telework-processing", statusManual: true, updatedAt: new Date().toISOString() } : item));
     refreshTeleworkDependents();
+  }
+
+  function moveTeleworkToProcessing(id) {
+    const item = getTeleworkItems().find(entry => entry.id === id);
+    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    if (typeof confirmDangerAction === "function") {
+      confirmDangerAction({
+        title: "Cambiar estado de solicitud",
+        message: `¿Quieres cambiar el estado de ${title} a validaciones pendientes?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeMoveTeleworkToProcessing(id)
+      });
+      return;
+    }
+    executeMoveTeleworkToProcessing(id);
   }
 
   function setTeleworkCheck(id, field, value) {
@@ -425,7 +440,7 @@
     refreshTeleworkDependents();
   }
 
-  function resolveTelework(id, status) {
+  function executeResolveTelework(id, status) {
     if (!["telework-approved", "telework-denied"].includes(status)) return;
     const directionValidation = status === "telework-denied" ? "Denegada" : "Aprobada";
     const now = new Date().toISOString();
@@ -440,12 +455,44 @@
     refreshTeleworkDependents();
   }
 
-  function deleteTelework(id) {
+  function resolveTelework(id, status) {
+    if (!["telework-approved", "telework-denied"].includes(status)) return;
+    const item = getTeleworkItems().find(entry => entry.id === id);
+    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    const nextStatus = teleworkStatusLabel(status).toLowerCase();
+    if (typeof confirmDangerAction === "function") {
+      confirmDangerAction({
+        title: "Cambiar estado de teletrabajo",
+        message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeResolveTelework(id, status)
+      });
+      return;
+    }
+    executeResolveTelework(id, status);
+  }
+
+  function executeDeleteTelework(id) {
     const items = getTeleworkItems();
     const item = items.find(i => i.id === id);
     if (item && typeof moveToTrash === "function") moveToTrash("telework", item);
     setTeleworkItems(items.filter(i => i.id !== id));
     refreshTeleworkDependents();
+  }
+
+  function deleteTelework(id) {
+    const item = getTeleworkItems().find(i => i.id === id);
+    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    if (typeof confirmDangerAction === "function") {
+      confirmDangerAction({
+        title: "Eliminar solicitud de teletrabajo",
+        message: `¿Quieres eliminar ${title}? Se enviará a la papelera.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteTelework(id)
+      });
+      return;
+    }
+    executeDeleteTelework(id);
   }
 
   function setTeleworkViewFilter(filter) {
@@ -665,7 +712,7 @@
     try { return new Date(value).toLocaleString("es-ES"); } catch { return "Sin fecha"; }
   }
 
-  function renderTeleworkRow(rawItem) {
+  function renderTeleworkCard(rawItem) {
     const item = normalizeTeleworkItem(rawItem);
     const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
     const daysHtml = item.days.length
@@ -697,9 +744,40 @@
           ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
           ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
           <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
-          <button class="small danger" onclick="deleteTelework('${escapeJs(item.id)}')">Eliminar</button>
+          <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
         </div>
       </article>`;
+  }
+
+  function renderTeleworkRow(rawItem) {
+    const item = normalizeTeleworkItem(rawItem);
+    const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
+    const daysHtml = item.days.length
+      ? item.days.map(day => `<span class="telework-day rrll-pro-source">${escapeHtml(day)}</span>`).join("")
+      : `<span class="telework-day rrll-pro-source">Sin días</span>`;
+    const statusClass = teleworkStatusClass(item.status);
+    const eligibilityWarnings = getTeleworkJobEligibility(item.job).warnings;
+    const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
+
+    return `
+      <tr id="rrll-telework-${escapeHtml(item.id)}" class="rrll-pro-row telework-request-row status-${statusClass}" ondblclick="event.preventDefault(); event.stopPropagation(); openTeleworkEditModal('${escapeJs(item.id)}')" title="Doble clic para editar la ficha completa">
+        <td class="rrll-pro-main-cell telework-col-person">
+          <div class="rrll-pro-title">${escapeHtml(item.name || "Sin solicitante")}</div>
+          <div class="rrll-pro-subtitle">Nº empleado: ${escapeHtml(item.employeeNumber || "Sin número")} · ${escapeHtml(item.job || "Sin puesto")}</div>
+          ${eligibilityHtml}
+        </td>
+        <td class="telework-col-status"><span class="rrll-status-pill ${statusClass}">${escapeHtml(teleworkStatusLabel(item.status))}</span></td>
+        <td class="telework-col-period"><span class="rrll-pro-source">${escapeHtml(item.period || "Sin periodo")}</span></td>
+        <td class="telework-col-type"><span class="rrll-pro-source">${escapeHtml(item.type || "Nuevo")}</span></td>
+        <td class="telework-col-days"><div class="telework-days rrll-pro-day-list">${daysHtml}</div></td>
+        <td class="telework-col-created"><span class="rrll-pro-created">${escapeHtml(created)}</span></td>
+        <td class="rrll-pro-actions telework-col-actions" onclick="event.stopPropagation()">
+          ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
+          ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
+          <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
+          <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
+        </td>
+      </tr>`;
   }
 
   function getTeleworkCampaigns() {
@@ -795,7 +873,7 @@
     const grouped = groupTeleworkByPeriod(items);
     const periods = Object.keys(grouped).sort(compareTeleworkCampaignsDesc);
     box.innerHTML = periods.map(period => {
-      const rows = grouped[period].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).map(renderTeleworkRow).join("");
+      const rows = grouped[period].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).map(renderTeleworkCard).join("");
       const isCurrent = period === active;
       const warning = isCurrent ? "" : `<div class="telework-history-warning">Campaña no seleccionada: vista de histórico.</div>`;
       return `<details class="telework-history-campaign" ${isCurrent ? "open" : ""}>
@@ -829,7 +907,25 @@
     const filtered = getTeleworkVisibleItems(items);
     const list = document.getElementById("teleworkListBody") || document.getElementById("teleworkTableBody");
     const empty = document.getElementById("teleworkTableEmpty");
-    if (list) list.innerHTML = filtered.map(renderTeleworkRow).join("");
+    if (list) {
+      list.innerHTML = `
+        <div class="rrll-pro-table-wrap telework-table-wrap">
+          <table class="rrll-pro-table telework-table">
+            <thead>
+              <tr>
+                <th>Solicitante</th>
+                <th>Estado</th>
+                <th>Campaña</th>
+                <th>Tipo</th>
+                <th>Días</th>
+                <th>Creada</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>${filtered.map(renderTeleworkRow).join("")}</tbody>
+          </table>
+        </div>`;
+    }
     if (empty) empty.style.display = filtered.length ? "none" : "block";
     renderTeleworkHistory(items);
   }
@@ -1014,6 +1110,9 @@
     addTelework,
     moveTeleworkToProcessing,
     setTeleworkCheck,
+    executeMoveTeleworkToProcessing,
+    executeResolveTelework,
+    executeDeleteTelework,
     resolveTelework,
     deleteTelework,
     openTeleworkEditModal,
@@ -1039,9 +1138,12 @@
   window.setTeleworkItems = setTeleworkItems;
   window.toggleTeleworkCreateForm = toggleTeleworkCreateForm;
   window.addTelework = addTelework;
+  window.executeMoveTeleworkToProcessing = executeMoveTeleworkToProcessing;
   window.moveTeleworkToProcessing = moveTeleworkToProcessing;
   window.setTeleworkCheck = setTeleworkCheck;
+  window.executeResolveTelework = executeResolveTelework;
   window.resolveTelework = resolveTelework;
+  window.executeDeleteTelework = executeDeleteTelework;
   window.deleteTelework = deleteTelework;
   window.openTeleworkEditModal = openTeleworkEditModal;
   window.closeTeleworkEditModal = closeTeleworkEditModal;
