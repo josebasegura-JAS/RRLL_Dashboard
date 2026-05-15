@@ -131,7 +131,7 @@
       renderMinutes();
     }
 
-    function moveMinuteStatus(id, status) {
+    function executeMoveMinuteStatus(id, status) {
       const minutes = getMinutes().map(minute => {
         if (minute.id !== id) return minute;
         return {
@@ -143,6 +143,22 @@
 
       setMinutes(minutes);
       renderMinutes();
+    }
+
+    function moveMinuteStatus(id, status) {
+      const item = getMinutes().find(minute => minute.id === id);
+      const title = item && item.title ? `“${item.title}”` : "esta acta";
+      const nextStatus = minuteStatusTableLabel(status).toLowerCase();
+      if (typeof confirmDangerAction === "function") {
+        confirmDangerAction({
+          title: "Cambiar estado de acta",
+          message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+          confirmLabel: "Cambiar estado",
+          onConfirm: () => executeMoveMinuteStatus(id, status)
+        });
+        return;
+      }
+      executeMoveMinuteStatus(id, status);
     }
 
     let activeMinuteDueDateId = null;
@@ -288,7 +304,7 @@
       deleteMinute(id);
     }
 
-    function deleteMinute(id) {
+    function executeDeleteMinute(id) {
       const minutes = getMinutes();
       const item = minutes.find(minute => minute.id === id);
       if (item) moveToTrash("minutes", item);
@@ -297,6 +313,21 @@
       renderTrash();
       restoreAlertsPanelState();
       renderAlertsPanel();
+    }
+
+    function deleteMinute(id) {
+      const item = getMinutes().find(minute => minute.id === id);
+      const title = item && item.title ? `“${item.title}”` : "esta acta";
+      if (typeof confirmDangerAction === "function") {
+        confirmDangerAction({
+          title: "Eliminar acta",
+          message: `¿Quieres eliminar ${title}? Se enviará a la papelera.`,
+          confirmLabel: "Eliminar",
+          onConfirm: () => executeDeleteMinute(id)
+        });
+        return;
+      }
+      executeDeleteMinute(id);
     }
 
     function dueClass(dueDate) {
@@ -389,7 +420,7 @@
             ${minute.status === "direction" ? `<button type="button" class="small secondary" onclick="moveMinuteStatus('${minute.id}', 'todo')">Pend. hacer</button><button type="button" class="small black" onclick="moveMinuteStatus('${minute.id}', 'allegations')">Alegaciones</button>` : ""}
             ${minute.status === "allegations" ? `<button type="button" class="small secondary" onclick="openMinuteAllegationsModal('${minute.id}')">Aportaciones</button><button type="button" class="small secondary" onclick="openMinuteDueDateModal('${minute.id}')">Fecha límite</button><button type="button" class="small secondary" onclick="moveMinuteStatus('${minute.id}', 'direction')">Dirección</button><button type="button" class="small" onclick="moveMinuteStatus('${minute.id}', 'signature')">Firma</button>` : ""}
             ${minute.status === "signature" ? `<button type="button" class="small secondary" onclick="moveMinuteStatus('${minute.id}', 'allegations')">Alegaciones</button>` : ""}
-            <button type="button" class="small danger" onclick="deleteMinute('${minute.id}')">Eliminar</button>
+            <button type="button" class="small danger rrll-delete-icon-button" onclick="deleteMinute('${minute.id}')" title="Eliminar acta" aria-label="Eliminar acta"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
       `;
@@ -453,10 +484,12 @@
     minuteAllegationsSummary,
     toggleMinuteCreateForm,
     addMinute,
+    executeMoveMinuteStatus,
     moveMinuteStatus,
     openMinuteDueDateModal,
     closeMinuteDueDateModal,
     saveMinuteDueDateFromModal,
+    executeDeleteMinute,
     deleteMinute,
     openMinuteEditModal,
     closeMinuteEditModal,
@@ -483,10 +516,12 @@
   window.minuteAllegationsSummary = minuteAllegationsSummary;
   window.toggleMinuteCreateForm = toggleMinuteCreateForm;
   window.addMinute = addMinute;
+  window.executeMoveMinuteStatus = executeMoveMinuteStatus;
   window.moveMinuteStatus = moveMinuteStatus;
   window.openMinuteDueDateModal = openMinuteDueDateModal;
   window.closeMinuteDueDateModal = closeMinuteDueDateModal;
   window.saveMinuteDueDateFromModal = saveMinuteDueDateFromModal;
+  window.executeDeleteMinute = executeDeleteMinute;
   window.deleteMinute = deleteMinute;
   window.openMinuteEditModal = openMinuteEditModal;
   window.closeMinuteEditModal = closeMinuteEditModal;

@@ -1177,3 +1177,200 @@ body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-icon {
   color: #fca5a5 !important;
   border: 1px solid rgba(239, 68, 68, .28) !important;
 }
+
+/* Actas y Teletrabajo: aplicar patrón validado de Tareas/Peticiones sin tocar su lógica. */
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-list-toolbar,
+body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-card > .rrll-pro-tabs {
+  min-width: 0 !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-list-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-tool-button.rrll-icon-only {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 11px !important;
+  line-height: 1 !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-table-wrap,
+body.phase4-view-module #gestor-teletrabajo .telework-table-wrap {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-table th,
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-table td {
+  padding: 10px 10px !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-table th:first-child,
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-table td:first-child {
+  text-align: left !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-table th {
+  font-size: 11px !important;
+  letter-spacing: .04em !important;
+  text-transform: uppercase !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-main-cell,
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-title,
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-subtitle,
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-created {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-title,
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-subtitle {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-actions button {
+  min-height: 28px !important;
+  height: 28px !important;
+  min-width: 0 !important;
+  padding: 5px 7px !important;
+  font-size: 10.5px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-actions .rrll-delete-icon-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  color: #fecaca !important;
+  background: rgba(220, 38, 38, .16) !important;
+  border-color: rgba(248, 113, 113, .36) !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-actions .rrll-delete-icon-button:hover {
+  color: #fff !important;
+  background: #dc2626 !important;
+  border-color: #ef4444 !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) :is(.rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .telework-day) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  max-width: 100% !important;
+  min-height: 24px !important;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+  white-space: nowrap !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(1),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(1) { width: 27% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(2),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(2) { width: 14% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(3),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(3) { width: 10% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(4),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(4) { width: 9% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(5),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(5) { width: 11% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(6),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { width: 9% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(7),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(7) { width: 20% !important; }
+
+body.phase4-view-module #gestor-teletrabajo .telework-days,
+body.phase4-view-module #gestor-teletrabajo .rrll-pro-day-list {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-request-row {
+  cursor: pointer;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-request-row .telework-eligibility-warning.visible {
+  margin-top: 5px !important;
+  justify-content: flex-start !important;
+}
+
+body.phase4-view-module :is(#minuteEditModal, #minuteDueDateModal, #minuteAllegationsModal, #teleworkEditModal) .modal-box {
+  max-width: min(960px, calc(100vw - 32px)) !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo, #minuteEditModal, #minuteDueDateModal, #minuteAllegationsModal, #teleworkEditModal) :is(.rrll-pro-task-form, .rrll-pro-minute-form, .rrll-pro-telework-form, .telework-professional-form, .rrll-pro-edit-form) {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo, #minuteEditModal, #minuteDueDateModal, #minuteAllegationsModal, #teleworkEditModal) :is(input, select, textarea) {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1180px) {
+  body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-list-actions {
+    justify-content: flex-start !important;
+  }
+
+  body.phase4-view-module #gestor-teletrabajo .telework-table th,
+  body.phase4-view-module #gestor-teletrabajo .telework-table td,
+  body.phase4-view-module #gestor-actas .rrll-pro-minutes-table th,
+  body.phase4-view-module #gestor-actas .rrll-pro-minutes-table td {
+    padding-inline: 8px !important;
+  }
+}
+
+body.phase4-view-module #gestor-teletrabajo > .rrll-pro-task-shell > .rrll-pro-list-card > #teleworkListBody.telework-request-list {
+  display: block !important;
+  padding: 0 !important;
+}
