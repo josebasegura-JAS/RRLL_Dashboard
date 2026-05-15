@@ -394,10 +394,8 @@
       const updateText = (document.getElementById("agendaUpdateModalText")?.value || "").trim();
       const now = new Date().toISOString();
       const originalItem = getAgendaItems().find(item => item.id === activeAgendaUpdateId);
-      const isNewSessionAssignment = selectedSessionId && selectedSessionId !== (originalItem?.committeeSessionId || "");
-
-      if (selectedSessionId && isNewSessionAssignment && status !== "agenda-progress") {
-        alert("Solo los puntos en curso pueden asignarse a sesiones abiertas de Comité.");
+      if (selectedSessionId && status === "agenda-closed") {
+        alert("Solo los puntos abiertos o en curso pueden asignarse a sesiones abiertas de Comité.");
         return;
       }
 
@@ -734,7 +732,7 @@
       if (!session) return [];
       const assignedToCurrentSession = getCommitteeSessionAssignedIds(session);
       return getAgendaItems()
-        .filter(item => item && item.status === "agenda-progress")
+        .filter(item => item && item.status !== "agenda-closed")
         .filter(item => !assignedToCurrentSession.has(item.id))
         .filter(item => !item.committeeSessionId || item.committeeSessionId === session.id)
         .sort((a, b) => {
@@ -776,7 +774,7 @@
             </small>
           </span>
         </label>
-      `).join("") : `<p class="muted">No hay puntos en curso disponibles para añadir.</p>`;
+      `).join("") : `<p class="muted">No hay puntos abiertos o en curso disponibles para añadir.</p>`;
 
       modal.classList.add("open");
       setTimeout(() => modal.querySelector("[data-committee-add-point]")?.focus(), 0);
@@ -792,7 +790,7 @@
       const modal = document.getElementById("committeeSessionAddPointModal");
       const selectedIds = Array.from(modal?.querySelectorAll("[data-committee-add-point]:checked") || []).map(input => input.value);
       if (!selectedIds.length) {
-        alert("Selecciona al menos un punto en curso para añadir.");
+        alert("Selecciona al menos un punto abierto o en curso para añadir.");
         return;
       }
 
@@ -808,7 +806,7 @@
       const availableIds = new Set(getAvailableCommitteePointsForSession(session).map(item => item.id));
       const idsToAdd = selectedIds.filter(id => availableIds.has(id));
       if (!idsToAdd.length) {
-        alert("No hay puntos en curso disponibles para añadir.");
+        alert("No hay puntos abiertos o en curso disponibles para añadir.");
         closeCommitteeSessionAddPointModal();
         return;
       }
@@ -946,12 +944,14 @@
 
       const now = new Date().toISOString();
       const originalItems = Array.isArray(session.items) ? [...session.items] : [];
-      session.items = originalItems.filter(raw => treatedIds.has(committeeSessionItemId(raw)));
+      const displayedItems = getCommitteeSessionDisplayItems(session);
+      const linkedDisplayedIds = new Set(displayedItems.filter(item => item.linked).map(item => item.key));
+      session.items = displayedItems.filter(item => treatedIds.has(item.key)).map(item => item.raw);
       session.status = "closed";
       session.closedAt = now;
 
       const agenda = getAgendaItems().map(item => {
-        const wasInSession = originalItems.includes(item.id);
+        const wasInSession = originalItems.includes(item.id) || linkedDisplayedIds.has(item.id);
         if (!wasInSession) return item;
         const order = session.items.indexOf(item.id);
         if (order >= 0) {
