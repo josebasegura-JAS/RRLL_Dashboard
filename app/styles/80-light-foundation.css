@@ -1,73 +1,73 @@
 /*
-  Fase saneamiento visual 1 — base clara compatible.
-  Esta capa se carga al final para estabilizar el modo claro sin tocar JS,
-  IDs, onclick ni estructura de datos. Mantiene las clases phase4/phase5
-  como alias visuales mientras se reduce la dependencia de overrides previos.
+  Restauración visual global — base oscura compatible.
+  Esta capa se carga al final para devolver la carcasa a la estética carbón
+  de main sin tocar JS, IDs, onclick ni estructura de datos. Mantiene las
+  clases phase4/phase5 como alias visuales.
 */
 
-:root,
 html,
 html[data-theme="light"],
 html[data-theme="dark"] {
-  color-scheme: light;
+  color-scheme: dark;
 
-  --rrll-bg-app-light: #eef4f8;
-  --rrll-bg-panel-light: #ffffff;
-  --rrll-bg-card-light: #ffffff;
-  --rrll-bg-soft-light: #f6f8fb;
-  --rrll-bg-table-head-light: #edf4f7;
-  --rrll-bg-table-hover-light: #f4f8fb;
+  /* Restauración global oscura: esta capa final ya no debe convertir la
+     carcasa a modo claro. Mantiene los tokens semánticos existentes para no
+     tocar JS, estructura ni lógica de módulos. */
+  --rrll-bg-app-dark: #1f2630;
+  --rrll-bg-panel-dark: #2b313d;
+  --rrll-bg-card-dark: #303746;
+  --rrll-bg-soft-dark: #343b46;
+  --rrll-bg-table-head-dark: #343b46;
+  --rrll-bg-table-row-dark: #2b313d;
+  --rrll-bg-table-hover-dark: #3b4350;
+  --rrll-text-main-dark: #f1f5f9;
+  --rrll-text-secondary-dark: #cbd5e1;
+  --rrll-text-muted-dark: #94a3b8;
+  --rrll-text-placeholder-dark: #64748b;
+  --rrll-border-dark: rgba(148, 163, 184, .18);
+  --rrll-border-soft-dark: rgba(148, 163, 184, .10);
 
-  /* Alias claro para reglas legacy que aún consultan tokens *-dark. */
-  --rrll-bg-app-dark: var(--rrll-bg-app-light);
-  --rrll-bg-panel-dark: var(--rrll-bg-panel-light);
-  --rrll-bg-card-dark: var(--rrll-bg-card-light);
-  --rrll-bg-soft-dark: var(--rrll-bg-soft-light);
-  --rrll-bg-table-head-dark: var(--rrll-bg-table-head-light);
-  --rrll-bg-table-row-dark: var(--rrll-bg-panel-light);
-  --rrll-bg-table-hover-dark: var(--rrll-bg-table-hover-light);
-  --rrll-text-main-dark: var(--rrll-text-main-light);
-  --rrll-text-secondary-dark: var(--rrll-text-secondary-light);
-  --rrll-text-muted-dark: var(--rrll-text-muted-light);
-  --rrll-border-dark: var(--rrll-border-light);
-  --rrll-border-soft-dark: var(--rrll-border-soft-light);
-  --dash-surface: var(--rrll-bg-card-light);
-  --dash-surface-2: var(--rrll-bg-soft-light);
-  --dash-border: var(--rrll-border-light);
+  --dash-surface: var(--rrll-bg-card-dark);
+  --dash-surface-2: var(--rrll-bg-soft-dark);
+  --dash-border: var(--rrll-border-dark);
 
-  --bg: var(--rrll-bg-app-light);
-  --panel: var(--rrll-bg-panel-light);
-  --text: var(--rrll-text-main-light);
-  --muted: var(--rrll-text-muted-light);
-  --border: var(--rrll-border-light);
-  --black: var(--rrll-text-main-light);
+  --bg: var(--rrll-bg-app-dark);
+  --panel: var(--rrll-bg-panel-dark);
+  --text: var(--rrll-text-main-dark);
+  --muted: var(--rrll-text-muted-dark);
+  --border: var(--rrll-border-dark);
+  --black: var(--rrll-bg-soft-dark);
   --red: var(--rrll-red-ui);
   --red-dark: var(--rrll-red-hover);
-  --shadow: var(--rrll-shadow-panel-light);
+  --soft-red: rgba(239, 68, 68, .12);
+  --warning: rgba(245, 158, 11, .14);
+  --expired: rgba(239, 68, 68, .14);
+  --chart-gray: #6b7280;
+  --shadow: var(--rrll-shadow-dark);
 
-  --rrll-bg-app: var(--rrll-bg-app-light);
-  --rrll-surface-base: var(--rrll-bg-soft-light);
-  --rrll-surface-card: var(--rrll-bg-card-light);
-  --rrll-surface-raised: var(--rrll-bg-panel-light);
-  --rrll-surface-header: var(--rrll-bg-table-head-light);
-  --rrll-surface-hover: var(--rrll-bg-table-hover-light);
-  --rrll-field-bg: var(--rrll-bg-panel-light);
-  --rrll-field-bg-focus: #ffffff;
-  --rrll-border: rgba(148, 163, 184, .30);
-  --rrll-border-strong: #d7dee7;
-  --rrll-text-main: var(--rrll-text-main-light);
-  --rrll-text-soft: var(--rrll-text-secondary-light);
-  --rrll-text-muted: var(--rrll-text-muted-light);
-  --rrll-shadow-soft: 0 2px 10px rgba(15, 23, 42, .06);
-  --rrll-shadow-panel: 0 8px 24px rgba(15, 23, 42, .08);
+  --rrll-bg-app: var(--rrll-bg-app-dark);
+  --rrll-surface-base: var(--rrll-bg-panel-dark);
+  --rrll-surface-card: var(--rrll-bg-card-dark);
+  --rrll-surface-raised: var(--rrll-bg-card-dark);
+  --rrll-surface-header: var(--rrll-bg-table-head-dark);
+  --rrll-surface-hover: var(--rrll-bg-table-hover-dark);
+  --rrll-field-bg: var(--rrll-bg-panel-dark);
+  --rrll-field-bg-focus: var(--rrll-bg-soft-dark);
+  --rrll-border: var(--rrll-border-dark);
+  --rrll-border-strong: rgba(170, 179, 194, .24);
+  --rrll-text-main: var(--rrll-text-main-dark);
+  --rrll-text-soft: var(--rrll-text-secondary-dark);
+  --rrll-text-muted: var(--rrll-text-muted-dark);
+  --rrll-shadow-soft: 0 10px 26px rgba(15, 23, 42, .14);
+  --rrll-shadow-panel: 0 12px 30px rgba(15, 23, 42, .16);
   --rrll-component-bg: var(--rrll-surface-card);
   --rrll-component-bg-soft: var(--rrll-surface-base);
   --rrll-component-border: var(--rrll-border);
   --rrll-component-text: var(--rrll-text-main);
   --rrll-component-muted: var(--rrll-text-muted);
-  --phase4-sidebar-bg: #ffffff;
-  --phase4-sidebar-bg-2: #f8fafc;
-  --phase4-sidebar-hover: #edf4f7;
+  --phase4-sidebar-bg: #2b2f36;
+  --phase4-sidebar-bg-2: #22262d;
+  --phase4-sidebar-hover: #3a3f48;
 }
 
 html,
@@ -78,28 +78,53 @@ body.phase4-view-module,
 .phase4-main,
 main,
 .content-right,
-.dashboard-layout {
-  background: var(--rrll-bg-app) !important;
+.dashboard-layout,
+.main-content,
+.dashboard-home {
+  background: linear-gradient(135deg, var(--rrll-bg-app) 0%, var(--rrll-surface-base) 52%, var(--rrll-bg-app) 100%) !important;
   color: var(--rrll-text-main) !important;
 }
 
 .top-strip,
+.topbar,
+.app-header,
 .phase4-sidebar,
+.sidebar:not(.sidebar-left),
 .phase4-nav-submenu,
+.sidebar-nav,
 .save-status-widget,
 .phase5-sidebar-sync.save-status-widget {
-  background: var(--rrll-surface-card) !important;
+  background: linear-gradient(180deg, var(--rrll-surface-base), var(--rrll-bg-app)) !important;
   color: var(--rrll-text-main) !important;
   border-color: var(--rrll-border) !important;
-  box-shadow: var(--rrll-shadow-soft) !important;
+  box-shadow: none !important;
 }
 
-.phase4-sidebar {
+.phase4-sidebar,
+.sidebar:not(.sidebar-left) {
   border-right: 1px solid var(--rrll-border) !important;
+}
+
+.phase4-sidebar,
+.sidebar:not(.sidebar-left) {
+  background: linear-gradient(180deg, var(--phase4-sidebar-bg) 0%, var(--phase4-sidebar-bg-2) 100%) !important;
+  color: #e5e7eb !important;
+  box-shadow: 4px 0 18px rgba(0, 0, 0, .18) !important;
 }
 
 .phase4-sidebar-section,
 .phase4-nav-item,
+.nav-item,
+.phase4-nav-subitem,
+.phase4-nav-button,
+.phase4-nav-chevron,
+.phase4-nav-pill {
+  color: #e5e7eb !important;
+}
+
+.phase4-sidebar-section,
+.phase4-nav-item,
+.nav-item,
 .phase4-nav-subitem,
 .phase4-nav-button,
 .phase4-nav-chevron,
@@ -112,6 +137,7 @@ main,
 }
 
 .phase4-nav-item,
+.nav-item,
 .phase4-nav-subitem,
 .phase4-nav-button,
 .phase5-sidebar-sync .sync-now-button {
@@ -121,17 +147,22 @@ main,
 }
 
 .phase4-nav-item:hover,
+.nav-item:hover,
 .phase4-nav-subitem:hover,
-.phase4-nav-button:hover,
-.phase4-nav-item.active,
-.phase4-nav-item.is-active {
-  background: var(--rrll-surface-hover) !important;
-  border-color: var(--rrll-border) !important;
-  color: var(--rrll-text-main) !important;
+.phase4-nav-button:hover {
+  background: var(--phase4-sidebar-hover) !important;
+  border-color: rgba(229, 231, 235, .10) !important;
+  color: #ffffff !important;
 }
 
 .phase4-nav-item.active,
+.nav-item.active,
+.phase4-nav-subitem.active,
+.phase4-nav-parent.active,
 .phase4-nav-item.is-active {
+  background: linear-gradient(90deg, #7d1f1f 0%, #a72722 100%) !important;
+  border-color: rgba(255, 255, 255, .12) !important;
+  color: #ffffff !important;
   box-shadow: inset 3px 0 0 var(--rrll-red-ui) !important;
 }
 
@@ -207,7 +238,7 @@ details.module-card > summary,
 .paritaria-main > summary,
 .committee-subsection > summary,
 .paritaria-subsection > summary {
-  background: linear-gradient(135deg, #ffffff 0%, var(--rrll-surface-header) 100%) !important;
+  background: linear-gradient(135deg, var(--rrll-surface-header) 0%, var(--rrll-surface-base) 100%) !important;
   color: var(--rrll-text-main) !important;
   border-color: var(--rrll-border) !important;
 }
@@ -248,7 +279,7 @@ textarea:focus,
 input::placeholder,
 textarea::placeholder,
 .rrll-pro-search-wrap input::placeholder {
-  color: var(--rrll-text-placeholder-light) !important;
+  color: var(--rrll-text-placeholder-dark) !important;
 }
 
 label,
@@ -306,7 +337,7 @@ table:not(.print-frame table):not(.print-document table):not(.print-preview-cont
 .data-table tbody tr:nth-child(even),
 .licencias-table tbody tr:nth-child(even),
 .vinculograma-table tbody tr:nth-child(even) {
-  background: #f8fafc !important;
+  background: var(--rrll-bg-table-row-dark) !important;
 }
 
 table:not(.print-frame table):not(.print-document table):not(.print-preview-content table) tbody tr:hover,
@@ -434,7 +465,7 @@ button.danger,
   background: var(--rrll-surface-card) !important;
   color: var(--rrll-text-main) !important;
   border-color: var(--rrll-border) !important;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, .18) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .32) !important;
 }
 
 .modal-actions,
@@ -456,7 +487,7 @@ button.danger,
   }
 }
 
-/* Fase 3 visual — estabilización acotada de Tareas y Peticiones sobre la base clara. */
+/* Fase 3 visual — estabilización acotada de Tareas y Peticiones sobre la base oscura. */
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module {
   background: var(--rrll-surface-card) !important;
   border: 1px solid var(--rrll-border) !important;
@@ -465,7 +496,7 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module 
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module > summary {
-  background: linear-gradient(135deg, #ffffff 0%, var(--rrll-surface-header) 100%) !important;
+  background: linear-gradient(135deg, var(--rrll-surface-header) 0%, var(--rrll-surface-base) 100%) !important;
   border: 1px solid var(--rrll-border) !important;
   color: var(--rrll-text-main) !important;
   box-shadow: var(--rrll-shadow-soft) !important;
@@ -762,7 +793,7 @@ html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-t
 }
 
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:nth-child(even) {
-  background: #f8fafc !important;
+  background: var(--rrll-bg-table-row-dark) !important;
 }
 
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:hover,
