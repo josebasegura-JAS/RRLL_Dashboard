@@ -1406,11 +1406,27 @@
     <div class="modal-box" onclick="event.stopPropagation()">
       <h3>Orden del día</h3>
       <p class="muted" id="committeeSessionOrderTitle"></p>
+      <div class="committee-session-order-toolbar">
+        <button type="button" id="committeeSessionAddPointButton" onclick="openCommitteeSessionAddPointModal()">Añadir punto</button>
+      </div>
       <p class="muted">Arrastra los puntos para cambiar el orden. Al guardar se renumerarán automáticamente.</p>
       <div id="committeeSessionOrderList" class="session-order-list"></div>
       <div class="modal-actions">
         <button class="secondary" onclick="closeCommitteeSessionOrderModal()">Cancelar</button>
         <button onclick="saveCommitteeSessionOrderFromModal()">Guardar orden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="committeeSessionAddPointModal" class="modal-backdrop" onclick="closeCommitteeSessionAddPointModal()">
+    <div class="modal-box committee-session-add-point-box" onclick="event.stopPropagation()">
+      <h3>Añadir punto</h3>
+      <p class="muted" id="committeeSessionAddPointTitle"></p>
+      <p class="muted">Selecciona uno o varios puntos de Comité en curso disponibles para esta sesión.</p>
+      <div id="committeeSessionAddPointList" class="committee-session-add-point-list"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeCommitteeSessionAddPointModal()">Cancelar</button>
+        <button onclick="confirmAddSelectedCommitteePoints()">Añadir seleccionados</button>
       </div>
     </div>
   </div>
