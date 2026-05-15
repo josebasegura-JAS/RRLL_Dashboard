@@ -837,3 +837,217 @@ body.phase4-view-module .rrll-confirm-delete-actions .danger:hover {
   background: var(--rrll-red-hover) !important;
   border-color: var(--rrll-red-hover) !important;
 }
+
+/* Restauración oscura acotada — Tareas y Peticiones.
+   80-light-foundation se carga después de 60-overrides; este bloque devuelve
+   a estos dos módulos la superficie carbón de main sin tocar lógica ni columnas. */
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module,
+body.phase4-view-module :is(.module-tasks, .module-petitions).rrll-pro-module,
+body[data-active-module="gestor-tareas"] #gestor-tareas,
+body[data-active-module="gestor-peticiones"] #gestor-peticiones {
+  background: linear-gradient(180deg, #242b36 0%, #1f2630 100%) !important;
+  border: 1px solid rgba(148, 163, 184, .16) !important;
+  box-shadow: 0 18px 46px rgba(15, 23, 42, .18) !important;
+  color: #e5e7eb !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module > summary,
+body.phase4-view-module :is(.module-tasks, .module-petitions).rrll-pro-module > summary {
+  background: linear-gradient(135deg, #343b46 0%, #303746 100%) !important;
+  border: 1px solid rgba(148, 163, 184, .18) !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .16) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
+body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confirm-delete-modal) :is(h2, h3, h4, label, strong, b) {
+  color: #e5e7eb !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confirm-delete-modal) :is(p, .muted, small) {
+  color: #aab3c2 !important;
+}
+
+body.phase4-view-module #gestor-tareas .rrll-pro-task-shell,
+body.phase4-view-module #gestor-peticiones .rrll-pro-petition-shell {
+  background: linear-gradient(135deg, #2b313d 0%, #303746 100%) !important;
+  border-color: rgba(148, 163, 184, .16) !important;
+  color: #e5e7eb !important;
+  box-shadow: none !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
+body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap) {
+  background: linear-gradient(135deg, #2b313d 0%, #303746 100%) !important;
+  border: 1px solid rgba(148, 163, 184, .18) !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .14) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-task-head,
+body.phase4-view-module :is(.module-tasks, .module-petitions) .rrll-pro-task-head {
+  background: transparent !important;
+  border-color: rgba(148, 163, 184, .14) !important;
+  color: #e5e7eb !important;
+  box-shadow: none !important;
+}
+
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  background: #303746 !important;
+  background-color: #303746 !important;
+  background-image: none !important;
+  color: #e5e7eb !important;
+  border: 1px solid rgba(170, 179, 194, .24) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+}
+
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  background: #343b46 !important;
+  border-color: rgba(59, 130, 246, .55) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .13) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) input::placeholder,
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) textarea::placeholder,
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) .rrll-pro-search-wrap input::placeholder {
+  color: rgba(203, 213, 225, .58) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) select option {
+  background: #303746 !important;
+  color: #e5e7eb !important;
+}
+
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table {
+  background: #2b313d !important;
+  color: #e5e7eb !important;
+  border-color: rgba(148, 163, 184, .18) !important;
+}
+
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table thead th {
+  background: #343b46 !important;
+  color: rgba(229, 231, 235, .92) !important;
+  border-color: rgba(148, 163, 184, .15) !important;
+}
+
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr {
+  background: rgba(43, 49, 61, .88) !important;
+  color: #e5e7eb !important;
+}
+
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:nth-child(even) {
+  background: rgba(48, 55, 70, .68) !important;
+}
+
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:hover,
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-row, .rrll-petition-row).expanded {
+  background: rgba(57, 65, 80, .86) !important;
+}
+
+html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table :is(td, th) {
+  color: rgba(229, 231, 235, .90) !important;
+  border-color: rgba(148, 163, 184, .12) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
+body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary) {
+  background: linear-gradient(180deg, rgba(52, 59, 70, .92), rgba(43, 49, 61, .96)) !important;
+  border: 1px solid rgba(148, 163, 184, .18) !important;
+  color: #e5e7eb !important;
+  box-shadow: none !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
+body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover) {
+  background: linear-gradient(180deg, rgba(59, 70, 86, .96), rgba(48, 55, 70, .98)) !important;
+  border-color: rgba(148, 163, 184, .30) !important;
+  color: #f1f5f9 !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-primary, .primary, button.primary),
+body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-primary, .primary, button.primary) {
+  background: var(--rrll-red-ui) !important;
+  border-color: var(--rrll-red-ui) !important;
+  color: #ffffff !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-primary:hover, .primary:hover, button.primary:hover),
+body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-primary:hover, .primary:hover, button.primary:hover) {
+  background: var(--rrll-red-hover) !important;
+  border-color: var(--rrll-red-hover) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-tool-button.excel {
+  background: #15803d !important;
+  border-color: #15803d !important;
+  color: #ffffff !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-tool-button.excel:hover {
+  background: #166534 !important;
+  border-color: #166534 !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
+  border: 1px solid rgba(148, 163, 184, .20) !important;
+  background: rgba(48, 56, 69, .82) !important;
+  color: rgba(229, 231, 235, .92) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-status-pill.pending {
+  background: rgba(245, 158, 11, .13) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, .25) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-status-pill.progress {
+  background: rgba(59, 130, 246, .13) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59, 130, 246, .25) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-status-pill.closed {
+  background: rgba(34, 197, 94, .13) !important;
+  color: #86efac !important;
+  border-color: rgba(34, 197, 94, .25) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-due-pill.due-soon {
+  background: rgba(245, 158, 11, .13) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, .25) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-due-pill.expired,
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.priority-critical, .priority-high) {
+  background: rgba(239, 68, 68, .14) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, .28) !important;
+}
+
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-box,
+body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-box {
+  background: linear-gradient(135deg, #2b313d 0%, #303746 100%) !important;
+  border-color: rgba(148, 163, 184, .18) !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .32) !important;
+}
+
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-actions,
+body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-actions {
+  background: rgba(52, 59, 70, .72) !important;
+  border-color: rgba(148, 163, 184, .14) !important;
+}
+
+body.phase4-view-module .rrll-confirm-delete-modal {
+  background: rgba(15, 23, 42, .62) !important;
+}
+
+body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-icon {
+  background: rgba(239, 68, 68, .14) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, .28) !important;
+}
