@@ -987,7 +987,7 @@
               </label>
               <label class="rrll-pro-field">
                 <span>Antigüedad en puesto</span>
-                <input id="newPlantPositionSeniority" placeholder="Ej. 3 años" />
+                <input id="newPlantPositionSeniority" type="date" />
               </label>
               <label class="rrll-pro-field">
                 <span>Nivel retributivo</span>
@@ -1016,9 +1016,9 @@
                 </div>
                 <div class="rrll-pro-list-actions">
                   <input id="plantillaExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaExcelFromInput(event)" />
-                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()" title="Importar Excel" aria-label="Importar Excel">⇪</button>
-                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printPlantilla()" title="Imprimir plantilla" aria-label="Imprimir plantilla">🖨️</button>
-                  <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportPlantillaExcel()" title="Exportar plantilla a Excel" aria-label="Exportar plantilla a Excel">X</button>
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()" title="Importar Excel" aria-label="Importar Excel"><span aria-hidden="true">⇪</span></button>
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printPlantilla()" title="Imprimir plantilla" aria-label="Imprimir plantilla"><span aria-hidden="true">🖨️</span></button>
+                  <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportPlantillaExcel()" title="Exportar plantilla a Excel" aria-label="Exportar plantilla a Excel"><span aria-hidden="true">X</span></button>
                 </div>
               </div>
               <div class="rrll-pro-table-wrap">

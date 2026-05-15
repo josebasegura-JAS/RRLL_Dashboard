@@ -27,6 +27,61 @@
     return String(value || '').trim();
   }
 
+  function padDatePart(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  function isValidDateParts(year, month, day) {
+    if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return false;
+    if (year < 1900 || year > 2199 || month < 1 || month > 12 || day < 1 || day > 31) return false;
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  }
+
+  function datePartsToInputValue(year, month, day) {
+    return `${year}-${padDatePart(month)}-${padDatePart(day)}`;
+  }
+
+  function excelSerialToInputDate(value) {
+    const serial = Number(value);
+    if (!Number.isFinite(serial) || serial < 60 || serial > 109574) return '';
+    const utcDays = Math.floor(serial) - 25569;
+    const date = new Date(utcDays * 86400 * 1000);
+    return datePartsToInputValue(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
+  }
+
+  function normalizePlantillaDate(value) {
+    const raw = normalizeText(value);
+    if (!raw) return '';
+    if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(raw)) {
+      const [year, month, day] = raw.split('-').map(Number);
+      return isValidDateParts(year, month, day) ? datePartsToInputValue(year, month, day) : '';
+    }
+    const slashMatch = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+    if (slashMatch) {
+      const [, day, month, year] = slashMatch.map(Number);
+      return isValidDateParts(year, month, day) ? datePartsToInputValue(year, month, day) : '';
+    }
+    if (/^\d+(?:[.,]\d+)?$/.test(raw)) return excelSerialToInputDate(raw.replace(',', '.'));
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      return datePartsToInputValue(parsed.getFullYear(), parsed.getMonth() + 1, parsed.getDate());
+    }
+    return '';
+  }
+
+  function formatPlantillaDate(value) {
+    const normalized = normalizePlantillaDate(value);
+    if (!normalized) return normalizeText(value);
+    const [year, month, day] = normalized.split('-');
+    return `${day}/${month}/${year}`;
+  }
+
+  function normalizePlantillaDateOrText(value) {
+    const raw = normalizeText(value);
+    return raw ? (normalizePlantillaDate(raw) || raw) : '';
+  }
+
   function normalizeHeader(value) {
     return String(value || '')
       .normalize('NFD')
@@ -92,7 +147,7 @@
     const name = normalizeText(nameEl.value);
     const sex = normalizeSex(sexEl.value);
     const job = normalizeText(jobEl.value);
-    const positionSeniority = normalizeText(ageEl?.value);
+    const positionSeniority = normalizePlantillaDate(ageEl?.value);
     const level = normalizeLevel(levelEl.value);
 
     if (!employeeNumber || !name || !job) {
@@ -169,7 +224,7 @@
           </label>
           <label class="rrll-pro-field">
             <span>Antigüedad en puesto</span>
-            <input id="editPlantPositionSeniority" placeholder="Ej. 3 años" />
+            <input id="editPlantPositionSeniority" type="date" />
           </label>
           <label class="rrll-pro-field">
             <span>Nivel retributivo</span>
@@ -200,7 +255,7 @@
     document.getElementById('editPlantName').value = item.name || '';
     document.getElementById('editPlantSex').value = normalizeSex(item.sex);
     document.getElementById('editPlantJob').value = item.job || '';
-    document.getElementById('editPlantPositionSeniority').value = item.positionSeniority || '';
+    document.getElementById('editPlantPositionSeniority').value = normalizePlantillaDate(item.positionSeniority);
     document.getElementById('editPlantLevel').value = normalizeLevel(item.level);
     modal.classList.add('open');
     setTimeout(() => document.getElementById('editPlantEmployeeNumber')?.focus(), 0);
@@ -218,7 +273,12 @@
     const name = normalizeText(document.getElementById('editPlantName')?.value);
     const sex = normalizeSex(document.getElementById('editPlantSex')?.value);
     const job = normalizeText(document.getElementById('editPlantJob')?.value);
-    const positionSeniority = normalizeText(document.getElementById('editPlantPositionSeniority')?.value);
+    const positionSeniorityInput = normalizeText(document.getElementById('editPlantPositionSeniority')?.value);
+    const previousItem = getPlantilla().find(item => item.id === editingPlantillaId);
+    const previousPositionSeniority = previousItem?.positionSeniority || '';
+    const positionSeniority = positionSeniorityInput
+      ? normalizePlantillaDate(positionSeniorityInput)
+      : (normalizePlantillaDate(previousPositionSeniority) ? '' : previousPositionSeniority);
     const level = normalizeLevel(document.getElementById('editPlantLevel')?.value);
     if (!employeeNumber || !name || !job) {
       alert('Introduce Nº empleado, nombre y apellidos, y puesto de trabajo.');
@@ -254,7 +314,7 @@
         <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.name || 'Sin nombre')}</div></td>
         <td class="plantilla-col-sex"><span class="rrll-status-pill closed">${escapeHtml(item.sex || '')}</span></td>
         <td>${escapeHtml(item.job || '')}</td>
-        <td>${escapeHtml(item.positionSeniority || '')}</td>
+        <td class="plantilla-col-date">${escapeHtml(formatPlantillaDate(item.positionSeniority))}</td>
         <td><span class="rrll-status-pill progress">${escapeHtml(item.level || '')}</span></td>
         <td class="rrll-pro-actions"><button class="small danger" type="button" onclick="deletePlantilla('${item.id}')">Eliminar</button></td>
       </tr>
@@ -313,7 +373,7 @@
       name: ['nombre', 'nombre y apellidos', 'apellidos y nombre', 'persona', 'empleado'],
       sex: ['sexo', 'genero'],
       job: ['puesto', 'puesto de trabajo', 'cargo'],
-      positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
+      positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antig puesto', 'fecha antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
       level: ['nivel', 'nivel retributivo', 'grupo']
     };
   }
@@ -483,7 +543,7 @@
         name: map.name == null ? '' : normalizeText(row[map.name]),
         sex: map.sex == null ? '' : normalizeText(row[map.sex]).toUpperCase(),
         job: map.job == null ? '' : normalizeText(row[map.job]),
-        positionSeniority: map.positionSeniority == null ? '' : normalizeText(row[map.positionSeniority]),
+        positionSeniority: map.positionSeniority == null ? '' : normalizePlantillaDateOrText(row[map.positionSeniority]),
         level: map.level == null ? '' : normalizeText(row[map.level]).toUpperCase()
       };
       const key = normalizeEmployeeKey(employeeNumber);
@@ -496,7 +556,7 @@
           name: map.name == null ? (current.name || '') : imported.name,
           sex: map.sex == null ? (current.sex || '') : (imported.sex ? normalizeSex(imported.sex) : ''),
           job: map.job == null ? (current.job || '') : imported.job,
-          positionSeniority: map.positionSeniority == null ? (current.positionSeniority || '') : imported.positionSeniority,
+          positionSeniority: map.positionSeniority == null || !imported.positionSeniority ? (current.positionSeniority || '') : imported.positionSeniority,
           level: map.level == null ? (current.level || '') : (imported.level ? normalizeLevel(imported.level) : ''),
           updatedAt: now
         };
@@ -554,12 +614,12 @@
           <td>${htmlEscapeForPrint(item.name || '')}</td>
           <td>${htmlEscapeForPrint(item.sex || '')}</td>
           <td>${htmlEscapeForPrint(item.job || '')}</td>
-          <td>${htmlEscapeForPrint(item.positionSeniority || '')}</td>
+          <td>${htmlEscapeForPrint(formatPlantillaDate(item.positionSeniority))}</td>
           <td>${htmlEscapeForPrint(item.level || '')}</td>
         </tr>
       `).join('')
       : `<tr><td colspan="7">Sin registros.</td></tr>`;
-    const html = `<h1>Plantilla</h1><div class="date">Generado: ${new Date().toLocaleString('es-ES')}</div><table><thead><tr><th>#</th><th>Nº empleado</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Antigüedad en puesto</th><th>Nivel retributivo</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+    const html = `<h1>Plantilla</h1><div class="date">Generado: ${new Date().toLocaleString('es-ES')}</div><table><thead><tr><th>#</th><th>Nº empleado</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel retributivo</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
     if (typeof openPrintPreviewWithHtml === 'function') openPrintPreviewWithHtml(html);
   }
 
@@ -568,8 +628,8 @@
     const excelData = {
       title: 'Plantilla',
       filename: 'plantilla',
-      headers: ['Nº empleado', 'Nombre y apellidos', 'Sexo', 'Puesto de trabajo', 'Antigüedad en puesto', 'Nivel retributivo'],
-      rows: rows.map(item => [item.employeeNumber || '', item.name || '', item.sex || '', item.job || '', item.positionSeniority || '', item.level || ''])
+      headers: ['Nº empleado', 'Nombre y apellidos', 'Sexo', 'Puesto de trabajo', 'Antig. Puesto', 'Nivel retributivo'],
+      rows: rows.map(item => [item.employeeNumber || '', item.name || '', item.sex || '', item.job || '', formatPlantillaDate(item.positionSeniority), item.level || ''])
     };
     if (typeof exportExcelData === 'function') exportExcelData(excelData);
   }
