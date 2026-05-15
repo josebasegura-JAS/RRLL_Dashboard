@@ -986,6 +986,10 @@
                 <input id="newPlantJob" placeholder="Puesto de trabajo" />
               </label>
               <label class="rrll-pro-field">
+                <span>Antigüedad en puesto</span>
+                <input id="newPlantPositionSeniority" placeholder="Ej. 3 años" />
+              </label>
+              <label class="rrll-pro-field">
                 <span>Nivel retributivo</span>
                 <select id="newPlantLevel">
                   <option value="A">A</option>
@@ -1011,16 +1015,20 @@
                   <p class="rrll-pro-subtitle"><span id="count-plantilla-total">0</span> registros ordenados por nº empleado</p>
                 </div>
                 <div class="rrll-pro-list-actions">
+                  <input id="plantillaExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaExcelFromInput(event)" />
+                  <button class="rrll-pro-tool-button" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()">Importar Excel</button>
                   <button class="rrll-pro-tool-button" type="button" onclick="printPlantilla()">🖨️ Imprimir</button>
                   <button class="rrll-pro-tool-button excel" type="button" onclick="exportPlantillaExcel()">Excel</button>
                 </div>
               </div>
               <div class="rrll-pro-table-wrap">
                 <table class="rrll-pro-table plantilla-table">
-                  <thead><tr><th>Nº empleado</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Nivel</th><th>Acciones</th></tr></thead>
+                  <thead><tr><th>Nº</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Antigüedad en puesto</th><th>Nivel</th><th>Acciones</th></tr></thead>
                   <tbody id="plantillaTableBody"></tbody>
                 </table>
               </div>
+              <div id="plantillaPagination" class="plantilla-pagination" aria-live="polite"></div>
+              <div id="plantillaImportSummary" class="plantilla-import-summary" aria-live="polite"></div>
               <div id="plantillaTableEmpty" class="rrll-pro-empty">No hay personas registradas en plantilla.</div>
             </section>
           </div>
