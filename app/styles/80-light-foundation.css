@@ -506,6 +506,7 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .module-title,
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .summary-counts,
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-task-head p,
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-created,
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-due-detail,
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-update,
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-closed-note {
   color: var(--rrll-text-muted) !important;
@@ -608,17 +609,17 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table 
   border-spacing: 0 !important;
 }
 
-body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-main { width: 39%; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-main { width: 43%; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-priority { width: 12%; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-status { width: 13%; }
-body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-date { width: 14%; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-date { width: 10%; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-actions { width: 22%; }
 
-body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-main { width: 32%; }
+body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-main { width: 35%; }
 body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-source { width: 13%; }
 body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-priority { width: 11%; }
 body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-status { width: 12%; }
-body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-date { width: 13%; }
+body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-date { width: 10%; }
 body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-actions { width: 19%; }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table th,
@@ -665,11 +666,11 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-r
   box-shadow: inset 3px 0 0 var(--rrll-red-ui) !important;
 }
 
-body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-row, .rrll-petition-row):not(.expanded) :is(.rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update) {
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-row, .rrll-petition-row):not(.expanded) :is(.rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update) {
   display: none !important;
 }
 
-body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-row, .rrll-petition-row).expanded .rrll-pro-update {
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-row, .rrll-petition-row).expanded :is(.rrll-pro-due-detail, .rrll-pro-update) {
   display: block !important;
   margin-top: 4px !important;
   font-size: 11.5px !important;
@@ -682,6 +683,25 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-action
   font-size: 10.5px !important;
   line-height: 1.15 !important;
   white-space: nowrap !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-actions .rrll-delete-icon-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  color: #fecaca !important;
+  background: rgba(220, 38, 38, .16) !important;
+  border-color: rgba(248, 113, 113, .36) !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-actions .rrll-delete-icon-button:hover {
+  color: #fff !important;
+  background: #dc2626 !important;
+  border-color: #ef4444 !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
@@ -704,7 +724,9 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-status-pil
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-status-pill.closed { color: #166534 !important; background: #dcfce7 !important; border-color: #bbf7d0 !important; }
 
 body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-box {
+  width: min(860px, calc(100vw - 32px)) !important;
   max-width: min(860px, calc(100vw - 32px)) !important;
+  overflow-x: hidden !important;
 }
 
 body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .edit-grid {
@@ -716,6 +738,43 @@ body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .edit-grid {
 body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .edit-grid .full,
 body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .existing-updates-box {
   grid-column: 1 / -1 !important;
+}
+
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .edit-grid,
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .edit-grid > *,
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .existing-updates-box,
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .existing-update-row {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .existing-updates-box {
+  width: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: 10px !important;
+}
+
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .existing-update-row {
+  overflow-x: hidden !important;
+  overflow-wrap: anywhere !important;
+}
+
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .existing-update-row label,
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .existing-update-row textarea {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .existing-update-row textarea {
+  white-space: pre-wrap !important;
+  overflow-x: hidden !important;
+  resize: vertical !important;
 }
 
 body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-actions {
@@ -763,11 +822,11 @@ body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-actio
   }
 
   body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table-wrap {
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
   }
 
   body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table {
-    min-width: 760px !important;
+    min-width: 0 !important;
   }
 }
 
@@ -896,8 +955,8 @@ body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confir
   color: #e5e7eb !important;
 }
 
-body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update, .rrll-pro-closed-note, .muted),
-body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
 body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confirm-delete-modal) :is(p, .muted, small) {
   color: #aab3c2 !important;
 }
