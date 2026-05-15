@@ -627,6 +627,7 @@
       return getParitariaItems()
         .filter(item => item && item.status !== "paritaria-closed")
         .filter(item => !assignedToCurrentSession.has(item.id))
+        .filter(item => !item.paritariaSessionId || item.paritariaSessionId === session.id)
         .sort((a, b) => {
           const aDate = a.requestDate || "9999-12-31";
           const bDate = b.requestDate || "9999-12-31";
@@ -845,12 +846,14 @@
 
       const now = new Date().toISOString();
       const originalItems = Array.isArray(session.items) ? [...session.items] : [];
-      session.items = originalItems.filter(raw => treatedIds.has(paritariaSessionItemId(raw)));
+      const displayedItems = getParitariaSessionDisplayItems(session);
+      const linkedDisplayedIds = new Set(displayedItems.filter(item => item.linked).map(item => item.key));
+      session.items = displayedItems.filter(item => treatedIds.has(item.key)).map(item => item.raw);
       session.status = "closed";
       session.closedAt = now;
 
       const paritaria = getParitariaItems().map(item => {
-        const wasInSession = originalItems.includes(item.id);
+        const wasInSession = originalItems.includes(item.id) || linkedDisplayedIds.has(item.id);
         if (!wasInSession) return item;
         const order = session.items.indexOf(item.id);
         if (order >= 0) {
