@@ -328,9 +328,9 @@
     if (plantillaCurrentPage > totalPages) plantillaCurrentPage = totalPages;
     if (plantillaCurrentPage < 1) plantillaCurrentPage = 1;
     pagination.innerHTML = `
-      <button type="button" class="rrll-pro-tool-button plantilla-page-button" onclick="plantillaPreviousPage()" ${plantillaCurrentPage <= 1 ? 'disabled' : ''}>Anterior</button>
-      <span>Página ${plantillaCurrentPage} de ${totalPages} · ${totalRows} registros</span>
-      <button type="button" class="rrll-pro-tool-button plantilla-page-button" onclick="plantillaNextPage()" ${plantillaCurrentPage >= totalPages ? 'disabled' : ''}>Siguiente</button>
+      <button type="button" class="rrll-pro-tool-button plantilla-page-button plantilla-pagination-btn" onclick="plantillaPreviousPage()" ${plantillaCurrentPage <= 1 ? 'disabled' : ''}>Anterior</button>
+      <span class="plantilla-pagination-info">Página ${plantillaCurrentPage} de ${totalPages} · ${totalRows} registros</span>
+      <button type="button" class="rrll-pro-tool-button plantilla-page-button plantilla-pagination-btn" onclick="plantillaNextPage()" ${plantillaCurrentPage >= totalPages ? 'disabled' : ''}>Siguiente</button>
     `;
   }
 
