@@ -1,0 +1,286 @@
+/*
+  Fase 2 CSS — design tokens.
+  Centraliza tipografía, espaciado, radios, bordes y alturas de controles.
+  Se importa después del legado para sobreescribir variables sin romper cascada.
+*/
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Paleta oficial RRLL
+   Se declaran tokens nuevos con sufijo de modo y se mapean las variables
+   semánticas existentes a esos tokens para mantener compatibilidad.
+   No sustituye colores hardcodeados de hojas legacy.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Variables oficiales — modo claro */
+  --rrll-bg-app-light: #eef4f8;
+  --rrll-bg-panel-light: #ffffff;
+  --rrll-bg-card-light: #ffffff;
+  --rrll-bg-soft-light: #f6f8fb;
+  --rrll-bg-table-head-light: #edf4f7;
+  --rrll-bg-table-hover-light: #f4f7fa;
+
+  --rrll-sidebar-light: #2f3642;
+  --rrll-sidebar-hover-light: #3b4452;
+  --rrll-sidebar-active-light: #465264;
+
+  --rrll-text-main-light: #111827;
+  --rrll-text-secondary-light: #334155;
+  --rrll-text-muted-light: #64748b;
+  --rrll-text-placeholder-light: #94a3b8;
+  --rrll-text-on-dark-light: #f8fafc;
+
+  --rrll-border-light: rgba(148,163,184,.30);
+  --rrll-border-soft-light: rgba(148,163,184,.18);
+  --rrll-separator-light: #d7dee7;
+
+  /* Colores corporativos y estados */
+  --rrll-red-main: #e30613;
+  --rrll-red-ui: #a73535;
+  --rrll-red-hover: #8f2d2d;
+
+  --rrll-success-light: #15803d;
+  --rrll-warning-light: #d97706;
+  --rrll-error-light: #b91c1c;
+  --rrll-info-light: #2563eb;
+
+  /* Sombras */
+  --rrll-shadow-light: 0 2px 10px rgba(15,23,42,.06);
+  --rrll-shadow-panel-light: 0 4px 18px rgba(15,23,42,.08);
+  --rrll-shadow-dark: 0 4px 18px rgba(0,0,0,.20);
+
+  /* Variables activas — modo claro */
+  --bg: var(--rrll-bg-app-light);
+  --panel: var(--rrll-bg-panel-light);
+  --text: var(--rrll-text-main-light);
+  --muted: var(--rrll-text-muted-light);
+  --border: var(--rrll-border-light);
+  --black: var(--rrll-text-main-light);
+  --red: var(--rrll-red-ui);
+  --red-dark: var(--rrll-red-hover);
+  --shadow: var(--rrll-shadow-panel-light);
+
+  --rrll-bg-app: var(--rrll-bg-app-light);
+  --rrll-surface-base: var(--rrll-bg-soft-light);
+  --rrll-surface-card: var(--rrll-bg-card-light);
+  --rrll-surface-raised: var(--rrll-bg-panel-light);
+  --rrll-surface-header: var(--rrll-bg-table-head-light);
+  --rrll-surface-hover: var(--rrll-bg-table-hover-light);
+
+  --rrll-field-bg: var(--rrll-bg-panel-light);
+  --rrll-field-bg-focus: var(--rrll-bg-soft-light);
+
+  --rrll-border: var(--rrll-border-light);
+  --rrll-border-strong: var(--rrll-separator-light);
+
+  --rrll-text-main: var(--rrll-text-main-light);
+  --rrll-text-soft: var(--rrll-text-secondary-light);
+  --rrll-text-muted: var(--rrll-text-muted-light);
+
+  --rrll-shadow-soft: var(--rrll-shadow-light);
+  --rrll-shadow-red: 0 14px 30px rgba(167, 53, 53, .18);
+
+  --phase4-sidebar-bg: var(--rrll-sidebar-light);
+  --phase4-sidebar-bg-2: var(--rrll-sidebar-active-light);
+  --phase4-sidebar-hover: var(--rrll-sidebar-hover-light);
+
+  /* Familia tipográfica */
+  --rrll-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Escala tipográfica */
+  --rrll-font-2xs: 10px;
+  --rrll-font-xs: 11px;
+  --rrll-font-sm: 12px;
+  --rrll-font-md: 13px;
+  --rrll-font-base: 14px;
+  --rrll-font-lg: 16px;
+  --rrll-font-xl: 18px;
+  --rrll-font-2xl: 22px;
+  --rrll-font-3xl: 26px;
+
+  --rrll-line-tight: 1.15;
+  --rrll-line-normal: 1.35;
+  --rrll-line-relaxed: 1.55;
+
+  /* Compatibilidad con variables antiguas */
+  --rrll-fs-page: var(--rrll-font-xl);
+  --rrll-fs-section: var(--rrll-font-base);
+  --rrll-fs-card: var(--rrll-font-md);
+
+  /* Espaciado */
+  --rrll-space-2xs: 2px;
+  --rrll-space-xs: 4px;
+  --rrll-space-sm: 6px;
+  --rrll-space-md: 8px;
+  --rrll-space-lg: 10px;
+  --rrll-space-xl: 12px;
+  --rrll-space-2xl: 16px;
+  --rrll-space-3xl: 20px;
+  --rrll-space-4xl: 24px;
+
+  /* Radios */
+  --rrll-radius-xs: 4px;
+  --rrll-radius-sm: 6px;
+  --rrll-radius-md: 8px;
+  --rrll-radius-lg: 12px;
+  --rrll-radius-xl: 16px;
+  --rrll-radius-pill: 999px;
+
+  /* Controles */
+  --rrll-control-height-sm: 28px;
+  --rrll-control-height: 34px;
+  --rrll-control-height-lg: 40px;
+  --rrll-control-padding-x: 10px;
+  --rrll-control-padding-y: 7px;
+
+  /* Tablas */
+  --rrll-table-font: var(--rrll-font-md);
+  --rrll-table-head-font: var(--rrll-font-sm);
+  --rrll-table-cell-padding-y: 8px;
+  --rrll-table-cell-padding-x: 10px;
+
+
+  /* Paleta oficial RRLL — claro/oscuro (Fase 1) */
+  --rrll-bg-app-light: #eef4f8;
+  --rrll-bg-panel-light: #ffffff;
+  --rrll-bg-card-light: #ffffff;
+  --rrll-bg-soft-light: #f1f5f9;
+  --rrll-bg-table-head-light: #edf4f7;
+  --rrll-bg-table-row-light: #ffffff;
+  --rrll-bg-table-hover-light: #e8f1f5;
+  --rrll-text-main-light: #111827;
+  --rrll-text-secondary-light: #334155;
+  --rrll-text-muted-light: #64748b;
+  --rrll-border-light: rgba(148, 163, 184, .32);
+  --rrll-border-soft-light: rgba(148, 163, 184, .20);
+
+  --rrll-bg-app-dark: #222936;
+  --rrll-bg-panel-dark: #2b313d;
+  --rrll-bg-card-dark: #2b313d;
+  --rrll-bg-soft-dark: #303746;
+  --rrll-bg-table-head-dark: #343b46;
+  --rrll-bg-table-row-dark: #2b313d;
+  --rrll-bg-table-hover-dark: #3a4152;
+  --rrll-text-main-dark: #e5e7eb;
+  --rrll-text-secondary-dark: #cbd5e1;
+  --rrll-text-muted-dark: #aab3c2;
+  --rrll-border-dark: rgba(148, 163, 184, .18);
+  --rrll-border-soft-dark: rgba(148, 163, 184, .12);
+
+  /* Zonas funcionales */
+  --rrll-sidebar-font: var(--rrll-font-md);
+  --rrll-form-font: var(--rrll-font-md);
+  --rrll-button-font: var(--rrll-font-md);
+  --rrll-modal-font: var(--rrll-font-md);
+}
+
+html[data-theme="light"] {
+  /* Variables activas — modo claro explícito */
+  --bg: var(--rrll-bg-app-light);
+  --panel: var(--rrll-bg-panel-light);
+  --text: var(--rrll-text-main-light);
+  --muted: var(--rrll-text-muted-light);
+  --border: var(--rrll-border-light);
+  --black: var(--rrll-text-main-light);
+  --red: var(--rrll-red-ui);
+  --red-dark: var(--rrll-red-hover);
+  --shadow: var(--rrll-shadow-panel-light);
+
+  --rrll-bg-app: var(--rrll-bg-app-light);
+  --rrll-surface-base: var(--rrll-bg-soft-light);
+  --rrll-surface-card: var(--rrll-bg-card-light);
+  --rrll-surface-raised: var(--rrll-bg-panel-light);
+  --rrll-surface-header: var(--rrll-bg-table-head-light);
+  --rrll-surface-hover: var(--rrll-bg-table-hover-light);
+
+  --rrll-field-bg: var(--rrll-bg-panel-light);
+  --rrll-field-bg-focus: var(--rrll-bg-soft-light);
+
+  --rrll-border: var(--rrll-border-light);
+  --rrll-border-strong: var(--rrll-separator-light);
+
+  --rrll-text-main: var(--rrll-text-main-light);
+  --rrll-text-soft: var(--rrll-text-secondary-light);
+  --rrll-text-muted: var(--rrll-text-muted-light);
+
+  --rrll-shadow-soft: var(--rrll-shadow-light);
+  --rrll-shadow-red: 0 14px 30px rgba(167, 53, 53, .18);
+
+  --phase4-sidebar-bg: var(--rrll-sidebar-light);
+  --phase4-sidebar-bg-2: var(--rrll-sidebar-active-light);
+  --phase4-sidebar-hover: var(--rrll-sidebar-hover-light);
+
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  /* Variables oficiales — modo oscuro */
+  --rrll-bg-app-dark: #1f2630;
+  --rrll-bg-panel-dark: #2b313d;
+  --rrll-bg-card-dark: #303746;
+  --rrll-bg-soft-dark: #343b46;
+  --rrll-bg-table-head-dark: #343b46;
+  --rrll-bg-table-row-dark: #2b313d;
+  --rrll-bg-table-hover-dark: #3b4350;
+
+  --rrll-sidebar-dark: #171c24;
+  --rrll-sidebar-hover-dark: #232a35;
+  --rrll-sidebar-active-dark: #2f3947;
+
+  --rrll-text-main-dark: #f1f5f9;
+  --rrll-text-secondary-dark: #cbd5e1;
+  --rrll-text-muted-dark: #94a3b8;
+  --rrll-text-placeholder-dark: #64748b;
+
+  --rrll-border-dark: rgba(148,163,184,.18);
+  --rrll-border-soft-dark: rgba(148,163,184,.10);
+
+  --rrll-input-bg-dark: #2b313d;
+  --rrll-input-focus-dark: #343b46;
+
+  --rrll-success-dark: #22c55e;
+  --rrll-warning-dark: #f59e0b;
+  --rrll-error-dark: #ef4444;
+  --rrll-info-dark: #60a5fa;
+
+  /* Variables activas — modo oscuro */
+  --bg: var(--rrll-bg-app-dark);
+  --panel: var(--rrll-bg-panel-dark);
+  --text: var(--rrll-text-main-dark);
+  --muted: var(--rrll-text-muted-dark);
+  --border: var(--rrll-border-dark);
+  --black: var(--rrll-bg-soft-dark);
+  --red: var(--rrll-red-ui);
+  --red-dark: var(--rrll-red-hover);
+  --soft-red: rgba(239, 68, 68, .12);
+  --warning: rgba(245, 158, 11, .14);
+  --expired: rgba(239, 68, 68, .14);
+  --chart-gray: #6b7280;
+  --shadow: var(--rrll-shadow-dark);
+
+  --rrll-bg-app: var(--rrll-bg-app-dark);
+  --rrll-surface-base: var(--rrll-bg-panel-dark);
+  --rrll-surface-card: var(--rrll-bg-panel-dark);
+  --rrll-surface-raised: var(--rrll-bg-card-dark);
+  --rrll-surface-header: var(--rrll-bg-table-head-dark);
+  --rrll-surface-hover: var(--rrll-bg-table-hover-dark);
+
+  --rrll-field-bg: var(--rrll-input-bg-dark);
+  --rrll-field-bg-focus: var(--rrll-input-focus-dark);
+
+  --rrll-border: var(--rrll-border-dark);
+  --rrll-border-strong: var(--rrll-border-soft-dark);
+
+  --rrll-text-main: var(--rrll-text-main-dark);
+  --rrll-text-soft: var(--rrll-text-secondary-dark);
+  --rrll-text-muted: var(--rrll-text-muted-dark);
+
+  --rrll-shadow-soft: var(--rrll-shadow-dark);
+  --rrll-shadow-red: 0 14px 30px rgba(185, 37, 27, .23);
+
+  --phase4-sidebar-bg: var(--rrll-sidebar-dark);
+  --phase4-sidebar-bg-2: var(--rrll-sidebar-active-dark);
+  --phase4-sidebar-hover: var(--rrll-sidebar-hover-dark);
+
+  color-scheme: dark;
+}
