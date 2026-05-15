@@ -354,6 +354,7 @@
       if (petitionerInput) petitionerInput.value = item.petitioner || "";
       if (requestDateInput) requestDateInput.value = item.requestDate || "";
       if (statusInput) statusInput.value = item.status || "agenda-pending";
+      populateAgendaCommitteeSessionSelect(item);
       if (notesInput) notesInput.value = item.notes || "";
       if (updateInput) updateInput.value = "";
       renderEditableUpdates("agendaExistingUpdates", item.updates || []);
@@ -366,7 +367,7 @@
       activeAgendaUpdateId = null;
       const modal = document.getElementById("agendaUpdateModal");
       if (modal) modal.classList.remove("open");
-      ["agendaEditTitle", "agendaEditPetitioner", "agendaEditRequestDate", "agendaEditNotes", "agendaUpdateModalText"].forEach(id => {
+      ["agendaEditTitle", "agendaEditPetitioner", "agendaEditRequestDate", "agendaEditCommitteeSession", "agendaEditNotes", "agendaUpdateModalText"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
       });
@@ -388,9 +389,24 @@
       const petitioner = (document.getElementById("agendaEditPetitioner")?.value || "").trim();
       const requestDate = document.getElementById("agendaEditRequestDate")?.value || "";
       const status = document.getElementById("agendaEditStatus")?.value || "agenda-pending";
+      const selectedSessionId = document.getElementById("agendaEditCommitteeSession")?.value || "";
       const notes = (document.getElementById("agendaEditNotes")?.value || "").trim();
       const updateText = (document.getElementById("agendaUpdateModalText")?.value || "").trim();
       const now = new Date().toISOString();
+      const originalItem = getAgendaItems().find(item => item.id === activeAgendaUpdateId);
+      const isNewSessionAssignment = selectedSessionId && selectedSessionId !== (originalItem?.committeeSessionId || "");
+
+      if (selectedSessionId && isNewSessionAssignment && status !== "agenda-progress") {
+        alert("Solo los puntos en curso pueden asignarse a sesiones abiertas de Comité.");
+        return;
+      }
+
+      const sessionPatch = assignAgendaItemToCommitteeSession(activeAgendaUpdateId, selectedSessionId);
+      if (!sessionPatch) {
+        alert("La sesión seleccionada ya no está abierta.");
+        populateAgendaCommitteeSessionSelect(originalItem);
+        return;
+      }
 
       const items = getAgendaItems().map(item => {
         if (item.id !== activeAgendaUpdateId) return item;
@@ -400,6 +416,7 @@
           : editedUpdates;
         return {
           ...item,
+          ...sessionPatch,
           title,
           petitioner,
           requestDate,
@@ -455,8 +472,22 @@
     }
 
     function getCommitteeSessionDisplayItems(session) {
-      const agendaById = Object.fromEntries(getAgendaItems().map(item => [item.id, item]));
-      return (Array.isArray(session.items) ? session.items : []).map((raw, index) => ({
+      const agendaItems = getAgendaItems();
+      const agendaById = Object.fromEntries(agendaItems.map(item => [item.id, item]));
+      const rawItems = Array.isArray(session.items) ? [...session.items] : [];
+      const seenIds = new Set(rawItems.map(raw => committeeSessionItemId(raw)).filter(Boolean));
+
+      agendaItems
+        .filter(item => agendaMatchesCommitteeSession(item, session))
+        .sort((a, b) => (Number(a.committeeSessionOrder) || Number.MAX_SAFE_INTEGER) - (Number(b.committeeSessionOrder) || Number.MAX_SAFE_INTEGER))
+        .forEach(item => {
+          if (!seenIds.has(item.id)) {
+            rawItems.push(item.id);
+            seenIds.add(item.id);
+          }
+        });
+
+      return rawItems.map((raw, index) => ({
         raw,
         key: committeeSessionItemId(raw),
         title: committeeSessionItemTitle(raw, agendaById),
@@ -544,6 +575,76 @@
       return `${session.code || "Sin código"} · ${date}`;
     }
 
+    function isOpenCommitteeSession(session) {
+      return !!session && session.status !== "closed";
+    }
+
+    function getOpenCommitteeSessions() {
+      return getCommitteeSessions()
+        .filter(isOpenCommitteeSession)
+        .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.code || "").localeCompare(String(b.code || ""), "es"));
+    }
+
+    function committeeSessionSelectLabel(session) {
+      const code = String(session && session.code ? session.code : "Sin código").trim();
+      const date = session && session.date
+        ? new Date(session.date + "T00:00:00").toLocaleDateString("es-ES")
+        : "Sin fecha";
+      return `${code} - ${date}`;
+    }
+
+    function agendaMatchesCommitteeSession(item, session) {
+      if (!item || !session) return false;
+      const sessionId = String(session.id || "");
+      const sessionCode = String(session.code || "");
+      return (sessionId && item.committeeSessionId === sessionId) || (sessionCode && item.committeeSessionCode === sessionCode);
+    }
+
+    function populateAgendaCommitteeSessionSelect(item) {
+      const select = document.getElementById("agendaEditCommitteeSession");
+      if (!select) return;
+      const currentSessionId = item && item.committeeSessionId ? String(item.committeeSessionId) : "";
+      const openSessions = getOpenCommitteeSessions();
+      select.innerHTML = `<option value="">Sin sesión</option>` + openSessions.map(session => `
+        <option value="${escapeHtml(session.id)}">${escapeHtml(committeeSessionSelectLabel(session))}</option>
+      `).join("");
+      const currentOpenSession = openSessions.find(session => session.id === currentSessionId || agendaMatchesCommitteeSession(item, session));
+      select.value = currentOpenSession ? currentOpenSession.id : "";
+    }
+
+    function assignAgendaItemToCommitteeSession(agendaId, targetSessionId) {
+      const sessions = getCommitteeSessions();
+      const targetSession = targetSessionId ? sessions.find(session => session.id === targetSessionId && isOpenCommitteeSession(session)) : null;
+      if (targetSessionId && !targetSession) return null;
+
+      sessions.forEach(session => {
+        if (!isOpenCommitteeSession(session) && session.id !== targetSessionId) return;
+        const items = Array.isArray(session.items) ? session.items : [];
+        session.items = items.filter(raw => committeeSessionItemId(raw) !== agendaId);
+      });
+
+      if (targetSession) {
+        targetSession.items = Array.isArray(targetSession.items) ? targetSession.items : [];
+        if (!targetSession.items.some(raw => committeeSessionItemId(raw) === agendaId)) targetSession.items.push(agendaId);
+      }
+
+      setCommitteeSessions(sessions);
+      const order = targetSession ? targetSession.items.findIndex(raw => committeeSessionItemId(raw) === agendaId) : -1;
+      return targetSession ? {
+        committeeSessionId: targetSession.id,
+        committeeSessionCode: targetSession.code,
+        committeeSessionDate: targetSession.date,
+        committeeSessionOrder: order >= 0 ? order + 1 : null,
+        closedByCommittee: false
+      } : {
+        committeeSessionId: "",
+        committeeSessionCode: "",
+        committeeSessionDate: "",
+        committeeSessionOrder: null,
+        closedByCommittee: false
+      };
+    }
+
     let activeAgendaAddToSessionId = null;
     let activeCommitteeOrderSessionId = null;
     let activeCommitteeCloseSessionId = null;
@@ -602,18 +703,17 @@
         return;
       }
 
-      session.items = Array.isArray(session.items) ? session.items : [];
-      if (!session.items.includes(agendaId)) session.items.push(agendaId);
+      const sessionPatch = assignAgendaItemToCommitteeSession(agendaId, session.id);
+      if (!sessionPatch) {
+        alert("La sesión seleccionada no está abierta.");
+        return;
+      }
 
       const updatedAgenda = agenda.map(i => i.id === agendaId ? {
         ...i,
-        committeeSessionId: session.id,
-        committeeSessionCode: session.code,
-        committeeSessionDate: session.date,
-        committeeSessionOrder: session.items.indexOf(agendaId) + 1
+        ...sessionPatch
       } : i);
 
-      setCommitteeSessions(sessions);
       setAgendaItems(updatedAgenda);
       closeAddAgendaToCommitteeModal();
       renderCommitteeSessions();
