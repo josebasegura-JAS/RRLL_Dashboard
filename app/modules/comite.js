@@ -903,8 +903,8 @@
           ondrop="handleCommitteeOrderDrop(event, '${escapeHtml(item.key)}')"
           ondragend="handleCommitteeOrderDragEnd(event)">
           <div class="session-order-number">${index + 1}</div>
-          <div>
-            <textarea class="session-order-edit" data-order-key="${escapeHtml(item.key)}" ${item.linked ? "readonly title='Los puntos vinculados se editan desde el gestor de puntos'" : ""}>${escapeHtml(item.title || "Sin título")}</textarea>
+          <div class="session-order-content">
+            <textarea class="session-order-edit" aria-label="Título del punto ${index + 1}" data-order-key="${escapeHtml(item.key)}" ${item.linked ? "readonly title='Los puntos vinculados se editan desde el gestor de puntos'" : ""}>${escapeHtml(item.title || "Sin título")}</textarea>
             <div class="session-item-meta">${escapeHtml(item.meta || "")}${item.linked ? " · Editar texto desde el gestor de puntos" : ""}</div>
           </div>
           <div class="session-order-handle" title="Arrastra para ordenar">☰</div>
