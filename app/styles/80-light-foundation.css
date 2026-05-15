@@ -1465,7 +1465,7 @@ body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #l
 
 #gestor-plantilla .plantilla-table th:nth-child(2),
 #gestor-plantilla .plantilla-table td:nth-child(2) {
-  width: 33%;
+  width: 32%;
   text-align: left;
 }
 
@@ -1477,13 +1477,14 @@ body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #l
 
 #gestor-plantilla .plantilla-table th:nth-child(4),
 #gestor-plantilla .plantilla-table td:nth-child(4) {
-  width: 19%;
+  width: 21%;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(5),
 #gestor-plantilla .plantilla-table td:nth-child(5) {
-  width: 13%;
+  width: 11%;
   text-align: center;
+  white-space: nowrap;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(6),
@@ -1494,7 +1495,7 @@ body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #l
 
 #gestor-plantilla .plantilla-table th:nth-child(7),
 #gestor-plantilla .plantilla-table td:nth-child(7) {
-  width: 14%;
+  width: 15%;
   text-align: center;
 }
 
@@ -1523,6 +1524,15 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
   white-space: nowrap !important;
   overflow: hidden !important;
   flex: 0 0 38px !important;
+}
+
+body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-button.rrll-icon-only > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  line-height: 1;
+  pointer-events: none;
 }
 
 #gestor-plantilla .plantilla-table .rrll-pro-actions {
