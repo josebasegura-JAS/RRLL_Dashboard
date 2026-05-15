@@ -1016,14 +1016,14 @@
                 </div>
                 <div class="rrll-pro-list-actions">
                   <input id="plantillaExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaExcelFromInput(event)" />
-                  <button class="rrll-pro-tool-button" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()">Importar Excel</button>
-                  <button class="rrll-pro-tool-button" type="button" onclick="printPlantilla()">🖨️ Imprimir</button>
-                  <button class="rrll-pro-tool-button excel" type="button" onclick="exportPlantillaExcel()">Excel</button>
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()" title="Importar Excel" aria-label="Importar Excel">⇪</button>
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printPlantilla()" title="Imprimir plantilla" aria-label="Imprimir plantilla">🖨️</button>
+                  <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportPlantillaExcel()" title="Exportar plantilla a Excel" aria-label="Exportar plantilla a Excel">X</button>
                 </div>
               </div>
               <div class="rrll-pro-table-wrap">
                 <table class="rrll-pro-table plantilla-table">
-                  <thead><tr><th>Nº</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Antigüedad en puesto</th><th>Nivel</th><th>Acciones</th></tr></thead>
+                  <thead><tr><th>Nº</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel</th><th>Acciones</th></tr></thead>
                   <tbody id="plantillaTableBody"></tbody>
                 </table>
               </div>
