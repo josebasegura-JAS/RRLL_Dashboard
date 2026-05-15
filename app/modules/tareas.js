@@ -479,11 +479,29 @@
         if (row) row.classList.toggle("expanded");
       }
 
+
+      function taskPriorityBadgeHtml(value) {
+        const raw = String(value || "normal").toLowerCase();
+        const normalized = raw === "low" || raw === "baja" ? "low" : normalizePriority(value);
+        const labels = { low: "Baja", baja: "Baja", normal: "Normal", high: "Alta", alta: "Alta" };
+        const label = labels[raw] || priorityLabel(value).replace(/^Prioridad:\s*/i, "");
+        return `<span class="priority-badge priority-${normalized}">${escapeHtml(label)}</span>`;
+      }
+
+      function taskDueSummaryText(due, hasDueDate) {
+        if (!hasDueDate) return "Sin fecha";
+        if (due.diffDays < 0) return "Vencida";
+        if (due.diffDays === 0) return "Hoy";
+        if (due.diffDays <= 5) return "Próxima";
+        return "Con fecha";
+      }
+
       function renderTaskRow(task) {
         const due = dueStatus(task.dueDate);
         const created = task.createdAt ? new Date(task.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
         const closed = task.closedAt ? new Date(task.closedAt).toLocaleDateString("es-ES") : "";
-        const dueText = task.dueDate ? due.text.replace("Fecha límite: ", "") : "Sin fecha";
+        const dueText = taskDueSummaryText(due, task.dueDate);
+        const dueDetail = task.dueDate ? due.text : "Sin fecha límite";
         const notes = task.notes || "Sin notas";
         const statusClass = taskStatusClass(task.status);
 
@@ -493,16 +511,17 @@
               <div class="rrll-pro-title">${escapeHtml(task.title || "Sin título")}</div>
               <div class="rrll-pro-subtitle">${escapeHtml(notes)}</div>
               <div class="rrll-pro-created">Creada: ${escapeHtml(created)}${closed ? ` · Cerrada: ${escapeHtml(closed)}` : ""}</div>
+              <div class="rrll-pro-due-detail">${escapeHtml(dueDetail)}</div>
               <div class="rrll-pro-update">Última actualización: ${escapeHtml(lastTaskUpdate(task))}</div>
             </td>
-            <td>${priorityBadgeHtml(task.priority)}</td>
+            <td>${taskPriorityBadgeHtml(task.priority)}</td>
             <td><span class="rrll-status-pill ${statusClass}">${escapeHtml(taskStatusLabel(task.status))}</span></td>
-            <td><span class="rrll-due-pill${due.className}">${escapeHtml(dueText)}</span></td>
+            <td><span class="rrll-due-pill${due.className}" title="${escapeHtml(dueDetail)}">${escapeHtml(dueText)}</span></td>
             <td class="rrll-pro-actions" onclick="event.stopPropagation()">
               ${task.status !== "pending" ? `<button class="small secondary" onclick="moveTask('${task.id}', 'pending')">Pendiente</button>` : ""}
               ${task.status !== "progress" ? `<button class="small black" onclick="moveTask('${task.id}', 'progress')">En curso</button>` : ""}
               ${task.status !== "closed" ? `<button class="small" onclick="moveTask('${task.id}', 'closed')">Cerrar</button>` : ""}
-              <button class="small danger" onclick="deleteTask('${task.id}')">Eliminar</button>
+              <button class="small danger rrll-delete-icon-button" onclick="deleteTask('${task.id}')" title="Eliminar tarea" aria-label="Eliminar tarea"><span aria-hidden="true">🗑️</span></button>
             </td>
           </tr>
         `;
