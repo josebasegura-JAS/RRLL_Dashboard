@@ -577,15 +577,20 @@
 
       titleEl.textContent = `${session.title || "Sesión de Paritaria"} · ${sessionLabel(session)}`;
       const items = getParitariaSessionDisplayItems(session);
-      listEl.innerHTML = items.length ? items.map((item, index) => `
-        <label class="session-close-row">
-          <input type="checkbox" data-session-close-point value="${escapeHtml(item.key)}" checked />
-          <span class="session-close-content">
-            <strong>${index + 1}. ${escapeHtml(item.title || "Sin título")}</strong>
-            <small>${escapeHtml(item.meta || "")}</small>
-          </span>
-        </label>
-      `).join("") : `<p class="muted">Esta sesión no tiene puntos asignados. Puedes cerrarla sin modificar puntos.</p>`;
+      listEl.innerHTML = items.length ? items.map((item, index) => {
+        const linked = typeof item.raw === "string" ? getParitariaItems().find(paritariaItem => paritariaItem.id === item.raw) : null;
+        const currentStatus = linked ? paritariaStatusLabel(linked.status) : "Histórico importado";
+        const petitioner = linked && linked.petitioner ? linked.petitioner : "Sin indicar";
+        return `
+          <label class="session-close-row">
+            <input type="checkbox" data-session-close-point value="${escapeHtml(item.key)}" checked />
+            <span class="session-close-content">
+              <strong><span class="session-close-number">${index + 1}.</span> ${escapeHtml(item.title || "Sin título")}</strong>
+              <small><span>Estado actual: ${escapeHtml(currentStatus)}</span><span>Peticionario: ${escapeHtml(petitioner)}</span></small>
+            </span>
+          </label>
+        `;
+      }).join("") : `<p class="muted">Esta sesión no tiene puntos asignados. Puedes cerrarla sin modificar puntos.</p>`;
 
       modal.classList.add("open");
       setTimeout(() => modal.querySelector("[data-session-close-point]")?.focus(), 0);
