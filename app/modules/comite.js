@@ -507,22 +507,28 @@
           alert("No se han detectado sesiones importables en el documento.");
           return;
         }
-        const confirmed = confirm(`Se han detectado ${result.sessionCount} sesiones y ${result.pointCount} puntos del orden del día en ${result.fileName}.\n\nSe importarán solo como sesiones históricas de Comité, sin crear puntos en el gestor de puntos.\n\n¿Continuar?`);
-        if (!confirmed) return;
-        const existing = getCommitteeSessions();
-        const existingKeys = new Set(existing.map(s => `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`));
-        const incoming = result.sessions.filter(s => {
-          const key = `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`;
-          return !existingKeys.has(key);
+        confirmCommitteeAction({
+          title: "Importar histórico Word",
+          message: `Se han detectado ${result.sessionCount} sesiones y ${result.pointCount} puntos del orden del día en ${result.fileName}. Se importarán solo como sesiones históricas de Comité, sin crear puntos en el gestor de puntos.`,
+          confirmLabel: "Importar",
+          danger: false,
+          onConfirm: () => {
+            const existing = getCommitteeSessions();
+            const existingKeys = new Set(existing.map(s => `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`));
+            const incoming = result.sessions.filter(s => {
+              const key = `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`;
+              return !existingKeys.has(key);
+            });
+            if (!incoming.length) {
+              alert("Todas las sesiones detectadas ya existen en la app. No se ha importado nada.");
+              return;
+            }
+            setCommitteeSessions([...incoming, ...existing]);
+            renderCommitteeSessions();
+            updateQuickCounts();
+            alert(`Importación completada.\nSesiones importadas: ${incoming.length}\nSesiones omitidas por posible duplicado: ${result.sessions.length - incoming.length}`);
+          }
         });
-        if (!incoming.length) {
-          alert("Todas las sesiones detectadas ya existen en la app. No se ha importado nada.");
-          return;
-        }
-        setCommitteeSessions([...incoming, ...existing]);
-        renderCommitteeSessions();
-        updateQuickCounts();
-        alert(`Importación completada.\nSesiones importadas: ${incoming.length}\nSesiones omitidas por posible duplicado: ${result.sessions.length - incoming.length}`);
       } catch (error) {
         alert(`No se pudo importar el histórico.\nDetalle: ${error && error.message ? error.message : error}`);
       }
@@ -990,17 +996,32 @@
       openCommitteeSessionCloseModal(sessionId);
     }
 
-    function reopenCommitteeSession(sessionId) {
+    function closeCommitteeSessionFromOrderModal() {
+      const sessionId = activeCommitteeOrderSessionId;
+      if (!sessionId) return;
+      closeCommitteeSessionOrderModal();
+      openCommitteeSessionCloseModal(sessionId);
+    }
+
+    function executeReopenCommitteeSession(sessionId) {
       const sessions = getCommitteeSessions();
       const session = sessions.find(s => s.id === sessionId);
       if (!session || session.status !== "closed") return;
-      const confirmed = confirm("Reabrir esta sesión? Los puntos seguirán cerrados salvo que los reabras manualmente.");
-      if (!confirmed) return;
       session.status = "open";
       session.closedAt = null;
       setCommitteeSessions(sessions);
       renderCommitteeSessions();
       updateQuickCounts();
+    }
+
+    function reopenCommitteeSession(sessionId) {
+      confirmCommitteeAction({
+        title: "Reabrir sesión",
+        message: "¿Quieres reabrir esta sesión? Los puntos seguirán cerrados salvo que los reabras manualmente.",
+        confirmLabel: "Reabrir",
+        danger: false,
+        onConfirm: () => executeReopenCommitteeSession(sessionId)
+      });
     }
 
     function executeDeleteCommitteeSession(sessionId) {
@@ -1167,7 +1188,7 @@
       card.innerHTML = `
         <div class="session-card-toolbar" onclick="event.stopPropagation()">
           <button class="session-card-icon" type="button" onclick="printCommitteeSession('${session.id}')" title="Imprimir esta sesión">🖨️</button>
-          <button class="session-card-icon excel-icon" type="button" onclick="exportCommitteeSessionExcel('${session.id}')" title="Exportar esta sesión a Excel" aria-label="Exportar esta sesión a Excel">📊</button>
+          <button class="session-card-icon excel-icon" type="button" onclick="exportCommitteeSessionExcel('${session.id}')" title="Exportar esta sesión a Excel" aria-label="Exportar esta sesión a Excel">X</button>
         </div>
         <div class="rrll-session-card-head">
           <button class="rrll-session-card-toggle" type="button" onclick="event.stopPropagation(); toggleCommitteeSessionCard('${session.id}')" aria-expanded="${collapsed ? "false" : "true"}" title="Plegar/desplegar sesión">${collapsed ? "▸" : "▾"}</button>
@@ -1261,9 +1282,11 @@
 
       const titleEl = document.getElementById("committeeSessionOrderTitle");
       const addPointButton = document.getElementById("committeeSessionAddPointButton");
+      const closeSessionButton = document.getElementById("committeeSessionCloseButton");
       const modal = document.getElementById("committeeSessionOrderModal");
       if (titleEl) titleEl.textContent = `${session.title || "Sesión de Comité"} · ${sessionLabel(session)}`;
       if (addPointButton) addPointButton.style.display = session.status === "closed" ? "none" : "inline-flex";
+      if (closeSessionButton) closeSessionButton.style.display = session.status === "closed" ? "none" : "inline-flex";
       renderCommitteeSessionOrderDraft();
       if (modal) modal.classList.add("open");
     }
@@ -1588,6 +1611,7 @@
     removeCommitteeSessionItem,
     syncAgendaSessionOrder,
     closeCommitteeSession,
+    closeCommitteeSessionFromOrderModal,
     reopenCommitteeSession,
     deleteCommitteeSession,
     getCommitteeSessionView,
