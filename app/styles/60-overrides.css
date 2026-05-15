@@ -3956,3 +3956,56 @@ body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #c
   box-sizing: border-box !important;
   overflow-wrap: anywhere !important;
 }
+
+body.phase4-view-module :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-modal-box {
+  max-width: min(760px, calc(100vw - 32px)) !important;
+  width: min(760px, calc(100vw - 32px)) !important;
+  overflow-x: hidden !important;
+}
+
+body.phase4-view-module :is(#committeeSessionCloseList, #paritariaSessionCloseList).session-close-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  max-height: min(52vh, 520px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 10px !important;
+  margin: 12px 0 !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 14px !important;
+  background: rgba(15, 23, 42, 0.42) !important;
+  box-sizing: border-box !important;
+}
+
+body.phase4-view-module :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 10px 12px !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  border-radius: 12px !important;
+  background: rgba(15, 23, 42, 0.58) !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+}
+
+body.phase4-view-module :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-row input {
+  flex: 0 0 auto !important;
+  margin-top: 3px !important;
+}
+
+body.phase4-view-module :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+body.phase4-view-module :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content small {
+  color: var(--muted) !important;
+}

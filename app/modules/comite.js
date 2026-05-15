@@ -433,6 +433,7 @@
 
     let activeAgendaAddToSessionId = null;
     let activeCommitteeOrderSessionId = null;
+    let activeCommitteeCloseSessionId = null;
     let committeeOrderDraft = [];
     let draggedCommitteeAgendaId = null;
 
@@ -561,37 +562,97 @@
       setAgendaItems(agenda);
     }
 
-    function closeCommitteeSession(sessionId) {
+    function openCommitteeSessionCloseModal(sessionId) {
+      const session = getCommitteeSessions().find(s => s.id === sessionId);
+      if (!session || session.status === "closed") return;
+      activeCommitteeCloseSessionId = sessionId;
+
+      const titleEl = document.getElementById("committeeSessionCloseTitle");
+      const listEl = document.getElementById("committeeSessionCloseList");
+      const modal = document.getElementById("committeeSessionCloseModal");
+      if (!titleEl || !listEl || !modal) {
+        alert("No se ha encontrado la ventana de cierre de sesión.");
+        return;
+      }
+
+      titleEl.textContent = `${session.title || "Sesión de Comité"} · ${sessionLabel(session)}`;
+      const items = getCommitteeSessionDisplayItems(session);
+      listEl.innerHTML = items.length ? items.map((item, index) => `
+        <label class="session-close-row">
+          <input type="checkbox" data-session-close-point value="${escapeHtml(item.key)}" checked />
+          <span class="session-close-content">
+            <strong>${index + 1}. ${escapeHtml(item.title || "Sin título")}</strong>
+            <small>${escapeHtml(item.meta || "")}</small>
+          </span>
+        </label>
+      `).join("") : `<p class="muted">Esta sesión no tiene puntos asignados. Puedes cerrarla sin modificar puntos.</p>`;
+
+      modal.classList.add("open");
+      setTimeout(() => modal.querySelector("[data-session-close-point]")?.focus(), 0);
+    }
+
+    function closeCommitteeSessionCloseModal() {
+      activeCommitteeCloseSessionId = null;
+      const modal = document.getElementById("committeeSessionCloseModal");
+      if (modal) modal.classList.remove("open");
+    }
+
+    function confirmCommitteeSessionCloseFromModal() {
+      const sessionId = activeCommitteeCloseSessionId;
+      if (!sessionId) return;
+      const modal = document.getElementById("committeeSessionCloseModal");
+      const treatedIds = new Set(Array.from(modal?.querySelectorAll("[data-session-close-point]:checked") || []).map(input => input.value));
+
       const sessions = getCommitteeSessions();
       const session = sessions.find(s => s.id === sessionId);
-      if (!session || session.status === "closed") return;
-      const confirmed = confirm(`Cerrar la sesión ${sessionLabel(session)} y pasar sus puntos al histórico del Comité?`);
-      if (!confirmed) return;
+      if (!session || session.status === "closed") {
+        closeCommitteeSessionCloseModal();
+        return;
+      }
 
       const now = new Date().toISOString();
+      const originalItems = Array.isArray(session.items) ? [...session.items] : [];
+      session.items = originalItems.filter(raw => treatedIds.has(committeeSessionItemId(raw)));
       session.status = "closed";
       session.closedAt = now;
-      session.items = Array.isArray(session.items) ? session.items : [];
 
       const agenda = getAgendaItems().map(item => {
+        const wasInSession = originalItems.includes(item.id);
+        if (!wasInSession) return item;
         const order = session.items.indexOf(item.id);
-        if (order < 0) return item;
+        if (order >= 0) {
+          return {
+            ...item,
+            status: "agenda-closed",
+            closedAt: item.closedAt || now,
+            committeeSessionId: session.id,
+            committeeSessionCode: session.code,
+            committeeSessionDate: session.date,
+            committeeSessionOrder: order + 1,
+            closedByCommittee: true
+          };
+        }
         return {
           ...item,
-          status: "agenda-closed",
-          closedAt: item.closedAt || now,
-          committeeSessionId: session.id,
-          committeeSessionCode: session.code,
-          committeeSessionDate: session.date,
-          committeeSessionOrder: order + 1,
-          closedByCommittee: true
+          status: item.status === "agenda-closed" ? "agenda-progress" : item.status,
+          closedAt: item.status === "agenda-closed" ? null : item.closedAt,
+          committeeSessionId: "",
+          committeeSessionCode: "",
+          committeeSessionDate: "",
+          committeeSessionOrder: null,
+          closedByCommittee: false
         };
       });
 
       setCommitteeSessions(sessions);
       setAgendaItems(agenda);
+      closeCommitteeSessionCloseModal();
       renderCommitteeSessions();
       renderAgendaItems();
+    }
+
+    function closeCommitteeSession(sessionId) {
+      openCommitteeSessionCloseModal(sessionId);
     }
 
     function reopenCommitteeSession(sessionId) {
@@ -1183,6 +1244,8 @@
     closeAddAgendaToCommitteeModal,
     confirmAddAgendaToCommitteeSession,
     addAgendaItemToCommitteeSession,
+    closeCommitteeSessionCloseModal,
+    confirmCommitteeSessionCloseFromModal,
     moveCommitteeSessionItem,
     removeCommitteeSessionItem,
     syncAgendaSessionOrder,

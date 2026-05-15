@@ -433,6 +433,7 @@
 
     let activeParitariaAddToSessionId = null;
     let activeParitariaOrderSessionId = null;
+    let activeParitariaCloseSessionId = null;
     let paritariaOrderDraft = [];
     let draggedParitariaParitariaId = null;
 
@@ -561,37 +562,97 @@
       setParitariaItems(paritaria);
     }
 
-    function closeParitariaSession(sessionId) {
+    function openParitariaSessionCloseModal(sessionId) {
+      const session = getParitariaSessions().find(s => s.id === sessionId);
+      if (!session || session.status === "closed") return;
+      activeParitariaCloseSessionId = sessionId;
+
+      const titleEl = document.getElementById("paritariaSessionCloseTitle");
+      const listEl = document.getElementById("paritariaSessionCloseList");
+      const modal = document.getElementById("paritariaSessionCloseModal");
+      if (!titleEl || !listEl || !modal) {
+        alert("No se ha encontrado la ventana de cierre de sesión.");
+        return;
+      }
+
+      titleEl.textContent = `${session.title || "Sesión de Paritaria"} · ${sessionLabel(session)}`;
+      const items = getParitariaSessionDisplayItems(session);
+      listEl.innerHTML = items.length ? items.map((item, index) => `
+        <label class="session-close-row">
+          <input type="checkbox" data-session-close-point value="${escapeHtml(item.key)}" checked />
+          <span class="session-close-content">
+            <strong>${index + 1}. ${escapeHtml(item.title || "Sin título")}</strong>
+            <small>${escapeHtml(item.meta || "")}</small>
+          </span>
+        </label>
+      `).join("") : `<p class="muted">Esta sesión no tiene puntos asignados. Puedes cerrarla sin modificar puntos.</p>`;
+
+      modal.classList.add("open");
+      setTimeout(() => modal.querySelector("[data-session-close-point]")?.focus(), 0);
+    }
+
+    function closeParitariaSessionCloseModal() {
+      activeParitariaCloseSessionId = null;
+      const modal = document.getElementById("paritariaSessionCloseModal");
+      if (modal) modal.classList.remove("open");
+    }
+
+    function confirmParitariaSessionCloseFromModal() {
+      const sessionId = activeParitariaCloseSessionId;
+      if (!sessionId) return;
+      const modal = document.getElementById("paritariaSessionCloseModal");
+      const treatedIds = new Set(Array.from(modal?.querySelectorAll("[data-session-close-point]:checked") || []).map(input => input.value));
+
       const sessions = getParitariaSessions();
       const session = sessions.find(s => s.id === sessionId);
-      if (!session || session.status === "closed") return;
-      const confirmed = confirm(`Cerrar la sesión ${sessionLabel(session)} y pasar sus puntos al histórico de Paritaria?`);
-      if (!confirmed) return;
+      if (!session || session.status === "closed") {
+        closeParitariaSessionCloseModal();
+        return;
+      }
 
       const now = new Date().toISOString();
+      const originalItems = Array.isArray(session.items) ? [...session.items] : [];
+      session.items = originalItems.filter(raw => treatedIds.has(paritariaSessionItemId(raw)));
       session.status = "closed";
       session.closedAt = now;
-      session.items = Array.isArray(session.items) ? session.items : [];
 
       const paritaria = getParitariaItems().map(item => {
+        const wasInSession = originalItems.includes(item.id);
+        if (!wasInSession) return item;
         const order = session.items.indexOf(item.id);
-        if (order < 0) return item;
+        if (order >= 0) {
+          return {
+            ...item,
+            status: "paritaria-closed",
+            closedAt: item.closedAt || now,
+            paritariaSessionId: session.id,
+            paritariaSessionCode: session.code,
+            paritariaSessionDate: session.date,
+            paritariaSessionOrder: order + 1,
+            closedByParitaria: true
+          };
+        }
         return {
           ...item,
-          status: "paritaria-closed",
-          closedAt: item.closedAt || now,
-          paritariaSessionId: session.id,
-          paritariaSessionCode: session.code,
-          paritariaSessionDate: session.date,
-          paritariaSessionOrder: order + 1,
-          closedByParitaria: true
+          status: item.status === "paritaria-closed" ? "paritaria-progress" : item.status,
+          closedAt: item.status === "paritaria-closed" ? null : item.closedAt,
+          paritariaSessionId: "",
+          paritariaSessionCode: "",
+          paritariaSessionDate: "",
+          paritariaSessionOrder: null,
+          closedByParitaria: false
         };
       });
 
       setParitariaSessions(sessions);
       setParitariaItems(paritaria);
+      closeParitariaSessionCloseModal();
       renderParitariaSessions();
       renderParitariaItems();
+    }
+
+    function closeParitariaSession(sessionId) {
+      openParitariaSessionCloseModal(sessionId);
     }
 
     function reopenParitariaSession(sessionId) {
@@ -1178,6 +1239,8 @@
     closeAddParitariaToParitariaModal,
     confirmAddParitariaToParitariaSession,
     addParitariaItemToParitariaSession,
+    closeParitariaSessionCloseModal,
+    confirmParitariaSessionCloseFromModal,
     moveParitariaSessionItem,
     removeParitariaSessionItem,
     syncParitariaSessionOrder,
