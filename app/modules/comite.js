@@ -5,6 +5,78 @@
 
 // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
+
+    function ensureCommitteeConfirmModal() {
+      let modal = document.getElementById("committeeConfirmModal");
+      if (modal) return modal;
+
+      modal = document.createElement("div");
+      modal.id = "committeeConfirmModal";
+      modal.className = "modal-backdrop rrll-confirm-delete-modal";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "committeeConfirmTitle");
+      modal.innerHTML = `
+        <div class="modal-box rrll-confirm-delete-box" role="document">
+          <div class="rrll-confirm-delete-icon" aria-hidden="true">!</div>
+          <h3 id="committeeConfirmTitle">Confirmar acción</h3>
+          <p id="committeeConfirmText" class="muted">Revisa la acción antes de continuar.</p>
+          <div class="modal-actions rrll-confirm-delete-actions">
+            <button type="button" class="secondary" data-confirm-cancel>Cancelar</button>
+            <button type="button" class="danger" data-confirm-accept>Confirmar</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function confirmCommitteeAction(options) {
+      const modal = ensureCommitteeConfirmModal();
+      const titleEl = modal.querySelector("#committeeConfirmTitle");
+      const textEl = modal.querySelector("#committeeConfirmText");
+      const cancelButton = modal.querySelector("[data-confirm-cancel]");
+      const acceptButton = modal.querySelector("[data-confirm-accept]");
+      const action = options && typeof options.onConfirm === "function" ? options.onConfirm : null;
+
+      if (titleEl) titleEl.textContent = (options && options.title) || "Confirmar acción";
+      if (textEl) textEl.textContent = (options && options.message) || "Revisa la acción antes de continuar.";
+      if (acceptButton) acceptButton.textContent = (options && options.confirmLabel) || "Confirmar";
+      if (acceptButton) acceptButton.className = (options && options.danger === false) ? "" : "danger";
+
+      function close() {
+        modal.classList.remove("open");
+        modal.removeEventListener("click", handleBackdropClick);
+        document.removeEventListener("keydown", handleEscape);
+        cancelButton?.removeEventListener("click", handleCancel);
+        acceptButton?.removeEventListener("click", handleConfirm);
+      }
+
+      function handleCancel() {
+        close();
+      }
+
+      function handleConfirm() {
+        close();
+        if (action) action();
+      }
+
+      function handleBackdropClick(event) {
+        if (event.target === modal) close();
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape" && modal.classList.contains("open")) close();
+      }
+
+      cancelButton?.addEventListener("click", handleCancel);
+      acceptButton?.addEventListener("click", handleConfirm);
+      modal.addEventListener("click", handleBackdropClick);
+      document.addEventListener("keydown", handleEscape);
+      modal.classList.add("open");
+      setTimeout(() => cancelButton?.focus(), 0);
+    }
+
     function getAgendaItems() {
       return load("rrll_agenda_items", []);
     }
@@ -67,7 +139,7 @@
       toggleAgendaCreateForm(false);
     }
 
-    function moveAgendaItem(id, status) {
+    function executeMoveAgendaItem(id, status) {
       const now = new Date().toISOString();
       const items = getAgendaItems().map(item => {
         if (item.id !== id) return item;
@@ -81,7 +153,19 @@
       renderAgendaItems();
     }
 
-    function deleteAgendaItem(id) {
+    function moveAgendaItem(id, status) {
+      const item = getAgendaItems().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "este punto";
+      const nextStatus = agendaStatusLabel(status).toLowerCase();
+      confirmCommitteeAction({
+        title: "Cambiar estado del punto",
+        message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeMoveAgendaItem(id, status)
+      });
+    }
+
+    function executeDeleteAgendaItem(id) {
       const items = getAgendaItems();
       const item = items.find(i => i.id === id);
       if (item) moveToTrash("agenda", item);
@@ -90,6 +174,17 @@
       renderTrash();
       restoreAlertsPanelState();
       renderAlertsPanel();
+    }
+
+    function deleteAgendaItem(id) {
+      const item = getAgendaItems().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "este punto";
+      confirmCommitteeAction({
+        title: "Eliminar punto de Comité",
+        message: `¿Quieres eliminar ${title}? Se moverá a la papelera.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteAgendaItem(id)
+      });
     }
 
     let activeAgendaUpdateId = null;
@@ -512,12 +607,8 @@
       updateQuickCounts();
     }
 
-    function deleteCommitteeSession(sessionId) {
+    function executeDeleteCommitteeSession(sessionId) {
       const sessions = getCommitteeSessions();
-      const session = sessions.find(s => s.id === sessionId);
-      if (!session) return;
-      const confirmed = confirm("Eliminar esta sesión? No eliminará los puntos, solo la agrupación de sesión.");
-      if (!confirmed) return;
       setCommitteeSessions(sessions.filter(s => s.id !== sessionId));
       const agenda = getAgendaItems().map(item => item.committeeSessionId === sessionId ? {
         ...item,
@@ -530,6 +621,17 @@
       setAgendaItems(agenda);
       renderCommitteeSessions();
       renderAgendaItems();
+    }
+
+    function deleteCommitteeSession(sessionId) {
+      const session = getCommitteeSessions().find(s => s.id === sessionId);
+      if (!session) return;
+      confirmCommitteeAction({
+        title: "Eliminar sesión de Comité",
+        message: `¿Quieres eliminar la sesión ${sessionLabel(session)}? No eliminará los puntos, solo la agrupación de sesión.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteCommitteeSession(sessionId)
+      });
     }
 
     function getCommitteeSessionView() {
@@ -669,7 +771,7 @@
       card.innerHTML = `
         <div class="session-card-toolbar" onclick="event.stopPropagation()">
           <button class="session-card-icon" type="button" onclick="printCommitteeSession('${session.id}')" title="Imprimir esta sesión">🖨️</button>
-          <button class="session-card-icon excel-icon" type="button" onclick="exportCommitteeSessionExcel('${session.id}')" title="Exportar esta sesión a Excel">X</button>
+          <button class="session-card-icon excel-icon" type="button" onclick="exportCommitteeSessionExcel('${session.id}')" title="Exportar esta sesión a Excel" aria-label="Exportar esta sesión a Excel">📊</button>
         </div>
         <div class="rrll-session-card-head">
           <button class="rrll-session-card-toggle" type="button" onclick="event.stopPropagation(); toggleCommitteeSessionCard('${session.id}')" aria-expanded="${collapsed ? "false" : "true"}" title="Plegar/desplegar sesión">${collapsed ? "▸" : "▾"}</button>
@@ -688,7 +790,7 @@
           <div class="session-items">${itemsHtml}</div>
           <div class="task-actions section-gap" onclick="event.stopPropagation()">
             ${!isClosed ? `<button class="small secondary" onclick="openCommitteeSessionOrderModal('${session.id}')">Ordenar puntos</button><button class="small" onclick="closeCommitteeSession('${session.id}')">Cerrar sesión</button>` : `<button class="small secondary" onclick="openCommitteeSessionOrderModal('${session.id}')">Editar histórico</button><button class="small secondary" onclick="reopenCommitteeSession('${session.id}')">Reabrir</button>`}
-            <button class="small danger" onclick="deleteCommitteeSession('${session.id}')">Eliminar sesión</button>
+            <button class="small danger rrll-delete-icon-button" onclick="deleteCommitteeSession('${session.id}')" title="Eliminar sesión" aria-label="Eliminar sesión"><span aria-hidden="true">🗑️</span></button>
           </div>
         </div>
       `;
@@ -999,7 +1101,7 @@
             ${item.status !== "agenda-progress" ? `<button class="small black" onclick="event.stopPropagation(); moveAgendaItem('${item.id}', 'agenda-progress')">En curso</button>` : ""}
             ${item.status === "agenda-progress" ? `<button class="small" onclick="event.stopPropagation(); addAgendaItemToCommitteeSession('${item.id}')">Añadir a Comité</button>` : ""}
             ${item.status !== "agenda-closed" ? `<button class="small" onclick="event.stopPropagation(); moveAgendaItem('${item.id}', 'agenda-closed')">Cerrar</button>` : ""}
-            <button class="small danger" onclick="event.stopPropagation(); deleteAgendaItem('${item.id}')">Eliminar</button>
+            <button class="small danger rrll-delete-icon-button" onclick="event.stopPropagation(); deleteAgendaItem('${item.id}')" title="Eliminar punto" aria-label="Eliminar punto"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
       `;
