@@ -566,7 +566,7 @@
       const rows = grouped.get(year).sort(compareByEmployeeNumber).map(rowHtml).join('');
       const safeYear = String(year).replace(/[^a-zA-Z0-9_-]/g, '-');
       return `
-        <details class="licencias-year" id="licencias-year-${safeYear}" open>
+        <details class="licencias-year" id="licencias-year-${safeYear}">
           <summary><strong>${year}</strong><span>${grouped.get(year).length} registros</span></summary>
           <div class="rrll-pro-table-wrap"><table class="rrll-pro-table licencias-table"><thead><tr><th>Nº</th><th>Nombre</th><th>Tipo</th><th>Fechas</th></tr></thead><tbody>${rows}</tbody></table></div>
         </details>
