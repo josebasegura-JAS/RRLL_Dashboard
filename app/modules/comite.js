@@ -624,6 +624,122 @@
       openAddAgendaToCommitteeModal(agendaId);
     }
 
+    function getCommitteeSessionAssignedIds(session) {
+      return new Set((Array.isArray(session && session.items) ? session.items : [])
+        .map(raw => committeeSessionItemId(raw))
+        .filter(Boolean));
+    }
+
+    function getAvailableCommitteePointsForSession(session) {
+      if (!session) return [];
+      const assignedToCurrentSession = getCommitteeSessionAssignedIds(session);
+      return getAgendaItems()
+        .filter(item => item && item.status === "agenda-progress")
+        .filter(item => !assignedToCurrentSession.has(item.id))
+        .filter(item => !item.committeeSessionId || item.committeeSessionId === session.id)
+        .sort((a, b) => {
+          const aDate = a.requestDate || "9999-12-31";
+          const bDate = b.requestDate || "9999-12-31";
+          return aDate.localeCompare(bDate) || String(a.title || "").localeCompare(String(b.title || ""), "es");
+        });
+    }
+
+    function openCommitteeSessionAddPointModal() {
+      if (!activeCommitteeOrderSessionId) return;
+      applyCommitteeOrderTextEdits();
+
+      const session = getCommitteeSessions().find(s => s.id === activeCommitteeOrderSessionId);
+      if (!session || session.status === "closed") {
+        alert("Solo se pueden añadir puntos a sesiones abiertas de Comité.");
+        return;
+      }
+
+      const titleEl = document.getElementById("committeeSessionAddPointTitle");
+      const listEl = document.getElementById("committeeSessionAddPointList");
+      const modal = document.getElementById("committeeSessionAddPointModal");
+      if (!titleEl || !listEl || !modal) {
+        alert("No se ha encontrado la ventana para añadir puntos.");
+        return;
+      }
+
+      titleEl.textContent = `${session.title || "Sesión de Comité"} · ${sessionLabel(session)}`;
+      const available = getAvailableCommitteePointsForSession(session);
+      listEl.innerHTML = available.length ? available.map(item => `
+        <label class="committee-session-add-point-row">
+          <input type="checkbox" data-committee-add-point value="${escapeHtml(item.id)}" />
+          <span class="committee-session-add-point-content">
+            <strong>${escapeHtml(item.title || "Sin título")}</strong>
+            <small>
+              <span>Peticionario: ${escapeHtml(item.petitioner || "Sin indicar")}</span>
+              <span>Fecha solicitud: ${escapeHtml(item.requestDate ? new Date(item.requestDate + "T00:00:00").toLocaleDateString("es-ES") : "Sin fecha")}</span>
+              <span>Estado: ${escapeHtml(agendaStatusLabel(item.status))}</span>
+            </small>
+          </span>
+        </label>
+      `).join("") : `<p class="muted">No hay puntos en curso disponibles para añadir.</p>`;
+
+      modal.classList.add("open");
+      setTimeout(() => modal.querySelector("[data-committee-add-point]")?.focus(), 0);
+    }
+
+    function closeCommitteeSessionAddPointModal() {
+      const modal = document.getElementById("committeeSessionAddPointModal");
+      if (modal) modal.classList.remove("open");
+    }
+
+    function confirmAddSelectedCommitteePoints() {
+      if (!activeCommitteeOrderSessionId) return;
+      const modal = document.getElementById("committeeSessionAddPointModal");
+      const selectedIds = Array.from(modal?.querySelectorAll("[data-committee-add-point]:checked") || []).map(input => input.value);
+      if (!selectedIds.length) {
+        alert("Selecciona al menos un punto en curso para añadir.");
+        return;
+      }
+
+      applyCommitteeOrderTextEdits();
+      const sessions = getCommitteeSessions();
+      const session = sessions.find(s => s.id === activeCommitteeOrderSessionId);
+      if (!session || session.status === "closed") {
+        alert("La sesión ya no está abierta.");
+        closeCommitteeSessionAddPointModal();
+        return;
+      }
+
+      const availableIds = new Set(getAvailableCommitteePointsForSession(session).map(item => item.id));
+      const idsToAdd = selectedIds.filter(id => availableIds.has(id));
+      if (!idsToAdd.length) {
+        alert("No hay puntos en curso disponibles para añadir.");
+        closeCommitteeSessionAddPointModal();
+        return;
+      }
+
+      session.items = Array.isArray(session.items) ? session.items : [];
+      const existingIds = getCommitteeSessionAssignedIds(session);
+      idsToAdd.forEach(id => {
+        if (!existingIds.has(id)) {
+          session.items.push(id);
+          committeeOrderDraft.push(id);
+          existingIds.add(id);
+        }
+      });
+
+      setCommitteeSessions(sessions);
+      syncAgendaSessionOrder(session.id);
+      const agenda = getAgendaItems().map(item => idsToAdd.includes(item.id) ? {
+        ...item,
+        committeeSessionId: session.id,
+        committeeSessionCode: session.code,
+        committeeSessionDate: session.date,
+        committeeSessionOrder: session.items.indexOf(item.id) + 1,
+        closedByCommittee: false
+      } : item);
+      setAgendaItems(agenda);
+      closeCommitteeSessionAddPointModal();
+      renderCommitteeSessionOrderDraft();
+      renderCommitteeSessions();
+      renderAgendaItems();
+    }
+
     function moveCommitteeSessionItem(sessionId, agendaId, direction) {
       const sessions = getCommitteeSessions();
       const session = sessions.find(s => s.id === sessionId);
@@ -1044,13 +1160,16 @@
       draggedCommitteeAgendaId = null;
 
       const titleEl = document.getElementById("committeeSessionOrderTitle");
+      const addPointButton = document.getElementById("committeeSessionAddPointButton");
       const modal = document.getElementById("committeeSessionOrderModal");
       if (titleEl) titleEl.textContent = `${session.title || "Sesión de Comité"} · ${sessionLabel(session)}`;
+      if (addPointButton) addPointButton.style.display = session.status === "closed" ? "none" : "inline-flex";
       renderCommitteeSessionOrderDraft();
       if (modal) modal.classList.add("open");
     }
 
     function closeCommitteeSessionOrderModal() {
+      closeCommitteeSessionAddPointModal();
       activeCommitteeOrderSessionId = null;
       committeeOrderDraft = [];
       draggedCommitteeAgendaId = null;
@@ -1380,6 +1499,9 @@
     renderCommitteeSessions,
     openCommitteeSessionOrderModal,
     closeCommitteeSessionOrderModal,
+    openCommitteeSessionAddPointModal,
+    closeCommitteeSessionAddPointModal,
+    confirmAddSelectedCommitteePoints,
     handleCommitteeOrderDragStart,
     handleCommitteeOrderDragOver,
     handleCommitteeOrderDrop,

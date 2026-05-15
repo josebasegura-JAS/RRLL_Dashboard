@@ -1655,3 +1655,87 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
   padding: 0 !important;
   flex: 0 0 auto !important;
 }
+
+/* Sesiones Comité: añadir puntos en curso desde el popup de orden del día. */
+#committeeSessionOrderModal .committee-session-order-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 10px 0 12px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#committeeSessionOrderModal #committeeSessionAddPointButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+#committeeSessionAddPointModal .committee-session-add-point-box {
+  overflow-x: hidden !important;
+}
+
+#committeeSessionAddPointModal .committee-session-add-point-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  max-height: 430px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+#committeeSessionAddPointModal .committee-session-add-point-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--red);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, .72);
+  color: var(--text);
+  padding: 10px;
+  cursor: pointer;
+  overflow-x: hidden;
+}
+
+#committeeSessionAddPointModal .committee-session-add-point-row:hover {
+  border-color: var(--red);
+  background: rgba(127, 29, 29, .18);
+}
+
+#committeeSessionAddPointModal .committee-session-add-point-row input {
+  margin-top: 3px;
+}
+
+#committeeSessionAddPointModal .committee-session-add-point-content {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+#committeeSessionAddPointModal .committee-session-add-point-content strong,
+#committeeSessionAddPointModal .committee-session-add-point-content small,
+#committeeSessionAddPointModal .committee-session-add-point-content span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+#committeeSessionAddPointModal .committee-session-add-point-content small {
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+}
