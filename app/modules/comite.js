@@ -77,6 +77,119 @@
       setTimeout(() => cancelButton?.focus(), 0);
     }
 
+
+    function ensureCommitteeMinutePromptModal() {
+      let modal = document.getElementById("committeeMinutePromptModal");
+      if (modal) return modal;
+
+      modal = document.createElement("div");
+      modal.id = "committeeMinutePromptModal";
+      modal.className = "modal-backdrop committee-minute-prompt-modal";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "committeeMinutePromptTitle");
+      modal.innerHTML = `
+        <div class="modal-box session-close-modal-box" role="document">
+          <h3 id="committeeMinutePromptTitle">Crear registro en Actas</h3>
+          <p class="muted">¿Deseas crear automáticamente un registro en Actas para esta sesión?</p>
+          <div class="committee-minute-preview" id="committeeMinutePromptPreview"></div>
+          <div class="modal-actions">
+            <button type="button" class="secondary" data-minute-skip>No crear</button>
+            <button type="button" data-minute-create>Crear acta</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function committeeSessionDateLabel(session) {
+      if (!session || !session.date) return "Sin fecha";
+      return new Date(session.date + "T00:00:00").toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    function buildCommitteeMinutePayload(session) {
+      const dateLabel = committeeSessionDateLabel(session);
+      return {
+        title: `Comité de Empresa - ${dateLabel}`,
+        notes: String(session && session.code ? session.code : "").trim(),
+        sourceType: "committee-session",
+        sourceId: String(session && session.id ? session.id : "").trim()
+      };
+    }
+
+    function createCommitteeMinuteFromSession(session) {
+      if (!session) return;
+      const payload = buildCommitteeMinutePayload(session);
+      const creator = window.ActasModule && typeof window.ActasModule.createMinuteIfMissing === "function"
+        ? window.ActasModule.createMinuteIfMissing
+        : (typeof window.createMinuteIfMissing === "function" ? window.createMinuteIfMissing : null);
+
+      if (!creator) {
+        alert("No se ha podido acceder al alta segura de Actas.");
+        return;
+      }
+
+      const result = creator(payload);
+      if (result && result.created) {
+        alert("Acta creada correctamente.");
+        return;
+      }
+      if (result && result.reason === "duplicate") {
+        alert("Ya existe un acta equivalente para esta sesión. No se ha creado un duplicado.");
+        return;
+      }
+      alert("No se ha creado el acta porque faltan datos obligatorios.");
+    }
+
+    function promptCommitteeMinuteCreation(session) {
+      if (!session) return;
+      const modal = ensureCommitteeMinutePromptModal();
+      const preview = modal.querySelector("#committeeMinutePromptPreview");
+      const skipButton = modal.querySelector("[data-minute-skip]");
+      const createButton = modal.querySelector("[data-minute-create]");
+      const payload = buildCommitteeMinutePayload(session);
+
+      if (preview) {
+        preview.innerHTML = `
+          <div><strong>Asunto:</strong> ${escapeHtml(payload.title)}</div>
+          <div><strong>Notas:</strong> ${escapeHtml(payload.notes || "Sin código")}</div>
+        `;
+      }
+
+      function close() {
+        modal.classList.remove("open");
+        modal.removeEventListener("click", handleBackdropClick);
+        document.removeEventListener("keydown", handleEscape);
+        skipButton?.removeEventListener("click", handleSkip);
+        createButton?.removeEventListener("click", handleCreate);
+      }
+
+      function handleSkip() {
+        close();
+      }
+
+      function handleCreate() {
+        close();
+        createCommitteeMinuteFromSession(session);
+      }
+
+      function handleBackdropClick(event) {
+        if (event.target === modal) close();
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape" && modal.classList.contains("open")) close();
+      }
+
+      skipButton?.addEventListener("click", handleSkip);
+      createButton?.addEventListener("click", handleCreate);
+      modal.addEventListener("click", handleBackdropClick);
+      document.addEventListener("keydown", handleEscape);
+      modal.classList.add("open");
+      setTimeout(() => skipButton?.focus(), 0);
+    }
+
     function getAgendaItems() {
       return load("rrll_agenda_items", []);
     }
@@ -577,15 +690,20 @@
 
       titleEl.textContent = `${session.title || "Sesión de Comité"} · ${sessionLabel(session)}`;
       const items = getCommitteeSessionDisplayItems(session);
-      listEl.innerHTML = items.length ? items.map((item, index) => `
-        <label class="session-close-row">
-          <input type="checkbox" data-session-close-point value="${escapeHtml(item.key)}" checked />
-          <span class="session-close-content">
-            <strong>${index + 1}. ${escapeHtml(item.title || "Sin título")}</strong>
-            <small>${escapeHtml(item.meta || "")}</small>
-          </span>
-        </label>
-      `).join("") : `<p class="muted">Esta sesión no tiene puntos asignados. Puedes cerrarla sin modificar puntos.</p>`;
+      listEl.innerHTML = items.length ? items.map((item, index) => {
+        const linked = typeof item.raw === "string" ? getAgendaItems().find(agendaItem => agendaItem.id === item.raw) : null;
+        const currentStatus = linked ? agendaStatusLabel(linked.status) : "Histórico importado";
+        const petitioner = linked && linked.petitioner ? linked.petitioner : "Sin indicar";
+        return `
+          <label class="session-close-row">
+            <input type="checkbox" data-session-close-point value="${escapeHtml(item.key)}" checked />
+            <span class="session-close-content">
+              <strong><span class="session-close-number">${index + 1}.</span> ${escapeHtml(item.title || "Sin título")}</strong>
+              <small><span>Estado actual: ${escapeHtml(currentStatus)}</span><span>Peticionario: ${escapeHtml(petitioner)}</span></small>
+            </span>
+          </label>
+        `;
+      }).join("") : `<p class="muted">Esta sesión no tiene puntos asignados. Puedes cerrarla sin modificar puntos.</p>`;
 
       modal.classList.add("open");
       setTimeout(() => modal.querySelector("[data-session-close-point]")?.focus(), 0);
@@ -649,6 +767,7 @@
       closeCommitteeSessionCloseModal();
       renderCommitteeSessions();
       renderAgendaItems();
+      promptCommitteeMinuteCreation({ ...session });
     }
 
     function closeCommitteeSession(sessionId) {

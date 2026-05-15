@@ -104,6 +104,47 @@
       return `Aportaciones: ${marked.join(", ")}`;
     }
 
+    function buildMinuteRecord(title, notes, extra) {
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        title,
+        status: "todo",
+        dueDate: "",
+        notes,
+        createdAt: new Date().toISOString(),
+        ...(extra && typeof extra === "object" ? extra : {})
+      };
+    }
+
+    function minuteEquivalentExists(minutes, title, notes, sourceType, sourceId) {
+      const normalizedTitle = String(title || "").trim().toLowerCase();
+      const normalizedNotes = String(notes || "").trim().toLowerCase();
+      return (Array.isArray(minutes) ? minutes : []).some(minute => {
+        if (sourceType && sourceId && minute.sourceType === sourceType && minute.sourceId === sourceId) return true;
+        return String(minute.title || "").trim().toLowerCase() === normalizedTitle
+          && String(minute.notes || "").trim().toLowerCase() === normalizedNotes;
+      });
+    }
+
+    function createMinuteIfMissing(options) {
+      const title = String(options && options.title ? options.title : "").trim();
+      const notes = String(options && options.notes ? options.notes : "").trim();
+      const sourceType = String(options && options.sourceType ? options.sourceType : "").trim();
+      const sourceId = String(options && options.sourceId ? options.sourceId : "").trim();
+
+      if (!title) return { created: false, reason: "missing-title" };
+
+      const minutes = getMinutes();
+      if (minuteEquivalentExists(minutes, title, notes, sourceType, sourceId)) {
+        return { created: false, reason: "duplicate" };
+      }
+
+      minutes.unshift(buildMinuteRecord(title, notes, { sourceType, sourceId }));
+      setMinutes(minutes);
+      renderMinutes();
+      return { created: true };
+    }
+
     function addMinute() {
       const titleEl = document.getElementById("newMinuteTitle");
       const notesEl = document.getElementById("newMinuteNotes");
@@ -115,14 +156,7 @@
       }
 
       const minutes = getMinutes();
-      minutes.unshift({
-        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-        title,
-        status: "todo",
-        dueDate: "",
-        notes: notesEl.value.trim(),
-        createdAt: new Date().toISOString()
-      });
+      minutes.unshift(buildMinuteRecord(title, notesEl.value.trim()));
 
       setMinutes(minutes);
       titleEl.value = "";
@@ -483,6 +517,9 @@
     saveMinuteAllegationsFromModal,
     minuteAllegationsSummary,
     toggleMinuteCreateForm,
+    buildMinuteRecord,
+    minuteEquivalentExists,
+    createMinuteIfMissing,
     addMinute,
     executeMoveMinuteStatus,
     moveMinuteStatus,
@@ -515,6 +552,9 @@
   window.saveMinuteAllegationsFromModal = saveMinuteAllegationsFromModal;
   window.minuteAllegationsSummary = minuteAllegationsSummary;
   window.toggleMinuteCreateForm = toggleMinuteCreateForm;
+  window.buildMinuteRecord = buildMinuteRecord;
+  window.minuteEquivalentExists = minuteEquivalentExists;
+  window.createMinuteIfMissing = createMinuteIfMissing;
   window.addMinute = addMinute;
   window.executeMoveMinuteStatus = executeMoveMinuteStatus;
   window.moveMinuteStatus = moveMinuteStatus;
