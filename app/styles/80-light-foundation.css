@@ -1589,3 +1589,69 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
   font-size: 13px;
   text-align: center;
 }
+
+/* Sesiones Comité: el orden del día necesita una fila estable para que el
+   textarea del título no herede el tamaño de icono/botón de reglas globales. */
+#committeeSessionOrderModal .modal-box {
+  overflow-x: hidden !important;
+}
+
+#committeeSessionOrderModal #committeeSessionOrderList.session-order-list {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+#committeeSessionOrderModal .session-order-row {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) 32px !important;
+  align-items: start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+#committeeSessionOrderModal .session-order-content {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+#committeeSessionOrderModal .session-order-edit {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 76px !important;
+  height: auto !important;
+  padding: 10px 12px !important;
+  resize: vertical !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  overflow-x: hidden !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+}
+
+#committeeSessionOrderModal .session-item-meta {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  white-space: normal !important;
+}
+
+#committeeSessionOrderModal .session-order-handle {
+  justify-self: end !important;
+  align-self: stretch !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+}
