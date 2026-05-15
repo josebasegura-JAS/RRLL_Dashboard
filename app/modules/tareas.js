@@ -135,7 +135,7 @@
         renderTasks();
       }
 
-      function moveTask(id, status) {
+      function executeMoveTask(id, status) {
         const now = new Date().toISOString();
         const tasks = getTasks().map(task => {
           if (task.id !== id) return task;
@@ -147,6 +147,18 @@
         });
         setTasks(tasks);
         renderTasks();
+      }
+
+      function moveTask(id, status) {
+        const item = getTasks().find(task => task.id === id);
+        const title = item && item.title ? `“${item.title}”` : "esta tarea";
+        const nextStatus = taskStatusLabel(status).toLowerCase();
+        confirmDangerAction({
+          title: "Cambiar estado de tarea",
+          message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+          confirmLabel: "Cambiar estado",
+          onConfirm: () => executeMoveTask(id, status)
+        });
       }
 
       function executeDeleteTask(id) {
