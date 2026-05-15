@@ -1415,6 +1415,19 @@
     </div>
   </div>
 
+  <div id="committeeSessionCloseModal" class="modal-backdrop" onclick="closeCommitteeSessionCloseModal()">
+    <div class="modal-box session-close-modal-box" onclick="event.stopPropagation()">
+      <h3>Cerrar sesión</h3>
+      <p class="muted" id="committeeSessionCloseTitle"></p>
+      <p class="muted">Selecciona los puntos tratados en esta sesión.</p>
+      <div id="committeeSessionCloseList" class="session-close-list"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeCommitteeSessionCloseModal()">Cancelar</button>
+        <button onclick="confirmCommitteeSessionCloseFromModal()">Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+
   <div id="paritariaUpdateModal" class="modal-backdrop" onclick="closeParitariaUpdateModal()">
     <div class="modal-box" onclick="event.stopPropagation()">
       <h3>Editar punto de Paritaria y seguimiento</h3>
@@ -1481,6 +1494,19 @@
       <div class="modal-actions">
         <button class="secondary" onclick="closeParitariaSessionOrderModal()">Cancelar</button>
         <button onclick="saveParitariaSessionOrderFromModal()">Guardar orden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="paritariaSessionCloseModal" class="modal-backdrop" onclick="closeParitariaSessionCloseModal()">
+    <div class="modal-box session-close-modal-box" onclick="event.stopPropagation()">
+      <h3>Cerrar sesión</h3>
+      <p class="muted" id="paritariaSessionCloseTitle"></p>
+      <p class="muted">Selecciona los puntos tratados en esta sesión.</p>
+      <div id="paritariaSessionCloseList" class="session-close-list"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeParitariaSessionCloseModal()">Cancelar</button>
+        <button onclick="confirmParitariaSessionCloseFromModal()">Cerrar sesión</button>
       </div>
     </div>
   </div>
