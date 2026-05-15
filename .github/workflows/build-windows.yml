@@ -1,0 +1,63 @@
+name: Generar EXE Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  npm_config_registry: https://registry.npmjs.org/
+  ELECTRON_CACHE: ${{ github.workspace }}\\.cache\\electron
+  ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\\.cache\\electron-builder
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v5
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Diagnostico inicial
+        shell: pwsh
+        run: |
+          node --version
+          npm --version
+          npm config get registry
+          Get-ChildItem -Force
+
+      - name: Limpiar cache npm
+        shell: pwsh
+        run: npm cache clean --force
+
+      - name: Instalar dependencias
+        shell: pwsh
+        run: npm install --no-audit --no-fund
+
+      - name: Generar EXE portable
+        shell: pwsh
+        run: npm run dist
+
+      - name: Mostrar contenido de dist
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path dist) {
+            Get-ChildItem -Recurse dist | Format-Table FullName, Length
+          } else {
+            Write-Host "No existe carpeta dist"
+          }
+
+      - name: Subir ejecutable
+        uses: actions/upload-artifact@v6
+        with:
+          name: Cuadro-de-Mando-RRLL-EXE
+          path: dist/*.exe
+          if-no-files-found: error
