@@ -71,7 +71,7 @@
       renderPetitions();
     }
 
-    function movePetition(id, status) {
+    function executeMovePetition(id, status) {
       const now = new Date().toISOString();
       const items = getPetitions().map(item => {
         if (item.id !== id) return item;
@@ -83,6 +83,19 @@
       });
       setPetitions(items);
       renderPetitions();
+    }
+
+    function movePetition(id, status) {
+      if (typeof confirmDangerAction !== "function") return;
+      const item = getPetitions().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "esta petición";
+      const nextStatus = petitionStatusLabel(status).toLowerCase();
+      confirmDangerAction({
+        title: "Cambiar estado de petición",
+        message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeMovePetition(id, status)
+      });
     }
 
     function executeDeletePetition(id) {

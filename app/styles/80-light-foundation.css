@@ -581,7 +581,7 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-action
   display: table-cell !important;
   min-width: 0 !important;
   overflow: visible !important;
-  text-align: right !important;
+  text-align: center !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-tool-button.rrll-icon-only {
@@ -628,6 +628,12 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table 
   white-space: normal !important;
   overflow-wrap: anywhere !important;
   vertical-align: middle !important;
+  text-align: center !important;
+}
+
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table th:first-child,
+body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table td:first-child {
+  text-align: left !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table th {
@@ -792,10 +798,13 @@ body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-actio
     grid-template-columns: 1fr !important;
   }
 
-  body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-list-actions,
-  body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-actions {
+  body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-list-actions {
     justify-content: flex-start !important;
     text-align: left !important;
+  }
+
+  body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-actions {
+    text-align: center !important;
   }
 
   body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-main { width: 34%; }
@@ -869,7 +878,7 @@ html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-t
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-actions,
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-row, .rrll-petition-row):not(.expanded) .rrll-pro-actions {
   display: table-cell !important;
-  text-align: right !important;
+  text-align: center !important;
 }
 
 body.phase4-view-module .rrll-confirm-delete-modal {
