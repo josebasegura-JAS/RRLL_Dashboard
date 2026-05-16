@@ -116,6 +116,21 @@
         </button>
       </div>
 
+      <article class="phase4-dashboard-card phase5-dashboard-card dashboard-search-card" aria-labelledby="dashboardSearchTitle">
+        <div class="phase4-card-head">
+          <h3 id="dashboardSearchTitle">Buscar asunto</h3>
+          <span>Comité · Paritaria</span>
+        </div>
+        <form class="dashboard-search-box" onsubmit="event.preventDefault(); runDashboardSearch();">
+          <span class="dashboard-search-icon" aria-hidden="true">⌕</span>
+          <input id="dashboardSearchInput" class="dashboard-search-input" type="search" placeholder="Buscar en Comité y Paritaria…" autocomplete="off" />
+          <button type="submit" class="dashboard-search-button">Buscar</button>
+        </form>
+        <div id="dashboardSearchResults" class="dashboard-search-results" aria-live="polite">
+          <div class="dashboard-search-empty">Introduce un asunto para buscar en Comité y Paritaria.</div>
+        </div>
+      </article>
+
       <div class="phase4-dashboard-grid phase5-dashboard-grid">
         <article class="phase4-dashboard-card phase5-dashboard-card phase5-due-card">
           <div class="phase4-card-head">

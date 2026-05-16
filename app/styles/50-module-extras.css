@@ -1767,3 +1767,174 @@ html[data-theme="light"] .telework-catalog-table select {
     padding: 14px;
   }
 }
+
+/* Fase 1 Lupa global: buscador acotado a Comité y Paritaria en Dashboard */
+.dashboard-search-card {
+  margin: 0 0 16px !important;
+  min-height: 0 !important;
+}
+
+.dashboard-search-box {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 10px !important;
+  border: 1px solid rgba(148,163,184,.16) !important;
+  border-radius: 16px !important;
+  background: rgba(17,24,39,.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+.dashboard-search-icon {
+  width: 36px !important;
+  height: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  color: #93c5fd !important;
+  background: rgba(59,130,246,.12) !important;
+  border: 1px solid rgba(96,165,250,.18) !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+}
+
+.dashboard-search-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 42px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 12px !important;
+  background: rgba(15,23,42,.46) !important;
+  color: #f8fafc !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
+}
+
+.dashboard-search-input::placeholder {
+  color: rgba(203,213,225,.58) !important;
+}
+
+.dashboard-search-button {
+  height: 42px !important;
+  border-radius: 12px !important;
+  padding: 0 16px !important;
+  background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+  border: 1px solid rgba(191,219,254,.18) !important;
+  color: #fff !important;
+  font-weight: 850 !important;
+  box-shadow: 0 10px 22px rgba(37,99,235,.18) !important;
+}
+
+.dashboard-search-results {
+  display: grid !important;
+  gap: 9px !important;
+  margin-top: 12px !important;
+  max-height: 330px !important;
+  overflow: auto !important;
+  padding-right: 2px !important;
+}
+
+.dashboard-search-empty {
+  padding: 12px 14px !important;
+  border-radius: 13px !important;
+  color: #aab3c2 !important;
+  background: rgba(15,23,42,.24) !important;
+  border: 1px dashed rgba(148,163,184,.16) !important;
+  font-size: 13px !important;
+}
+
+.dashboard-search-result {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 86px minmax(0, 1fr) minmax(120px, auto) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  text-align: left !important;
+  padding: 10px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  background: rgba(31,41,55,.50) !important;
+  color: #e5e7eb !important;
+}
+
+.dashboard-search-result:hover {
+  transform: translateY(-1px) !important;
+  border-color: rgba(147,197,253,.28) !important;
+  background: rgba(51,65,85,.62) !important;
+}
+
+.dashboard-search-badge {
+  justify-self: start !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 76px !important;
+  padding: 6px 8px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-search-badge--committee {
+  color: #bfdbfe !important;
+  background: rgba(37,99,235,.18) !important;
+  border: 1px solid rgba(96,165,250,.28) !important;
+}
+
+.dashboard-search-badge--paritaria {
+  color: #ddd6fe !important;
+  background: rgba(124,58,237,.18) !important;
+  border: 1px solid rgba(167,139,250,.28) !important;
+}
+
+.dashboard-search-main {
+  display: grid !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+.dashboard-search-main strong {
+  color: #f8fafc !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.dashboard-search-main small {
+  color: #aab3c2 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.dashboard-search-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+}
+
+.dashboard-search-meta em {
+  font-style: normal !important;
+  color: #cbd5e1 !important;
+  background: rgba(15,23,42,.40) !important;
+  border: 1px solid rgba(148,163,184,.10) !important;
+  border-radius: 999px !important;
+  padding: 4px 7px !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-search-box,
+  .dashboard-search-result {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-search-icon { display: none !important; }
+  .dashboard-search-button { width: 100% !important; }
+  .dashboard-search-meta { justify-content: flex-start !important; }
+}
