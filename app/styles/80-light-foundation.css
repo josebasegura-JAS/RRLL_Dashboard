@@ -1884,3 +1884,104 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
   color: var(--muted);
   line-height: 1.35;
 }
+
+/* Cierre de sesiones de Comité y Paritaria: listado de puntos tratados legible. */
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-modal-box {
+  display: flex !important;
+  flex-direction: column !important;
+  width: min(760px, calc(100vw - 32px)) !important;
+  max-width: min(760px, calc(100vw - 32px)) !important;
+  max-height: min(86vh, 760px) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+:is(#committeeSessionCloseList, #paritariaSessionCloseList).session-close-list {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  min-height: 0 !important;
+  max-height: min(52vh, 520px) !important;
+  width: 100% !important;
+  margin: 12px 0 !important;
+  padding: 10px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  border: 1px solid var(--rrll-border) !important;
+  border-radius: 14px !important;
+  background: var(--rrll-surface-base) !important;
+}
+
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 10px 12px !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  writing-mode: horizontal-tb !important;
+  border: 1px solid var(--rrll-border) !important;
+  border-radius: 12px !important;
+  background: var(--rrll-surface-raised) !important;
+  color: var(--rrll-text-main) !important;
+  cursor: pointer !important;
+}
+
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-row input[type="checkbox"] {
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  margin: 2px 0 0 !important;
+  padding: 0 !important;
+  align-self: flex-start !important;
+  accent-color: var(--rrll-red-ui) !important;
+}
+
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  writing-mode: horizontal-tb !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  line-height: 1.4 !important;
+}
+
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content strong,
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content small,
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content span {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  writing-mode: horizontal-tb !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.4 !important;
+}
+
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content small {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px 12px !important;
+  color: var(--rrll-text-muted) !important;
+}
+
+:is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .modal-actions {
+  flex: 0 0 auto !important;
+  margin-top: 0 !important;
+}
