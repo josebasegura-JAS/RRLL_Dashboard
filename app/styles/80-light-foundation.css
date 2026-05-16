@@ -1985,3 +1985,71 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
   flex: 0 0 auto !important;
   margin-top: 0 !important;
 }
+
+/* Teletrabajo: acciones inferiores limpias y responsive, acotadas al módulo. */
+body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  align-content: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 10px 0 0 !important;
+  overflow: visible !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  flex: 0 1 auto !important;
+  min-width: 42px !important;
+  max-width: 100% !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button:not(.rrll-icon-only) {
+  min-width: max-content !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-icon-only {
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  padding: 0 !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-new-request-icon {
+  font-size: 20px !important;
+}
+
+@media (max-width: 1180px) {
+  body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions {
+    justify-content: flex-start !important;
+    padding-top: 12px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button:not(.rrll-icon-only) {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+}
