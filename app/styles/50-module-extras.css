@@ -1650,3 +1650,120 @@ html[data-theme="light"] .telework-intake-note {
     grid-template-columns: 1fr;
   }
 }
+
+/* Teletrabajo: mantenimiento del catálogo de puestos importados. */
+.telework-catalog-modal .telework-catalog-box {
+  width: min(1180px, calc(100vw - 28px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.telework-catalog-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.telework-catalog-search {
+  flex: 1 1 520px;
+  margin: 0;
+}
+
+.telework-catalog-count {
+  flex: 0 0 auto;
+  color: var(--rrll-text-muted, var(--muted));
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.telework-catalog-table-wrap {
+  min-height: 220px;
+  max-height: min(58vh, 620px);
+  overflow: auto;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, .12);
+}
+
+.telework-catalog-table {
+  min-width: 980px;
+}
+
+.telework-catalog-table th,
+.telework-catalog-table td {
+  vertical-align: middle;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.telework-catalog-table input,
+.telework-catalog-table select {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  background: rgba(15, 23, 42, .26);
+  color: var(--rrll-text-main, #f8fafc);
+  padding: 8px 10px;
+}
+
+.telework-catalog-table th:nth-child(1),
+.telework-catalog-table td:nth-child(1) { min-width: 230px; }
+.telework-catalog-table th:nth-child(2),
+.telework-catalog-table td:nth-child(2) { min-width: 170px; }
+.telework-catalog-table th:nth-child(3),
+.telework-catalog-table td:nth-child(3) { min-width: 180px; }
+.telework-catalog-table th:nth-child(4),
+.telework-catalog-table td:nth-child(4),
+.telework-catalog-table th:nth-child(5),
+.telework-catalog-table td:nth-child(5),
+.telework-catalog-table th:nth-child(6),
+.telework-catalog-table td:nth-child(6) { min-width: 120px; }
+
+.telework-catalog-empty {
+  padding: 24px !important;
+  text-align: center;
+  color: var(--rrll-text-muted, var(--muted));
+}
+
+.telework-catalog-delete {
+  white-space: nowrap;
+}
+
+.telework-catalog-actions {
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+html[data-theme="light"] .telework-catalog-table-wrap {
+  background: rgba(241, 245, 249, .86);
+}
+
+html[data-theme="light"] .telework-catalog-table input,
+html[data-theme="light"] .telework-catalog-table select {
+  background: rgba(255, 255, 255, .92);
+  color: var(--rrll-text-main-light, #111827);
+}
+
+@media (max-width: 760px) {
+  .telework-catalog-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .telework-catalog-search {
+    flex-basis: auto;
+  }
+
+  .telework-catalog-modal .telework-catalog-box {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    padding: 14px;
+  }
+}

@@ -13,9 +13,18 @@
   const RENEWAL_VALIDATION_VALUES = ["Pendiente", "Sí", "No", "No aplica"];
   const DIRECTION_VALUES = ["Pendiente", "Aprobada", "Denegada"];
   const DAYS = ["Martes", "Miércoles", "Jueves"];
+  const TELEWORK_JOB_CATALOG_HEADERS = [
+    "Puesto Organizativo",
+    "Dirección",
+    "Unidad",
+    "Plantilla",
+    "Teletrabajo S/N",
+    "Presencialidad mínima de personas por puesto para el normal funcionamiento de la unidad Puestos 2 o mas personas"
+  ];
 
   let teleworkViewFilter = "all";
   let editingTeleworkId = null;
+  let teleworkCatalogDraft = null;
 
   function getTeleworkItems() {
     const items = load(KEY, []);
@@ -89,15 +98,37 @@
     return true;
   }
 
+  function parseTeleworkCatalogNumber(value) {
+    const raw = String(value ?? "").replace(/,/g, ".").trim();
+    if (!raw) return "";
+    const number = Number(raw);
+    return Number.isFinite(number) ? number : String(value ?? "").trim();
+  }
+
+  function normalizeTeleworkSN(value, fallback = "") {
+    const text = normalizeTeleworkLookup(value).replace(/[^a-z0-9]/g, "");
+    if (["s", "si", "sí", "true", "1", "x", "ok", "apto", "apta", "teletrabajable"].includes(text)) return "S";
+    if (["n", "no", "false", "0", "noapto", "noapta", "noelegible", "excluido"].includes(text)) return "N";
+    return fallback;
+  }
+
   function normalizeTeleworkCatalogItem(item) {
     const source = item && typeof item === "object" ? item : {};
-    const job = String(source.job || source.puesto || source["Puesto"] || "").trim();
-    return {
-      job,
-      jobKey: normalizeTeleworkLookup(job),
-      eligible: parseCatalogEligibility(source.eligible ?? source.elegible ?? source.apto ?? source["Elegible"]),
+    const puestoOrganizativo = String(source.puestoOrganizativo || source.job || source.puesto || source["Puesto Organizativo"] || source["Puesto"] || "").trim();
+    const teletrabajoSN = normalizeTeleworkSN(source.teletrabajoSN ?? source.teletrabajo ?? source.eligible ?? source.elegible ?? source.apto ?? source["Teletrabajo S/N"] ?? source["Elegible"], parseCatalogEligibility(source.eligible ?? source.elegible ?? source.apto ?? source["Elegible"]) ? "S" : "N");
+    const normalized = {
+      puestoOrganizativo,
+      direccion: String(source.direccion || source["Dirección"] || source.direccionArea || "").trim(),
+      unidad: String(source.unidad || source["Unidad"] || "").trim(),
+      plantilla: parseTeleworkCatalogNumber(source.plantilla ?? source["Plantilla"]),
+      teletrabajoSN,
+      presencialidadMinima: parseTeleworkCatalogNumber(source.presencialidadMinima ?? source.presencialidad ?? source["Presencialidad mínima"] ?? source["Presencialidad minima"]),
+      jobKey: normalizeTeleworkLookup(puestoOrganizativo),
+      eligible: teletrabajoSN !== "N",
       warning: String(source.warning || source.advertencia || source.observations || source.observaciones || "").trim()
     };
+    normalized.job = normalized.puestoOrganizativo;
+    return normalized;
   }
 
   function getTeleworkJobEligibility(job) {
@@ -930,6 +961,112 @@
     renderTeleworkHistory(items);
   }
 
+  function openTeleworkJobCatalogModal() {
+    const modal = document.getElementById("teleworkJobCatalogModal");
+    if (!modal) return;
+    teleworkCatalogDraft = getTeleworkJobCatalog();
+    renderTeleworkJobCatalogModal();
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    setTimeout(() => document.getElementById("teleworkJobCatalogSearch")?.focus(), 0);
+  }
+
+  function closeTeleworkJobCatalogModal() {
+    const modal = document.getElementById("teleworkJobCatalogModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    teleworkCatalogDraft = null;
+  }
+
+  function teleworkCatalogDraftFromRow(index) {
+    const field = name => document.querySelector(`[data-telework-catalog-index="${index}"][data-telework-catalog-field="${name}"]`);
+    return normalizeTeleworkCatalogItem({
+      puestoOrganizativo: field("puestoOrganizativo")?.value || "",
+      direccion: field("direccion")?.value || "",
+      unidad: field("unidad")?.value || "",
+      plantilla: field("plantilla")?.value || "",
+      teletrabajoSN: field("teletrabajoSN")?.value || "",
+      presencialidadMinima: field("presencialidadMinima")?.value || ""
+    });
+  }
+
+  function getTeleworkCatalogDraftSource() {
+    if (!Array.isArray(teleworkCatalogDraft)) teleworkCatalogDraft = getTeleworkJobCatalog();
+    return [...teleworkCatalogDraft];
+  }
+
+  function getTeleworkCatalogDraftFromModal() {
+    const next = getTeleworkCatalogDraftSource();
+    document.querySelectorAll("#teleworkJobCatalogBody tr[data-telework-catalog-index]").forEach(row => {
+      const index = Number(row.dataset.teleworkCatalogIndex);
+      next[index] = teleworkCatalogDraftFromRow(index);
+    });
+    teleworkCatalogDraft = next;
+    return next.filter(item => item && item.jobKey);
+  }
+
+  function renderTeleworkJobCatalogModal() {
+    const body = document.getElementById("teleworkJobCatalogBody");
+    if (!body) return;
+    const query = normalizeTeleworkLookup(document.getElementById("teleworkJobCatalogSearch")?.value || "");
+    const items = getTeleworkCatalogDraftFromModal();
+    const filtered = items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => !query || [item.puestoOrganizativo, item.direccion, item.unidad, item.teletrabajoSN].some(value => normalizeTeleworkLookup(value).includes(query)));
+    const count = document.getElementById("teleworkJobCatalogCount");
+    if (count) count.textContent = `${filtered.length} de ${items.length} puestos`;
+    body.innerHTML = filtered.map(({ item, index }) => renderTeleworkCatalogRow(item, index)).join("") || `<tr><td colspan="7" class="telework-catalog-empty">Sin puestos importados. Usa “Nuevo puesto” o importa un modelo Excel.</td></tr>`;
+  }
+
+  function renderTeleworkCatalogRow(item, index) {
+    const input = (field, value, type = "text") => `<input data-telework-catalog-index="${index}" data-telework-catalog-field="${field}" type="${type}" value="${escapeHtml(value ?? "")}" />`;
+    return `<tr data-telework-catalog-index="${index}">
+      <td>${input("puestoOrganizativo", item.puestoOrganizativo)}</td>
+      <td>${input("direccion", item.direccion)}</td>
+      <td>${input("unidad", item.unidad)}</td>
+      <td>${input("plantilla", item.plantilla, "number")}</td>
+      <td><select data-telework-catalog-index="${index}" data-telework-catalog-field="teletrabajoSN"><option value="S" ${item.teletrabajoSN === "S" ? "selected" : ""}>S</option><option value="N" ${item.teletrabajoSN === "N" ? "selected" : ""}>N</option></select></td>
+      <td>${input("presencialidadMinima", item.presencialidadMinima, "number")}</td>
+      <td><button class="secondary telework-catalog-delete" type="button" onclick="deleteTeleworkCatalogRow(${index})">Eliminar</button></td>
+    </tr>`;
+  }
+
+  function addTeleworkCatalogRow() {
+    const current = getTeleworkCatalogDraftFromModal();
+    current.push(normalizeTeleworkCatalogItem({ puestoOrganizativo: "Nuevo puesto", teletrabajoSN: "S" }));
+    teleworkCatalogDraft = current;
+    const search = document.getElementById("teleworkJobCatalogSearch");
+    if (search) search.value = "";
+    renderTeleworkJobCatalogModal();
+    setTimeout(() => document.querySelector("#teleworkJobCatalogBody tr:last-child input")?.focus(), 0);
+  }
+
+  function deleteTeleworkCatalogRow(index) {
+    const item = getTeleworkCatalogDraftFromModal()[Number(index)];
+    const title = item?.puestoOrganizativo ? `“${item.puestoOrganizativo}”` : "este puesto";
+    const remove = () => {
+      const next = getTeleworkCatalogDraftFromModal().filter((_, idx) => idx !== Number(index));
+      teleworkCatalogDraft = next;
+      renderTeleworkJobCatalogModal();
+    };
+    if (typeof confirmDangerAction === "function") {
+      confirmDangerAction({ title: "Eliminar puesto teletrabajo", message: `¿Quieres eliminar ${title} del catálogo?`, confirmLabel: "Eliminar", onConfirm: remove });
+      return;
+    }
+    if (confirm(`¿Quieres eliminar ${title} del catálogo?`)) remove();
+  }
+
+  function saveTeleworkJobCatalogModal() {
+    const next = getTeleworkCatalogDraftFromModal();
+    setTeleworkJobCatalog(next);
+    renderTeleworkJobCatalogModal();
+    renderTeleworkEligibilityWarning("new");
+    renderTeleworkEligibilityWarning("edit");
+    renderTelework();
+    alert(`Catálogo guardado. Puestos: ${next.length}.`);
+  }
+
   function escapeJs(value) {
     return String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
   }
@@ -1096,11 +1233,27 @@
   }
 
   function teleworkCell(record, aliases) {
+    const recordKeys = Object.keys(record);
     for (const alias of aliases) {
-      const key = Object.keys(record).find(k => k === teleworkHeaderKey(alias));
+      const aliasKey = teleworkHeaderKey(alias);
+      const key = recordKeys.find(k => k === aliasKey);
       if (key) return String(record[key] || "").trim();
     }
     return "";
+  }
+
+  function buildTeleworkCatalogItemFromRecord(record) {
+    const puestoOrganizativo = teleworkCell(record, ["Puesto Organizativo", "Puesto de trabajo", "Puesto", "Job"]);
+    if (!puestoOrganizativo) return null;
+    return normalizeTeleworkCatalogItem({
+      puestoOrganizativo,
+      direccion: teleworkCell(record, ["Dirección", "Direccion"]),
+      unidad: teleworkCell(record, ["Unidad"]),
+      plantilla: teleworkCell(record, ["Plantilla"]),
+      teletrabajoSN: teleworkCell(record, ["Teletrabajo S/N", "Teletrabajo SN", "Teletrabajo", "Elegible", "Apto", "Teletrabajable"]),
+      presencialidadMinima: teleworkCell(record, ["Presencialidad mínima de personas por puesto para el normal funcionamiento de la unidad Puestos 2 o mas personas", "Presencialidad minima de personas por puesto para el normal funcionamiento de la unidad Puestos 2 o mas personas", "Presencialidad mínima", "Presencialidad minima", "Presencialidad"]),
+      warning: teleworkCell(record, ["Advertencia", "Observaciones", "Notas"])
+    });
   }
 
   function renderTeleworkEligibilityWarning(prefix = "new") {
@@ -1115,14 +1268,11 @@
   function applyTeleworkJobCatalogRows(rows) {
     if (rows.length < 2) throw new Error("El catálogo no contiene filas importables.");
     const { records } = teleworkRowsToRecords(rows);
-    const catalog = records.map(record => normalizeTeleworkCatalogItem({
-      job: teleworkCell(record, ["Puesto", "Puesto de trabajo", "Job"]),
-      eligible: teleworkCell(record, ["Elegible", "Apto", "Teletrabajable"]),
-      warning: teleworkCell(record, ["Advertencia", "Observaciones", "Notas"])
-    })).filter(item => item.jobKey);
+    const catalog = records.map(buildTeleworkCatalogItemFromRecord).filter(item => item && item.jobKey);
     setTeleworkJobCatalog(catalog);
     renderTelework();
     renderTeleworkEligibilityWarning("new");
+    renderTeleworkJobCatalogModal();
     return catalog;
   }
 
@@ -1210,7 +1360,8 @@
     }
 
   function isTeleworkCatalogImport(headers) {
-    const hasCatalogColumn = headers.some(h => ["elegible", "apto", "teletrabajable"].includes(h));
+    const catalogColumns = ["puestoorganizativo", "teletrabajosn", "teletrabajo", "direccion", "unidad", "plantilla", "presencialidadminimadepersonasporpuestoparaelnormalfuncionamientodelaunidadpuestos2omaspersonas", "presencialidadminima", "elegible", "apto", "teletrabajable"];
+    const hasCatalogColumn = headers.some(h => catalogColumns.includes(h));
     const hasPersonColumn = headers.some(h => ["noempleado", "nempleado", "numeroempleado", "nombre", "nombreyapellidos", "solicitante"].includes(h));
     return hasCatalogColumn && !hasPersonColumn;
   }
@@ -1312,9 +1463,9 @@
         rows: [["Nº empleado", "Nombre y apellidos", "Puesto de trabajo", "Periodo", "Tipo solicitud", "Martes", "Miércoles", "Jueves", "Cumplimiento presencialidad", "Informe favorable", "Seguridad informática", "Prevención", "Validación Dirección", "Fecha resolución", "Observaciones"], ["12345", "Nombre Apellido", "Técnico/a RRLL", "2026", "Renovación", "Sí", "Sí", "No", "Sí", "Sí", "Sí", "Sí", "Aprobado", "15/05/2026", "Sin incidencias"]]
       },
       jobs: {
-        sheetName: "Puestos Elegibles",
+        sheetName: "Puestos Teletrabajo",
         filename: "modelo-catalogo-puestos.xlsx",
-        rows: [["Puesto de trabajo", "Elegible", "Observaciones"], ["Técnico/a Relaciones Laborales", "Sí", ""]]
+        rows: [TELEWORK_JOB_CATALOG_HEADERS, ["Técnico/a Relaciones Laborales", "Capital Humano", "Relaciones Laborales", "3", "S", "2"]]
       }
     };
     const template = templates[kind];
@@ -1382,7 +1533,13 @@
     closeTeleworkImportModal,
     teleworkImportChooseFile,
     downloadTeleworkTemplate,
-    renderTeleworkEligibilityWarning
+    renderTeleworkEligibilityWarning,
+    openTeleworkJobCatalogModal,
+    closeTeleworkJobCatalogModal,
+    renderTeleworkJobCatalogModal,
+    addTeleworkCatalogRow,
+    deleteTeleworkCatalogRow,
+    saveTeleworkJobCatalogModal
   };
 
   window.TeletrabajoModule = api;
@@ -1421,4 +1578,10 @@
   window.teleworkNameAutocomplete = teleworkNameAutocomplete;
   window.selectTeleworkPerson = selectTeleworkPerson;
   window.hideTeleworkSuggestionsDelayed = hideTeleworkSuggestionsDelayed;
+  window.openTeleworkJobCatalogModal = openTeleworkJobCatalogModal;
+  window.closeTeleworkJobCatalogModal = closeTeleworkJobCatalogModal;
+  window.renderTeleworkJobCatalogModal = renderTeleworkJobCatalogModal;
+  window.addTeleworkCatalogRow = addTeleworkCatalogRow;
+  window.deleteTeleworkCatalogRow = deleteTeleworkCatalogRow;
+  window.saveTeleworkJobCatalogModal = saveTeleworkJobCatalogModal;
 })();

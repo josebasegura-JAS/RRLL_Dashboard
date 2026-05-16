@@ -843,6 +843,7 @@
                 <div class="rrll-pro-list-actions telework-list-actions">
                   <button class="rrll-pro-tool-button rrll-icon-only rrll-new-request-icon" type="button" onclick="toggleTeleworkCreateForm(true)" title="Nueva solicitud" aria-label="Nueva solicitud">+</button>
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="openTeleworkImportModal()" title="Importar teletrabajo" aria-label="Importar teletrabajo">⇪</button>
+                  <button class="rrll-pro-tool-button" type="button" onclick="openTeleworkJobCatalogModal()" title="Consultar y mantener catálogo de puestos" aria-label="Puestos teletrabajo">Puestos teletrabajo</button>
                   <input id="teleworkImportFileInput" class="sr-only-file" type="file" accept=".xlsx,.csv,.txt,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" onchange="importTeleworkData(event)" />
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printModule('telework')" title="Imprimir el filtro seleccionado" aria-label="Imprimir el filtro seleccionado">🖨️</button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportModuleExcel('telework')" title="Exportar campaña/filtro seleccionado" aria-label="Exportar campaña/filtro seleccionado">X</button>
@@ -1145,6 +1146,47 @@
             <button class="secondary" type="button" onclick="downloadTeleworkTemplate('jobs')">Modelo catálogo puestos</button>
           </div>
         </section>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="teleworkJobCatalogModal" class="modal-backdrop telework-catalog-modal" onclick="if (event.target === this) closeTeleworkJobCatalogModal()" aria-hidden="true">
+    <div class="modal-box telework-catalog-box" role="dialog" aria-modal="true" aria-labelledby="teleworkJobCatalogTitle">
+      <div class="telework-import-head">
+        <div>
+          <h3 id="teleworkJobCatalogTitle">Puestos teletrabajo</h3>
+          <p class="muted">Consulta, filtra y mantiene el catálogo de puestos teletrabajables importado.</p>
+        </div>
+        <button class="telework-import-close" type="button" onclick="closeTeleworkJobCatalogModal()" aria-label="Cerrar puestos teletrabajo">×</button>
+      </div>
+      <div class="telework-catalog-toolbar">
+        <label class="rrll-pro-field telework-catalog-search">
+          <span>Buscar por puesto, dirección, unidad o Teletrabajo S/N</span>
+          <input id="teleworkJobCatalogSearch" type="search" placeholder="Buscar puestos teletrabajo..." oninput="renderTeleworkJobCatalogModal()" />
+        </label>
+        <span id="teleworkJobCatalogCount" class="telework-catalog-count">0 puestos</span>
+      </div>
+      <div class="telework-catalog-table-wrap">
+        <table class="rrll-pro-table telework-catalog-table">
+          <thead>
+            <tr>
+              <th>Puesto Organizativo</th>
+              <th>Dirección</th>
+              <th>Unidad</th>
+              <th>Plantilla</th>
+              <th>Teletrabajo S/N</th>
+              <th>Presencialidad mínima</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="teleworkJobCatalogBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions telework-catalog-actions">
+        <button class="secondary" type="button" onclick="addTeleworkCatalogRow()">Nuevo puesto</button>
+        <button class="rrll-pro-primary" type="button" onclick="saveTeleworkJobCatalogModal()">Guardar</button>
+        <button class="secondary" type="button" onclick="closeTeleworkJobCatalogModal()">Cerrar</button>
       </div>
     </div>
   </div>
