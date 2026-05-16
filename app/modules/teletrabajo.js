@@ -158,6 +158,79 @@
     return { eligible: match.eligible, warnings };
   }
 
+  function getTeleworkCatalogMatchByJob(job, catalog = getTeleworkJobCatalog()) {
+    const key = normalizeTeleworkLookup(job);
+    if (!key) return null;
+    return catalog.find(item => item.jobKey === key) || null;
+  }
+
+  function buildTeleworkRequestCountByJob(items) {
+    return items.reduce((acc, item) => {
+      if (item.status === "telework-denied") return acc;
+      const key = normalizeTeleworkLookup(item.job);
+      if (!key) return acc;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+  }
+
+  function toTeleworkNumericValue(value) {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    const text = String(value ?? "").replace(/,/g, ".").trim();
+    if (!text) return null;
+    const number = Number(text);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function getTeleworkPositionIndicator(item, context = {}) {
+    const catalog = context.catalog || getTeleworkJobCatalog();
+    const countsByJob = context.countsByJob || buildTeleworkRequestCountByJob(getTeleworkVisibleItems());
+    const key = normalizeTeleworkLookup(item.job);
+    const match = getTeleworkCatalogMatchByJob(item.job, catalog);
+    if (!key || !match || match.teletrabajoSN === "N" || !match.eligible) {
+      return {
+        status: "error",
+        className: "telework-status-dot telework-status-dot--error",
+        symbol: "",
+        label: "Puesto no encontrado en catálogo o no teletrabajable"
+      };
+    }
+
+    const plantilla = toTeleworkNumericValue(match.plantilla);
+    const presencialidadMinima = toTeleworkNumericValue(match.presencialidadMinima);
+    if (plantilla === null || presencialidadMinima === null) {
+      return {
+        status: "ok",
+        className: "telework-status-dot telework-status-dot--ok",
+        symbol: "",
+        label: "Puesto teletrabajable dentro del límite permitido"
+      };
+    }
+
+    const maximumAllowed = plantilla - presencialidadMinima;
+    const requests = countsByJob[key] || 0;
+    if (requests > maximumAllowed) {
+      return {
+        status: "warning",
+        className: "telework-status-dot telework-status-dot--warning",
+        symbol: "!",
+        label: "Solicitudes para este puesto por encima del límite permitido"
+      };
+    }
+
+    return {
+      status: "ok",
+      className: "telework-status-dot telework-status-dot--ok",
+      symbol: "",
+      label: "Puesto teletrabajable dentro del límite permitido"
+    };
+  }
+
+  function renderTeleworkPositionIndicator(item, context) {
+    const indicator = getTeleworkPositionIndicator(item, context);
+    return `<span class="${indicator.className}" title="${escapeHtml(indicator.label)}" aria-label="${escapeHtml(indicator.label)}" role="img">${escapeHtml(indicator.symbol)}</span>`;
+  }
+
   function pick(value, allowed, fallback) {
     return allowed.includes(value) ? value : fallback;
   }
@@ -277,6 +350,8 @@
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[\r\n\t]+/g, " ")
+      .replace(/\s{2,}/g, " ")
       .trim();
   }
 
@@ -796,7 +871,7 @@
       </article>`;
   }
 
-  function renderTeleworkRow(rawItem) {
+  function renderTeleworkRow(rawItem, indicatorContext) {
     const item = normalizeTeleworkItem(rawItem);
     const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
     const daysHtml = item.days.length
@@ -809,8 +884,13 @@
     return `
       <tr id="rrll-telework-${escapeHtml(item.id)}" class="rrll-pro-row telework-request-row status-${statusClass}" ondblclick="event.preventDefault(); event.stopPropagation(); openTeleworkEditModal('${escapeJs(item.id)}')" title="Doble clic para editar la ficha completa">
         <td class="rrll-pro-main-cell telework-col-person">
-          <div class="rrll-pro-title">${escapeHtml(item.name || "Sin solicitante")}</div>
-          <div class="rrll-pro-subtitle">Nº empleado: ${escapeHtml(item.employeeNumber || "Sin número")} · ${escapeHtml(item.job || "Sin puesto")}</div>
+          <div class="telework-person-with-indicator">
+            ${renderTeleworkPositionIndicator(item, indicatorContext)}
+            <div class="telework-person-text">
+              <div class="rrll-pro-title">${escapeHtml(item.name || "Sin solicitante")}</div>
+              <div class="rrll-pro-subtitle">Nº empleado: ${escapeHtml(item.employeeNumber || "Sin número")} · ${escapeHtml(item.job || "Sin puesto")}</div>
+            </div>
+          </div>
           ${eligibilityHtml}
         </td>
         <td class="telework-col-status"><span class="rrll-status-pill ${statusClass}">${escapeHtml(teleworkStatusLabel(item.status))}</span></td>
@@ -818,14 +898,6 @@
         <td class="telework-col-type"><span class="rrll-pro-source">${escapeHtml(item.type || "Nuevo")}</span></td>
         <td class="telework-col-days"><div class="telework-days rrll-pro-day-list">${daysHtml}</div></td>
         <td class="telework-col-created"><span class="rrll-pro-created">${escapeHtml(created)}</span></td>
-        <td class="rrll-pro-actions telework-col-actions" onclick="event.stopPropagation()">
-          <div class="telework-actions-group">
-            ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
-            ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
-            <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
-            <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
-          </div>
-        </td>
       </tr>`;
   }
 
@@ -953,6 +1025,10 @@
     if (activeFilter) activeFilter.classList.add("active");
 
     const filtered = getTeleworkVisibleItems(items);
+    const indicatorContext = {
+      catalog: getTeleworkJobCatalog(),
+      countsByJob: buildTeleworkRequestCountByJob(selectedItems)
+    };
     const list = document.getElementById("teleworkListBody") || document.getElementById("teleworkTableBody");
     const empty = document.getElementById("teleworkTableEmpty");
     if (list) {
@@ -967,10 +1043,9 @@
                 <th>Tipo</th>
                 <th>Días</th>
                 <th>Creada</th>
-                <th>Acciones</th>
               </tr>
             </thead>
-            <tbody>${filtered.map(renderTeleworkRow).join("")}</tbody>
+            <tbody>${filtered.map(item => renderTeleworkRow(item, indicatorContext)).join("")}</tbody>
           </table>
         </div>`;
     }
@@ -1314,13 +1389,26 @@
       return ["si", "sí", "s", "true", "1", "x", "ok", "aprobado", "favorable"].includes(text);
     }
 
+  function teleworkStatusFromImport(record) {
+      const value = teleworkCell(record, ["Estado", "Estado solicitud", "Estado de solicitud", "Situación", "Situacion"]);
+      const text = normalizeTeleworkLookup(value);
+      if (!text) return "";
+      if (text.includes("aprob")) return "telework-approved";
+      if (text.includes("deneg") || text.includes("rechaz")) return "telework-denied";
+      if (text.includes("direccion")) return "telework-direction";
+      if (text.includes("validacion") || text.includes("validaciones") || text.includes("tram") || text.includes("proceso")) return "telework-processing";
+      if (text.includes("recibid") || text.includes("entrada") || text.includes("solicitud")) return "telework-entry";
+      return STATUS_VALUES.includes(value) ? value : "";
+    }
+
   function buildTeleworkImportItem(record, defaultPeriod) {
       const original = teleworkCell(record, ["Petición original", "Peticion original", "Días solicitados", "Dias solicitados"]);
       const days = ["Martes", "Miércoles", "Jueves"].filter(day => parseTeleworkBoolean(teleworkCell(record, [day])));
       if (!days.length && original) {
         ["Martes", "Miércoles", "Jueves"].forEach(day => { if (normalizeTeleworkLookup(original).includes(normalizeTeleworkLookup(day))) days.push(day); });
       }
-      const status = parseTeleworkBoolean(teleworkCell(record, ["Validación Dirección", "Validacion Direccion"])) ? "telework-approved" : "telework-processing";
+      const directionApproved = parseTeleworkBoolean(teleworkCell(record, ["Validación Dirección", "Validacion Direccion"]));
+      const importedStatus = teleworkStatusFromImport(record);
       const resolvedAt = teleworkCell(record, ["Fecha resolución", "Fecha resolucion"]);
       return normalizeTeleworkItem({
         id: (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
@@ -1336,9 +1424,10 @@
         prevention: parseTeleworkBoolean(teleworkCell(record, ["Prevención", "Prevencion"])) ? "Sí" : "Pendiente",
         previousYearTeleworked: parseTeleworkBoolean(teleworkCell(record, ["Año anterior teletrabajado", "Ano anterior teletrabajado"])) ? "Sí" : "No aplica",
         unitHeadRepeatValidation: parseTeleworkBoolean(teleworkCell(record, ["Validación Jefatura Unidad a repetir", "Validacion Jefatura Unidad a repetir"])) ? "Sí" : "No aplica",
-        directionValidation: parseTeleworkBoolean(teleworkCell(record, ["Validación Dirección", "Validacion Direccion"])) ? "Aprobada" : "Pendiente",
+        directionValidation: directionApproved ? "Aprobada" : "Pendiente",
         resolutionDate: resolvedAt || "",
-        status: resolvedAt ? status : "telework-processing",
+        status: importedStatus || (resolvedAt || directionApproved ? "telework-approved" : "telework-entry"),
+        statusManual: true,
         resolvedAt: resolvedAt || null,
         observations: teleworkCell(record, ["Observaciones", "Notas"]),
         createdAt: new Date().toISOString()
