@@ -2053,3 +2053,17 @@ body.phase4-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list
     width: 100% !important;
   }
 }
+
+/* Teletrabajo: distribución de 6 columnas tras retirar Acciones de la tabla principal. */
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(1),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(1) { width: 34% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(2),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(2) { width: 16% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(3),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(3) { width: 13% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(4),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(4) { width: 11% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(5),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(5) { width: 14% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(6),
+body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { width: 12% !important; }

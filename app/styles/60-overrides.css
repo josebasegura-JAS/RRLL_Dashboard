@@ -4079,3 +4079,53 @@ body.phase4-view-module #gestor-teletrabajo .telework-card-actions button {
 body.phase4-view-module #gestor-teletrabajo .telework-history-table-wrapper .telework-request-list {
   min-width: 760px !important;
 }
+
+/* Teletrabajo: indicador visual de validación de puesto y tabla principal sin acciones. */
+body.phase4-view-module #gestor-teletrabajo .telework-table {
+  min-width: 900px !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-person-with-indicator {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-person-text {
+  min-width: 0 !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-status-dot {
+  flex: 0 0 auto !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin-top: 5px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.88), 0 2px 6px rgba(15, 23, 42, 0.22) !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-status-dot--ok {
+  background: #16a34a !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-status-dot--error {
+  background: #dc2626 !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-status-dot--warning {
+  width: 16px !important;
+  height: 16px !important;
+  margin-top: 3px !important;
+  color: #78350f !important;
+  background: #facc15 !important;
+  clip-path: polygon(50% 0, 100% 92%, 0 92%) !important;
+  border-radius: 0 !important;
+  padding-top: 3px !important;
+}
