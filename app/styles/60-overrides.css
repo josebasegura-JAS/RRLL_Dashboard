@@ -4129,3 +4129,109 @@ body.phase4-view-module #gestor-teletrabajo .telework-status-dot--warning {
   border-radius: 0 !important;
   padding-top: 3px !important;
 }
+
+/* Criterios RRLL: módulo independiente de base interna */
+body[data-active-module="gestor-criterios"] #gestor-criterios {
+  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: var(--space-4, 24px) !important;
+  border: 1px solid var(--border-color, rgba(148, 163, 184, .18)) !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
+}
+
+.criteria-module .criteria-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.criteria-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.criteria-search {
+  flex: 1 1 320px;
+  display: grid;
+  gap: 6px;
+  color: var(--muted, #94a3b8);
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.criteria-search input {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 12px;
+}
+
+.criteria-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.criteria-form.rrll-create-form-collapsed {
+  display: none !important;
+}
+
+.criteria-full-field {
+  grid-column: 1 / -1;
+}
+
+.criteria-list-card {
+  overflow: hidden;
+}
+
+.criteria-table-wrap {
+  max-height: min(62vh, 680px);
+}
+
+.criteria-table th,
+.criteria-table td {
+  vertical-align: top;
+}
+
+.criteria-table .criteria-excerpt-cell {
+  min-width: 280px;
+  max-width: 520px;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.criteria-row {
+  cursor: pointer;
+}
+
+.criteria-modal.open {
+  display: flex;
+}
+
+.criteria-modal-box {
+  max-width: 860px;
+  width: min(94vw, 860px);
+}
+
+.criteria-edit-form {
+  max-height: 72vh;
+  overflow: auto;
+}
+
+@media (max-width: 760px) {
+  .criteria-toolbar {
+    align-items: stretch;
+  }
+
+  .criteria-form {
+    grid-template-columns: 1fr;
+  }
+
+  .criteria-table .criteria-excerpt-cell {
+    min-width: 220px;
+  }
+}
