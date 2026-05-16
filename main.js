@@ -544,6 +544,109 @@ function parseCommitteeHistoryDocx(filePath, options = {}) {
   return sessions.filter(session => session.code && session.items && session.items.length);
 }
 
+
+function sanitizeFileNamePart(value, fallback) {
+  const text = String(value || "").trim() || fallback || "documento";
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80) || fallback || "documento";
+}
+
+function escapeDocxXmlText(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function docxReplacementXml(value) {
+  return String(value == null ? "" : value)
+    .split(/\r\n|\r|\n/)
+    .map(escapeDocxXmlText)
+    .join('</w:t><w:br/><w:t>');
+}
+
+function getCommitteeDraftOutputPath(payload) {
+  const outputDir = path.join(app.getPath("documents"), "RRLL Dashboard", "Actas Comité");
+  fs.mkdirSync(outputDir, { recursive: true });
+  const datePart = sanitizeFileNamePart(payload && payload.fechaComite ? payload.fechaComite : ts(), "sin-fecha");
+  const documentPart = sanitizeFileNamePart(payload && payload.numeroDocumento ? payload.numeroDocumento : "acta-comite", "acta-comite");
+  let outputPath = path.join(outputDir, `Acta Comité - ${datePart} - ${documentPart}.docx`);
+  if (!fs.existsSync(outputPath)) return outputPath;
+  outputPath = path.join(outputDir, `Acta Comité - ${datePart} - ${documentPart} - ${ts()}.docx`);
+  return outputPath;
+}
+
+function replaceCommitteeDraftMarkersInDocx(templatePath, outputPath, payload) {
+  const AdmZip = require("adm-zip");
+  const zip = new AdmZip(fs.readFileSync(templatePath));
+  const replacements = {
+    "{{NUMERO_DOCUMENTO}}": docxReplacementXml(payload.numeroDocumento),
+    "{{FECHA_COMITE}}": docxReplacementXml(payload.fechaComite),
+    "{{ORDEN_DIA}}": docxReplacementXml(payload.ordenDia),
+    "{{PUNTOS_TRATADOS}}": docxReplacementXml(payload.puntosTratados)
+  };
+  const foundMarkers = new Set();
+
+  zip.getEntries().forEach(entry => {
+    if (entry.isDirectory || !/^word\/.*\.xml$/i.test(entry.entryName)) return;
+    let xml = entry.getData().toString("utf8");
+    let updated = xml;
+    Object.entries(replacements).forEach(([marker, replacement]) => {
+      if (!updated.includes(marker)) return;
+      foundMarkers.add(marker);
+      updated = updated.split(marker).join(replacement);
+    });
+    if (updated !== xml) zip.updateFile(entry.entryName, Buffer.from(updated, "utf8"));
+  });
+
+  const missingMarkers = Object.keys(replacements).filter(marker => !foundMarkers.has(marker));
+  if (missingMarkers.length) {
+    throw new Error(`La plantilla seleccionada no contiene todos los marcadores esperados. Faltan: ${missingMarkers.join(", ")}.`);
+  }
+
+  zip.writeZip(outputPath);
+}
+
+async function generateCommitteeMinutesDraft(_event, payload = {}) {
+  const result = await dialog.showOpenDialog({
+    title: "Seleccionar plantilla Word para el acta de Comité",
+    properties: ["openFile"],
+    filters: [{ name: "Plantillas Word", extensions: ["docx"] }]
+  });
+
+  if (result.canceled || !result.filePaths || !result.filePaths[0]) {
+    return { canceled: true, message: "No se ha seleccionado ninguna plantilla Word (.docx). Selecciona una plantilla local para generar el borrador del acta." };
+  }
+
+  const templatePath = result.filePaths[0];
+  if (path.extname(templatePath).toLowerCase() !== ".docx") {
+    throw new Error("La plantilla seleccionada debe ser un archivo Word con extensión .docx.");
+  }
+  if (!fs.existsSync(templatePath)) {
+    throw new Error("No se ha encontrado la plantilla seleccionada. Elige una plantilla Word local válida.");
+  }
+
+  const normalizedPayload = {
+    numeroDocumento: String(payload.numeroDocumento || "Sin número de documento").trim(),
+    fechaComite: String(payload.fechaComite || "Sin fecha").trim(),
+    ordenDia: String(payload.ordenDia || "Sin puntos en el orden del día").trim(),
+    puntosTratados: String(payload.puntosTratados || "Sin puntos tratados").trim()
+  };
+
+  const outputPath = getCommitteeDraftOutputPath(normalizedPayload);
+  replaceCommitteeDraftMarkersInDocx(templatePath, outputPath, normalizedPayload);
+  const openError = await shell.openPath(outputPath);
+  if (openError) {
+    return { outputPath, opened: false, message: `El borrador se generó correctamente, pero no se pudo abrir automáticamente: ${openError}` };
+  }
+  return { outputPath, opened: true };
+}
+
 async function importCommitteeHistoryDocx() {
   const result = await dialog.showOpenDialog({
     title: "Seleccionar Word de histórico de Comité de Empresa",
@@ -581,6 +684,7 @@ ipcMain.handle("db:setSharedDirectory", setSharedDirectory);
 ipcMain.handle("db:useLocalDatabase", useLocalDatabase);
 ipcMain.handle("db:importCommitteeHistoryDocx", importCommitteeHistoryDocx);
 ipcMain.handle("db:importParitariaHistoryDocx", importParitariaHistoryDocx);
+ipcMain.handle("db:generateCommitteeMinutesDraft", generateCommitteeMinutesDraft);
 
 function createWindow() {
   Menu.setApplicationMenu(null);

@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld("rrllDB", {
   setSharedDirectory: (directory, currentData) => ipcRenderer.invoke("db:setSharedDirectory", directory, currentData),
   useLocalDatabase: currentData => ipcRenderer.invoke("db:useLocalDatabase", currentData),
   importCommitteeHistoryDocx: () => ipcRenderer.invoke("db:importCommitteeHistoryDocx"),
-  importParitariaHistoryDocx: () => ipcRenderer.invoke("db:importParitariaHistoryDocx")
+  importParitariaHistoryDocx: () => ipcRenderer.invoke("db:importParitariaHistoryDocx"),
+  generateCommitteeMinutesDraft: payload => ipcRenderer.invoke("db:generateCommitteeMinutesDraft", payload)
 });
