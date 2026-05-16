@@ -82,6 +82,22 @@
     return teleworkCampaignStart(b) - teleworkCampaignStart(a) || String(b).localeCompare(String(a), "es");
   }
 
+  function getTeleworkActiveHistoryBoundary(items = getTeleworkItems()) {
+    const info = getTeleworkCampaignInfo();
+    const campaigns = new Set([info.active, info.suggested, getTeleworkActiveCampaign()]);
+    items.forEach(item => campaigns.add(normalizeTeleworkPeriod(item.period)));
+    return Array.from(campaigns).reduce((latest, period) => {
+      const start = teleworkCampaignStart(period);
+      return Number.isFinite(start) && start > latest ? start : latest;
+    }, teleworkCampaignStart(info.active));
+  }
+
+  function isTeleworkHistoricalCampaign(period, items = getTeleworkItems()) {
+    const start = teleworkCampaignStart(normalizeTeleworkPeriod(period));
+    if (!Number.isFinite(start)) return false;
+    return start < getTeleworkActiveHistoryBoundary(items);
+  }
+
   function getTeleworkJobCatalog() {
     const items = load(JOB_CATALOG_KEY, []);
     return Array.isArray(items) ? items.map(normalizeTeleworkCatalogItem).filter(item => item.jobKey) : [];
@@ -803,10 +819,12 @@
         <td class="telework-col-days"><div class="telework-days rrll-pro-day-list">${daysHtml}</div></td>
         <td class="telework-col-created"><span class="rrll-pro-created">${escapeHtml(created)}</span></td>
         <td class="rrll-pro-actions telework-col-actions" onclick="event.stopPropagation()">
-          ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
-          ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
-          <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
-          <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
+          <div class="telework-actions-group">
+            ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
+            ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
+            <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
+            <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
+          </div>
         </td>
       </tr>`;
   }
@@ -900,18 +918,17 @@
   function renderTeleworkHistory(items) {
     const box = document.getElementById("teleworkHistoryList");
     if (!box) return;
-    const active = getTeleworkActiveCampaign();
     const grouped = groupTeleworkByPeriod(items);
-    const periods = Object.keys(grouped).sort(compareTeleworkCampaignsDesc);
+    const periods = Object.keys(grouped)
+      .filter(period => isTeleworkHistoricalCampaign(period, items))
+      .sort(compareTeleworkCampaignsDesc);
     box.innerHTML = periods.map(period => {
       const rows = grouped[period].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).map(renderTeleworkCard).join("");
-      const isCurrent = period === active;
-      const warning = isCurrent ? "" : `<div class="telework-history-warning">Campaña no seleccionada: vista de histórico.</div>`;
-      return `<details class="telework-history-campaign" ${isCurrent ? "open" : ""}>
-        <summary><strong>${escapeHtml(period)}</strong><span>${isCurrent ? "Campaña seleccionada" : "Histórico"} · ${grouped[period].length} solicitudes</span></summary>
-        ${warning}<div class="telework-request-list">${rows}</div>
+      return `<details class="telework-history-campaign">
+        <summary><strong>${escapeHtml(period)}</strong><span>Histórico · ${grouped[period].length} solicitudes</span></summary>
+        <div class="history-table-wrapper telework-history-table-wrapper"><div class="telework-request-list">${rows}</div></div>
       </details>`;
-    }).join("") || `<div class="rrll-pro-empty">Sin campañas registradas.</div>`;
+    }).join("") || `<div class="rrll-pro-empty">Sin campañas históricas cerradas.</div>`;
   }
 
   function renderTelework() {

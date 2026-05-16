@@ -4027,3 +4027,55 @@ body.phase4-view-module .committee-minute-prompt-modal .committee-minute-preview
   color: var(--text) !important;
   overflow-wrap: anywhere !important;
 }
+
+/* Teletrabajo: histórico y tablas con scroll horizontal real sin comprimir columnas. */
+body.phase4-view-module #gestor-teletrabajo .history-table-wrapper,
+body.phase4-view-module #gestor-teletrabajo .telework-table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table {
+  width: max-content !important;
+  min-width: 1040px !important;
+  table-layout: auto !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table th,
+body.phase4-view-module #gestor-teletrabajo .telework-table td {
+  min-width: 120px !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table .telework-col-person {
+  min-width: 280px !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table .telework-col-actions {
+  min-width: 260px !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-actions-group,
+body.phase4-view-module #gestor-teletrabajo .telework-card-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-actions-group button,
+body.phase4-view-module #gestor-teletrabajo .telework-card-actions button {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-history-table-wrapper .telework-request-list {
+  min-width: 760px !important;
+}
