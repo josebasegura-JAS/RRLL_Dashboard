@@ -213,6 +213,23 @@ function dashboardSearchSnippet(source, query) {
   return `${start > 0 ? "…" : ""}${compact.slice(start, end)}${end < compact.length ? "…" : ""}`;
 }
 
+function dashboardSearchDateTime(value) {
+  const date = phase4ParseDate(value);
+  return date ? date.getTime() : Number.POSITIVE_INFINITY;
+}
+
+function dashboardSearchYearLabel(value) {
+  const date = phase4ParseDate(value);
+  return date ? String(date.getFullYear()) : "Sin fecha";
+}
+
+function dashboardSearchSortTimeline(a, b) {
+  const aTime = dashboardSearchDateTime(a.date);
+  const bTime = dashboardSearchDateTime(b.date);
+  if (aTime !== bTime) return aTime - bTime;
+  return String(a.title || "").localeCompare(String(b.title || ""), "es");
+}
+
 function dashboardSearchBuildRows() {
   const { committee, committeeSessions, paritaria, paritariaSessions } = phase5CollectDashboardData();
   const rows = [];
@@ -319,15 +336,66 @@ function openDashboardSearchResult(target, targetId) {
   }, 180);
 }
 
+function renderDashboardSearchTimeline(results, query) {
+  const container = document.getElementById("dashboardSearchTimeline");
+  if (!container) return;
+
+  const head = `
+    <div class="phase4-card-head">
+      <h3>Timeline del asunto</h3>
+      <span>Comité · Paritaria</span>
+    </div>`;
+
+  if (!query) {
+    container.innerHTML = `${head}<div class="dashboard-search-empty">Introduce un asunto para ver su evolución en Comité y Paritaria.</div>`;
+    return;
+  }
+
+  if (!results.length) {
+    container.innerHTML = `${head}<div class="dashboard-search-empty">No hay timeline para este asunto.</div>`;
+    return;
+  }
+
+  const groups = new Map();
+  results.slice().sort(dashboardSearchSortTimeline).forEach(item => {
+    const year = dashboardSearchYearLabel(item.date);
+    if (!groups.has(year)) groups.set(year, []);
+    groups.get(year).push(item);
+  });
+
+  const timeline = Array.from(groups.entries()).map(([year, items]) => `
+    <section class="dashboard-timeline-year" aria-label="${dashboardSearchHtml(year)}">
+      <h4>${dashboardSearchHtml(year)}</h4>
+      ${items.map(item => `
+        <button type="button" class="dashboard-timeline-item" onclick="openDashboardSearchResult('${item.target}', '${dashboardSearchHtml(item.targetId)}')">
+          <span class="dashboard-timeline-node" aria-hidden="true"></span>
+          <span class="dashboard-timeline-content">
+            <span class="dashboard-timeline-meta">
+              <span class="dashboard-timeline-badge dashboard-timeline-badge--${item.kind}">${dashboardSearchHtml(item.type)}</span>
+              <em>${dashboardSearchHtml(item.date ? phase4FormatDate(item.date) : "Sin fecha")}</em>
+              ${item.code ? `<em>${dashboardSearchHtml(item.code)}</em>` : ""}
+              ${item.status ? `<em>${dashboardSearchHtml(item.status)}</em>` : ""}
+            </span>
+            <strong>${dashboardSearchHtml(item.title)}</strong>
+            <small>${dashboardSearchHtml(dashboardSearchSnippet(item.source, query))}</small>
+          </span>
+        </button>`).join("")}
+    </section>`).join("");
+
+  container.innerHTML = `${head}<div class="dashboard-timeline">${timeline}</div>`;
+}
+
 function renderDashboardSearchResults(results, query) {
   const container = document.getElementById("dashboardSearchResults");
   if (!container) return;
   if (!query) {
     container.innerHTML = `<div class="dashboard-search-empty">Introduce un asunto para buscar en Comité y Paritaria.</div>`;
+    renderDashboardSearchTimeline([], query);
     return;
   }
   if (!results.length) {
     container.innerHTML = `<div class="dashboard-search-empty">No se han encontrado coincidencias.</div>`;
+    renderDashboardSearchTimeline([], query);
     return;
   }
 
@@ -345,6 +413,7 @@ function renderDashboardSearchResults(results, query) {
       </span>
     </button>
   `).join("");
+  renderDashboardSearchTimeline(results, query);
 }
 
 function runDashboardSearch() {
