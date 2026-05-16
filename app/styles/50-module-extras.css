@@ -1574,3 +1574,79 @@ html[data-theme="light"] .telework-intake-note {
     grid-template-columns: 1fr !important;
   }
 }
+
+.telework-import-modal .telework-import-box {
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.telework-import-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.telework-import-head h3,
+.telework-import-card h4 {
+  margin: 0;
+}
+
+.telework-import-head .muted,
+.telework-import-card p {
+  margin: 6px 0 0;
+  color: var(--rrll-text-muted, var(--muted));
+}
+
+.telework-import-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, .25);
+  background: rgba(148, 163, 184, .12);
+  color: var(--rrll-text-main, inherit);
+  cursor: pointer;
+}
+
+.telework-import-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.telework-import-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 16px;
+  background: rgba(148, 163, 184, .08);
+}
+
+.telework-import-kicker {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(167, 53, 53, .14);
+  color: var(--rrll-red-ui, var(--red));
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.telework-template-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+}
+
+@media (max-width: 720px) {
+  .telework-import-grid {
+    grid-template-columns: 1fr;
+  }
+}

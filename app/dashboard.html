@@ -842,12 +842,8 @@
                 </div>
                 <div class="rrll-pro-list-actions telework-list-actions">
                   <button class="rrll-pro-tool-button rrll-icon-only rrll-new-request-icon" type="button" onclick="toggleTeleworkCreateForm(true)" title="Nueva solicitud" aria-label="Nueva solicitud">+</button>
-                  <label class="rrll-pro-tool-button rrll-icon-only" title="Importar CSV de teletrabajo" aria-label="Importar CSV de teletrabajo">⇪
-                    <input class="sr-only-file" type="file" accept=".csv,.txt,.tsv" onchange="importTeleworkData(event)" />
-                  </label>
-                  <label class="rrll-pro-tool-button rrll-icon-only" title="Importar catálogo de puestos elegibles" aria-label="Importar catálogo de puestos elegibles">☷
-                    <input class="sr-only-file" type="file" accept=".csv,.txt,.tsv" onchange="importTeleworkJobCatalog(event)" />
-                  </label>
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="openTeleworkImportModal()" title="Importar teletrabajo" aria-label="Importar teletrabajo">⇪</button>
+                  <input id="teleworkImportFileInput" class="sr-only-file" type="file" accept=".xlsx,.csv,.txt,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" onchange="importTeleworkData(event)" />
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printModule('telework')" title="Imprimir el filtro seleccionado" aria-label="Imprimir el filtro seleccionado">🖨️</button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportModuleExcel('telework')" title="Exportar campaña/filtro seleccionado" aria-label="Exportar campaña/filtro seleccionado">X</button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportTeleworkHistoryExcel()" title="Exportar todas las campañas" aria-label="Exportar todas las campañas">H</button>
@@ -1123,6 +1119,36 @@
   </main>
     </div>
   </div>
+
+  <div id="teleworkImportModal" class="modal-backdrop telework-import-modal" onclick="if (event.target === this) closeTeleworkImportModal()" aria-hidden="true">
+    <div class="modal-box telework-import-box" role="dialog" aria-modal="true" aria-labelledby="teleworkImportTitle">
+      <div class="telework-import-head">
+        <div>
+          <h3 id="teleworkImportTitle">Importar teletrabajo</h3>
+          <p class="muted">Carga datos existentes o genera plantillas Excel válidas para solicitudes y catálogo de puestos.</p>
+        </div>
+        <button class="telework-import-close" type="button" onclick="closeTeleworkImportModal()" aria-label="Cerrar importador">×</button>
+      </div>
+      <div class="telework-import-grid">
+        <section class="telework-import-card">
+          <span class="telework-import-kicker">Opción 1</span>
+          <h4>Cargar fichero</h4>
+          <p>Importa solicitudes o catálogo desde Excel, CSV, TXT o TSV. Se leerá la primera hoja si el archivo es .xlsx.</p>
+          <button class="rrll-pro-primary" type="button" onclick="teleworkImportChooseFile()">Cargar fichero</button>
+        </section>
+        <section class="telework-import-card">
+          <span class="telework-import-kicker">Opción 2</span>
+          <h4>Generar modelo</h4>
+          <p>Descarga plantillas Excel generadas al momento, listas para rellenar y volver a importar.</p>
+          <div class="telework-template-actions">
+            <button class="secondary" type="button" onclick="downloadTeleworkTemplate('requests')">Modelo solicitudes teletrabajo</button>
+            <button class="secondary" type="button" onclick="downloadTeleworkTemplate('jobs')">Modelo catálogo puestos</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <div id="importPreviewModal" class="modal-backdrop" onclick="closeImportPreview()">
     <div class="modal-box" onclick="event.stopPropagation()">
       <h3>Vista previa de importación</h3>
