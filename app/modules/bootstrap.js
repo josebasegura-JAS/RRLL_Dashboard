@@ -32,6 +32,7 @@ function rrllSafeCall(label, fn) {
       rrllSafeCall("vinculograma", () => { if (typeof renderVinculogramas === "function") renderVinculogramas(); });
       rrllSafeCall("licencias", () => { if (typeof renderLicencias === "function") renderLicencias(); });
       rrllSafeCall("plantilla", () => { if (typeof renderPlantilla === "function") renderPlantilla(); });
+      rrllSafeCall("criterios RRLL", () => { if (typeof renderCriteria === "function") renderCriteria(); });
       rrllSafeCall("papelera", () => renderTrash());
       rrllSafeCall("estado de alertas", () => restoreAlertsPanelState());
       rrllSafeCall("alertas", () => renderAlertsPanel());
@@ -132,6 +133,7 @@ function forceActiveDetailsOpen() {
         rrllSafeCall("cerrar configuración", () => closeConfigModal());
         rrllSafeCall("cerrar papelera", () => closeTrashModal());
         rrllSafeCall("cerrar licencias", () => { if (typeof closeLicenciaModal === "function") closeLicenciaModal(); });
+        rrllSafeCall("cerrar criterios RRLL", () => { if (typeof closeCriteriaEditModal === "function") closeCriteriaEditModal(); });
       }
     });
 

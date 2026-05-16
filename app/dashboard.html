@@ -26,6 +26,7 @@
         <a href="#gestor-vinculograma" class="phase4-nav-item">◇ <span>Vinculograma</span></a>
         <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
         <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
+        <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="phase4-nav-chevron">▾</strong></button>
         <div class="phase4-nav-submenu" id="phase4-submenu-comite">
           <a href="#gestor-puntos-comite" class="phase4-nav-subitem">• <span>Puntos de Comité</span></a>
@@ -1052,6 +1053,86 @@
             </section>
           </div>
         </details>
+
+        <details class="card module-card module-criteria rrll-pro-module criteria-module" id="gestor-criterios"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h10"></path><path d="M18 15l2 2 3-4"></path></svg></span>Criterios RRLL</span><span class="summary-counts" id="summary-count-criteria">0 criterios</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); printCriteria()" title="Vista previa / imprimir">🖨️</button><button class="summary-icon-button excel-icon" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportCriteriaExcel()" title="Exportar a Excel" aria-label="Exportar criterios RRLL a Excel">X</button></span></summary>
+          <div class="rrll-pro-task-shell criteria-shell">
+            <div class="rrll-pro-task-head">
+              <div>
+                <h2>Criterios RRLL</h2>
+                <p>Base interna de criterios, decisiones y antecedentes de Relaciones Laborales.</p>
+              </div>
+              <button type="button" class="rrll-pro-primary" onclick="toggleCriteriaCreateForm(true)">+ Nuevo criterio</button>
+            </div>
+
+            <div class="criteria-toolbar">
+              <label class="criteria-search" for="criteriaSearchInput">
+                <span>Buscar</span>
+                <input id="criteriaSearchInput" placeholder="Buscar criterio por palabra…" oninput="renderCriteria()" onkeydown="if (event.key === 'Enter') { event.preventDefault(); renderCriteria(); }" />
+              </label>
+              <div class="rrll-pro-list-actions">
+                <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printCriteria()" title="Imprimir criterios RRLL" aria-label="Imprimir criterios RRLL">🖨️</button>
+                <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportCriteriaExcel()" title="Exportar criterios RRLL a Excel" aria-label="Exportar criterios RRLL a Excel">X</button>
+              </div>
+            </div>
+
+            <div id="criteriaCreateForm" class="rrll-pro-task-form criteria-form rrll-create-form-collapsed">
+              <label class="rrll-pro-field">
+                <span>Fecha *</span>
+                <input id="newCriteriaDate" type="date" />
+              </label>
+              <label class="rrll-pro-field">
+                <span>Motivo / asunto *</span>
+                <input id="newCriteriaSubject" placeholder="Asunto del criterio" />
+              </label>
+              <label class="rrll-pro-field criteria-full-field">
+                <span>Criterio general *</span>
+                <textarea id="newCriteriaGeneral" rows="5" placeholder="Criterio acordado o decisión general"></textarea>
+              </label>
+              <label class="rrll-pro-field criteria-full-field">
+                <span>Observaciones</span>
+                <textarea id="newCriteriaObservations" rows="3" placeholder="Antecedentes, matices o notas internas"></textarea>
+              </label>
+              <label class="rrll-pro-field">
+                <span>Etiquetas / palabras clave</span>
+                <input id="newCriteriaTags" placeholder="Ej. jornada, permisos, sanción" />
+              </label>
+              <label class="rrll-pro-field">
+                <span>Origen</span>
+                <select id="newCriteriaOrigin">
+                  <option value="">Seleccionar origen</option>
+                  <option>Comité</option>
+                  <option>Paritaria</option>
+                  <option>Convenio</option>
+                  <option>Dirección</option>
+                  <option>Jurisprudencia</option>
+                  <option>Criterio interno</option>
+                  <option>Otro</option>
+                </select>
+              </label>
+              <div class="rrll-pro-form-actions criteria-full-field">
+                <button type="button" class="rrll-pro-primary" onclick="addCriteria()">Guardar</button>
+                <button type="button" class="secondary" onclick="toggleCriteriaCreateForm(false)">Cancelar</button>
+              </div>
+            </div>
+
+            <section class="rrll-pro-list-card criteria-list-card">
+              <div class="rrll-pro-list-toolbar">
+                <div>
+                  <h3>Listado de criterios</h3>
+                  <p class="rrll-pro-subtitle"><span id="criteriaCount">0 de 0</span> · orden por fecha descendente · doble clic para editar</p>
+                </div>
+              </div>
+              <div class="rrll-pro-table-wrap criteria-table-wrap">
+                <table class="rrll-pro-table criteria-table">
+                  <thead><tr><th>Fecha</th><th>Motivo / asunto</th><th>Criterio general</th><th>Origen</th><th>Etiquetas</th><th>Eliminar</th></tr></thead>
+                  <tbody id="criteriaTableBody"></tbody>
+                </table>
+              </div>
+              <div id="criteriaEmptyState" class="rrll-pro-empty">No hay criterios RRLL registrados.</div>
+            </section>
+          </div>
+        </details>
+
         <details class="card module-card module-licencias rrll-pro-module" id="gestor-licencias"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><path d="M8 3h8"></path><path d="M9 3v4a6 6 0 1 0 6 0V3"></path><path d="M9 15h6"></path></svg></span>Licencias sin sueldo y excedencias</span><span class="summary-counts" id="summary-count-licencias">0 aprobar · 0 firma · 0 vigentes</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); openModuleSearch('licencias')" title="Buscar en este gestor">🔍</button></span></summary>
           <div class="rrll-pro-task-shell rrll-pro-licencias-shell">
             <div class="rrll-pro-task-head">
@@ -1727,6 +1808,7 @@
   <script src="modules/teletrabajo.js"></script>
   <script src="modules/vinculograma.js"></script>
   <script src="modules/licencias.js"></script>
+  <script src="modules/criterios-rrll.js"></script>
   <script src="modules/links-config.js"></script>
   <script src="modules/trash.js"></script>
   <script src="modules/search.js"></script>

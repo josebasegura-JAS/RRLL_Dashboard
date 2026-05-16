@@ -148,6 +148,20 @@ async function openDatabase(dbPath) {
     );
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS rrll_criteria (
+      id TEXT PRIMARY KEY,
+      date TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      generalCriterion TEXT NOT NULL,
+      observations TEXT,
+      tags TEXT,
+      origin TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+  `);
+
   try { db.run("ALTER TABLE kv_store ADD COLUMN updated_by TEXT"); } catch {}
 
   const versionRow = db.exec("SELECT value FROM meta WHERE key = 'schema_version'");
@@ -216,6 +230,42 @@ function touchDatabaseState(db) {
   db.run("INSERT OR REPLACE INTO meta (key, value) VALUES ('last_update_token', ?)", [`${now}-${process.pid}-${Math.random().toString(36).slice(2)}`]);
 }
 
+
+function syncCriteriaTable(db, criteria) {
+  const rows = Array.isArray(criteria) ? criteria : [];
+  db.run("DELETE FROM rrll_criteria");
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO rrll_criteria
+    (id, date, subject, generalCriterion, observations, tags, origin, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  rows.forEach(item => {
+    if (!item || typeof item !== "object" || !item.id) return;
+    stmt.run([
+      String(item.id),
+      String(item.date || ""),
+      String(item.subject || ""),
+      String(item.generalCriterion || ""),
+      String(item.observations || ""),
+      String(item.tags || ""),
+      String(item.origin || ""),
+      String(item.createdAt || new Date().toISOString()),
+      String(item.updatedAt || item.createdAt || new Date().toISOString())
+    ]);
+  });
+  stmt.free();
+}
+
+function loadCriteriaTable(db) {
+  const result = [];
+  const rows = db.exec("SELECT id, date, subject, generalCriterion, observations, tags, origin, createdAt, updatedAt FROM rrll_criteria ORDER BY date DESC, updatedAt DESC");
+  if (!rows.length) return result;
+  rows[0].values.forEach(([id, date, subject, generalCriterion, observations, tags, origin, createdAt, updatedAt]) => {
+    result.push({ id, date, subject, generalCriterion, observations, tags, origin, createdAt, updatedAt });
+  });
+  return result;
+}
+
 async function getDbState() {
   const info = getActiveDbInfo();
   return withFileLock(info.path, async () => {
@@ -265,6 +315,10 @@ async function loadAllData() {
       if (rows.length) {
         rows[0].values.forEach(([key, value]) => { result[key] = parseValue(value); });
       }
+      if (!Object.prototype.hasOwnProperty.call(result, "rrll_criteria")) {
+        const criteriaRows = loadCriteriaTable(db);
+        if (criteriaRows.length) result.rrll_criteria = criteriaRows;
+      }
       return result;
     } finally {
       try { db.close(); } catch {}
@@ -280,6 +334,7 @@ async function saveKeyData(key, value) {
     try {
       const now = new Date().toISOString();
       db.run("INSERT OR REPLACE INTO kv_store (key, value, updated_at, updated_by) VALUES (?, ?, ?, ?)", [key, serializeValue(value), now, getWindowsUser()]);
+      if (key === "rrll_criteria") syncCriteriaTable(db, value);
       addAudit(db, "save_key", key, null);
       touchDatabaseState(db);
       persistDb(db, info.path);
@@ -305,6 +360,7 @@ async function saveAllData(data) {
           if (typeof key === "string" && key.startsWith("rrll_")) stmt.run([key, serializeValue(value), now, getWindowsUser()]);
         });
         stmt.free();
+        syncCriteriaTable(db, safe.rrll_criteria);
         addAudit(db, "save_all", null, "Guardado completo / importación");
         touchDatabaseState(db);
         db.run("COMMIT");
