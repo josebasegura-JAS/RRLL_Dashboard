@@ -579,6 +579,56 @@
       return `${session.code || "Sin código"} · ${date}`;
     }
 
+    function committeeDraftDateLabel(session) {
+      if (!session) return "Sin fecha";
+      if (session.date) return new Date(session.date + "T00:00:00").toLocaleDateString("es-ES");
+      return session.rawDate || "Sin fecha";
+    }
+
+    function buildCommitteeDraftPayload(session) {
+      const items = getCommitteeSessionDisplayItems(session);
+      const ordenDia = items.length
+        ? items.map((item, index) => `${index + 1}. ${item.title || "Sin título"}`).join("\n")
+        : "Sin puntos en el orden del día";
+      const puntosTratados = items.length
+        ? items.map((item, index) => {
+          const meta = item.meta ? `\n   ${item.meta}` : "";
+          return `${index + 1}. ${item.title || "Sin título"}${meta}`;
+        }).join("\n\n")
+        : "Sin puntos tratados";
+
+      return {
+        numeroDocumento: String(session && session.code ? session.code : "Sin número de documento").trim(),
+        fechaComite: committeeDraftDateLabel(session),
+        ordenDia,
+        puntosTratados
+      };
+    }
+
+    async function generateCommitteeMinutesDraft(sessionId) {
+      const session = getCommitteeSessions().find(s => s.id === sessionId);
+      if (!session) {
+        alert("No se ha encontrado la sesión de Comité para generar el borrador del acta.");
+        return;
+      }
+      if (!window.rrllDB || typeof window.rrllDB.generateCommitteeMinutesDraft !== "function") {
+        alert("La generación de borradores Word solo está disponible en la aplicación Electron.");
+        return;
+      }
+
+      try {
+        const result = await window.rrllDB.generateCommitteeMinutesDraft(buildCommitteeDraftPayload(session));
+        if (!result) return;
+        if (result.canceled) {
+          alert(result.message || "No se ha seleccionado ninguna plantilla Word (.docx). Selecciona una plantilla local para generar el borrador del acta.");
+          return;
+        }
+        if (result.message) alert(result.message);
+      } catch (error) {
+        alert(`No se pudo generar el borrador del acta.\nDetalle: ${error && error.message ? error.message : error}`);
+      }
+    }
+
     function isOpenCommitteeSession(session) {
       return !!session && session.status !== "closed";
     }
@@ -1188,6 +1238,7 @@
       card.innerHTML = `
         <div class="session-card-toolbar" onclick="event.stopPropagation()">
           <button class="session-card-icon" type="button" onclick="printCommitteeSession('${session.id}')" title="Imprimir esta sesión">🖨️</button>
+          <button class="session-card-icon" type="button" onclick="generateCommitteeMinutesDraft('${session.id}')" title="Generar borrador acta">📄</button>
           <button class="session-card-icon excel-icon" type="button" onclick="exportCommitteeSessionExcel('${session.id}')" title="Exportar esta sesión a Excel" aria-label="Exportar esta sesión a Excel">X</button>
         </div>
         <div class="rrll-session-card-head">
@@ -1601,6 +1652,7 @@
     importCommitteeHistoryFromWord,
     addCommitteeSession,
     sessionLabel,
+    generateCommitteeMinutesDraft,
     openAddAgendaToCommitteeModal,
     closeAddAgendaToCommitteeModal,
     confirmAddAgendaToCommitteeSession,
