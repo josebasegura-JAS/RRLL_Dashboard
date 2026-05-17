@@ -954,9 +954,7 @@
   }
 
   function addTeleworkCampaignOption() {
-    const answer = prompt("Indica la campaña futura/manual a seleccionar (formato 2026-2027):", getTeleworkCampaignInfo().suggested);
-    if (answer === null) return;
-    const period = normalizeTeleworkPeriod(answer);
+    const period = normalizeTeleworkPeriod(getTeleworkCampaignInfo().suggested);
     if (!period || period === TELEWORK_NO_PERIOD) return;
     changeTeleworkCampaign(period);
   }
@@ -1464,9 +1462,7 @@
       if (rows.length < 2) throw new Error("El fichero no contiene filas importables.");
       const { headers, records } = teleworkRowsToRecords(rows);
       const hasPeriod = headers.some(h => h === "periodo" || h === "campana");
-      const periodAnswer = hasPeriod ? "" : prompt("El fichero no trae periodo/campaña. Indica campaña para asignar a todos los registros:", getTeleworkActiveCampaign());
-      if (!hasPeriod && periodAnswer === null) return null;
-      const defaultPeriod = hasPeriod ? "" : normalizeTeleworkPeriod(periodAnswer);
+      const defaultPeriod = hasPeriod ? "" : getTeleworkActiveCampaign();
       const imported = records.map(record => buildTeleworkImportItem(record, defaultPeriod)).filter(item => item.employeeNumber && item.name);
       const existing = getTeleworkItems();
       const existingKeys = new Set(existing.map(getTeleworkDuplicateKey).filter(Boolean));
@@ -1477,12 +1473,7 @@
         if (key) seenImportKeys.add(key);
         return duplicated ? count + 1 : count;
       }, 0);
-      let mode = "append";
-      if (duplicateCount) {
-        const answer = prompt(`${duplicateCount} posible(s) duplicado(s) por Nº empleado + campaña. Escribe "omitir" para no importarlos, "actualizar" para actualizar registros existentes o "cancelar".`, "omitir");
-        if (!answer || normalizeTeleworkLookup(answer).startsWith("cancel")) return null;
-        mode = normalizeTeleworkLookup(answer).startsWith("actual") ? "update" : "skip";
-      }
+      const mode = duplicateCount ? "skip" : "append";
       const next = [...existing];
       let added = 0, updated = 0, skipped = 0;
       imported.forEach(item => {
