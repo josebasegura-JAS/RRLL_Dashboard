@@ -352,8 +352,13 @@ function renderDashboardSearchTimeline(results, query) {
       <span>Comité · Paritaria</span>
     </div>`;
 
-  if (!query || !results.length) {
+  if (!query) {
     container.innerHTML = "";
+    return;
+  }
+
+  if (!results.length) {
+    container.innerHTML = `${head}<div class="dashboard-search-empty">No se han encontrado coincidencias.</div>`;
     return;
   }
 
@@ -387,33 +392,6 @@ function renderDashboardSearchTimeline(results, query) {
 }
 
 function renderDashboardSearchResults(results, query) {
-  const container = document.getElementById("dashboardSearchResults");
-  if (!container) return;
-  if (!query) {
-    container.innerHTML = `<div class="dashboard-search-empty">Introduce un asunto para buscar en Comité y Paritaria.</div>`;
-    renderDashboardSearchTimeline([], query);
-    return;
-  }
-  if (!results.length) {
-    container.innerHTML = `<div class="dashboard-search-empty">No se han encontrado coincidencias.</div>`;
-    renderDashboardSearchTimeline([], query);
-    return;
-  }
-
-  container.innerHTML = results.map((item, index) => `
-    <button type="button" class="dashboard-search-result" onclick="openDashboardSearchResult('${item.target}', '${dashboardSearchHtml(item.targetId)}')">
-      <span class="dashboard-search-badge dashboard-search-badge--${item.kind}">${dashboardSearchHtml(item.type)}</span>
-      <span class="dashboard-search-main">
-        <strong>${dashboardSearchHtml(item.title)}</strong>
-        <small>${dashboardSearchHtml(dashboardSearchSnippet(item.source, query))}</small>
-      </span>
-      <span class="dashboard-search-meta">
-        ${item.date ? `<em>${dashboardSearchHtml(phase4FormatDate(item.date))}</em>` : ""}
-        ${item.code ? `<em>${dashboardSearchHtml(item.code)}</em>` : ""}
-        ${item.status ? `<em>${dashboardSearchHtml(item.status)}</em>` : ""}
-      </span>
-    </button>
-  `).join("");
   renderDashboardSearchTimeline(results, query);
 }
 
