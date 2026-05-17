@@ -2187,3 +2187,76 @@ html[data-theme="light"] .telework-catalog-table select {
     grid-template-columns: 20px minmax(0, 1fr) !important;
   }
 }
+
+/* Teletrabajo: cabecera superior homogénea y selector de campaña limpio */
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions button,
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions select {
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  white-space: nowrap;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-height: 44px;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker span {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker select {
+  margin: 0;
+  height: 44px;
+  padding-block: 0;
+}
+
+@media (max-width: 760px) {
+  body.phase4-view-module #gestor-teletrabajo .telework-header-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  body.phase4-view-module #gestor-teletrabajo .telework-header-actions button,
+  body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker {
+    flex: 1 1 auto;
+  }
+
+  body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker select {
+    flex: 1 1 140px;
+  }
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-future-heading {
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  margin: 4px 2px -2px;
+  text-transform: uppercase;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
+  border-style: dashed;
+  background: rgba(59, 130, 246, .08);
+}
