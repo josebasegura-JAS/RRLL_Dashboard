@@ -2115,7 +2115,9 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(5) { wi
 body.phase4-view-module #gestor-teletrabajo .telework-table th:nth-child(6),
 body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { width: 12% !important; }
 
-/* Header: logo corporativo horizontal de Relaciones Laborales. */
+/* Header: logo corporativo horizontal de Relaciones Laborales.
+   Regla única para inicio y módulos: evita que al cambiar de vista reaparezca
+   el logo grande y reduce el tamaño del dashboard alrededor de un 10%. */
 .phase4-main .top-strip,
 .top-strip {
   min-width: 0 !important;
@@ -2123,48 +2125,32 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
 }
 
 .header-logo-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  align-self: stretch;
-  height: 100%;
-  min-width: 0;
-  max-width: min(52vw, 560px);
-  overflow: hidden;
-  flex: 0 1 auto;
-  padding-inline: 2px;
-}
-
-.header-logo {
-  display: block;
-  width: auto;
-  max-width: 100%;
-  height: calc(100% - 8px);
-  object-fit: contain;
-  flex-shrink: 1;
-}
-
-body.phase4-view-home .header-logo-wrapper {
-  position: relative;
   align-self: center;
-  width: clamp(180px, 28vw, 280px);
-  max-width: 280px;
+  width: clamp(162px, 25.2vw, 252px);
+  max-width: 252px;
   aspect-ratio: 850 / 272;
   height: auto;
-  padding: 4px 8px;
+  min-width: 0;
   margin: 0;
   overflow: hidden;
   flex: 0 0 auto;
+  padding: 4px 8px;
 }
 
-body.phase4-view-home .header-logo {
+.header-logo {
   position: absolute;
   top: 50%;
   left: 50%;
+  display: block;
   width: 121%;
   max-width: none;
   height: auto;
   transform: translate(-50%, -50%);
   object-fit: contain;
+  flex-shrink: 1;
 }
 
 .top-strip .top-title {
@@ -2174,22 +2160,14 @@ body.phase4-view-home .header-logo {
 
 @media (max-width: 980px) {
   .header-logo-wrapper {
-    max-width: min(64vw, 480px);
-  }
-
-  body.phase4-view-home .header-logo-wrapper {
-    width: clamp(170px, 36vw, 250px);
-    max-width: 250px;
+    width: clamp(153px, 32.4vw, 225px);
+    max-width: 225px;
   }
 }
 
 @media (max-width: 520px) {
   .header-logo-wrapper {
-    max-width: 100%;
-  }
-
-  body.phase4-view-home .header-logo-wrapper {
-    width: min(100%, 220px);
-    max-width: 220px;
+    width: min(100%, 198px);
+    max-width: 198px;
   }
 }
