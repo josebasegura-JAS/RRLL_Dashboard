@@ -2143,6 +2143,30 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
   flex-shrink: 1;
 }
 
+body.phase4-view-home .header-logo-wrapper {
+  position: relative;
+  align-self: center;
+  width: clamp(180px, 28vw, 280px);
+  max-width: 280px;
+  aspect-ratio: 850 / 272;
+  height: auto;
+  padding: 4px 8px;
+  margin: 0;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+body.phase4-view-home .header-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 121%;
+  max-width: none;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
+
 .top-strip .top-title {
   min-width: 0 !important;
   flex: 1 1 auto;
@@ -2152,10 +2176,20 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
   .header-logo-wrapper {
     max-width: min(64vw, 480px);
   }
+
+  body.phase4-view-home .header-logo-wrapper {
+    width: clamp(170px, 36vw, 250px);
+    max-width: 250px;
+  }
 }
 
 @media (max-width: 520px) {
   .header-logo-wrapper {
     max-width: 100%;
+  }
+
+  body.phase4-view-home .header-logo-wrapper {
+    width: min(100%, 220px);
+    max-width: 220px;
   }
 }
