@@ -10,6 +10,7 @@ env:
   npm_config_registry: https://registry.npmjs.org/
   ELECTRON_CACHE: ${{ github.workspace }}\\.cache\\electron
   ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\\.cache\\electron-builder
+  ELECTRON_MIRROR: https://npmmirror.com/mirrors/electron/
 
 jobs:
   build-windows:
@@ -25,6 +26,16 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Restaurar cache Electron
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/electron
+            .cache/electron-builder
+          key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+
       - name: Diagnostico inicial
         shell: pwsh
         run: |
@@ -33,13 +44,26 @@ jobs:
           npm config get registry
           Get-ChildItem -Force
 
-      - name: Limpiar cache npm
-        shell: pwsh
-        run: npm cache clean --force
-
       - name: Instalar dependencias
         shell: pwsh
-        run: npm install --no-audit --no-fund
+        run: |
+          if (Test-Path package-lock.json) {
+            npm ci --no-audit --no-fund
+          } else {
+            npm install --no-audit --no-fund
+          }
+
+      - name: Diagnostico antes de dist
+        shell: pwsh
+        run: |
+          node -v
+          npm -v
+          npm config get cache
+          if (Test-Path .cache) {
+            Get-ChildItem -Force .cache
+          } else {
+            Write-Host "No existe carpeta .cache"
+          }
 
       - name: Generar EXE portable
         shell: pwsh
