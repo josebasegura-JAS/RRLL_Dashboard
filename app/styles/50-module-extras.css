@@ -1770,14 +1770,82 @@ html[data-theme="light"] .telework-catalog-table select {
 
 /* Fase 1 Lupa global: buscador acotado a Comité y Paritaria en Dashboard */
 .dashboard-search-card {
-  margin: 0 0 16px !important;
+  margin: 16px 0 0 !important;
   min-height: 0 !important;
+}
+
+.dashboard-search-collapsible {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.dashboard-search-header {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: auto auto minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 14px 16px !important;
+  border: 0 !important;
+  background: linear-gradient(135deg, rgba(15,23,42,.72), rgba(30,41,59,.52)) !important;
+  color: #f8fafc !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.dashboard-search-header:hover {
+  background: linear-gradient(135deg, rgba(30,41,59,.82), rgba(51,65,85,.56)) !important;
+}
+
+.dashboard-search-header-icon {
+  width: 30px !important;
+  height: 30px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 10px !important;
+  color: #93c5fd !important;
+  background: rgba(59,130,246,.12) !important;
+  border: 1px solid rgba(96,165,250,.18) !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.dashboard-search-header span:not(.dashboard-search-header-icon):not(.dashboard-search-toggle) {
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  letter-spacing: .01em !important;
+}
+
+.dashboard-search-header small {
+  justify-self: start !important;
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+
+.dashboard-search-toggle {
+  color: #cbd5e1 !important;
+  font-size: 14px !important;
+  transition: transform .16s ease !important;
+}
+
+.dashboard-search-collapsible:not(.is-collapsed) .dashboard-search-toggle {
+  transform: rotate(180deg) !important;
+}
+
+.dashboard-search-body {
+  padding: 0 16px 16px !important;
+}
+
+.dashboard-search-body[hidden] {
+  display: none !important;
 }
 
 .dashboard-search-box {
   display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  grid-template-columns: auto minmax(0, 1fr) auto auto !important;
   gap: 10px !important;
+  margin-top: 12px !important;
   align-items: center !important;
   padding: 10px !important;
   border: 1px solid rgba(148,163,184,.16) !important;
@@ -1825,6 +1893,21 @@ html[data-theme="light"] .telework-catalog-table select {
   color: #fff !important;
   font-weight: 850 !important;
   box-shadow: 0 10px 22px rgba(37,99,235,.18) !important;
+}
+
+.dashboard-search-clear {
+  height: 42px !important;
+  border-radius: 12px !important;
+  padding: 0 14px !important;
+  background: rgba(15,23,42,.48) !important;
+  border: 1px solid rgba(148,163,184,.20) !important;
+  color: #dbeafe !important;
+  font-weight: 850 !important;
+}
+
+.dashboard-search-clear:hover {
+  border-color: rgba(147,197,253,.30) !important;
+  background: rgba(30,41,59,.72) !important;
 }
 
 .dashboard-search-results {
@@ -1935,7 +2018,8 @@ html[data-theme="light"] .telework-catalog-table select {
     grid-template-columns: 1fr !important;
   }
   .dashboard-search-icon { display: none !important; }
-  .dashboard-search-button { width: 100% !important; }
+  .dashboard-search-button,
+  .dashboard-search-clear { width: 100% !important; }
   .dashboard-search-meta { justify-content: flex-start !important; }
 }
 
