@@ -5,7 +5,10 @@
 
   const STORAGE_KEY = 'rrll_criteria';
   const ORIGINS = ['Comité', 'Paritaria', 'Convenio', 'Dirección', 'Jurisprudencia', 'Criterio interno', 'Otro'];
+  const CRITERIA_PAGE_SIZE = 50;
   let editingCriteriaId = null;
+  let criteriaCurrentPage = 1;
+  let criteriaLastSearchQuery = '';
 
   function getCriteria() {
     const items = load(STORAGE_KEY, []);
@@ -47,8 +50,14 @@
 
   function sortedCriteria(items) {
     return [...items].sort((a, b) => {
-      const byDate = String(b.date || '').localeCompare(String(a.date || ''));
-      if (byDate !== 0) return byDate;
+      const aDate = String(a.date || '');
+      const bDate = String(b.date || '');
+      if (aDate && !bDate) return -1;
+      if (!aDate && bDate) return 1;
+      if (aDate && bDate) {
+        const byDate = bDate.localeCompare(aDate);
+        if (byDate !== 0) return byDate;
+      }
       return String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || ''));
     });
   }
@@ -72,6 +81,36 @@
   function getVisibleCriteria() {
     const query = getCriteriaSearchQuery();
     return sortedCriteria(getCriteria()).filter(item => matchesCriteriaSearch(item, query));
+  }
+
+  function getCriteriaPageCount(totalRows) {
+    return Math.max(1, Math.ceil(totalRows / CRITERIA_PAGE_SIZE));
+  }
+
+  function getCriteriaPageRows(rows) {
+    const pageCount = getCriteriaPageCount(rows.length);
+    criteriaCurrentPage = Math.min(Math.max(criteriaCurrentPage, 1), pageCount);
+    const start = (criteriaCurrentPage - 1) * CRITERIA_PAGE_SIZE;
+    return rows.slice(start, start + CRITERIA_PAGE_SIZE);
+  }
+
+  function updateCriteriaPagination(filteredCount) {
+    const pagination = document.getElementById('criteriaPagination');
+    if (!pagination) return;
+    const pageCount = getCriteriaPageCount(filteredCount);
+    const shouldPaginate = filteredCount > CRITERIA_PAGE_SIZE;
+    pagination.style.display = shouldPaginate ? 'flex' : 'none';
+    pagination.innerHTML = `
+      <button class="criteria-page-btn" type="button" onclick="changeCriteriaPage(-1)" ${criteriaCurrentPage <= 1 ? 'disabled' : ''} title="Página anterior" aria-label="Página anterior">←</button>
+      <span class="criteria-page-info">Página ${criteriaCurrentPage} de ${pageCount}</span>
+      <button class="criteria-page-btn" type="button" onclick="changeCriteriaPage(1)" ${criteriaCurrentPage >= pageCount ? 'disabled' : ''} title="Página siguiente" aria-label="Página siguiente">→</button>`;
+  }
+
+  function changeCriteriaPage(delta) {
+    const rows = getVisibleCriteria();
+    const pageCount = getCriteriaPageCount(rows.length);
+    criteriaCurrentPage = Math.min(Math.max(criteriaCurrentPage + Number(delta || 0), 1), pageCount);
+    renderCriteria({ preservePage: true });
   }
 
   function resetCriteriaCreateForm() {
@@ -653,18 +692,26 @@
       </tr>`;
   }
 
-  function renderCriteria() {
+  function renderCriteria(options = {}) {
+    const query = getCriteriaSearchQuery();
+    if (!options.preservePage && query !== criteriaLastSearchQuery) {
+      criteriaCurrentPage = 1;
+    }
+    criteriaLastSearchQuery = query;
+
     const rows = getVisibleCriteria();
+    const pageRows = getCriteriaPageRows(rows);
     const body = document.getElementById('criteriaTableBody');
     const empty = document.getElementById('criteriaEmptyState');
     const count = document.getElementById('criteriaCount');
     const summary = document.getElementById('summary-count-criteria');
     const total = getCriteria().length;
 
-    if (body) body.innerHTML = rows.map(criteriaRowHtml).join('');
+    if (body) body.innerHTML = pageRows.map(criteriaRowHtml).join('');
     if (empty) empty.style.display = rows.length ? 'none' : 'block';
     if (count) count.textContent = `${rows.length} de ${total}`;
     if (summary) summary.textContent = `${total} criterios`;
+    updateCriteriaPagination(rows.length);
   }
 
   function printCriteria() {
@@ -711,6 +758,7 @@
     toggleCriteriaCreateForm,
     addCriteria,
     renderCriteria,
+    changeCriteriaPage,
     openCriteriaEditModal,
     closeCriteriaEditModal,
     saveEditingCriteria,
@@ -733,6 +781,7 @@
   window.toggleCriteriaCreateForm = toggleCriteriaCreateForm;
   window.addCriteria = addCriteria;
   window.renderCriteria = renderCriteria;
+  window.changeCriteriaPage = changeCriteriaPage;
   window.openCriteriaEditModal = openCriteriaEditModal;
   window.closeCriteriaEditModal = closeCriteriaEditModal;
   window.saveEditingCriteria = saveEditingCriteria;

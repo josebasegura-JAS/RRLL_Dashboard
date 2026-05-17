@@ -1062,7 +1062,7 @@
                 <p>Base interna de criterios, decisiones y antecedentes de Relaciones Laborales.</p>
               </div>
               <div class="rrll-pro-list-actions">
-                <button type="button" class="rrll-pro-tool-button" onclick="openCriteriaImportModal()">Importar</button>
+                <button type="button" class="rrll-pro-tool-button rrll-icon-only criteria-import-icon-btn" onclick="openCriteriaImportModal()" title="Importar criterios" aria-label="Importar criterios"><span aria-hidden="true">⇪</span><span class="criteria-import-label">Importar</span></button>
                 <button type="button" class="rrll-pro-primary" onclick="toggleCriteriaCreateForm(true)">+ Nuevo criterio</button>
               </div>
             </div>
@@ -1131,6 +1131,7 @@
                   <tbody id="criteriaTableBody"></tbody>
                 </table>
               </div>
+              <div id="criteriaPagination" class="criteria-pagination" aria-live="polite"></div>
               <div id="criteriaEmptyState" class="rrll-pro-empty">No hay criterios RRLL registrados.</div>
             </section>
           </div>
