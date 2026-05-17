@@ -779,11 +779,12 @@
                 <p>Entrada, tramitación, validaciones y resolución de solicitudes por campaña.</p>
                 <small id="teleworkCampaignHint" class="telework-campaign-hint"></small>
               </div>
-              <div class="rrll-pro-head-actions">
-                <label class="telework-campaign-picker">Campaña
+              <div class="rrll-pro-head-actions telework-header-actions">
+                <label class="telework-campaign-picker" for="teleworkCampaignSelector">
+                  <span>Campaña</span>
                   <select id="teleworkCampaignSelector" onchange="changeTeleworkCampaign(this.value)"></select>
                 </label>
-                <button class="rrll-pro-tool-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); addTeleworkCampaignOption()" title="Añadir o seleccionar una campaña manualmente">+ Campaña</button>
+                <button class="rrll-pro-tool-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); addTeleworkCampaignOption()" title="Añadir o seleccionar una campaña futura/manual">+ Añadir</button>
                 <button type="button" class="rrll-pro-primary" onclick="event.preventDefault(); event.stopPropagation(); toggleTeleworkCreateForm(true)">+ Nueva solicitud</button>
               </div>
             </div>
@@ -882,7 +883,7 @@
               <div class="rrll-pro-task-head compact">
                 <div>
                   <h3 id="teleworkHistoryTitle">Histórico de campañas</h3>
-                  <p>Campaña actual visible; campañas anteriores plegadas y futuras separadas como planificadas.</p>
+                  <p>Campaña vigente visible; campañas anteriores plegadas como histórico. Las futuras/manuales no se consideran históricas.</p>
                 </div>
               </div>
               <div id="teleworkHistoryList" class="telework-history-list"></div>

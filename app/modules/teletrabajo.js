@@ -35,12 +35,9 @@
     save(KEY, Array.isArray(items) ? items.map(normalizeTeleworkItem) : []);
   }
 
-  function currentTeleworkPeriod() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const start = month >= 8 ? year : year - 1;
-    return `${start}-${start + 1}`;
+  function currentTeleworkPeriod(date = new Date()) {
+    const year = date.getFullYear();
+    return `${year}-${year + 1}`;
   }
 
   function normalizeTeleworkPeriod(value) {
@@ -57,16 +54,16 @@
   }
 
   function getTeleworkCampaignInfo(date = new Date()) {
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    if (month >= 9) return { active: `${year}-${year + 1}`, suggested: `${year}-${year + 1}`, manual: false };
-    if (month <= 6) return { active: `${year - 1}-${year}`, suggested: `${year - 1}-${year}`, manual: false };
-    return { active: `${year}-${year + 1}`, suggested: `${year}-${year + 1}`, manual: true };
+    const active = currentTeleworkPeriod(date);
+    return { active, suggested: active, manual: false };
   }
 
   function getTeleworkActiveCampaign() {
-    const selected = String(load(CAMPAIGN_KEY, "") || "").trim();
-    return selected ? normalizeTeleworkPeriod(selected) : getTeleworkCampaignInfo().active;
+    const active = getTeleworkCampaignInfo().active;
+    const selected = normalizeTeleworkPeriod(String(load(CAMPAIGN_KEY, "") || "").trim());
+    const selectedStart = teleworkCampaignStart(selected);
+    const activeStart = teleworkCampaignStart(active);
+    return Number.isFinite(selectedStart) && selectedStart >= activeStart ? selected : active;
   }
 
   function setTeleworkActiveCampaign(period) {
@@ -82,20 +79,26 @@
     return teleworkCampaignStart(b) - teleworkCampaignStart(a) || String(b).localeCompare(String(a), "es");
   }
 
-  function getTeleworkActiveHistoryBoundary(items = getTeleworkItems()) {
-    const info = getTeleworkCampaignInfo();
-    const campaigns = new Set([info.active, info.suggested, getTeleworkActiveCampaign()]);
-    items.forEach(item => campaigns.add(normalizeTeleworkPeriod(item.period)));
-    return Array.from(campaigns).reduce((latest, period) => {
-      const start = teleworkCampaignStart(period);
-      return Number.isFinite(start) && start > latest ? start : latest;
-    }, teleworkCampaignStart(info.active));
+  function getTeleworkActiveHistoryBoundary() {
+    return teleworkCampaignStart(getTeleworkCampaignInfo().active);
   }
 
-  function isTeleworkHistoricalCampaign(period, items = getTeleworkItems()) {
+  function isTeleworkHistoricalCampaign(period) {
     const start = teleworkCampaignStart(normalizeTeleworkPeriod(period));
     if (!Number.isFinite(start)) return false;
-    return start < getTeleworkActiveHistoryBoundary(items);
+    return start < getTeleworkActiveHistoryBoundary();
+  }
+
+  function isTeleworkFutureCampaign(period) {
+    const start = teleworkCampaignStart(normalizeTeleworkPeriod(period));
+    if (!Number.isFinite(start)) return false;
+    return start > getTeleworkActiveHistoryBoundary();
+  }
+
+  function getTeleworkDuplicateKey(item) {
+    const employeeNumber = String(item?.employeeNumber || "").trim().toLowerCase();
+    const period = normalizeTeleworkPeriod(item?.period);
+    return employeeNumber && period !== TELEWORK_NO_PERIOD ? `${employeeNumber}::${period}` : "";
   }
 
   function getTeleworkJobCatalog() {
@@ -523,8 +526,14 @@
   function addTelework() {
     const draft = readTeleworkForm("new");
     if (!draft) return;
-    const id = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : String(Date.now());
     const items = getTeleworkItems();
+    const duplicateKey = getTeleworkDuplicateKey(draft);
+    const duplicate = duplicateKey ? items.find(item => getTeleworkDuplicateKey(item) === duplicateKey) : null;
+    if (duplicate) {
+      const message = `Ya existe una solicitud para Nº empleado ${draft.employeeNumber} en la campaña ${draft.period}. Abre la solicitud existente para editarla o confirma si quieres crear un duplicado manual.`;
+      if (!confirm(message)) return;
+    }
+    const id = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : String(Date.now());
     items.unshift({ ...draft, id });
     setTeleworkItems(items);
     resetTeleworkCreateForm();
@@ -903,8 +912,13 @@
 
   function getTeleworkCampaigns() {
     const info = getTeleworkCampaignInfo();
+    const activeStart = teleworkCampaignStart(info.active);
     const campaigns = new Set([info.active, info.suggested, getTeleworkActiveCampaign()]);
-    getTeleworkItems().forEach(item => campaigns.add(normalizeTeleworkPeriod(item.period)));
+    getTeleworkItems().forEach(item => {
+      const period = normalizeTeleworkPeriod(item.period);
+      const start = teleworkCampaignStart(period);
+      if (Number.isFinite(start) && start >= activeStart) campaigns.add(period);
+    });
     return Array.from(campaigns).filter(Boolean).sort(compareTeleworkCampaignsDesc);
   }
 
@@ -922,19 +936,25 @@
     const hint = document.getElementById("teleworkCampaignHint");
     if (hint) {
       const info = getTeleworkCampaignInfo();
-      hint.textContent = info.manual ? `Julio/agosto: elige manualmente. Sugerida ${info.suggested}.` : `Campaña calculada automáticamente: ${info.active}.`;
+      hint.textContent = `Campaña vigente por año natural: ${info.active}. Las campañas anteriores se muestran solo en histórico.`;
     }
   }
 
   function changeTeleworkCampaign(period) {
-    setTeleworkActiveCampaign(period);
+    const normalized = normalizeTeleworkPeriod(period);
+    if (isTeleworkHistoricalCampaign(normalized)) {
+      alert(`La campaña ${normalized} es histórica y se consulta en el bloque Histórico de campañas.`);
+      ensureTeleworkPeriodControls();
+      return;
+    }
+    setTeleworkActiveCampaign(normalized);
     const periodEl = document.getElementById("newTeleworkPeriod");
     if (periodEl) periodEl.value = getTeleworkActiveCampaign();
     refreshTeleworkDependents();
   }
 
   function addTeleworkCampaignOption() {
-    const answer = prompt("Indica la campaña a seleccionar (formato 2025-2026):", getTeleworkCampaignInfo().suggested);
+    const answer = prompt("Indica la campaña futura/manual a seleccionar (formato 2026-2027):", getTeleworkCampaignInfo().suggested);
     if (answer === null) return;
     const period = normalizeTeleworkPeriod(answer);
     if (!period || period === TELEWORK_NO_PERIOD) return;
@@ -991,16 +1011,22 @@
     const box = document.getElementById("teleworkHistoryList");
     if (!box) return;
     const grouped = groupTeleworkByPeriod(items);
-    const periods = Object.keys(grouped)
-      .filter(period => isTeleworkHistoricalCampaign(period, items))
-      .sort(compareTeleworkCampaignsDesc);
-    box.innerHTML = periods.map(period => {
+    const renderPeriodBlock = (period, label, className = "telework-history-campaign") => {
       const rows = grouped[period].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).map(renderTeleworkCard).join("");
-      return `<details class="telework-history-campaign">
-        <summary><strong>${escapeHtml(period)}</strong><span>Histórico · ${grouped[period].length} solicitudes</span></summary>
+      return `<details class="${className}">
+        <summary><strong>${escapeHtml(period)}</strong><span>${label} · ${grouped[period].length} solicitudes</span></summary>
         <div class="history-table-wrapper telework-history-table-wrapper"><div class="telework-request-list">${rows}</div></div>
       </details>`;
-    }).join("") || `<div class="rrll-pro-empty">Sin campañas históricas cerradas.</div>`;
+    };
+    const historicalPeriods = Object.keys(grouped)
+      .filter(period => isTeleworkHistoricalCampaign(period))
+      .sort(compareTeleworkCampaignsDesc);
+    const futurePeriods = Object.keys(grouped)
+      .filter(period => isTeleworkFutureCampaign(period))
+      .sort(compareTeleworkCampaignsDesc);
+    const historicalHtml = historicalPeriods.map(period => renderPeriodBlock(period, "Histórico")).join("") || `<div class="rrll-pro-empty">Sin campañas históricas cerradas.</div>`;
+    const futureHtml = futurePeriods.length ? `<div class="telework-future-heading">Campañas futuras/manuales</div>${futurePeriods.map(period => renderPeriodBlock(period, "Planificada", "telework-history-campaign telework-future-campaign")).join("")}` : "";
+    box.innerHTML = `${historicalHtml}${futureHtml}`;
   }
 
   function renderTelework() {
@@ -1443,17 +1469,25 @@
       const defaultPeriod = hasPeriod ? "" : normalizeTeleworkPeriod(periodAnswer);
       const imported = records.map(record => buildTeleworkImportItem(record, defaultPeriod)).filter(item => item.employeeNumber && item.name);
       const existing = getTeleworkItems();
-      const duplicates = imported.filter(item => existing.some(current => String(current.employeeNumber || "").trim() === String(item.employeeNumber || "").trim() && normalizeTeleworkPeriod(current.period) === normalizeTeleworkPeriod(item.period)));
+      const existingKeys = new Set(existing.map(getTeleworkDuplicateKey).filter(Boolean));
+      const seenImportKeys = new Set();
+      const duplicateCount = imported.reduce((count, item) => {
+        const key = getTeleworkDuplicateKey(item);
+        const duplicated = key && (existingKeys.has(key) || seenImportKeys.has(key));
+        if (key) seenImportKeys.add(key);
+        return duplicated ? count + 1 : count;
+      }, 0);
       let mode = "append";
-      if (duplicates.length) {
-        const answer = prompt(`${duplicates.length} posible(s) duplicado(s) por Nº empleado + periodo. Escribe "omitir" para no importarlos, "actualizar" para actualizar registros existentes o "cancelar".`, "omitir");
+      if (duplicateCount) {
+        const answer = prompt(`${duplicateCount} posible(s) duplicado(s) por Nº empleado + campaña. Escribe "omitir" para no importarlos, "actualizar" para actualizar registros existentes o "cancelar".`, "omitir");
         if (!answer || normalizeTeleworkLookup(answer).startsWith("cancel")) return null;
         mode = normalizeTeleworkLookup(answer).startsWith("actual") ? "update" : "skip";
       }
       const next = [...existing];
       let added = 0, updated = 0, skipped = 0;
       imported.forEach(item => {
-        const index = next.findIndex(current => String(current.employeeNumber || "").trim() === String(item.employeeNumber || "").trim() && normalizeTeleworkPeriod(current.period) === normalizeTeleworkPeriod(item.period));
+        const key = getTeleworkDuplicateKey(item);
+        const index = key ? next.findIndex(current => getTeleworkDuplicateKey(current) === key) : -1;
         if (index >= 0 && mode === "update") { next[index] = { ...next[index], ...item, id: next[index].id, createdAt: next[index].createdAt || item.createdAt, updatedAt: new Date().toISOString() }; updated += 1; return; }
         if (index >= 0) { skipped += 1; return; }
         next.unshift(item); added += 1;
