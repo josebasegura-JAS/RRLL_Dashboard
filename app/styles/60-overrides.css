@@ -4260,6 +4260,19 @@ body[data-active-module="gestor-criterios"] #gestor-criterios {
   line-height: 1.35;
 }
 
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(6),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(6) {
+  width: 1%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+}
+
 .criteria-row {
   cursor: pointer;
 }

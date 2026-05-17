@@ -1398,7 +1398,9 @@ body.phase4-view-module #gestor-vinculograma .vinculograma-table .rrll-pro-actio
   margin-inline: auto !important;
 }
 
-body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-actions-cell {
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-actions-cell,
+body.phase4-view-module #gestor-plantilla .plantilla-table .plantilla-actions-cell,
+body.phase4-view-module #gestor-criterios .criteria-table .criteria-actions-cell {
   display: table-cell !important;
   text-align: center !important;
   vertical-align: middle !important;
@@ -1406,7 +1408,9 @@ body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-a
   white-space: nowrap !important;
 }
 
-body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-btn {
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-btn,
+body.phase4-view-module #gestor-plantilla .plantilla-table .vinculograma-delete-btn,
+body.phase4-view-module #gestor-criterios .criteria-table .vinculograma-delete-btn {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1421,13 +1425,17 @@ body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-d
   border-color: rgba(248, 113, 113, .36) !important;
 }
 
-body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-btn:hover {
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-btn:hover,
+body.phase4-view-module #gestor-plantilla .plantilla-table .vinculograma-delete-btn:hover,
+body.phase4-view-module #gestor-criterios .criteria-table .vinculograma-delete-btn:hover {
   color: #fff !important;
   background: #dc2626 !important;
   border-color: #ef4444 !important;
 }
 
-body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-icon {
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-icon,
+body.phase4-view-module #gestor-plantilla .plantilla-table .vinculograma-delete-icon,
+body.phase4-view-module #gestor-criterios .criteria-table .vinculograma-delete-icon {
   width: 15px !important;
   height: 15px !important;
   fill: none !important;
@@ -1505,7 +1513,7 @@ body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #l
 
 #gestor-plantilla .plantilla-table th:nth-child(2),
 #gestor-plantilla .plantilla-table td:nth-child(2) {
-  width: 32%;
+  width: 36%;
   text-align: left;
 }
 
@@ -1517,7 +1525,7 @@ body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #l
 
 #gestor-plantilla .plantilla-table th:nth-child(4),
 #gestor-plantilla .plantilla-table td:nth-child(4) {
-  width: 21%;
+  width: 25%;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(5),
@@ -1535,7 +1543,7 @@ body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #l
 
 #gestor-plantilla .plantilla-table th:nth-child(7),
 #gestor-plantilla .plantilla-table td:nth-child(7) {
-  width: 15%;
+  width: 7%;
   text-align: center;
 }
 
@@ -1576,10 +1584,9 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
 }
 
 #gestor-plantilla .plantilla-table .rrll-pro-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
 }
 
 #gestor-plantilla .plantilla-pagination {
