@@ -13,25 +13,14 @@
 
 :root {
   /* Variables oficiales — modo claro */
-  --rrll-bg-app-light: #eef4f8;
-  --rrll-bg-panel-light: #ffffff;
-  --rrll-bg-card-light: #ffffff;
-  --rrll-bg-soft-light: #f6f8fb;
-  --rrll-bg-table-head-light: #edf4f7;
-  --rrll-bg-table-hover-light: #f4f7fa;
 
   --rrll-sidebar-light: #2f3642;
   --rrll-sidebar-hover-light: #3b4452;
   --rrll-sidebar-active-light: #465264;
 
-  --rrll-text-main-light: #111827;
-  --rrll-text-secondary-light: #334155;
-  --rrll-text-muted-light: #64748b;
   --rrll-text-placeholder-light: #94a3b8;
   --rrll-text-on-dark-light: #f8fafc;
 
-  --rrll-border-light: rgba(148,163,184,.30);
-  --rrll-border-soft-light: rgba(148,163,184,.18);
   --rrll-separator-light: #d7dee7;
 
   /* Colores corporativos y estados */
