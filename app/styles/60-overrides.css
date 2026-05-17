@@ -4080,6 +4080,40 @@ body.phase4-view-module #gestor-teletrabajo .telework-history-table-wrapper .tel
   min-width: 760px !important;
 }
 
+/* Teletrabajo: histórico compacto sin columnas auxiliares ni scroll horizontal innecesario. */
+body.phase4-view-module #gestor-teletrabajo .telework-history-table-wrapper {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th,
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td {
+  min-width: 0 !important;
+  max-width: none !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(1),
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(1) {
+  width: 34% !important;
+  min-width: 280px !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(2),
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(2) { width: 22% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(3),
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(3) { width: 18% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(4),
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(4) { width: 26% !important; }
+
 /* Teletrabajo: indicador visual de validación de puesto y tabla principal sin acciones. */
 body.phase4-view-module #gestor-teletrabajo .telework-table {
   min-width: 900px !important;
