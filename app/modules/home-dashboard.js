@@ -215,7 +215,16 @@ function dashboardSearchSnippet(source, query) {
 
 function dashboardSearchDateTime(value) {
   const date = phase4ParseDate(value);
-  return date ? date.getTime() : Number.POSITIVE_INFINITY;
+  return date ? date.getTime() : null;
+}
+
+function dashboardSearchSortNewestFirst(a, b) {
+  const aTime = dashboardSearchDateTime(a.date);
+  const bTime = dashboardSearchDateTime(b.date);
+  if (aTime !== null && bTime !== null && aTime !== bTime) return bTime - aTime;
+  if (aTime !== null && bTime === null) return -1;
+  if (aTime === null && bTime !== null) return 1;
+  return String(a.title || "").localeCompare(String(b.title || ""), "es");
 }
 
 function dashboardSearchYearLabel(value) {
@@ -224,10 +233,7 @@ function dashboardSearchYearLabel(value) {
 }
 
 function dashboardSearchSortTimeline(a, b) {
-  const aTime = dashboardSearchDateTime(a.date);
-  const bTime = dashboardSearchDateTime(b.date);
-  if (aTime !== bTime) return aTime - bTime;
-  return String(a.title || "").localeCompare(String(b.title || ""), "es");
+  return dashboardSearchSortNewestFirst(a, b);
 }
 
 function dashboardSearchBuildRows() {
@@ -346,13 +352,8 @@ function renderDashboardSearchTimeline(results, query) {
       <span>Comité · Paritaria</span>
     </div>`;
 
-  if (!query) {
-    container.innerHTML = `${head}<div class="dashboard-search-empty">Introduce un asunto para ver su evolución en Comité y Paritaria.</div>`;
-    return;
-  }
-
-  if (!results.length) {
-    container.innerHTML = `${head}<div class="dashboard-search-empty">No hay timeline para este asunto.</div>`;
+  if (!query || !results.length) {
+    container.innerHTML = "";
     return;
   }
 
@@ -422,15 +423,36 @@ function runDashboardSearch() {
   if (input && input.value !== query) input.value = query;
   const results = dashboardSearchBuildRows()
     .filter(row => dashboardSearchMatches(row.text, query))
-    .sort((a, b) => {
-      const aDate = phase4ParseDate(a.date);
-      const bDate = phase4ParseDate(b.date);
-      if (aDate && bDate) return bDate - aDate;
-      if (aDate) return -1;
-      if (bDate) return 1;
-      return String(a.title || "").localeCompare(String(b.title || ""), "es");
-    });
+    .sort(dashboardSearchSortNewestFirst);
   renderDashboardSearchResults(results, query);
+}
+
+function clearDashboardSearch() {
+  const input = document.getElementById("dashboardSearchInput");
+  if (input) input.value = "";
+  renderDashboardSearchResults([], "");
+  const timeline = document.getElementById("dashboardSearchTimeline");
+  if (timeline) timeline.innerHTML = "";
+  if (input) input.focus();
+}
+
+function setDashboardSearchCollapsed(collapsed) {
+  const card = document.querySelector(".dashboard-search-collapsible");
+  const header = card ? card.querySelector(".dashboard-search-header") : null;
+  const body = document.getElementById("dashboardSearchBody");
+  if (!card || !header || !body) return;
+  card.classList.toggle("is-collapsed", collapsed);
+  header.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  body.hidden = collapsed;
+  if (!collapsed) {
+    const input = document.getElementById("dashboardSearchInput");
+    if (input) setTimeout(() => input.focus(), 0);
+  }
+}
+
+function toggleDashboardSearch() {
+  const card = document.querySelector(".dashboard-search-collapsible");
+  setDashboardSearchCollapsed(!(card && card.classList.contains("is-collapsed")));
 }
 
 
@@ -746,6 +768,9 @@ window.phase4DaysUntil = phase4DaysUntil;
 window.phase4DueLabel = phase4DueLabel;
 window.phase4RecentItem = phase4RecentItem;
 window.runDashboardSearch = runDashboardSearch;
+window.clearDashboardSearch = clearDashboardSearch;
+window.toggleDashboardSearch = toggleDashboardSearch;
+window.setDashboardSearchCollapsed = setDashboardSearchCollapsed;
 window.openDashboardSearchResult = openDashboardSearchResult;
 window.renderHomeDashboard = renderHomeDashboard;
 window.renderDate = renderDate;
