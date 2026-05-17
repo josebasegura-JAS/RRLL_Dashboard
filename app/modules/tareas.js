@@ -5,6 +5,77 @@
 
   // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
+
+      function ensureDangerConfirmModal() {
+        let modal = document.getElementById("dangerConfirmModal");
+        if (modal) return modal;
+
+        modal = document.createElement("div");
+        modal.id = "dangerConfirmModal";
+        modal.className = "modal-backdrop rrll-confirm-delete-modal";
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        modal.setAttribute("aria-labelledby", "dangerConfirmTitle");
+        modal.innerHTML = `
+          <div class="modal-box rrll-confirm-delete-box" role="document">
+            <div class="rrll-confirm-delete-icon" aria-hidden="true">!</div>
+            <h3 id="dangerConfirmTitle">Confirmar eliminación</h3>
+            <p id="dangerConfirmText" class="muted">Esta acción enviará el elemento a la papelera.</p>
+            <div class="modal-actions rrll-confirm-delete-actions">
+              <button type="button" class="secondary" data-confirm-cancel>Cancelar</button>
+              <button type="button" class="danger" data-confirm-delete>Eliminar</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        return modal;
+      }
+
+      function confirmDangerAction(options) {
+        const modal = ensureDangerConfirmModal();
+        const titleEl = modal.querySelector("#dangerConfirmTitle");
+        const textEl = modal.querySelector("#dangerConfirmText");
+        const cancelButton = modal.querySelector("[data-confirm-cancel]");
+        const deleteButton = modal.querySelector("[data-confirm-delete]");
+        const action = options && typeof options.onConfirm === "function" ? options.onConfirm : null;
+
+        if (titleEl) titleEl.textContent = (options && options.title) || "Confirmar eliminación";
+        if (textEl) textEl.textContent = (options && options.message) || "Esta acción enviará el elemento a la papelera.";
+        if (deleteButton) deleteButton.textContent = (options && options.confirmLabel) || "Eliminar";
+
+        function close() {
+          modal.classList.remove("open");
+          modal.removeEventListener("click", handleBackdropClick);
+          document.removeEventListener("keydown", handleEscape);
+          cancelButton?.removeEventListener("click", handleCancel);
+          deleteButton?.removeEventListener("click", handleConfirm);
+        }
+
+        function handleCancel() {
+          close();
+        }
+
+        function handleConfirm() {
+          close();
+          if (action) action();
+        }
+
+        function handleBackdropClick(event) {
+          if (event.target === modal) close();
+        }
+
+        function handleEscape(event) {
+          if (event.key === "Escape" && modal.classList.contains("open")) close();
+        }
+
+        cancelButton?.addEventListener("click", handleCancel);
+        deleteButton?.addEventListener("click", handleConfirm);
+        modal.addEventListener("click", handleBackdropClick);
+        document.addEventListener("keydown", handleEscape);
+        modal.classList.add("open");
+        setTimeout(() => cancelButton?.focus(), 0);
+      }
+
       function getTasks() {
         return load("rrll_tasks", []);
       }
@@ -64,7 +135,7 @@
         renderTasks();
       }
 
-      function moveTask(id, status) {
+      function executeMoveTask(id, status) {
         const now = new Date().toISOString();
         const tasks = getTasks().map(task => {
           if (task.id !== id) return task;
@@ -78,7 +149,19 @@
         renderTasks();
       }
 
-      function deleteTask(id) {
+      function moveTask(id, status) {
+        const item = getTasks().find(task => task.id === id);
+        const title = item && item.title ? `“${item.title}”` : "esta tarea";
+        const nextStatus = taskStatusLabel(status).toLowerCase();
+        confirmDangerAction({
+          title: "Cambiar estado de tarea",
+          message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+          confirmLabel: "Cambiar estado",
+          onConfirm: () => executeMoveTask(id, status)
+        });
+      }
+
+      function executeDeleteTask(id) {
         const tasks = getTasks();
         const item = tasks.find(task => task.id === id);
         if (item) moveToTrash("tasks", item);
@@ -89,6 +172,17 @@
         renderAlertsPanel();
       }
 
+      function deleteTask(id) {
+        const item = getTasks().find(task => task.id === id);
+        const title = item && item.title ? `“${item.title}”` : "esta tarea";
+        confirmDangerAction({
+          title: "Eliminar tarea",
+          message: `¿Quieres eliminar ${title}? Se enviará a la papelera.`,
+          confirmLabel: "Eliminar",
+          onConfirm: () => executeDeleteTask(id)
+        });
+      }
+
       function isClosedWithinLastMonth(task) {
         if (task.status !== "closed") return false;
         const closed = new Date(task.closedAt || task.createdAt);
@@ -97,7 +191,7 @@
         return closed >= limit;
       }
 
-      function deleteVisibleClosedTasks() {
+      function executeDeleteVisibleClosedTasks() {
         const tasks = getTasks();
         const visibleClosed = tasks.filter(task => isClosedWithinLastMonth(task));
         visibleClosed.forEach(task => moveToTrash("tasks", task));
@@ -106,6 +200,16 @@
         renderTrash();
         restoreAlertsPanelState();
         renderAlertsPanel();
+      }
+
+      function deleteVisibleClosedTasks() {
+        const count = getTasks().filter(task => isClosedWithinLastMonth(task)).length;
+        confirmDangerAction({
+          title: "Eliminar tareas cerradas",
+          message: `¿Quieres eliminar ${count} tareas cerradas visibles? Se enviarán a la papelera.`,
+          confirmLabel: "Eliminar",
+          onConfirm: executeDeleteVisibleClosedTasks
+        });
       }
 
       let activeTaskUpdateId = null;
@@ -387,11 +491,29 @@
         if (row) row.classList.toggle("expanded");
       }
 
+
+      function taskPriorityBadgeHtml(value) {
+        const raw = String(value || "normal").toLowerCase();
+        const normalized = raw === "low" || raw === "baja" ? "low" : normalizePriority(value);
+        const labels = { low: "Baja", baja: "Baja", normal: "Normal", high: "Alta", alta: "Alta" };
+        const label = labels[raw] || priorityLabel(value).replace(/^Prioridad:\s*/i, "");
+        return `<span class="priority-badge priority-${normalized}">${escapeHtml(label)}</span>`;
+      }
+
+      function taskDueSummaryText(due, hasDueDate) {
+        if (!hasDueDate) return "Sin fecha";
+        if (due.diffDays < 0) return "Vencida";
+        if (due.diffDays === 0) return "Hoy";
+        if (due.diffDays <= 5) return "Próxima";
+        return "Con fecha";
+      }
+
       function renderTaskRow(task) {
         const due = dueStatus(task.dueDate);
         const created = task.createdAt ? new Date(task.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
         const closed = task.closedAt ? new Date(task.closedAt).toLocaleDateString("es-ES") : "";
-        const dueText = task.dueDate ? due.text.replace("Fecha límite: ", "") : "Sin fecha";
+        const dueText = taskDueSummaryText(due, task.dueDate);
+        const dueDetail = task.dueDate ? due.text : "Sin fecha límite";
         const notes = task.notes || "Sin notas";
         const statusClass = taskStatusClass(task.status);
 
@@ -401,16 +523,17 @@
               <div class="rrll-pro-title">${escapeHtml(task.title || "Sin título")}</div>
               <div class="rrll-pro-subtitle">${escapeHtml(notes)}</div>
               <div class="rrll-pro-created">Creada: ${escapeHtml(created)}${closed ? ` · Cerrada: ${escapeHtml(closed)}` : ""}</div>
+              <div class="rrll-pro-due-detail">${escapeHtml(dueDetail)}</div>
               <div class="rrll-pro-update">Última actualización: ${escapeHtml(lastTaskUpdate(task))}</div>
             </td>
-            <td>${priorityBadgeHtml(task.priority)}</td>
+            <td>${taskPriorityBadgeHtml(task.priority)}</td>
             <td><span class="rrll-status-pill ${statusClass}">${escapeHtml(taskStatusLabel(task.status))}</span></td>
-            <td><span class="rrll-due-pill${due.className}">${escapeHtml(dueText)}</span></td>
+            <td><span class="rrll-due-pill${due.className}" title="${escapeHtml(dueDetail)}">${escapeHtml(dueText)}</span></td>
             <td class="rrll-pro-actions" onclick="event.stopPropagation()">
               ${task.status !== "pending" ? `<button class="small secondary" onclick="moveTask('${task.id}', 'pending')">Pendiente</button>` : ""}
               ${task.status !== "progress" ? `<button class="small black" onclick="moveTask('${task.id}', 'progress')">En curso</button>` : ""}
               ${task.status !== "closed" ? `<button class="small" onclick="moveTask('${task.id}', 'closed')">Cerrar</button>` : ""}
-              <button class="small danger" onclick="deleteTask('${task.id}')">Eliminar</button>
+              <button class="small danger rrll-delete-icon-button" onclick="deleteTask('${task.id}')" title="Eliminar tarea" aria-label="Eliminar tarea"><span aria-hidden="true">🗑️</span></button>
             </td>
           </tr>
         `;
@@ -546,6 +669,7 @@
   };
 
   window.TareasModule = api;
+  window.confirmDangerAction = confirmDangerAction;
 
   // Compatibilidad temporal con HTML/app.js mientras se completa Fase 3.
   window.getTasks = getTasks;

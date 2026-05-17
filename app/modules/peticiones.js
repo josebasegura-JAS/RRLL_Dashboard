@@ -71,7 +71,7 @@
       renderPetitions();
     }
 
-    function movePetition(id, status) {
+    function executeMovePetition(id, status) {
       const now = new Date().toISOString();
       const items = getPetitions().map(item => {
         if (item.id !== id) return item;
@@ -85,7 +85,20 @@
       renderPetitions();
     }
 
-    function deletePetition(id) {
+    function movePetition(id, status) {
+      if (typeof confirmDangerAction !== "function") return;
+      const item = getPetitions().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "esta petición";
+      const nextStatus = petitionStatusLabel(status).toLowerCase();
+      confirmDangerAction({
+        title: "Cambiar estado de petición",
+        message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeMovePetition(id, status)
+      });
+    }
+
+    function executeDeletePetition(id) {
       const items = getPetitions();
       const item = items.find(i => i.id === id);
       if (item) moveToTrash("petitions", item);
@@ -94,6 +107,18 @@
       renderTrash();
       restoreAlertsPanelState();
       renderAlertsPanel();
+    }
+
+    function deletePetition(id) {
+      if (typeof confirmDangerAction !== "function") return;
+      const item = getPetitions().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "esta petición";
+      confirmDangerAction({
+        title: "Eliminar petición",
+        message: `¿Quieres eliminar ${title}? Se enviará a la papelera.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeletePetition(id)
+      });
     }
 
     let activePetitionUpdateId = null;
@@ -242,11 +267,29 @@
       if (row) row.classList.toggle("expanded");
     }
 
+
+    function petitionPriorityBadgeHtml(value) {
+      const raw = String(value || "normal").toLowerCase();
+      const normalized = raw === "low" || raw === "baja" ? "low" : normalizePriority(value);
+      const labels = { low: "Baja", baja: "Baja", normal: "Normal", high: "Alta", alta: "Alta" };
+      const label = labels[raw] || priorityLabel(value).replace(/^Prioridad:\s*/i, "");
+      return `<span class="priority-badge priority-${normalized}">${escapeHtml(label)}</span>`;
+    }
+
+    function petitionDueSummaryText(due, hasDueDate) {
+      if (!hasDueDate) return "Sin fecha";
+      if (due.diffDays < 0) return "Vencida";
+      if (due.diffDays === 0) return "Hoy";
+      if (due.diffDays <= 5) return "Próxima";
+      return "Con fecha";
+    }
+
     function renderPetitionRow(item) {
       const due = dueStatus(item.dueDate);
       const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
       const closed = item.closedAt ? new Date(item.closedAt).toLocaleDateString("es-ES") : "";
-      const dueText = item.dueDate ? due.text.replace("Fecha límite: ", "") : "Sin fecha";
+      const dueText = petitionDueSummaryText(due, item.dueDate);
+      const dueDetail = item.dueDate ? due.text : "Sin fecha límite";
       const notes = item.notes || "Sin notas";
       const statusClass = petitionStatusClass(item.status);
       const sourceHtml = (item.sources && item.sources.length)
@@ -259,16 +302,17 @@
             <div class="rrll-pro-title">${escapeHtml(item.title || "Sin título")}</div>
             <div class="rrll-pro-subtitle">${escapeHtml(notes)}</div>
             <div class="rrll-pro-created">Creada: ${escapeHtml(created)}${closed ? ` · Cerrada: ${escapeHtml(closed)}` : ""}</div>
+            <div class="rrll-pro-due-detail">${escapeHtml(dueDetail)}</div>
           </td>
           <td>${sourceHtml}</td>
-          <td>${priorityBadgeHtml(item.priority)}</td>
+          <td>${petitionPriorityBadgeHtml(item.priority)}</td>
           <td><span class="rrll-status-pill ${statusClass}">${escapeHtml(petitionStatusLabel(item.status))}</span></td>
-          <td><span class="rrll-due-pill${due.className}">${escapeHtml(dueText)}</span></td>
+          <td><span class="rrll-due-pill${due.className}" title="${escapeHtml(dueDetail)}">${escapeHtml(dueText)}</span></td>
           <td class="rrll-pro-actions" onclick="event.stopPropagation()">
             ${item.status !== "petition-pending" ? `<button class="small secondary" onclick="movePetition('${item.id}', 'petition-pending')">Pendiente</button>` : ""}
             ${item.status !== "petition-progress" ? `<button class="small black" onclick="movePetition('${item.id}', 'petition-progress')">En curso</button>` : ""}
             ${item.status !== "petition-closed" ? `<button class="small" onclick="movePetition('${item.id}', 'petition-closed')">Cerrar</button>` : ""}
-            <button class="small danger" onclick="deletePetition('${item.id}')">Eliminar</button>
+            <button class="small danger rrll-delete-icon-button" onclick="deletePetition('${item.id}')" title="Eliminar petición" aria-label="Eliminar petición"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
       `;

@@ -396,7 +396,7 @@
         <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.name || 'Sin nombre')}</div></td>
         <td>${escapeHtml(item.linkedPerson || '')}</td>
         <td><span class="rrll-status-pill ${statusClass}">${escapeHtml(statusText)}</span><br><span class="rrll-pro-subtitle">${escapeHtml(formatVincDate(item.expiryDate))}</span></td>
-        <td class="rrll-pro-actions"><button class="small danger" type="button" onclick="event.stopPropagation(); deleteVinculograma('${item.id}')" title="Eliminar vinculograma" aria-label="Eliminar vinculograma">Eliminar</button></td>
+        <td class="rrll-pro-actions vinculograma-actions-cell"><button class="small danger rrll-delete-icon-button vinculograma-delete-btn" type="button" onclick="event.stopPropagation(); deleteVinculograma('${item.id}')" title="Eliminar vinculograma" aria-label="Eliminar vinculograma"><svg class="vinculograma-delete-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg></button></td>
       </tr>
     `;
   }

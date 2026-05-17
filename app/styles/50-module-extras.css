@@ -1574,3 +1574,754 @@ html[data-theme="light"] .telework-intake-note {
     grid-template-columns: 1fr !important;
   }
 }
+
+.telework-import-modal .telework-import-box {
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.telework-import-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.telework-import-head h3,
+.telework-import-card h4 {
+  margin: 0;
+}
+
+.telework-import-head .muted,
+.telework-import-card p {
+  margin: 6px 0 0;
+  color: var(--rrll-text-muted, var(--muted));
+}
+
+.telework-import-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, .25);
+  background: rgba(148, 163, 184, .12);
+  color: var(--rrll-text-main, inherit);
+  cursor: pointer;
+}
+
+.telework-import-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.telework-import-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 16px;
+  background: rgba(148, 163, 184, .08);
+}
+
+.telework-import-kicker {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(167, 53, 53, .14);
+  color: var(--rrll-red-ui, var(--red));
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.telework-template-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+}
+
+@media (max-width: 720px) {
+  .telework-import-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Teletrabajo: mantenimiento del catálogo de puestos importados. */
+.telework-catalog-modal .telework-catalog-box {
+  width: min(1180px, calc(100vw - 28px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.telework-catalog-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.telework-catalog-search {
+  flex: 1 1 520px;
+  margin: 0;
+}
+
+.telework-catalog-count {
+  flex: 0 0 auto;
+  color: var(--rrll-text-muted, var(--muted));
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.telework-catalog-table-wrap {
+  min-height: 220px;
+  max-height: min(58vh, 620px);
+  overflow: auto;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, .12);
+}
+
+.telework-catalog-table {
+  min-width: 980px;
+}
+
+.telework-catalog-table th,
+.telework-catalog-table td {
+  vertical-align: middle;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.telework-catalog-table input,
+.telework-catalog-table select {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  background: rgba(15, 23, 42, .26);
+  color: var(--rrll-text-main, #f8fafc);
+  padding: 8px 10px;
+}
+
+.telework-catalog-table th:nth-child(1),
+.telework-catalog-table td:nth-child(1) { min-width: 230px; }
+.telework-catalog-table th:nth-child(2),
+.telework-catalog-table td:nth-child(2) { min-width: 170px; }
+.telework-catalog-table th:nth-child(3),
+.telework-catalog-table td:nth-child(3) { min-width: 180px; }
+.telework-catalog-table th:nth-child(4),
+.telework-catalog-table td:nth-child(4),
+.telework-catalog-table th:nth-child(5),
+.telework-catalog-table td:nth-child(5),
+.telework-catalog-table th:nth-child(6),
+.telework-catalog-table td:nth-child(6) { min-width: 120px; }
+
+.telework-catalog-empty {
+  padding: 24px !important;
+  text-align: center;
+  color: var(--rrll-text-muted, var(--muted));
+}
+
+.telework-catalog-delete {
+  white-space: nowrap;
+}
+
+.telework-catalog-actions {
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+html[data-theme="light"] .telework-catalog-table-wrap {
+  background: rgba(241, 245, 249, .86);
+}
+
+html[data-theme="light"] .telework-catalog-table input,
+html[data-theme="light"] .telework-catalog-table select {
+  background: rgba(255, 255, 255, .92);
+  color: var(--rrll-text-main-light, #111827);
+}
+
+@media (max-width: 760px) {
+  .telework-catalog-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .telework-catalog-search {
+    flex-basis: auto;
+  }
+
+  .telework-catalog-modal .telework-catalog-box {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    padding: 14px;
+  }
+}
+
+/* Fase 1 Lupa global: buscador acotado a Comité y Paritaria en Dashboard */
+.dashboard-search-card {
+  margin: 16px 0 0 !important;
+  min-height: 0 !important;
+}
+
+.dashboard-search-collapsible {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.dashboard-search-header {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: auto auto minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 14px 16px !important;
+  border: 0 !important;
+  background: linear-gradient(135deg, rgba(15,23,42,.72), rgba(30,41,59,.52)) !important;
+  color: #f8fafc !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.dashboard-search-header:hover {
+  background: linear-gradient(135deg, rgba(30,41,59,.82), rgba(51,65,85,.56)) !important;
+}
+
+.dashboard-search-header-icon {
+  width: 30px !important;
+  height: 30px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 10px !important;
+  color: #93c5fd !important;
+  background: rgba(59,130,246,.12) !important;
+  border: 1px solid rgba(96,165,250,.18) !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.dashboard-search-header span:not(.dashboard-search-header-icon):not(.dashboard-search-toggle) {
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  letter-spacing: .01em !important;
+}
+
+.dashboard-search-header small {
+  justify-self: start !important;
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+
+.dashboard-search-toggle {
+  color: #cbd5e1 !important;
+  font-size: 14px !important;
+  transition: transform .16s ease !important;
+}
+
+.dashboard-search-collapsible:not(.is-collapsed) .dashboard-search-toggle {
+  transform: rotate(180deg) !important;
+}
+
+.dashboard-search-body {
+  padding: 0 16px 16px !important;
+}
+
+.dashboard-search-body[hidden] {
+  display: none !important;
+}
+
+.dashboard-search-box {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto auto !important;
+  gap: 10px !important;
+  margin-top: 12px !important;
+  align-items: center !important;
+  padding: 10px !important;
+  border: 1px solid rgba(148,163,184,.16) !important;
+  border-radius: 16px !important;
+  background: rgba(17,24,39,.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+.dashboard-search-icon {
+  width: 36px !important;
+  height: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  color: #93c5fd !important;
+  background: rgba(59,130,246,.12) !important;
+  border: 1px solid rgba(96,165,250,.18) !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+}
+
+.dashboard-search-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 42px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 12px !important;
+  background: rgba(15,23,42,.46) !important;
+  color: #f8fafc !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
+}
+
+.dashboard-search-input::placeholder {
+  color: rgba(203,213,225,.58) !important;
+}
+
+.dashboard-search-button {
+  height: 42px !important;
+  border-radius: 12px !important;
+  padding: 0 16px !important;
+  background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+  border: 1px solid rgba(191,219,254,.18) !important;
+  color: #fff !important;
+  font-weight: 850 !important;
+  box-shadow: 0 10px 22px rgba(37,99,235,.18) !important;
+}
+
+.dashboard-search-clear {
+  height: 42px !important;
+  border-radius: 12px !important;
+  padding: 0 14px !important;
+  background: rgba(15,23,42,.48) !important;
+  border: 1px solid rgba(148,163,184,.20) !important;
+  color: #dbeafe !important;
+  font-weight: 850 !important;
+}
+
+.dashboard-search-clear:hover {
+  border-color: rgba(147,197,253,.30) !important;
+  background: rgba(30,41,59,.72) !important;
+}
+
+.dashboard-search-results {
+  display: grid !important;
+  gap: 9px !important;
+  margin-top: 12px !important;
+  max-height: 330px !important;
+  overflow: auto !important;
+  padding-right: 2px !important;
+}
+
+.dashboard-search-empty {
+  padding: 12px 14px !important;
+  border-radius: 13px !important;
+  color: #aab3c2 !important;
+  background: rgba(15,23,42,.24) !important;
+  border: 1px dashed rgba(148,163,184,.16) !important;
+  font-size: 13px !important;
+}
+
+.dashboard-search-result {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 86px minmax(0, 1fr) minmax(120px, auto) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  text-align: left !important;
+  padding: 10px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  background: rgba(31,41,55,.50) !important;
+  color: #e5e7eb !important;
+}
+
+.dashboard-search-result:hover {
+  transform: translateY(-1px) !important;
+  border-color: rgba(147,197,253,.28) !important;
+  background: rgba(51,65,85,.62) !important;
+}
+
+.dashboard-search-badge {
+  justify-self: start !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 76px !important;
+  padding: 6px 8px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-search-badge--committee {
+  color: #bfdbfe !important;
+  background: rgba(37,99,235,.18) !important;
+  border: 1px solid rgba(96,165,250,.28) !important;
+}
+
+.dashboard-search-badge--paritaria {
+  color: #ddd6fe !important;
+  background: rgba(124,58,237,.18) !important;
+  border: 1px solid rgba(167,139,250,.28) !important;
+}
+
+.dashboard-search-main {
+  display: grid !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+.dashboard-search-main strong {
+  color: #f8fafc !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.dashboard-search-main small {
+  color: #aab3c2 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.dashboard-search-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+}
+
+.dashboard-search-meta em {
+  font-style: normal !important;
+  color: #cbd5e1 !important;
+  background: rgba(15,23,42,.40) !important;
+  border: 1px solid rgba(148,163,184,.10) !important;
+  border-radius: 999px !important;
+  padding: 4px 7px !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-search-box,
+  .dashboard-search-result {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-search-icon { display: none !important; }
+  .dashboard-search-button,
+  .dashboard-search-clear { width: 100% !important; }
+  .dashboard-search-meta { justify-content: flex-start !important; }
+}
+
+/* Fase 2 Lupa global: timeline cronológico por asunto en Dashboard */
+.dashboard-timeline-card {
+  margin-top: 14px !important;
+  padding-top: 14px !important;
+  border-top: 1px solid rgba(148,163,184,.14) !important;
+}
+
+.dashboard-timeline-card .phase4-card-head {
+  margin-bottom: 10px !important;
+}
+
+.dashboard-timeline {
+  position: relative !important;
+  display: grid !important;
+  gap: 16px !important;
+  padding: 2px 0 2px 8px !important;
+}
+
+.dashboard-timeline::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 8px !important;
+  bottom: 8px !important;
+  left: 18px !important;
+  width: 1px !important;
+  background: linear-gradient(180deg, rgba(96,165,250,.08), rgba(148,163,184,.28), rgba(167,139,250,.08)) !important;
+}
+
+.dashboard-timeline-year {
+  position: relative !important;
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.dashboard-timeline-year h4 {
+  position: relative !important;
+  z-index: 1 !important;
+  width: fit-content !important;
+  margin: 0 0 2px 26px !important;
+  padding: 4px 9px !important;
+  border-radius: 999px !important;
+  color: #dbeafe !important;
+  background: rgba(15,23,42,.88) !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-timeline-item {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  text-align: left !important;
+}
+
+.dashboard-timeline-item:hover .dashboard-timeline-content {
+  transform: translateY(-1px) !important;
+  border-color: rgba(147,197,253,.28) !important;
+  background: rgba(51,65,85,.58) !important;
+}
+
+.dashboard-timeline-node {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 11px !important;
+  height: 11px !important;
+  margin: 17px auto 0 !important;
+  border-radius: 999px !important;
+  background: #93c5fd !important;
+  border: 2px solid #101827 !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.16) !important;
+}
+
+.dashboard-timeline-content {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  padding: 11px 12px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  background: rgba(31,41,55,.46) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease !important;
+}
+
+.dashboard-timeline-content strong {
+  color: #f8fafc !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  line-height: 1.25 !important;
+}
+
+.dashboard-timeline-content small {
+  color: #aab3c2 !important;
+  font-size: 12px !important;
+  line-height: 1.38 !important;
+}
+
+.dashboard-timeline-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.dashboard-timeline-meta em {
+  font-style: normal !important;
+  color: #cbd5e1 !important;
+  background: rgba(15,23,42,.42) !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  border-radius: 999px !important;
+  padding: 4px 7px !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+.dashboard-timeline-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 76px !important;
+  padding: 5px 8px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-timeline-badge--committee {
+  color: #bfdbfe !important;
+  background: rgba(37,99,235,.18) !important;
+  border: 1px solid rgba(96,165,250,.28) !important;
+}
+
+.dashboard-timeline-badge--paritaria {
+  color: #ddd6fe !important;
+  background: rgba(124,58,237,.18) !important;
+  border: 1px solid rgba(167,139,250,.28) !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-timeline {
+    padding-left: 0 !important;
+  }
+
+  .dashboard-timeline::before {
+    left: 10px !important;
+  }
+
+  .dashboard-timeline-year h4 {
+    margin-left: 22px !important;
+  }
+
+  .dashboard-timeline-item {
+    grid-template-columns: 20px minmax(0, 1fr) !important;
+  }
+}
+
+/* Teletrabajo: cabecera superior homogénea y selector de campaña limpio */
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions button,
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions select {
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  white-space: nowrap;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-height: 44px;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker span {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker select {
+  margin: 0;
+  height: 44px;
+  padding-block: 0;
+}
+
+@media (max-width: 760px) {
+  body.phase4-view-module #gestor-teletrabajo .telework-header-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  body.phase4-view-module #gestor-teletrabajo .telework-header-actions button,
+  body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker {
+    flex: 1 1 auto;
+  }
+
+  body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker select {
+    flex: 1 1 140px;
+  }
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-future-heading {
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  margin: 4px 2px -2px;
+  text-transform: uppercase;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
+  border-style: dashed;
+  background: rgba(59, 130, 246, .08);
+}
+
+/* Dashboard: contención de alertas y timeline sin scroll horizontal */
+.phase5-useful-dashboard,
+.phase5-useful-dashboard .phase5-dashboard-grid,
+.phase5-useful-dashboard .phase5-dashboard-card,
+.phase5-useful-dashboard .phase4-list,
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row,
+.phase5-useful-dashboard .phase5-alert-list,
+.phase5-useful-dashboard .phase5-alert-row,
+.dashboard-search-card,
+.dashboard-search-body,
+.dashboard-timeline-card,
+.dashboard-timeline,
+.dashboard-timeline-item,
+.dashboard-timeline-content {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.phase5-useful-dashboard .phase5-dashboard-card *,
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row *,
+.dashboard-search-card *,
+.dashboard-timeline-card * {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+
+.phase5-useful-dashboard .phase5-dashboard-grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, .72fr) minmax(0, .83fr) !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+  grid-template-columns: minmax(0, 72px) minmax(0, 1fr) auto !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row b,
+.dashboard-timeline-content strong,
+.dashboard-timeline-content small {
+  white-space: normal !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row em {
+  justify-self: end !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1400px) {
+  .phase5-useful-dashboard .phase5-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .phase5-useful-dashboard .phase5-dashboard-grid,
+  .phase5-due-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+    grid-template-columns: minmax(0, 64px) minmax(0, 1fr) auto !important;
+  }
+}

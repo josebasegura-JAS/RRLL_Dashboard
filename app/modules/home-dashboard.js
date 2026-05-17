@@ -164,6 +164,275 @@ function phase5CollectDashboardData() {
   return { tasks, petitions, minutes, telework, committee, committeeSessions, paritaria, paritariaSessions };
 }
 
+function dashboardSearchNormalize(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function dashboardSearchText(parts) {
+  return dashboardSearchNormalize((parts || []).filter(Boolean).join(" "));
+}
+
+function dashboardSearchHtml(value) {
+  if (typeof escapeHtml === "function") return escapeHtml(value || "");
+  return String(value || "").replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+}
+
+function dashboardSearchStatus(value) {
+  if (!value) return "";
+  try {
+    return typeof statusLabel === "function" ? statusLabel(value) : String(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function dashboardSearchResultDate(item) {
+  return item.requestDate || item.date || item.rawDate || item.committeeSessionDate || item.paritariaSessionDate || item.createdAt || "";
+}
+
+function dashboardSearchMatches(text, query) {
+  if (!query) return false;
+  if (text.includes(query)) return true;
+  return query.split(" ").filter(Boolean).every(term => text.includes(term));
+}
+
+function dashboardSearchSnippet(source, query) {
+  const compact = String(source || "").replace(/\s+/g, " ").trim();
+  if (!compact) return "Coincidencia en el registro.";
+  const normalizedSource = dashboardSearchNormalize(compact);
+  const firstTerm = query.split(" ").find(Boolean) || query;
+  const index = normalizedSource.indexOf(firstTerm);
+  if (index < 0) return compact.length > 150 ? `${compact.slice(0, 147)}…` : compact;
+  const start = Math.max(0, index - 45);
+  const end = Math.min(compact.length, index + firstTerm.length + 95);
+  return `${start > 0 ? "…" : ""}${compact.slice(start, end)}${end < compact.length ? "…" : ""}`;
+}
+
+function dashboardSearchDateTime(value) {
+  const date = phase4ParseDate(value);
+  return date ? date.getTime() : null;
+}
+
+function dashboardSearchSortNewestFirst(a, b) {
+  const aTime = dashboardSearchDateTime(a.date);
+  const bTime = dashboardSearchDateTime(b.date);
+  if (aTime !== null && bTime !== null && aTime !== bTime) return bTime - aTime;
+  if (aTime !== null && bTime === null) return -1;
+  if (aTime === null && bTime !== null) return 1;
+  return String(a.title || "").localeCompare(String(b.title || ""), "es");
+}
+
+function dashboardSearchYearLabel(value) {
+  const date = phase4ParseDate(value);
+  return date ? String(date.getFullYear()) : "Sin fecha";
+}
+
+function dashboardSearchSortTimeline(a, b) {
+  return dashboardSearchSortNewestFirst(a, b);
+}
+
+function dashboardSearchBuildRows() {
+  const { committee, committeeSessions, paritaria, paritariaSessions } = phase5CollectDashboardData();
+  const rows = [];
+
+  committee.forEach(item => {
+    const date = dashboardSearchResultDate(item);
+    const code = item.committeeSessionCode || item.code || "";
+    const source = [item.title, item.petitioner, item.notes, code, date, item.committeeSessionOrder, dashboardSearchStatus(item.status), ...(item.updates || []).map(update => update.text)].filter(Boolean).join(" · ");
+    rows.push({
+      type: "Comité",
+      kind: "committee",
+      date,
+      code,
+      title: item.title || "Punto de Comité",
+      status: dashboardSearchStatus(item.status),
+      source,
+      target: "gestor-puntos-comite",
+      targetId: `rrll-agenda-${item.id}`,
+      text: dashboardSearchText([source])
+    });
+  });
+
+  committeeSessions.forEach(session => {
+    const date = dashboardSearchResultDate(session);
+    const linkedItems = typeof getCommitteeSessionDisplayItems === "function" ? getCommitteeSessionDisplayItems(session).map(item => `${item.title || ""} ${item.meta || ""}`) : [];
+    const source = [session.title, session.code, date, session.rawDate, session.notes, session.status === "closed" ? "Histórico" : "Abierta", ...linkedItems].filter(Boolean).join(" · ");
+    rows.push({
+      type: "Comité",
+      kind: "committee",
+      date,
+      code: session.code || "",
+      title: session.title || session.code || "Sesión Comité",
+      status: session.status === "closed" ? "Histórico" : "Abierta",
+      source,
+      target: "gestor-sesiones-comite",
+      targetId: `rrll-session-${session.id}`,
+      text: dashboardSearchText([source])
+    });
+  });
+
+  paritaria.forEach(item => {
+    const date = dashboardSearchResultDate(item);
+    const code = item.paritariaSessionCode || item.code || "";
+    const source = [item.title, item.petitioner, item.notes, code, date, item.paritariaSessionOrder, dashboardSearchStatus(item.status), ...(item.updates || []).map(update => update.text)].filter(Boolean).join(" · ");
+    rows.push({
+      type: "Paritaria",
+      kind: "paritaria",
+      date,
+      code,
+      title: item.title || "Punto de Paritaria",
+      status: dashboardSearchStatus(item.status),
+      source,
+      target: "gestor-puntos-paritaria",
+      targetId: `rrll-paritaria-${item.id}`,
+      text: dashboardSearchText([source])
+    });
+  });
+
+  paritariaSessions.forEach(session => {
+    const date = dashboardSearchResultDate(session);
+    const linkedItems = typeof getParitariaSessionDisplayItems === "function" ? getParitariaSessionDisplayItems(session).map(item => `${item.title || ""} ${item.meta || ""}`) : [];
+    const source = [session.title, session.code, date, session.rawDate, session.notes, session.status === "closed" ? "Histórico" : "Abierta", ...linkedItems].filter(Boolean).join(" · ");
+    rows.push({
+      type: "Paritaria",
+      kind: "paritaria",
+      date,
+      code: session.code || "",
+      title: session.title || session.code || "Sesión Paritaria",
+      status: session.status === "closed" ? "Histórico" : "Abierta",
+      source,
+      target: "gestor-sesiones-paritaria",
+      targetId: `rrll-paritaria-session-${session.id}`,
+      text: dashboardSearchText([source])
+    });
+  });
+
+  return rows;
+}
+
+function openDashboardSearchResult(target, targetId) {
+  if (target === "gestor-puntos-comite" || target === "gestor-sesiones-comite") {
+    if (typeof openCommitteeSubsection === "function") openCommitteeSubsection(target);
+    else if (typeof openPhase4DashboardTarget === "function") openPhase4DashboardTarget("gestor-comite");
+  } else if (target === "gestor-puntos-paritaria" || target === "gestor-sesiones-paritaria") {
+    if (typeof openParitariaSubsection === "function") openParitariaSubsection(target);
+    else if (typeof openPhase4DashboardTarget === "function") openPhase4DashboardTarget("gestor-paritaria");
+  }
+
+  if (target === "gestor-sesiones-comite" && targetId && typeof getCommitteeSessions === "function" && typeof setCommitteeSessionView === "function") {
+    const session = getCommitteeSessions().find(item => `rrll-session-${item.id}` === targetId);
+    if (session) setCommitteeSessionView(session.status === "closed" ? "history" : "open");
+  }
+  if (target === "gestor-sesiones-paritaria" && targetId && typeof getParitariaSessions === "function" && typeof setParitariaSessionView === "function") {
+    const session = getParitariaSessions().find(item => `rrll-paritaria-session-${item.id}` === targetId);
+    if (session) setParitariaSessionView(session.status === "closed" ? "history" : "open");
+  }
+
+  setTimeout(() => {
+    const el = document.getElementById(targetId) || document.getElementById(target);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("search-hit-highlight");
+    setTimeout(() => el.classList.remove("search-hit-highlight"), 2200);
+  }, 180);
+}
+
+function renderDashboardSearchTimeline(results, query) {
+  const container = document.getElementById("dashboardSearchTimeline");
+  if (!container) return;
+
+  const head = `
+    <div class="phase4-card-head">
+      <h3>Timeline del asunto</h3>
+      <span>Comité · Paritaria</span>
+    </div>`;
+
+  if (!query) {
+    container.innerHTML = "";
+    return;
+  }
+
+  if (!results.length) {
+    container.innerHTML = `${head}<div class="dashboard-search-empty">No se han encontrado coincidencias.</div>`;
+    return;
+  }
+
+  const groups = new Map();
+  results.slice().sort(dashboardSearchSortTimeline).forEach(item => {
+    const year = dashboardSearchYearLabel(item.date);
+    if (!groups.has(year)) groups.set(year, []);
+    groups.get(year).push(item);
+  });
+
+  const timeline = Array.from(groups.entries()).map(([year, items]) => `
+    <section class="dashboard-timeline-year" aria-label="${dashboardSearchHtml(year)}">
+      <h4>${dashboardSearchHtml(year)}</h4>
+      ${items.map(item => `
+        <button type="button" class="dashboard-timeline-item" onclick="openDashboardSearchResult('${item.target}', '${dashboardSearchHtml(item.targetId)}')">
+          <span class="dashboard-timeline-node" aria-hidden="true"></span>
+          <span class="dashboard-timeline-content">
+            <span class="dashboard-timeline-meta">
+              <span class="dashboard-timeline-badge dashboard-timeline-badge--${item.kind}">${dashboardSearchHtml(item.type)}</span>
+              <em>${dashboardSearchHtml(item.date ? phase4FormatDate(item.date) : "Sin fecha")}</em>
+              ${item.code ? `<em>${dashboardSearchHtml(item.code)}</em>` : ""}
+              ${item.status ? `<em>${dashboardSearchHtml(item.status)}</em>` : ""}
+            </span>
+            <strong>${dashboardSearchHtml(item.title)}</strong>
+            <small>${dashboardSearchHtml(dashboardSearchSnippet(item.source, query))}</small>
+          </span>
+        </button>`).join("")}
+    </section>`).join("");
+
+  container.innerHTML = `${head}<div class="dashboard-timeline">${timeline}</div>`;
+}
+
+function renderDashboardSearchResults(results, query) {
+  renderDashboardSearchTimeline(results, query);
+}
+
+function runDashboardSearch() {
+  const input = document.getElementById("dashboardSearchInput");
+  const query = dashboardSearchNormalize(input ? input.value : "");
+  if (input && input.value !== query) input.value = query;
+  const results = dashboardSearchBuildRows()
+    .filter(row => dashboardSearchMatches(row.text, query))
+    .sort(dashboardSearchSortNewestFirst);
+  renderDashboardSearchResults(results, query);
+}
+
+function clearDashboardSearch() {
+  const input = document.getElementById("dashboardSearchInput");
+  if (input) input.value = "";
+  renderDashboardSearchResults([], "");
+  const timeline = document.getElementById("dashboardSearchTimeline");
+  if (timeline) timeline.innerHTML = "";
+  if (input) input.focus();
+}
+
+function setDashboardSearchCollapsed(collapsed) {
+  const card = document.querySelector(".dashboard-search-collapsible");
+  const header = card ? card.querySelector(".dashboard-search-header") : null;
+  const body = document.getElementById("dashboardSearchBody");
+  if (!card || !header || !body) return;
+  card.classList.toggle("is-collapsed", collapsed);
+  header.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  body.hidden = collapsed;
+  if (!collapsed) {
+    const input = document.getElementById("dashboardSearchInput");
+    if (input) setTimeout(() => input.focus(), 0);
+  }
+}
+
+function toggleDashboardSearch() {
+  const card = document.querySelector(".dashboard-search-collapsible");
+  setDashboardSearchCollapsed(!(card && card.classList.contains("is-collapsed")));
+}
+
 
 function phase5SetupCalendarClicks() {
   if (phase5CalendarClickReady) return;
@@ -476,6 +745,11 @@ window.phase4FormatDate = phase4FormatDate;
 window.phase4DaysUntil = phase4DaysUntil;
 window.phase4DueLabel = phase4DueLabel;
 window.phase4RecentItem = phase4RecentItem;
+window.runDashboardSearch = runDashboardSearch;
+window.clearDashboardSearch = clearDashboardSearch;
+window.toggleDashboardSearch = toggleDashboardSearch;
+window.setDashboardSearchCollapsed = setDashboardSearchCollapsed;
+window.openDashboardSearchResult = openDashboardSearchResult;
 window.renderHomeDashboard = renderHomeDashboard;
 window.renderDate = renderDate;
 

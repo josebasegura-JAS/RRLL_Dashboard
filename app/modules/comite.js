@@ -5,6 +5,191 @@
 
 // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
+
+    function ensureCommitteeConfirmModal() {
+      let modal = document.getElementById("committeeConfirmModal");
+      if (modal) return modal;
+
+      modal = document.createElement("div");
+      modal.id = "committeeConfirmModal";
+      modal.className = "modal-backdrop rrll-confirm-delete-modal";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "committeeConfirmTitle");
+      modal.innerHTML = `
+        <div class="modal-box rrll-confirm-delete-box" role="document">
+          <div class="rrll-confirm-delete-icon" aria-hidden="true">!</div>
+          <h3 id="committeeConfirmTitle">Confirmar acción</h3>
+          <p id="committeeConfirmText" class="muted">Revisa la acción antes de continuar.</p>
+          <div class="modal-actions rrll-confirm-delete-actions">
+            <button type="button" class="secondary" data-confirm-cancel>Cancelar</button>
+            <button type="button" class="danger" data-confirm-accept>Confirmar</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function confirmCommitteeAction(options) {
+      const modal = ensureCommitteeConfirmModal();
+      const titleEl = modal.querySelector("#committeeConfirmTitle");
+      const textEl = modal.querySelector("#committeeConfirmText");
+      const cancelButton = modal.querySelector("[data-confirm-cancel]");
+      const acceptButton = modal.querySelector("[data-confirm-accept]");
+      const action = options && typeof options.onConfirm === "function" ? options.onConfirm : null;
+
+      if (titleEl) titleEl.textContent = (options && options.title) || "Confirmar acción";
+      if (textEl) textEl.textContent = (options && options.message) || "Revisa la acción antes de continuar.";
+      if (acceptButton) acceptButton.textContent = (options && options.confirmLabel) || "Confirmar";
+      if (acceptButton) acceptButton.className = (options && options.danger === false) ? "" : "danger";
+
+      function close() {
+        modal.classList.remove("open");
+        modal.removeEventListener("click", handleBackdropClick);
+        document.removeEventListener("keydown", handleEscape);
+        cancelButton?.removeEventListener("click", handleCancel);
+        acceptButton?.removeEventListener("click", handleConfirm);
+      }
+
+      function handleCancel() {
+        close();
+      }
+
+      function handleConfirm() {
+        close();
+        if (action) action();
+      }
+
+      function handleBackdropClick(event) {
+        if (event.target === modal) close();
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape" && modal.classList.contains("open")) close();
+      }
+
+      cancelButton?.addEventListener("click", handleCancel);
+      acceptButton?.addEventListener("click", handleConfirm);
+      modal.addEventListener("click", handleBackdropClick);
+      document.addEventListener("keydown", handleEscape);
+      modal.classList.add("open");
+      setTimeout(() => cancelButton?.focus(), 0);
+    }
+
+
+    function ensureCommitteeMinutePromptModal() {
+      let modal = document.getElementById("committeeMinutePromptModal");
+      if (modal) return modal;
+
+      modal = document.createElement("div");
+      modal.id = "committeeMinutePromptModal";
+      modal.className = "modal-backdrop committee-minute-prompt-modal";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "committeeMinutePromptTitle");
+      modal.innerHTML = `
+        <div class="modal-box session-close-modal-box" role="document">
+          <h3 id="committeeMinutePromptTitle">Crear registro en Actas</h3>
+          <p class="muted">¿Deseas crear automáticamente un registro en Actas para esta sesión?</p>
+          <div class="committee-minute-preview" id="committeeMinutePromptPreview"></div>
+          <div class="modal-actions">
+            <button type="button" class="secondary" data-minute-skip>No crear</button>
+            <button type="button" data-minute-create>Crear acta</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function committeeSessionDateLabel(session) {
+      if (!session || !session.date) return "Sin fecha";
+      return new Date(session.date + "T00:00:00").toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    function buildCommitteeMinutePayload(session) {
+      const dateLabel = committeeSessionDateLabel(session);
+      return {
+        title: `Comité de Empresa - ${dateLabel}`,
+        notes: String(session && session.code ? session.code : "").trim(),
+        sourceType: "committee-session",
+        sourceId: String(session && session.id ? session.id : "").trim()
+      };
+    }
+
+    function createCommitteeMinuteFromSession(session) {
+      if (!session) return;
+      const payload = buildCommitteeMinutePayload(session);
+      const creator = window.ActasModule && typeof window.ActasModule.createMinuteIfMissing === "function"
+        ? window.ActasModule.createMinuteIfMissing
+        : (typeof window.createMinuteIfMissing === "function" ? window.createMinuteIfMissing : null);
+
+      if (!creator) {
+        alert("No se ha podido acceder al alta segura de Actas.");
+        return;
+      }
+
+      const result = creator(payload);
+      if (result && result.created) {
+        alert("Acta creada correctamente.");
+        return;
+      }
+      if (result && result.reason === "duplicate") {
+        alert("Ya existe un acta equivalente para esta sesión. No se ha creado un duplicado.");
+        return;
+      }
+      alert("No se ha creado el acta porque faltan datos obligatorios.");
+    }
+
+    function promptCommitteeMinuteCreation(session) {
+      if (!session) return;
+      const modal = ensureCommitteeMinutePromptModal();
+      const preview = modal.querySelector("#committeeMinutePromptPreview");
+      const skipButton = modal.querySelector("[data-minute-skip]");
+      const createButton = modal.querySelector("[data-minute-create]");
+      const payload = buildCommitteeMinutePayload(session);
+
+      if (preview) {
+        preview.innerHTML = `
+          <div><strong>Asunto:</strong> ${escapeHtml(payload.title)}</div>
+          <div><strong>Notas:</strong> ${escapeHtml(payload.notes || "Sin código")}</div>
+        `;
+      }
+
+      function close() {
+        modal.classList.remove("open");
+        modal.removeEventListener("click", handleBackdropClick);
+        document.removeEventListener("keydown", handleEscape);
+        skipButton?.removeEventListener("click", handleSkip);
+        createButton?.removeEventListener("click", handleCreate);
+      }
+
+      function handleSkip() {
+        close();
+      }
+
+      function handleCreate() {
+        close();
+        createCommitteeMinuteFromSession(session);
+      }
+
+      function handleBackdropClick(event) {
+        if (event.target === modal) close();
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape" && modal.classList.contains("open")) close();
+      }
+
+      skipButton?.addEventListener("click", handleSkip);
+      createButton?.addEventListener("click", handleCreate);
+      modal.addEventListener("click", handleBackdropClick);
+      document.addEventListener("keydown", handleEscape);
+      modal.classList.add("open");
+      setTimeout(() => skipButton?.focus(), 0);
+    }
+
     function getAgendaItems() {
       return load("rrll_agenda_items", []);
     }
@@ -67,7 +252,7 @@
       toggleAgendaCreateForm(false);
     }
 
-    function moveAgendaItem(id, status) {
+    function executeMoveAgendaItem(id, status) {
       const now = new Date().toISOString();
       const items = getAgendaItems().map(item => {
         if (item.id !== id) return item;
@@ -81,7 +266,19 @@
       renderAgendaItems();
     }
 
-    function deleteAgendaItem(id) {
+    function moveAgendaItem(id, status) {
+      const item = getAgendaItems().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "este punto";
+      const nextStatus = agendaStatusLabel(status).toLowerCase();
+      confirmCommitteeAction({
+        title: "Cambiar estado del punto",
+        message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeMoveAgendaItem(id, status)
+      });
+    }
+
+    function executeDeleteAgendaItem(id) {
       const items = getAgendaItems();
       const item = items.find(i => i.id === id);
       if (item) moveToTrash("agenda", item);
@@ -90,6 +287,17 @@
       renderTrash();
       restoreAlertsPanelState();
       renderAlertsPanel();
+    }
+
+    function deleteAgendaItem(id) {
+      const item = getAgendaItems().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "este punto";
+      confirmCommitteeAction({
+        title: "Eliminar punto de Comité",
+        message: `¿Quieres eliminar ${title}? Se moverá a la papelera.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteAgendaItem(id)
+      });
     }
 
     let activeAgendaUpdateId = null;
@@ -146,6 +354,7 @@
       if (petitionerInput) petitionerInput.value = item.petitioner || "";
       if (requestDateInput) requestDateInput.value = item.requestDate || "";
       if (statusInput) statusInput.value = item.status || "agenda-pending";
+      populateAgendaCommitteeSessionSelect(item);
       if (notesInput) notesInput.value = item.notes || "";
       if (updateInput) updateInput.value = "";
       renderEditableUpdates("agendaExistingUpdates", item.updates || []);
@@ -158,7 +367,7 @@
       activeAgendaUpdateId = null;
       const modal = document.getElementById("agendaUpdateModal");
       if (modal) modal.classList.remove("open");
-      ["agendaEditTitle", "agendaEditPetitioner", "agendaEditRequestDate", "agendaEditNotes", "agendaUpdateModalText"].forEach(id => {
+      ["agendaEditTitle", "agendaEditPetitioner", "agendaEditRequestDate", "agendaEditCommitteeSession", "agendaEditNotes", "agendaUpdateModalText"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
       });
@@ -180,9 +389,22 @@
       const petitioner = (document.getElementById("agendaEditPetitioner")?.value || "").trim();
       const requestDate = document.getElementById("agendaEditRequestDate")?.value || "";
       const status = document.getElementById("agendaEditStatus")?.value || "agenda-pending";
+      const selectedSessionId = document.getElementById("agendaEditCommitteeSession")?.value || "";
       const notes = (document.getElementById("agendaEditNotes")?.value || "").trim();
       const updateText = (document.getElementById("agendaUpdateModalText")?.value || "").trim();
       const now = new Date().toISOString();
+      const originalItem = getAgendaItems().find(item => item.id === activeAgendaUpdateId);
+      if (selectedSessionId && status === "agenda-closed") {
+        alert("Solo los puntos abiertos o en curso pueden asignarse a sesiones abiertas de Comité.");
+        return;
+      }
+
+      const sessionPatch = assignAgendaItemToCommitteeSession(activeAgendaUpdateId, selectedSessionId);
+      if (!sessionPatch) {
+        alert("La sesión seleccionada ya no está abierta.");
+        populateAgendaCommitteeSessionSelect(originalItem);
+        return;
+      }
 
       const items = getAgendaItems().map(item => {
         if (item.id !== activeAgendaUpdateId) return item;
@@ -192,6 +414,7 @@
           : editedUpdates;
         return {
           ...item,
+          ...sessionPatch,
           title,
           petitioner,
           requestDate,
@@ -247,8 +470,22 @@
     }
 
     function getCommitteeSessionDisplayItems(session) {
-      const agendaById = Object.fromEntries(getAgendaItems().map(item => [item.id, item]));
-      return (Array.isArray(session.items) ? session.items : []).map((raw, index) => ({
+      const agendaItems = getAgendaItems();
+      const agendaById = Object.fromEntries(agendaItems.map(item => [item.id, item]));
+      const rawItems = Array.isArray(session.items) ? [...session.items] : [];
+      const seenIds = new Set(rawItems.map(raw => committeeSessionItemId(raw)).filter(Boolean));
+
+      agendaItems
+        .filter(item => agendaMatchesCommitteeSession(item, session))
+        .sort((a, b) => (Number(a.committeeSessionOrder) || Number.MAX_SAFE_INTEGER) - (Number(b.committeeSessionOrder) || Number.MAX_SAFE_INTEGER))
+        .forEach(item => {
+          if (!seenIds.has(item.id)) {
+            rawItems.push(item.id);
+            seenIds.add(item.id);
+          }
+        });
+
+      return rawItems.map((raw, index) => ({
         raw,
         key: committeeSessionItemId(raw),
         title: committeeSessionItemTitle(raw, agendaById),
@@ -270,22 +507,28 @@
           alert("No se han detectado sesiones importables en el documento.");
           return;
         }
-        const confirmed = confirm(`Se han detectado ${result.sessionCount} sesiones y ${result.pointCount} puntos del orden del día en ${result.fileName}.\n\nSe importarán solo como sesiones históricas de Comité, sin crear puntos en el gestor de puntos.\n\n¿Continuar?`);
-        if (!confirmed) return;
-        const existing = getCommitteeSessions();
-        const existingKeys = new Set(existing.map(s => `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`));
-        const incoming = result.sessions.filter(s => {
-          const key = `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`;
-          return !existingKeys.has(key);
+        confirmCommitteeAction({
+          title: "Importar histórico Word",
+          message: `Se han detectado ${result.sessionCount} sesiones y ${result.pointCount} puntos del orden del día en ${result.fileName}. Se importarán solo como sesiones históricas de Comité, sin crear puntos en el gestor de puntos.`,
+          confirmLabel: "Importar",
+          danger: false,
+          onConfirm: () => {
+            const existing = getCommitteeSessions();
+            const existingKeys = new Set(existing.map(s => `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`));
+            const incoming = result.sessions.filter(s => {
+              const key = `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`;
+              return !existingKeys.has(key);
+            });
+            if (!incoming.length) {
+              alert("Todas las sesiones detectadas ya existen en la app. No se ha importado nada.");
+              return;
+            }
+            setCommitteeSessions([...incoming, ...existing]);
+            renderCommitteeSessions();
+            updateQuickCounts();
+            alert(`Importación completada.\nSesiones importadas: ${incoming.length}\nSesiones omitidas por posible duplicado: ${result.sessions.length - incoming.length}`);
+          }
         });
-        if (!incoming.length) {
-          alert("Todas las sesiones detectadas ya existen en la app. No se ha importado nada.");
-          return;
-        }
-        setCommitteeSessions([...incoming, ...existing]);
-        renderCommitteeSessions();
-        updateQuickCounts();
-        alert(`Importación completada.\nSesiones importadas: ${incoming.length}\nSesiones omitidas por posible duplicado: ${result.sessions.length - incoming.length}`);
       } catch (error) {
         alert(`No se pudo importar el histórico.\nDetalle: ${error && error.message ? error.message : error}`);
       }
@@ -336,8 +579,129 @@
       return `${session.code || "Sin código"} · ${date}`;
     }
 
+    function committeeDraftDateLabel(session) {
+      if (!session) return "Sin fecha";
+      if (session.date) return new Date(session.date + "T00:00:00").toLocaleDateString("es-ES");
+      return session.rawDate || "Sin fecha";
+    }
+
+    function buildCommitteeDraftPayload(session) {
+      const items = getCommitteeSessionDisplayItems(session);
+      const ordenDia = items.length
+        ? items.map((item, index) => `${index + 1}. ${item.title || "Sin título"}`).join("\n")
+        : "Sin puntos en el orden del día";
+      const puntosTratados = items.length
+        ? items.map((item, index) => {
+          const meta = item.meta ? `\n   ${item.meta}` : "";
+          return `${index + 1}. ${item.title || "Sin título"}${meta}`;
+        }).join("\n\n")
+        : "Sin puntos tratados";
+
+      return {
+        numeroDocumento: String(session && session.code ? session.code : "Sin número de documento").trim(),
+        fechaComite: committeeDraftDateLabel(session),
+        ordenDia,
+        puntosTratados
+      };
+    }
+
+    async function generateCommitteeMinutesDraft(sessionId) {
+      const session = getCommitteeSessions().find(s => s.id === sessionId);
+      if (!session) {
+        alert("No se ha encontrado la sesión de Comité para generar el borrador del acta.");
+        return;
+      }
+      if (!window.rrllDB || typeof window.rrllDB.generateCommitteeMinutesDraft !== "function") {
+        alert("La generación de borradores Word solo está disponible en la aplicación Electron.");
+        return;
+      }
+
+      try {
+        const result = await window.rrllDB.generateCommitteeMinutesDraft(buildCommitteeDraftPayload(session));
+        if (!result) return;
+        if (result.canceled) {
+          alert(result.message || "No se ha seleccionado ninguna plantilla Word (.docx). Selecciona una plantilla local para generar el borrador del acta.");
+          return;
+        }
+        if (result.message) alert(result.message);
+      } catch (error) {
+        alert(`No se pudo generar el borrador del acta.\nDetalle: ${error && error.message ? error.message : error}`);
+      }
+    }
+
+    function isOpenCommitteeSession(session) {
+      return !!session && session.status !== "closed";
+    }
+
+    function getOpenCommitteeSessions() {
+      return getCommitteeSessions()
+        .filter(isOpenCommitteeSession)
+        .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.code || "").localeCompare(String(b.code || ""), "es"));
+    }
+
+    function committeeSessionSelectLabel(session) {
+      const code = String(session && session.code ? session.code : "Sin código").trim();
+      const date = session && session.date
+        ? new Date(session.date + "T00:00:00").toLocaleDateString("es-ES")
+        : "Sin fecha";
+      return `${code} - ${date}`;
+    }
+
+    function agendaMatchesCommitteeSession(item, session) {
+      if (!item || !session) return false;
+      const sessionId = String(session.id || "");
+      const sessionCode = String(session.code || "");
+      return (sessionId && item.committeeSessionId === sessionId) || (sessionCode && item.committeeSessionCode === sessionCode);
+    }
+
+    function populateAgendaCommitteeSessionSelect(item) {
+      const select = document.getElementById("agendaEditCommitteeSession");
+      if (!select) return;
+      const currentSessionId = item && item.committeeSessionId ? String(item.committeeSessionId) : "";
+      const openSessions = getOpenCommitteeSessions();
+      select.innerHTML = `<option value="">Sin sesión</option>` + openSessions.map(session => `
+        <option value="${escapeHtml(session.id)}">${escapeHtml(committeeSessionSelectLabel(session))}</option>
+      `).join("");
+      const currentOpenSession = openSessions.find(session => session.id === currentSessionId || agendaMatchesCommitteeSession(item, session));
+      select.value = currentOpenSession ? currentOpenSession.id : "";
+    }
+
+    function assignAgendaItemToCommitteeSession(agendaId, targetSessionId) {
+      const sessions = getCommitteeSessions();
+      const targetSession = targetSessionId ? sessions.find(session => session.id === targetSessionId && isOpenCommitteeSession(session)) : null;
+      if (targetSessionId && !targetSession) return null;
+
+      sessions.forEach(session => {
+        if (!isOpenCommitteeSession(session) && session.id !== targetSessionId) return;
+        const items = Array.isArray(session.items) ? session.items : [];
+        session.items = items.filter(raw => committeeSessionItemId(raw) !== agendaId);
+      });
+
+      if (targetSession) {
+        targetSession.items = Array.isArray(targetSession.items) ? targetSession.items : [];
+        if (!targetSession.items.some(raw => committeeSessionItemId(raw) === agendaId)) targetSession.items.push(agendaId);
+      }
+
+      setCommitteeSessions(sessions);
+      const order = targetSession ? targetSession.items.findIndex(raw => committeeSessionItemId(raw) === agendaId) : -1;
+      return targetSession ? {
+        committeeSessionId: targetSession.id,
+        committeeSessionCode: targetSession.code,
+        committeeSessionDate: targetSession.date,
+        committeeSessionOrder: order >= 0 ? order + 1 : null,
+        closedByCommittee: false
+      } : {
+        committeeSessionId: "",
+        committeeSessionCode: "",
+        committeeSessionDate: "",
+        committeeSessionOrder: null,
+        closedByCommittee: false
+      };
+    }
+
     let activeAgendaAddToSessionId = null;
     let activeCommitteeOrderSessionId = null;
+    let activeCommitteeCloseSessionId = null;
     let committeeOrderDraft = [];
     let draggedCommitteeAgendaId = null;
 
@@ -393,18 +757,17 @@
         return;
       }
 
-      session.items = Array.isArray(session.items) ? session.items : [];
-      if (!session.items.includes(agendaId)) session.items.push(agendaId);
+      const sessionPatch = assignAgendaItemToCommitteeSession(agendaId, session.id);
+      if (!sessionPatch) {
+        alert("La sesión seleccionada no está abierta.");
+        return;
+      }
 
       const updatedAgenda = agenda.map(i => i.id === agendaId ? {
         ...i,
-        committeeSessionId: session.id,
-        committeeSessionCode: session.code,
-        committeeSessionDate: session.date,
-        committeeSessionOrder: session.items.indexOf(agendaId) + 1
+        ...sessionPatch
       } : i);
 
-      setCommitteeSessions(sessions);
       setAgendaItems(updatedAgenda);
       closeAddAgendaToCommitteeModal();
       renderCommitteeSessions();
@@ -413,6 +776,122 @@
 
     function addAgendaItemToCommitteeSession(agendaId) {
       openAddAgendaToCommitteeModal(agendaId);
+    }
+
+    function getCommitteeSessionAssignedIds(session) {
+      return new Set((Array.isArray(session && session.items) ? session.items : [])
+        .map(raw => committeeSessionItemId(raw))
+        .filter(Boolean));
+    }
+
+    function getAvailableCommitteePointsForSession(session) {
+      if (!session) return [];
+      const assignedToCurrentSession = getCommitteeSessionAssignedIds(session);
+      return getAgendaItems()
+        .filter(item => item && item.status !== "agenda-closed")
+        .filter(item => !assignedToCurrentSession.has(item.id))
+        .filter(item => !item.committeeSessionId || item.committeeSessionId === session.id)
+        .sort((a, b) => {
+          const aDate = a.requestDate || "9999-12-31";
+          const bDate = b.requestDate || "9999-12-31";
+          return aDate.localeCompare(bDate) || String(a.title || "").localeCompare(String(b.title || ""), "es");
+        });
+    }
+
+    function openCommitteeSessionAddPointModal() {
+      if (!activeCommitteeOrderSessionId) return;
+      applyCommitteeOrderTextEdits();
+
+      const session = getCommitteeSessions().find(s => s.id === activeCommitteeOrderSessionId);
+      if (!session || session.status === "closed") {
+        alert("Solo se pueden añadir puntos a sesiones abiertas de Comité.");
+        return;
+      }
+
+      const titleEl = document.getElementById("committeeSessionAddPointTitle");
+      const listEl = document.getElementById("committeeSessionAddPointList");
+      const modal = document.getElementById("committeeSessionAddPointModal");
+      if (!titleEl || !listEl || !modal) {
+        alert("No se ha encontrado la ventana para añadir puntos.");
+        return;
+      }
+
+      titleEl.textContent = `${session.title || "Sesión de Comité"} · ${sessionLabel(session)}`;
+      const available = getAvailableCommitteePointsForSession(session);
+      listEl.innerHTML = available.length ? available.map(item => `
+        <label class="committee-session-add-point-row">
+          <input type="checkbox" data-committee-add-point value="${escapeHtml(item.id)}" />
+          <span class="committee-session-add-point-content">
+            <strong>${escapeHtml(item.title || "Sin título")}</strong>
+            <small>
+              <span>Peticionario: ${escapeHtml(item.petitioner || "Sin indicar")}</span>
+              <span>Fecha solicitud: ${escapeHtml(item.requestDate ? new Date(item.requestDate + "T00:00:00").toLocaleDateString("es-ES") : "Sin fecha")}</span>
+              <span>Estado: ${escapeHtml(agendaStatusLabel(item.status))}</span>
+            </small>
+          </span>
+        </label>
+      `).join("") : `<p class="muted">No hay puntos abiertos o en curso disponibles para añadir.</p>`;
+
+      modal.classList.add("open");
+      setTimeout(() => modal.querySelector("[data-committee-add-point]")?.focus(), 0);
+    }
+
+    function closeCommitteeSessionAddPointModal() {
+      const modal = document.getElementById("committeeSessionAddPointModal");
+      if (modal) modal.classList.remove("open");
+    }
+
+    function confirmAddSelectedCommitteePoints() {
+      if (!activeCommitteeOrderSessionId) return;
+      const modal = document.getElementById("committeeSessionAddPointModal");
+      const selectedIds = Array.from(modal?.querySelectorAll("[data-committee-add-point]:checked") || []).map(input => input.value);
+      if (!selectedIds.length) {
+        alert("Selecciona al menos un punto abierto o en curso para añadir.");
+        return;
+      }
+
+      applyCommitteeOrderTextEdits();
+      const sessions = getCommitteeSessions();
+      const session = sessions.find(s => s.id === activeCommitteeOrderSessionId);
+      if (!session || session.status === "closed") {
+        alert("La sesión ya no está abierta.");
+        closeCommitteeSessionAddPointModal();
+        return;
+      }
+
+      const availableIds = new Set(getAvailableCommitteePointsForSession(session).map(item => item.id));
+      const idsToAdd = selectedIds.filter(id => availableIds.has(id));
+      if (!idsToAdd.length) {
+        alert("No hay puntos abiertos o en curso disponibles para añadir.");
+        closeCommitteeSessionAddPointModal();
+        return;
+      }
+
+      session.items = Array.isArray(session.items) ? session.items : [];
+      const existingIds = getCommitteeSessionAssignedIds(session);
+      idsToAdd.forEach(id => {
+        if (!existingIds.has(id)) {
+          session.items.push(id);
+          committeeOrderDraft.push(id);
+          existingIds.add(id);
+        }
+      });
+
+      setCommitteeSessions(sessions);
+      syncAgendaSessionOrder(session.id);
+      const agenda = getAgendaItems().map(item => idsToAdd.includes(item.id) ? {
+        ...item,
+        committeeSessionId: session.id,
+        committeeSessionCode: session.code,
+        committeeSessionDate: session.date,
+        committeeSessionOrder: session.items.indexOf(item.id) + 1,
+        closedByCommittee: false
+      } : item);
+      setAgendaItems(agenda);
+      closeCommitteeSessionAddPointModal();
+      renderCommitteeSessionOrderDraft();
+      renderCommitteeSessions();
+      renderAgendaItems();
     }
 
     function moveCommitteeSessionItem(sessionId, agendaId, direction) {
@@ -466,45 +945,118 @@
       setAgendaItems(agenda);
     }
 
-    function closeCommitteeSession(sessionId) {
+    function openCommitteeSessionCloseModal(sessionId) {
+      const session = getCommitteeSessions().find(s => s.id === sessionId);
+      if (!session || session.status === "closed") return;
+      activeCommitteeCloseSessionId = sessionId;
+
+      const titleEl = document.getElementById("committeeSessionCloseTitle");
+      const listEl = document.getElementById("committeeSessionCloseList");
+      const modal = document.getElementById("committeeSessionCloseModal");
+      if (!titleEl || !listEl || !modal) {
+        alert("No se ha encontrado la ventana de cierre de sesión.");
+        return;
+      }
+
+      titleEl.textContent = `${session.title || "Sesión de Comité"} · ${sessionLabel(session)}`;
+      const items = getCommitteeSessionDisplayItems(session);
+      listEl.innerHTML = items.length ? items.map((item, index) => {
+        const linked = typeof item.raw === "string" ? getAgendaItems().find(agendaItem => agendaItem.id === item.raw) : null;
+        const currentStatus = linked ? agendaStatusLabel(linked.status) : "Histórico importado";
+        const petitioner = linked && linked.petitioner ? linked.petitioner : "Sin indicar";
+        return `
+          <label class="session-close-row">
+            <input type="checkbox" data-session-close-point value="${escapeHtml(item.key)}" checked />
+            <span class="session-close-content">
+              <strong><span class="session-close-number">${index + 1}.</span> ${escapeHtml(item.title || "Sin título")}</strong>
+              <small><span>Estado actual: ${escapeHtml(currentStatus)}</span><span>Peticionario: ${escapeHtml(petitioner)}</span></small>
+            </span>
+          </label>
+        `;
+      }).join("") : `<p class="muted">Esta sesión no tiene puntos asignados. Puedes cerrarla sin modificar puntos.</p>`;
+
+      modal.classList.add("open");
+      setTimeout(() => modal.querySelector("[data-session-close-point]")?.focus(), 0);
+    }
+
+    function closeCommitteeSessionCloseModal() {
+      activeCommitteeCloseSessionId = null;
+      const modal = document.getElementById("committeeSessionCloseModal");
+      if (modal) modal.classList.remove("open");
+    }
+
+    function confirmCommitteeSessionCloseFromModal() {
+      const sessionId = activeCommitteeCloseSessionId;
+      if (!sessionId) return;
+      const modal = document.getElementById("committeeSessionCloseModal");
+      const treatedIds = new Set(Array.from(modal?.querySelectorAll("[data-session-close-point]:checked") || []).map(input => input.value));
+
       const sessions = getCommitteeSessions();
       const session = sessions.find(s => s.id === sessionId);
-      if (!session || session.status === "closed") return;
-      const confirmed = confirm(`Cerrar la sesión ${sessionLabel(session)} y pasar sus puntos al histórico del Comité?`);
-      if (!confirmed) return;
+      if (!session || session.status === "closed") {
+        closeCommitteeSessionCloseModal();
+        return;
+      }
 
       const now = new Date().toISOString();
+      const originalItems = Array.isArray(session.items) ? [...session.items] : [];
+      const displayedItems = getCommitteeSessionDisplayItems(session);
+      const linkedDisplayedIds = new Set(displayedItems.filter(item => item.linked).map(item => item.key));
+      session.items = displayedItems.filter(item => treatedIds.has(item.key)).map(item => item.raw);
       session.status = "closed";
       session.closedAt = now;
-      session.items = Array.isArray(session.items) ? session.items : [];
 
       const agenda = getAgendaItems().map(item => {
+        const wasInSession = originalItems.includes(item.id) || linkedDisplayedIds.has(item.id);
+        if (!wasInSession) return item;
         const order = session.items.indexOf(item.id);
-        if (order < 0) return item;
+        if (order >= 0) {
+          return {
+            ...item,
+            status: "agenda-closed",
+            closedAt: item.closedAt || now,
+            committeeSessionId: session.id,
+            committeeSessionCode: session.code,
+            committeeSessionDate: session.date,
+            committeeSessionOrder: order + 1,
+            closedByCommittee: true
+          };
+        }
         return {
           ...item,
-          status: "agenda-closed",
-          closedAt: item.closedAt || now,
-          committeeSessionId: session.id,
-          committeeSessionCode: session.code,
-          committeeSessionDate: session.date,
-          committeeSessionOrder: order + 1,
-          closedByCommittee: true
+          status: item.status === "agenda-closed" ? "agenda-progress" : item.status,
+          closedAt: item.status === "agenda-closed" ? null : item.closedAt,
+          committeeSessionId: "",
+          committeeSessionCode: "",
+          committeeSessionDate: "",
+          committeeSessionOrder: null,
+          closedByCommittee: false
         };
       });
 
       setCommitteeSessions(sessions);
       setAgendaItems(agenda);
+      closeCommitteeSessionCloseModal();
       renderCommitteeSessions();
       renderAgendaItems();
+      promptCommitteeMinuteCreation({ ...session });
     }
 
-    function reopenCommitteeSession(sessionId) {
+    function closeCommitteeSession(sessionId) {
+      openCommitteeSessionCloseModal(sessionId);
+    }
+
+    function closeCommitteeSessionFromOrderModal() {
+      const sessionId = activeCommitteeOrderSessionId;
+      if (!sessionId) return;
+      closeCommitteeSessionOrderModal();
+      openCommitteeSessionCloseModal(sessionId);
+    }
+
+    function executeReopenCommitteeSession(sessionId) {
       const sessions = getCommitteeSessions();
       const session = sessions.find(s => s.id === sessionId);
       if (!session || session.status !== "closed") return;
-      const confirmed = confirm("Reabrir esta sesión? Los puntos seguirán cerrados salvo que los reabras manualmente.");
-      if (!confirmed) return;
       session.status = "open";
       session.closedAt = null;
       setCommitteeSessions(sessions);
@@ -512,12 +1064,18 @@
       updateQuickCounts();
     }
 
-    function deleteCommitteeSession(sessionId) {
+    function reopenCommitteeSession(sessionId) {
+      confirmCommitteeAction({
+        title: "Reabrir sesión",
+        message: "¿Quieres reabrir esta sesión? Los puntos seguirán cerrados salvo que los reabras manualmente.",
+        confirmLabel: "Reabrir",
+        danger: false,
+        onConfirm: () => executeReopenCommitteeSession(sessionId)
+      });
+    }
+
+    function executeDeleteCommitteeSession(sessionId) {
       const sessions = getCommitteeSessions();
-      const session = sessions.find(s => s.id === sessionId);
-      if (!session) return;
-      const confirmed = confirm("Eliminar esta sesión? No eliminará los puntos, solo la agrupación de sesión.");
-      if (!confirmed) return;
       setCommitteeSessions(sessions.filter(s => s.id !== sessionId));
       const agenda = getAgendaItems().map(item => item.committeeSessionId === sessionId ? {
         ...item,
@@ -530,6 +1088,17 @@
       setAgendaItems(agenda);
       renderCommitteeSessions();
       renderAgendaItems();
+    }
+
+    function deleteCommitteeSession(sessionId) {
+      const session = getCommitteeSessions().find(s => s.id === sessionId);
+      if (!session) return;
+      confirmCommitteeAction({
+        title: "Eliminar sesión de Comité",
+        message: `¿Quieres eliminar la sesión ${sessionLabel(session)}? No eliminará los puntos, solo la agrupación de sesión.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteCommitteeSession(sessionId)
+      });
     }
 
     function getCommitteeSessionView() {
@@ -669,7 +1238,8 @@
       card.innerHTML = `
         <div class="session-card-toolbar" onclick="event.stopPropagation()">
           <button class="session-card-icon" type="button" onclick="printCommitteeSession('${session.id}')" title="Imprimir esta sesión">🖨️</button>
-          <button class="session-card-icon excel-icon" type="button" onclick="exportCommitteeSessionExcel('${session.id}')" title="Exportar esta sesión a Excel">X</button>
+          <button class="session-card-icon" type="button" onclick="generateCommitteeMinutesDraft('${session.id}')" title="Generar borrador acta">📄</button>
+          <button class="session-card-icon excel-icon" type="button" onclick="exportCommitteeSessionExcel('${session.id}')" title="Exportar esta sesión a Excel" aria-label="Exportar esta sesión a Excel">X</button>
         </div>
         <div class="rrll-session-card-head">
           <button class="rrll-session-card-toggle" type="button" onclick="event.stopPropagation(); toggleCommitteeSessionCard('${session.id}')" aria-expanded="${collapsed ? "false" : "true"}" title="Plegar/desplegar sesión">${collapsed ? "▸" : "▾"}</button>
@@ -688,7 +1258,7 @@
           <div class="session-items">${itemsHtml}</div>
           <div class="task-actions section-gap" onclick="event.stopPropagation()">
             ${!isClosed ? `<button class="small secondary" onclick="openCommitteeSessionOrderModal('${session.id}')">Ordenar puntos</button><button class="small" onclick="closeCommitteeSession('${session.id}')">Cerrar sesión</button>` : `<button class="small secondary" onclick="openCommitteeSessionOrderModal('${session.id}')">Editar histórico</button><button class="small secondary" onclick="reopenCommitteeSession('${session.id}')">Reabrir</button>`}
-            <button class="small danger" onclick="deleteCommitteeSession('${session.id}')">Eliminar sesión</button>
+            <button class="small danger rrll-delete-icon-button" onclick="deleteCommitteeSession('${session.id}')" title="Eliminar sesión" aria-label="Eliminar sesión"><span aria-hidden="true">🗑️</span></button>
           </div>
         </div>
       `;
@@ -762,13 +1332,18 @@
       draggedCommitteeAgendaId = null;
 
       const titleEl = document.getElementById("committeeSessionOrderTitle");
+      const addPointButton = document.getElementById("committeeSessionAddPointButton");
+      const closeSessionButton = document.getElementById("committeeSessionCloseButton");
       const modal = document.getElementById("committeeSessionOrderModal");
       if (titleEl) titleEl.textContent = `${session.title || "Sesión de Comité"} · ${sessionLabel(session)}`;
+      if (addPointButton) addPointButton.style.display = session.status === "closed" ? "none" : "inline-flex";
+      if (closeSessionButton) closeSessionButton.style.display = session.status === "closed" ? "none" : "inline-flex";
       renderCommitteeSessionOrderDraft();
       if (modal) modal.classList.add("open");
     }
 
     function closeCommitteeSessionOrderModal() {
+      closeCommitteeSessionAddPointModal();
       activeCommitteeOrderSessionId = null;
       committeeOrderDraft = [];
       draggedCommitteeAgendaId = null;
@@ -801,8 +1376,8 @@
           ondrop="handleCommitteeOrderDrop(event, '${escapeHtml(item.key)}')"
           ondragend="handleCommitteeOrderDragEnd(event)">
           <div class="session-order-number">${index + 1}</div>
-          <div>
-            <textarea class="session-order-edit" data-order-key="${escapeHtml(item.key)}" ${item.linked ? "readonly title='Los puntos vinculados se editan desde el gestor de puntos'" : ""}>${escapeHtml(item.title || "Sin título")}</textarea>
+          <div class="session-order-content">
+            <textarea class="session-order-edit" aria-label="Título del punto ${index + 1}" data-order-key="${escapeHtml(item.key)}" ${item.linked ? "readonly title='Los puntos vinculados se editan desde el gestor de puntos'" : ""}>${escapeHtml(item.title || "Sin título")}</textarea>
             <div class="session-item-meta">${escapeHtml(item.meta || "")}${item.linked ? " · Editar texto desde el gestor de puntos" : ""}</div>
           </div>
           <div class="session-order-handle" title="Arrastra para ordenar">☰</div>
@@ -999,7 +1574,7 @@
             ${item.status !== "agenda-progress" ? `<button class="small black" onclick="event.stopPropagation(); moveAgendaItem('${item.id}', 'agenda-progress')">En curso</button>` : ""}
             ${item.status === "agenda-progress" ? `<button class="small" onclick="event.stopPropagation(); addAgendaItemToCommitteeSession('${item.id}')">Añadir a Comité</button>` : ""}
             ${item.status !== "agenda-closed" ? `<button class="small" onclick="event.stopPropagation(); moveAgendaItem('${item.id}', 'agenda-closed')">Cerrar</button>` : ""}
-            <button class="small danger" onclick="event.stopPropagation(); deleteAgendaItem('${item.id}')">Eliminar</button>
+            <button class="small danger rrll-delete-icon-button" onclick="event.stopPropagation(); deleteAgendaItem('${item.id}')" title="Eliminar punto" aria-label="Eliminar punto"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
       `;
@@ -1077,14 +1652,18 @@
     importCommitteeHistoryFromWord,
     addCommitteeSession,
     sessionLabel,
+    generateCommitteeMinutesDraft,
     openAddAgendaToCommitteeModal,
     closeAddAgendaToCommitteeModal,
     confirmAddAgendaToCommitteeSession,
     addAgendaItemToCommitteeSession,
+    closeCommitteeSessionCloseModal,
+    confirmCommitteeSessionCloseFromModal,
     moveCommitteeSessionItem,
     removeCommitteeSessionItem,
     syncAgendaSessionOrder,
     closeCommitteeSession,
+    closeCommitteeSessionFromOrderModal,
     reopenCommitteeSession,
     deleteCommitteeSession,
     getCommitteeSessionView,
@@ -1096,6 +1675,9 @@
     renderCommitteeSessions,
     openCommitteeSessionOrderModal,
     closeCommitteeSessionOrderModal,
+    openCommitteeSessionAddPointModal,
+    closeCommitteeSessionAddPointModal,
+    confirmAddSelectedCommitteePoints,
     handleCommitteeOrderDragStart,
     handleCommitteeOrderDragOver,
     handleCommitteeOrderDrop,

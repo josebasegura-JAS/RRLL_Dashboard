@@ -46,7 +46,7 @@ function toggleSidebarLeft() {
     }
 
 
-    const RRLL_MAIN_GESTOR_IDS = ["gestor-tareas", "gestor-peticiones", "gestor-comite", "gestor-paritaria", "gestor-actas", "gestor-teletrabajo", "gestor-vinculograma", "gestor-licencias", "gestor-plantilla"];
+    const RRLL_MAIN_GESTOR_IDS = ["gestor-tareas", "gestor-peticiones", "gestor-comite", "gestor-paritaria", "gestor-actas", "gestor-teletrabajo", "gestor-vinculograma", "gestor-licencias", "gestor-plantilla", "gestor-criterios"];
     const RRLL_PHASE4_SUBVIEW_MAP = {
       "gestor-puntos-comite": { parent: "gestor-comite", section: "gestor-puntos-comite", menu: "comite" },
       "gestor-sesiones-comite": { parent: "gestor-comite", section: "gestor-sesiones-comite", menu: "comite" },
@@ -341,6 +341,7 @@ function toggleSidebarLeft() {
         "#gestor-vinculograma": "gestor-vinculograma",
         "#gestor-licencias": "gestor-licencias",
         "#gestor-plantilla": "gestor-plantilla",
+        "#gestor-criterios": "gestor-criterios",
         "#gestor-comite": "gestor-comite",
         "#gestor-paritaria": "gestor-paritaria",
         "#gestor-puntos-comite": "gestor-puntos-comite",

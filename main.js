@@ -148,6 +148,20 @@ async function openDatabase(dbPath) {
     );
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS rrll_criteria (
+      id TEXT PRIMARY KEY,
+      date TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      generalCriterion TEXT NOT NULL,
+      observations TEXT,
+      tags TEXT,
+      origin TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+  `);
+
   try { db.run("ALTER TABLE kv_store ADD COLUMN updated_by TEXT"); } catch {}
 
   const versionRow = db.exec("SELECT value FROM meta WHERE key = 'schema_version'");
@@ -216,6 +230,42 @@ function touchDatabaseState(db) {
   db.run("INSERT OR REPLACE INTO meta (key, value) VALUES ('last_update_token', ?)", [`${now}-${process.pid}-${Math.random().toString(36).slice(2)}`]);
 }
 
+
+function syncCriteriaTable(db, criteria) {
+  const rows = Array.isArray(criteria) ? criteria : [];
+  db.run("DELETE FROM rrll_criteria");
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO rrll_criteria
+    (id, date, subject, generalCriterion, observations, tags, origin, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  rows.forEach(item => {
+    if (!item || typeof item !== "object" || !item.id) return;
+    stmt.run([
+      String(item.id),
+      String(item.date || ""),
+      String(item.subject || ""),
+      String(item.generalCriterion || ""),
+      String(item.observations || ""),
+      String(item.tags || ""),
+      String(item.origin || ""),
+      String(item.createdAt || new Date().toISOString()),
+      String(item.updatedAt || item.createdAt || new Date().toISOString())
+    ]);
+  });
+  stmt.free();
+}
+
+function loadCriteriaTable(db) {
+  const result = [];
+  const rows = db.exec("SELECT id, date, subject, generalCriterion, observations, tags, origin, createdAt, updatedAt FROM rrll_criteria ORDER BY date DESC, updatedAt DESC");
+  if (!rows.length) return result;
+  rows[0].values.forEach(([id, date, subject, generalCriterion, observations, tags, origin, createdAt, updatedAt]) => {
+    result.push({ id, date, subject, generalCriterion, observations, tags, origin, createdAt, updatedAt });
+  });
+  return result;
+}
+
 async function getDbState() {
   const info = getActiveDbInfo();
   return withFileLock(info.path, async () => {
@@ -265,6 +315,10 @@ async function loadAllData() {
       if (rows.length) {
         rows[0].values.forEach(([key, value]) => { result[key] = parseValue(value); });
       }
+      if (!Object.prototype.hasOwnProperty.call(result, "rrll_criteria")) {
+        const criteriaRows = loadCriteriaTable(db);
+        if (criteriaRows.length) result.rrll_criteria = criteriaRows;
+      }
       return result;
     } finally {
       try { db.close(); } catch {}
@@ -280,6 +334,7 @@ async function saveKeyData(key, value) {
     try {
       const now = new Date().toISOString();
       db.run("INSERT OR REPLACE INTO kv_store (key, value, updated_at, updated_by) VALUES (?, ?, ?, ?)", [key, serializeValue(value), now, getWindowsUser()]);
+      if (key === "rrll_criteria") syncCriteriaTable(db, value);
       addAudit(db, "save_key", key, null);
       touchDatabaseState(db);
       persistDb(db, info.path);
@@ -305,6 +360,7 @@ async function saveAllData(data) {
           if (typeof key === "string" && key.startsWith("rrll_")) stmt.run([key, serializeValue(value), now, getWindowsUser()]);
         });
         stmt.free();
+        syncCriteriaTable(db, safe.rrll_criteria);
         addAudit(db, "save_all", null, "Guardado completo / importación");
         touchDatabaseState(db);
         db.run("COMMIT");
@@ -544,6 +600,109 @@ function parseCommitteeHistoryDocx(filePath, options = {}) {
   return sessions.filter(session => session.code && session.items && session.items.length);
 }
 
+
+function sanitizeFileNamePart(value, fallback) {
+  const text = String(value || "").trim() || fallback || "documento";
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80) || fallback || "documento";
+}
+
+function escapeDocxXmlText(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function docxReplacementXml(value) {
+  return String(value == null ? "" : value)
+    .split(/\r\n|\r|\n/)
+    .map(escapeDocxXmlText)
+    .join('</w:t><w:br/><w:t>');
+}
+
+function getCommitteeDraftOutputPath(payload) {
+  const outputDir = path.join(app.getPath("documents"), "RRLL Dashboard", "Actas Comité");
+  fs.mkdirSync(outputDir, { recursive: true });
+  const datePart = sanitizeFileNamePart(payload && payload.fechaComite ? payload.fechaComite : ts(), "sin-fecha");
+  const documentPart = sanitizeFileNamePart(payload && payload.numeroDocumento ? payload.numeroDocumento : "acta-comite", "acta-comite");
+  let outputPath = path.join(outputDir, `Acta Comité - ${datePart} - ${documentPart}.docx`);
+  if (!fs.existsSync(outputPath)) return outputPath;
+  outputPath = path.join(outputDir, `Acta Comité - ${datePart} - ${documentPart} - ${ts()}.docx`);
+  return outputPath;
+}
+
+function replaceCommitteeDraftMarkersInDocx(templatePath, outputPath, payload) {
+  const AdmZip = require("adm-zip");
+  const zip = new AdmZip(fs.readFileSync(templatePath));
+  const replacements = {
+    "{{NUMERO_DOCUMENTO}}": docxReplacementXml(payload.numeroDocumento),
+    "{{FECHA_COMITE}}": docxReplacementXml(payload.fechaComite),
+    "{{ORDEN_DIA}}": docxReplacementXml(payload.ordenDia),
+    "{{PUNTOS_TRATADOS}}": docxReplacementXml(payload.puntosTratados)
+  };
+  const foundMarkers = new Set();
+
+  zip.getEntries().forEach(entry => {
+    if (entry.isDirectory || !/^word\/.*\.xml$/i.test(entry.entryName)) return;
+    let xml = entry.getData().toString("utf8");
+    let updated = xml;
+    Object.entries(replacements).forEach(([marker, replacement]) => {
+      if (!updated.includes(marker)) return;
+      foundMarkers.add(marker);
+      updated = updated.split(marker).join(replacement);
+    });
+    if (updated !== xml) zip.updateFile(entry.entryName, Buffer.from(updated, "utf8"));
+  });
+
+  const missingMarkers = Object.keys(replacements).filter(marker => !foundMarkers.has(marker));
+  if (missingMarkers.length) {
+    throw new Error(`La plantilla seleccionada no contiene todos los marcadores esperados. Faltan: ${missingMarkers.join(", ")}.`);
+  }
+
+  zip.writeZip(outputPath);
+}
+
+async function generateCommitteeMinutesDraft(_event, payload = {}) {
+  const result = await dialog.showOpenDialog({
+    title: "Seleccionar plantilla Word para el acta de Comité",
+    properties: ["openFile"],
+    filters: [{ name: "Plantillas Word", extensions: ["docx"] }]
+  });
+
+  if (result.canceled || !result.filePaths || !result.filePaths[0]) {
+    return { canceled: true, message: "No se ha seleccionado ninguna plantilla Word (.docx). Selecciona una plantilla local para generar el borrador del acta." };
+  }
+
+  const templatePath = result.filePaths[0];
+  if (path.extname(templatePath).toLowerCase() !== ".docx") {
+    throw new Error("La plantilla seleccionada debe ser un archivo Word con extensión .docx.");
+  }
+  if (!fs.existsSync(templatePath)) {
+    throw new Error("No se ha encontrado la plantilla seleccionada. Elige una plantilla Word local válida.");
+  }
+
+  const normalizedPayload = {
+    numeroDocumento: String(payload.numeroDocumento || "Sin número de documento").trim(),
+    fechaComite: String(payload.fechaComite || "Sin fecha").trim(),
+    ordenDia: String(payload.ordenDia || "Sin puntos en el orden del día").trim(),
+    puntosTratados: String(payload.puntosTratados || "Sin puntos tratados").trim()
+  };
+
+  const outputPath = getCommitteeDraftOutputPath(normalizedPayload);
+  replaceCommitteeDraftMarkersInDocx(templatePath, outputPath, normalizedPayload);
+  const openError = await shell.openPath(outputPath);
+  if (openError) {
+    return { outputPath, opened: false, message: `El borrador se generó correctamente, pero no se pudo abrir automáticamente: ${openError}` };
+  }
+  return { outputPath, opened: true };
+}
+
 async function importCommitteeHistoryDocx() {
   const result = await dialog.showOpenDialog({
     title: "Seleccionar Word de histórico de Comité de Empresa",
@@ -581,6 +740,7 @@ ipcMain.handle("db:setSharedDirectory", setSharedDirectory);
 ipcMain.handle("db:useLocalDatabase", useLocalDatabase);
 ipcMain.handle("db:importCommitteeHistoryDocx", importCommitteeHistoryDocx);
 ipcMain.handle("db:importParitariaHistoryDocx", importParitariaHistoryDocx);
+ipcMain.handle("db:generateCommitteeMinutesDraft", generateCommitteeMinutesDraft);
 
 function createWindow() {
   Menu.setApplicationMenu(null);

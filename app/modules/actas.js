@@ -104,6 +104,47 @@
       return `Aportaciones: ${marked.join(", ")}`;
     }
 
+    function buildMinuteRecord(title, notes, extra) {
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        title,
+        status: "todo",
+        dueDate: "",
+        notes,
+        createdAt: new Date().toISOString(),
+        ...(extra && typeof extra === "object" ? extra : {})
+      };
+    }
+
+    function minuteEquivalentExists(minutes, title, notes, sourceType, sourceId) {
+      const normalizedTitle = String(title || "").trim().toLowerCase();
+      const normalizedNotes = String(notes || "").trim().toLowerCase();
+      return (Array.isArray(minutes) ? minutes : []).some(minute => {
+        if (sourceType && sourceId && minute.sourceType === sourceType && minute.sourceId === sourceId) return true;
+        return String(minute.title || "").trim().toLowerCase() === normalizedTitle
+          && String(minute.notes || "").trim().toLowerCase() === normalizedNotes;
+      });
+    }
+
+    function createMinuteIfMissing(options) {
+      const title = String(options && options.title ? options.title : "").trim();
+      const notes = String(options && options.notes ? options.notes : "").trim();
+      const sourceType = String(options && options.sourceType ? options.sourceType : "").trim();
+      const sourceId = String(options && options.sourceId ? options.sourceId : "").trim();
+
+      if (!title) return { created: false, reason: "missing-title" };
+
+      const minutes = getMinutes();
+      if (minuteEquivalentExists(minutes, title, notes, sourceType, sourceId)) {
+        return { created: false, reason: "duplicate" };
+      }
+
+      minutes.unshift(buildMinuteRecord(title, notes, { sourceType, sourceId }));
+      setMinutes(minutes);
+      renderMinutes();
+      return { created: true };
+    }
+
     function addMinute() {
       const titleEl = document.getElementById("newMinuteTitle");
       const notesEl = document.getElementById("newMinuteNotes");
@@ -115,14 +156,7 @@
       }
 
       const minutes = getMinutes();
-      minutes.unshift({
-        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-        title,
-        status: "todo",
-        dueDate: "",
-        notes: notesEl.value.trim(),
-        createdAt: new Date().toISOString()
-      });
+      minutes.unshift(buildMinuteRecord(title, notesEl.value.trim()));
 
       setMinutes(minutes);
       titleEl.value = "";
@@ -131,7 +165,7 @@
       renderMinutes();
     }
 
-    function moveMinuteStatus(id, status) {
+    function executeMoveMinuteStatus(id, status) {
       const minutes = getMinutes().map(minute => {
         if (minute.id !== id) return minute;
         return {
@@ -143,6 +177,22 @@
 
       setMinutes(minutes);
       renderMinutes();
+    }
+
+    function moveMinuteStatus(id, status) {
+      const item = getMinutes().find(minute => minute.id === id);
+      const title = item && item.title ? `“${item.title}”` : "esta acta";
+      const nextStatus = minuteStatusTableLabel(status).toLowerCase();
+      if (typeof confirmDangerAction === "function") {
+        confirmDangerAction({
+          title: "Cambiar estado de acta",
+          message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+          confirmLabel: "Cambiar estado",
+          onConfirm: () => executeMoveMinuteStatus(id, status)
+        });
+        return;
+      }
+      executeMoveMinuteStatus(id, status);
     }
 
     let activeMinuteDueDateId = null;
@@ -288,7 +338,7 @@
       deleteMinute(id);
     }
 
-    function deleteMinute(id) {
+    function executeDeleteMinute(id) {
       const minutes = getMinutes();
       const item = minutes.find(minute => minute.id === id);
       if (item) moveToTrash("minutes", item);
@@ -297,6 +347,21 @@
       renderTrash();
       restoreAlertsPanelState();
       renderAlertsPanel();
+    }
+
+    function deleteMinute(id) {
+      const item = getMinutes().find(minute => minute.id === id);
+      const title = item && item.title ? `“${item.title}”` : "esta acta";
+      if (typeof confirmDangerAction === "function") {
+        confirmDangerAction({
+          title: "Eliminar acta",
+          message: `¿Quieres eliminar ${title}? Se enviará a la papelera.`,
+          confirmLabel: "Eliminar",
+          onConfirm: () => executeDeleteMinute(id)
+        });
+        return;
+      }
+      executeDeleteMinute(id);
     }
 
     function dueClass(dueDate) {
@@ -389,7 +454,7 @@
             ${minute.status === "direction" ? `<button type="button" class="small secondary" onclick="moveMinuteStatus('${minute.id}', 'todo')">Pend. hacer</button><button type="button" class="small black" onclick="moveMinuteStatus('${minute.id}', 'allegations')">Alegaciones</button>` : ""}
             ${minute.status === "allegations" ? `<button type="button" class="small secondary" onclick="openMinuteAllegationsModal('${minute.id}')">Aportaciones</button><button type="button" class="small secondary" onclick="openMinuteDueDateModal('${minute.id}')">Fecha límite</button><button type="button" class="small secondary" onclick="moveMinuteStatus('${minute.id}', 'direction')">Dirección</button><button type="button" class="small" onclick="moveMinuteStatus('${minute.id}', 'signature')">Firma</button>` : ""}
             ${minute.status === "signature" ? `<button type="button" class="small secondary" onclick="moveMinuteStatus('${minute.id}', 'allegations')">Alegaciones</button>` : ""}
-            <button type="button" class="small danger" onclick="deleteMinute('${minute.id}')">Eliminar</button>
+            <button type="button" class="small danger rrll-delete-icon-button" onclick="deleteMinute('${minute.id}')" title="Eliminar acta" aria-label="Eliminar acta"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
       `;
@@ -452,11 +517,16 @@
     saveMinuteAllegationsFromModal,
     minuteAllegationsSummary,
     toggleMinuteCreateForm,
+    buildMinuteRecord,
+    minuteEquivalentExists,
+    createMinuteIfMissing,
     addMinute,
+    executeMoveMinuteStatus,
     moveMinuteStatus,
     openMinuteDueDateModal,
     closeMinuteDueDateModal,
     saveMinuteDueDateFromModal,
+    executeDeleteMinute,
     deleteMinute,
     openMinuteEditModal,
     closeMinuteEditModal,
@@ -482,11 +552,16 @@
   window.saveMinuteAllegationsFromModal = saveMinuteAllegationsFromModal;
   window.minuteAllegationsSummary = minuteAllegationsSummary;
   window.toggleMinuteCreateForm = toggleMinuteCreateForm;
+  window.buildMinuteRecord = buildMinuteRecord;
+  window.minuteEquivalentExists = minuteEquivalentExists;
+  window.createMinuteIfMissing = createMinuteIfMissing;
   window.addMinute = addMinute;
+  window.executeMoveMinuteStatus = executeMoveMinuteStatus;
   window.moveMinuteStatus = moveMinuteStatus;
   window.openMinuteDueDateModal = openMinuteDueDateModal;
   window.closeMinuteDueDateModal = closeMinuteDueDateModal;
   window.saveMinuteDueDateFromModal = saveMinuteDueDateFromModal;
+  window.executeDeleteMinute = executeDeleteMinute;
   window.deleteMinute = deleteMinute;
   window.openMinuteEditModal = openMinuteEditModal;
   window.closeMinuteEditModal = closeMinuteEditModal;

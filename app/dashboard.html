@@ -26,6 +26,7 @@
         <a href="#gestor-vinculograma" class="phase4-nav-item">◇ <span>Vinculograma</span></a>
         <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
         <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
+        <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="phase4-nav-chevron">▾</strong></button>
         <div class="phase4-nav-submenu" id="phase4-submenu-comite">
           <a href="#gestor-puntos-comite" class="phase4-nav-subitem">• <span>Puntos de Comité</span></a>
@@ -116,6 +117,7 @@
         </button>
       </div>
 
+
       <div class="phase4-dashboard-grid phase5-dashboard-grid">
         <article class="phase4-dashboard-card phase5-dashboard-card phase5-due-card">
           <div class="phase4-card-head">
@@ -158,6 +160,24 @@
           <div class="phase4-list phase5-recent-list" id="homeRecentList"></div>
         </article>
       </div>
+
+      <article class="phase4-dashboard-card phase5-dashboard-card dashboard-search-card dashboard-search-collapsible is-collapsed" aria-labelledby="dashboardSearchTitle">
+        <button type="button" class="dashboard-search-header" aria-expanded="false" aria-controls="dashboardSearchBody" onclick="toggleDashboardSearch()">
+          <span class="dashboard-search-header-icon" aria-hidden="true">⌕</span>
+          <span id="dashboardSearchTitle">Buscar asunto</span>
+          <small>Comité · Paritaria</small>
+          <span class="dashboard-search-toggle" aria-hidden="true">▾</span>
+        </button>
+        <div id="dashboardSearchBody" class="dashboard-search-body" hidden>
+          <form class="dashboard-search-box" onsubmit="event.preventDefault(); runDashboardSearch();">
+            <span class="dashboard-search-icon" aria-hidden="true">⌕</span>
+            <input id="dashboardSearchInput" class="dashboard-search-input" type="search" placeholder="Buscar en Comité y Paritaria…" autocomplete="off" />
+            <button type="submit" class="dashboard-search-button">Buscar</button>
+            <button type="button" class="dashboard-search-clear" onclick="clearDashboardSearch()">Limpiar</button>
+          </form>
+          <section id="dashboardSearchTimeline" class="dashboard-timeline-card" aria-live="polite"></section>
+        </div>
+      </article>
     </section>
 
     <div class="card quick-top compact-quick-panel">
@@ -337,7 +357,14 @@
                 </div>
               </div>
               <div class="rrll-pro-table-wrap">
-                <table class="rrll-pro-table">
+                <table class="rrll-pro-table rrll-pro-table-tasks">
+                  <colgroup>
+                    <col class="rrll-col-main" />
+                    <col class="rrll-col-priority" />
+                    <col class="rrll-col-status" />
+                    <col class="rrll-col-date" />
+                    <col class="rrll-col-actions" />
+                  </colgroup>
                   <thead>
                     <tr>
                       <th class="sortable" data-task-sort="title" onclick="setTaskSort('title')">Tarea</th>
@@ -419,7 +446,15 @@
                 </div>
               </div>
               <div class="rrll-pro-table-wrap">
-                <table class="rrll-pro-table">
+                <table class="rrll-pro-table rrll-pro-table-petitions">
+                  <colgroup>
+                    <col class="rrll-col-main" />
+                    <col class="rrll-col-source" />
+                    <col class="rrll-col-priority" />
+                    <col class="rrll-col-status" />
+                    <col class="rrll-col-date" />
+                    <col class="rrll-col-actions" />
+                  </colgroup>
                   <thead>
                     <tr>
                       <th class="sortable" data-petition-sort="title" onclick="setPetitionSort('title')">Petición</th>
@@ -513,7 +548,7 @@
           </div>
           </details>
 
-          <details class="committee-subsection" id="gestor-sesiones-comite"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 15h8"></path><path d="M8 18h5"></path></svg></span>Sesiones de Comité</span><span class="summary-counts" id="summary-count-committee-sessions">0 abiertas · 0 histórico</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); openModuleSearch('committeeSessions')" title="Buscar en este gestor">🔍</button><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); printModule('committeeSessions')" title="Vista previa / imprimir">🖨️</button><button class="summary-icon-button excel-icon" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportModuleExcel('committeeSessions')" title="Exportar a Excel">X</button></span></summary>
+          <details class="committee-subsection" id="gestor-sesiones-comite"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 15h8"></path><path d="M8 18h5"></path></svg></span>Sesiones de Comité</span><span class="summary-counts" id="summary-count-committee-sessions">0 abiertas · 0 histórico</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); openModuleSearch('committeeSessions')" title="Buscar en este gestor">🔍</button><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); printModule('committeeSessions')" title="Vista previa / imprimir">🖨️</button><button class="summary-icon-button excel-icon" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportModuleExcel('committeeSessions')" title="Exportar a Excel" aria-label="Exportar sesiones de Comité a Excel">X</button></span></summary>
           <div class="rrll-pro-task-head rrll-session-create-head">
             <div><h2>Sesiones de Comité</h2><p>Alta de sesiones y gestión del histórico.</p></div>
             <button type="button" class="rrll-pro-primary" onclick="toggleCommitteeSessionCreateForm(true)">+ Nueva sesión</button>
@@ -527,7 +562,7 @@
               <button type="button" class="secondary" onclick="toggleCommitteeSessionCreateForm(false)">Cancelar</button>
             </div>
             <div class="two-buttons" style="margin-bottom:12px">
-              <button type="button" class="secondary" onclick="importCommitteeHistoryFromWord()">Importar histórico Word</button>
+              <button type="button" class="secondary" onclick="importCommitteeHistoryFromWord()">📄 Importar histórico Word</button>
             </div>
             <textarea id="newCommitteeSessionNotes" placeholder="Notas de la sesión, documentación asociada, observaciones, etc."></textarea>
           </div>
@@ -628,7 +663,7 @@
           </div>
           </details>
 
-          <details class="paritaria-subsection" id="gestor-sesiones-paritaria"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 15h8"></path><path d="M8 18h5"></path></svg></span>Sesiones Paritaria</span><span class="summary-counts" id="summary-count-paritaria-sessions">0 abiertas · 0 histórico</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); openModuleSearch('paritariaSessions')" title="Buscar en este gestor">🔍</button><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); printModule('paritariaSessions')" title="Vista previa / imprimir">🖨️</button><button class="summary-icon-button excel-icon" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportModuleExcel('paritariaSessions')" title="Exportar a Excel">X</button></span></summary>
+          <details class="paritaria-subsection" id="gestor-sesiones-paritaria"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 15h8"></path><path d="M8 18h5"></path></svg></span>Sesiones Paritaria</span><span class="summary-counts" id="summary-count-paritaria-sessions">0 abiertas · 0 histórico</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); openModuleSearch('paritariaSessions')" title="Buscar en este gestor">🔍</button><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); printModule('paritariaSessions')" title="Vista previa / imprimir">🖨️</button><button class="summary-icon-button excel-icon" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportModuleExcel('paritariaSessions')" title="Exportar a Excel" aria-label="Exportar sesiones de Paritaria a Excel">X</button></span></summary>
           <div class="rrll-pro-task-head rrll-session-create-head">
             <div><h2>Sesiones Paritaria</h2><p>Alta de sesiones y gestión del histórico.</p></div>
             <button type="button" class="rrll-pro-primary" onclick="toggleParitariaSessionCreateForm(true)">+ Nueva sesión</button>
@@ -642,7 +677,7 @@
               <button type="button" class="secondary" onclick="toggleParitariaSessionCreateForm(false)">Cancelar</button>
             </div>
             <div class="two-buttons" style="margin-bottom:12px">
-              <button type="button" class="secondary" onclick="importParitariaHistoryFromWord()">Importar histórico Word</button>
+              <button type="button" class="secondary" onclick="importParitariaHistoryFromWord()">📄 Importar histórico Word</button>
             </div>
             <textarea id="newParitariaSessionNotes" placeholder="Notas de la sesión, documentación asociada, observaciones, etc."></textarea>
           </div>
@@ -741,11 +776,12 @@
                 <p>Entrada, tramitación, validaciones y resolución de solicitudes por campaña.</p>
                 <small id="teleworkCampaignHint" class="telework-campaign-hint"></small>
               </div>
-              <div class="rrll-pro-head-actions">
-                <label class="telework-campaign-picker">Campaña
+              <div class="rrll-pro-head-actions telework-header-actions">
+                <label class="telework-campaign-picker" for="teleworkCampaignSelector">
+                  <span>Campaña</span>
                   <select id="teleworkCampaignSelector" onchange="changeTeleworkCampaign(this.value)"></select>
                 </label>
-                <button class="rrll-pro-tool-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); addTeleworkCampaignOption()" title="Añadir o seleccionar una campaña manualmente">+ Campaña</button>
+                <button class="rrll-pro-tool-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); addTeleworkCampaignOption()" title="Añadir o seleccionar una campaña futura/manual">+ Añadir</button>
                 <button type="button" class="rrll-pro-primary" onclick="event.preventDefault(); event.stopPropagation(); toggleTeleworkCreateForm(true)">+ Nueva solicitud</button>
               </div>
             </div>
@@ -825,14 +861,11 @@
                 <div class="rrll-pro-search-wrap">
                   <input id="teleworkInlineSearch" type="search" placeholder="Buscar por persona, nº, puesto, periodo, estado u observaciones..." oninput="renderTelework()" />
                 </div>
-                <div class="rrll-pro-list-actions telework-list-actions">
+                <div class="rrll-pro-list-actions telework-list-actions telework-actions">
                   <button class="rrll-pro-tool-button rrll-icon-only rrll-new-request-icon" type="button" onclick="toggleTeleworkCreateForm(true)" title="Nueva solicitud" aria-label="Nueva solicitud">+</button>
-                  <label class="rrll-pro-tool-button rrll-icon-only" title="Importar CSV de teletrabajo" aria-label="Importar CSV de teletrabajo">⇪
-                    <input class="sr-only-file" type="file" accept=".csv,.txt,.tsv" onchange="importTeleworkData(event)" />
-                  </label>
-                  <label class="rrll-pro-tool-button rrll-icon-only" title="Importar catálogo de puestos elegibles" aria-label="Importar catálogo de puestos elegibles">☷
-                    <input class="sr-only-file" type="file" accept=".csv,.txt,.tsv" onchange="importTeleworkJobCatalog(event)" />
-                  </label>
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="openTeleworkImportModal()" title="Importar teletrabajo" aria-label="Importar teletrabajo">⇪</button>
+                  <button class="rrll-pro-tool-button" type="button" onclick="openTeleworkJobCatalogModal()" title="Consultar y mantener catálogo de puestos" aria-label="Puestos teletrabajo">Puestos teletrabajo</button>
+                  <input id="teleworkImportFileInput" class="sr-only-file" type="file" accept=".xlsx,.csv,.txt,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" onchange="importTeleworkData(event)" />
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printModule('telework')" title="Imprimir el filtro seleccionado" aria-label="Imprimir el filtro seleccionado">🖨️</button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportModuleExcel('telework')" title="Exportar campaña/filtro seleccionado" aria-label="Exportar campaña/filtro seleccionado">X</button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportTeleworkHistoryExcel()" title="Exportar todas las campañas" aria-label="Exportar todas las campañas">H</button>
@@ -847,7 +880,7 @@
               <div class="rrll-pro-task-head compact">
                 <div>
                   <h3 id="teleworkHistoryTitle">Histórico de campañas</h3>
-                  <p>Campaña actual visible; campañas anteriores plegadas y futuras separadas como planificadas.</p>
+                  <p>Campaña vigente visible; campañas anteriores plegadas como histórico. Las futuras/manuales no se consideran históricas.</p>
                 </div>
               </div>
               <div id="teleworkHistoryList" class="telework-history-list"></div>
@@ -971,6 +1004,10 @@
                 <input id="newPlantJob" placeholder="Puesto de trabajo" />
               </label>
               <label class="rrll-pro-field">
+                <span>Antigüedad en puesto</span>
+                <input id="newPlantPositionSeniority" type="date" />
+              </label>
+              <label class="rrll-pro-field">
                 <span>Nivel retributivo</span>
                 <select id="newPlantLevel">
                   <option value="A">A</option>
@@ -996,20 +1033,108 @@
                   <p class="rrll-pro-subtitle"><span id="count-plantilla-total">0</span> registros ordenados por nº empleado</p>
                 </div>
                 <div class="rrll-pro-list-actions">
-                  <button class="rrll-pro-tool-button" type="button" onclick="printPlantilla()">🖨️ Imprimir</button>
-                  <button class="rrll-pro-tool-button excel" type="button" onclick="exportPlantillaExcel()">Excel</button>
+                  <input id="plantillaExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaExcelFromInput(event)" />
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()" title="Importar Excel" aria-label="Importar Excel"><span aria-hidden="true">⇪</span></button>
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printPlantilla()" title="Imprimir plantilla" aria-label="Imprimir plantilla"><span aria-hidden="true">🖨️</span></button>
+                  <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportPlantillaExcel()" title="Exportar plantilla a Excel" aria-label="Exportar plantilla a Excel"><span aria-hidden="true">X</span></button>
                 </div>
               </div>
               <div class="rrll-pro-table-wrap">
                 <table class="rrll-pro-table plantilla-table">
-                  <thead><tr><th>Nº empleado</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Nivel</th><th>Acciones</th></tr></thead>
+                  <thead><tr><th>Nº</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel</th><th>Acciones</th></tr></thead>
                   <tbody id="plantillaTableBody"></tbody>
                 </table>
               </div>
+              <div id="plantillaPagination" class="plantilla-pagination" aria-live="polite"></div>
+              <div id="plantillaImportSummary" class="plantilla-import-summary" aria-live="polite"></div>
               <div id="plantillaTableEmpty" class="rrll-pro-empty">No hay personas registradas en plantilla.</div>
             </section>
           </div>
         </details>
+
+        <details class="card module-card module-criteria rrll-pro-module criteria-module" id="gestor-criterios"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h10"></path><path d="M18 15l2 2 3-4"></path></svg></span>Criterios RRLL</span><span class="summary-counts" id="summary-count-criteria">0 criterios</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); printCriteria()" title="Vista previa / imprimir">🖨️</button><button class="summary-icon-button excel-icon" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportCriteriaExcel()" title="Exportar a Excel" aria-label="Exportar criterios RRLL a Excel">X</button></span></summary>
+          <div class="rrll-pro-task-shell criteria-shell">
+            <div class="rrll-pro-task-head">
+              <div>
+                <h2>Criterios RRLL</h2>
+                <p>Base interna de criterios, decisiones y antecedentes de Relaciones Laborales.</p>
+              </div>
+              <div class="rrll-pro-list-actions">
+                <button type="button" class="rrll-pro-tool-button rrll-icon-only criteria-import-icon-btn" onclick="openCriteriaImportModal()" title="Importar criterios" aria-label="Importar criterios"><span aria-hidden="true">⇪</span><span class="criteria-import-label">Importar</span></button>
+                <button type="button" class="rrll-pro-primary" onclick="toggleCriteriaCreateForm(true)">+ Nuevo criterio</button>
+              </div>
+            </div>
+
+            <div class="criteria-toolbar">
+              <label class="criteria-search" for="criteriaSearchInput">
+                <span>Buscar</span>
+                <input id="criteriaSearchInput" placeholder="Buscar criterio por palabra…" oninput="renderCriteria()" onkeydown="if (event.key === 'Enter') { event.preventDefault(); renderCriteria(); }" />
+              </label>
+              <div class="rrll-pro-list-actions">
+                <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printCriteria()" title="Imprimir criterios RRLL" aria-label="Imprimir criterios RRLL">🖨️</button>
+                <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportCriteriaExcel()" title="Exportar criterios RRLL a Excel" aria-label="Exportar criterios RRLL a Excel">X</button>
+              </div>
+            </div>
+
+            <div id="criteriaCreateForm" class="rrll-pro-task-form criteria-form rrll-create-form-collapsed">
+              <label class="rrll-pro-field">
+                <span>Fecha *</span>
+                <input id="newCriteriaDate" type="date" />
+              </label>
+              <label class="rrll-pro-field">
+                <span>Motivo / asunto *</span>
+                <input id="newCriteriaSubject" placeholder="Asunto del criterio" />
+              </label>
+              <label class="rrll-pro-field criteria-full-field">
+                <span>Criterio general *</span>
+                <textarea id="newCriteriaGeneral" rows="5" placeholder="Criterio acordado o decisión general"></textarea>
+              </label>
+              <label class="rrll-pro-field criteria-full-field">
+                <span>Observaciones</span>
+                <textarea id="newCriteriaObservations" rows="3" placeholder="Antecedentes, matices o notas internas"></textarea>
+              </label>
+              <label class="rrll-pro-field">
+                <span>Etiquetas / palabras clave</span>
+                <input id="newCriteriaTags" placeholder="Ej. jornada, permisos, sanción" />
+              </label>
+              <label class="rrll-pro-field">
+                <span>Origen</span>
+                <select id="newCriteriaOrigin">
+                  <option value="">Seleccionar origen</option>
+                  <option>Comité</option>
+                  <option>Paritaria</option>
+                  <option>Convenio</option>
+                  <option>Dirección</option>
+                  <option>Jurisprudencia</option>
+                  <option>Criterio interno</option>
+                  <option>Otro</option>
+                </select>
+              </label>
+              <div class="rrll-pro-form-actions criteria-full-field">
+                <button type="button" class="rrll-pro-primary" onclick="addCriteria()">Guardar</button>
+                <button type="button" class="secondary" onclick="toggleCriteriaCreateForm(false)">Cancelar</button>
+              </div>
+            </div>
+
+            <section class="rrll-pro-list-card criteria-list-card">
+              <div class="rrll-pro-list-toolbar">
+                <div>
+                  <h3>Listado de criterios</h3>
+                  <p class="rrll-pro-subtitle"><span id="criteriaCount">0 de 0</span> · orden por fecha descendente · doble clic para editar</p>
+                </div>
+              </div>
+              <div class="rrll-pro-table-wrap criteria-table-wrap">
+                <table class="rrll-pro-table criteria-table">
+                  <thead><tr><th>Fecha</th><th>Motivo / asunto</th><th>Criterio general</th><th>Origen</th><th>Etiquetas</th><th>Acciones</th></tr></thead>
+                  <tbody id="criteriaTableBody"></tbody>
+                </table>
+              </div>
+              <div id="criteriaPagination" class="criteria-pagination" aria-live="polite"></div>
+              <div id="criteriaEmptyState" class="rrll-pro-empty">No hay criterios RRLL registrados.</div>
+            </section>
+          </div>
+        </details>
+
         <details class="card module-card module-licencias rrll-pro-module" id="gestor-licencias"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><path d="M8 3h8"></path><path d="M9 3v4a6 6 0 1 0 6 0V3"></path><path d="M9 15h6"></path></svg></span>Licencias sin sueldo y excedencias</span><span class="summary-counts" id="summary-count-licencias">0 aprobar · 0 firma · 0 vigentes</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); openModuleSearch('licencias')" title="Buscar en este gestor">🔍</button></span></summary>
           <div class="rrll-pro-task-shell rrll-pro-licencias-shell">
             <div class="rrll-pro-task-head">
@@ -1075,7 +1200,7 @@
                 <div id="licSignatureEmpty" class="rrll-pro-empty">No hay solicitudes pendientes de firma.</div>
               </section>
 
-              <section class="rrll-pro-list-card licencias-column">
+              <section class="rrll-pro-list-card licencias-column licencias-column-active">
                 <div class="rrll-pro-list-toolbar licencias-toolbar">
                   <div><h3>Licencias vigentes</h3><p class="rrll-pro-subtitle"><span id="count-lic-active">0</span> permisos vigentes</p></div>
                   <div class="rrll-pro-list-actions"><button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printLicencias('active')" title="Imprimir licencias vigentes" aria-label="Imprimir licencias vigentes">🖨️</button><button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportLicenciasExcel('active')" title="Exportar licencias vigentes a Excel" aria-label="Exportar licencias vigentes a Excel">X</button></div>
@@ -1085,14 +1210,14 @@
               </section>
             </div>
 
-            <section class="rrll-pro-list-card licencias-history-card">
-              <div class="rrll-pro-list-toolbar licencias-toolbar">
+            <details class="rrll-pro-list-card licencias-history-card">
+              <summary class="rrll-pro-list-toolbar licencias-toolbar">
                 <div><h3>Histórico</h3><p class="rrll-pro-subtitle">Solicitudes finalizadas cuya fecha fin de permiso ya ha vencido, agrupadas por año.</p></div>
-                <div class="rrll-pro-list-actions"><button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printLicencias('history')" title="Imprimir histórico" aria-label="Imprimir histórico">🖨️</button><button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportLicenciasExcel('history')" title="Exportar histórico a Excel" aria-label="Exportar histórico a Excel">X</button></div>
-              </div>
+                <div class="rrll-pro-list-actions"><button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="event.preventDefault(); event.stopPropagation(); printLicencias('history')" title="Imprimir histórico" aria-label="Imprimir histórico">🖨️</button><button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportLicenciasExcel('history')" title="Exportar histórico a Excel" aria-label="Exportar histórico a Excel">X</button></div>
+              </summary>
               <div id="licHistoryList" class="licencias-history-list"></div>
               <div id="licHistoryEmpty" class="rrll-pro-empty">No hay histórico.</div>
-            </section>
+            </details>
           </div>
         </details>
       </section>
@@ -1100,6 +1225,77 @@
   </main>
     </div>
   </div>
+
+  <div id="teleworkImportModal" class="modal-backdrop telework-import-modal" onclick="if (event.target === this) closeTeleworkImportModal()" aria-hidden="true">
+    <div class="modal-box telework-import-box" role="dialog" aria-modal="true" aria-labelledby="teleworkImportTitle">
+      <div class="telework-import-head">
+        <div>
+          <h3 id="teleworkImportTitle">Importar teletrabajo</h3>
+          <p class="muted">Carga datos existentes o genera plantillas Excel válidas para solicitudes y catálogo de puestos.</p>
+        </div>
+        <button class="telework-import-close" type="button" onclick="closeTeleworkImportModal()" aria-label="Cerrar importador">×</button>
+      </div>
+      <div class="telework-import-grid">
+        <section class="telework-import-card">
+          <span class="telework-import-kicker">Opción 1</span>
+          <h4>Cargar fichero</h4>
+          <p>Importa solicitudes o catálogo desde Excel, CSV, TXT o TSV. Se leerá la primera hoja si el archivo es .xlsx.</p>
+          <button class="rrll-pro-primary" type="button" onclick="teleworkImportChooseFile()">Cargar fichero</button>
+        </section>
+        <section class="telework-import-card">
+          <span class="telework-import-kicker">Opción 2</span>
+          <h4>Generar modelo</h4>
+          <p>Descarga plantillas Excel generadas al momento, listas para rellenar y volver a importar.</p>
+          <div class="telework-template-actions">
+            <button class="secondary" type="button" onclick="downloadTeleworkTemplate('requests')">Modelo solicitudes teletrabajo</button>
+            <button class="secondary" type="button" onclick="downloadTeleworkTemplate('jobs')">Modelo catálogo puestos</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="teleworkJobCatalogModal" class="modal-backdrop telework-catalog-modal" onclick="if (event.target === this) closeTeleworkJobCatalogModal()" aria-hidden="true">
+    <div class="modal-box telework-catalog-box" role="dialog" aria-modal="true" aria-labelledby="teleworkJobCatalogTitle">
+      <div class="telework-import-head">
+        <div>
+          <h3 id="teleworkJobCatalogTitle">Puestos teletrabajo</h3>
+          <p class="muted">Consulta, filtra y mantiene el catálogo de puestos teletrabajables importado.</p>
+        </div>
+        <button class="telework-import-close" type="button" onclick="closeTeleworkJobCatalogModal()" aria-label="Cerrar puestos teletrabajo">×</button>
+      </div>
+      <div class="telework-catalog-toolbar">
+        <label class="rrll-pro-field telework-catalog-search">
+          <span>Buscar por puesto, dirección, unidad o Teletrabajo S/N</span>
+          <input id="teleworkJobCatalogSearch" type="search" placeholder="Buscar puestos teletrabajo..." oninput="renderTeleworkJobCatalogModal()" />
+        </label>
+        <span id="teleworkJobCatalogCount" class="telework-catalog-count">0 puestos</span>
+      </div>
+      <div class="telework-catalog-table-wrap">
+        <table class="rrll-pro-table telework-catalog-table">
+          <thead>
+            <tr>
+              <th>Puesto Organizativo</th>
+              <th>Dirección</th>
+              <th>Unidad</th>
+              <th>Plantilla</th>
+              <th>Teletrabajo S/N</th>
+              <th>Presencialidad mínima</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="teleworkJobCatalogBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions telework-catalog-actions">
+        <button class="secondary" type="button" onclick="addTeleworkCatalogRow()">Nuevo puesto</button>
+        <button class="rrll-pro-primary" type="button" onclick="saveTeleworkJobCatalogModal()">Guardar</button>
+        <button class="secondary" type="button" onclick="closeTeleworkJobCatalogModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="importPreviewModal" class="modal-backdrop" onclick="closeImportPreview()">
     <div class="modal-box" onclick="event.stopPropagation()">
       <h3>Vista previa de importación</h3>
@@ -1347,6 +1543,12 @@
             <option value="agenda-closed">Cerrado</option>
           </select>
         </div>
+        <div>
+          <label for="agendaEditCommitteeSession">Sesión</label>
+          <select id="agendaEditCommitteeSession">
+            <option value="">Sin sesión</option>
+          </select>
+        </div>
         <div class="full">
           <label for="agendaEditNotes">Notas</label>
           <textarea id="agendaEditNotes" placeholder="Notas, reunión, referencia, personas implicadas..."></textarea>
@@ -1383,11 +1585,41 @@
     <div class="modal-box" onclick="event.stopPropagation()">
       <h3>Orden del día</h3>
       <p class="muted" id="committeeSessionOrderTitle"></p>
+      <div class="committee-session-order-toolbar">
+        <button type="button" id="committeeSessionAddPointButton" onclick="openCommitteeSessionAddPointModal()">Añadir punto</button>
+        <button type="button" id="committeeSessionCloseButton" class="secondary" onclick="closeCommitteeSessionFromOrderModal()">Cerrar sesión</button>
+      </div>
       <p class="muted">Arrastra los puntos para cambiar el orden. Al guardar se renumerarán automáticamente.</p>
       <div id="committeeSessionOrderList" class="session-order-list"></div>
       <div class="modal-actions">
         <button class="secondary" onclick="closeCommitteeSessionOrderModal()">Cancelar</button>
         <button onclick="saveCommitteeSessionOrderFromModal()">Guardar orden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="committeeSessionAddPointModal" class="modal-backdrop" onclick="closeCommitteeSessionAddPointModal()">
+    <div class="modal-box committee-session-add-point-box" onclick="event.stopPropagation()">
+      <h3>Añadir punto</h3>
+      <p class="muted" id="committeeSessionAddPointTitle"></p>
+      <p class="muted">Selecciona uno o varios puntos de Comité abiertos o en curso disponibles para esta sesión.</p>
+      <div id="committeeSessionAddPointList" class="committee-session-add-point-list"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeCommitteeSessionAddPointModal()">Cancelar</button>
+        <button onclick="confirmAddSelectedCommitteePoints()">Añadir seleccionados</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="committeeSessionCloseModal" class="modal-backdrop" onclick="closeCommitteeSessionCloseModal()">
+    <div class="modal-box session-close-modal-box" onclick="event.stopPropagation()">
+      <h3>Cerrar sesión</h3>
+      <p class="muted" id="committeeSessionCloseTitle"></p>
+      <p class="muted">Selecciona los puntos tratados en esta sesión.</p>
+      <div id="committeeSessionCloseList" class="session-close-list"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeCommitteeSessionCloseModal()">Cancelar</button>
+        <button onclick="confirmCommitteeSessionCloseFromModal()">Confirmar cierre</button>
       </div>
     </div>
   </div>
@@ -1415,6 +1647,12 @@
             <option value="paritaria-pending">Pendiente</option>
             <option value="paritaria-progress">En curso</option>
             <option value="paritaria-closed">Cerrado</option>
+          </select>
+        </div>
+        <div>
+          <label for="paritariaEditSession">Sesión</label>
+          <select id="paritariaEditSession">
+            <option value="">Sin sesión</option>
           </select>
         </div>
         <div class="full">
@@ -1453,11 +1691,41 @@
     <div class="modal-box" onclick="event.stopPropagation()">
       <h3>Orden del día</h3>
       <p class="muted" id="paritariaSessionOrderTitle"></p>
+      <div class="paritaria-session-order-toolbar">
+        <button type="button" id="paritariaSessionAddPointButton" onclick="openParitariaSessionAddPointModal()">Añadir punto</button>
+        <button type="button" id="paritariaSessionCloseButton" class="secondary" onclick="closeParitariaSessionFromOrderModal()">Cerrar sesión</button>
+      </div>
       <p class="muted">Arrastra los puntos para cambiar el orden. Al guardar se renumerarán automáticamente.</p>
       <div id="paritariaSessionOrderList" class="session-order-list"></div>
       <div class="modal-actions">
         <button class="secondary" onclick="closeParitariaSessionOrderModal()">Cancelar</button>
         <button onclick="saveParitariaSessionOrderFromModal()">Guardar orden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="paritariaSessionAddPointModal" class="modal-backdrop" onclick="closeParitariaSessionAddPointModal()">
+    <div class="modal-box paritaria-session-add-point-box" onclick="event.stopPropagation()">
+      <h3>Añadir punto</h3>
+      <p class="muted" id="paritariaSessionAddPointTitle"></p>
+      <p class="muted">Selecciona uno o varios puntos de Paritaria abiertos o en curso disponibles para esta sesión.</p>
+      <div id="paritariaSessionAddPointList" class="paritaria-session-add-point-list"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeParitariaSessionAddPointModal()">Cancelar</button>
+        <button onclick="confirmAddSelectedParitariaPoints()">Añadir seleccionados</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="paritariaSessionCloseModal" class="modal-backdrop" onclick="closeParitariaSessionCloseModal()">
+    <div class="modal-box session-close-modal-box" onclick="event.stopPropagation()">
+      <h3>Cerrar sesión</h3>
+      <p class="muted" id="paritariaSessionCloseTitle"></p>
+      <p class="muted">Selecciona los puntos tratados en esta sesión.</p>
+      <div id="paritariaSessionCloseList" class="session-close-list"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeParitariaSessionCloseModal()">Cancelar</button>
+        <button onclick="confirmParitariaSessionCloseFromModal()">Confirmar cierre</button>
       </div>
     </div>
   </div>
@@ -1542,6 +1810,7 @@
   <script src="modules/teletrabajo.js"></script>
   <script src="modules/vinculograma.js"></script>
   <script src="modules/licencias.js"></script>
+  <script src="modules/criterios-rrll.js"></script>
   <script src="modules/links-config.js"></script>
   <script src="modules/trash.js"></script>
   <script src="modules/search.js"></script>

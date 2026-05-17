@@ -5,6 +5,192 @@
 
 // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
+
+    function ensureParitariaConfirmModal() {
+      let modal = document.getElementById("paritariaConfirmModal");
+      if (modal) return modal;
+
+      modal = document.createElement("div");
+      modal.id = "paritariaConfirmModal";
+      modal.className = "modal-backdrop rrll-confirm-delete-modal";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "paritariaConfirmTitle");
+      modal.innerHTML = `
+        <div class="modal-box rrll-confirm-delete-box" role="document">
+          <div class="rrll-confirm-delete-icon" aria-hidden="true">!</div>
+          <h3 id="paritariaConfirmTitle">Confirmar acción</h3>
+          <p id="paritariaConfirmText" class="muted">Revisa la acción antes de continuar.</p>
+          <div class="modal-actions rrll-confirm-delete-actions">
+            <button type="button" class="secondary" data-confirm-cancel>Cancelar</button>
+            <button type="button" class="danger" data-confirm-accept>Confirmar</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function confirmParitariaAction(options) {
+      const modal = ensureParitariaConfirmModal();
+      const titleEl = modal.querySelector("#paritariaConfirmTitle");
+      const textEl = modal.querySelector("#paritariaConfirmText");
+      const cancelButton = modal.querySelector("[data-confirm-cancel]");
+      const acceptButton = modal.querySelector("[data-confirm-accept]");
+      const action = options && typeof options.onConfirm === "function" ? options.onConfirm : null;
+
+      if (titleEl) titleEl.textContent = (options && options.title) || "Confirmar acción";
+      if (textEl) textEl.textContent = (options && options.message) || "Revisa la acción antes de continuar.";
+      if (acceptButton) acceptButton.textContent = (options && options.confirmLabel) || "Confirmar";
+      if (acceptButton) acceptButton.className = (options && options.danger === false) ? "" : "danger";
+
+      function close() {
+        modal.classList.remove("open");
+        modal.removeEventListener("click", handleBackdropClick);
+        document.removeEventListener("keydown", handleEscape);
+        cancelButton?.removeEventListener("click", handleCancel);
+        acceptButton?.removeEventListener("click", handleConfirm);
+      }
+
+      function handleCancel() {
+        close();
+      }
+
+      function handleConfirm() {
+        close();
+        if (action) action();
+      }
+
+      function handleBackdropClick(event) {
+        if (event.target === modal) close();
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape" && modal.classList.contains("open")) close();
+      }
+
+      cancelButton?.addEventListener("click", handleCancel);
+      acceptButton?.addEventListener("click", handleConfirm);
+      modal.addEventListener("click", handleBackdropClick);
+      document.addEventListener("keydown", handleEscape);
+      modal.classList.add("open");
+      setTimeout(() => cancelButton?.focus(), 0);
+    }
+
+
+
+    function ensureParitariaMinutePromptModal() {
+      let modal = document.getElementById("paritariaMinutePromptModal");
+      if (modal) return modal;
+
+      modal = document.createElement("div");
+      modal.id = "paritariaMinutePromptModal";
+      modal.className = "modal-backdrop committee-minute-prompt-modal";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "paritariaMinutePromptTitle");
+      modal.innerHTML = `
+        <div class="modal-box session-close-modal-box" role="document">
+          <h3 id="paritariaMinutePromptTitle">Crear registro en Actas</h3>
+          <p class="muted">¿Deseas crear automáticamente un registro en Actas para esta sesión?</p>
+          <div class="committee-minute-preview" id="paritariaMinutePromptPreview"></div>
+          <div class="modal-actions">
+            <button type="button" class="secondary" data-minute-skip>No crear</button>
+            <button type="button" data-minute-create>Crear acta</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function paritariaSessionDateLabel(session) {
+      if (!session || !session.date) return "Sin fecha";
+      return new Date(session.date + "T00:00:00").toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    function buildParitariaMinutePayload(session) {
+      const dateLabel = paritariaSessionDateLabel(session);
+      return {
+        title: `Comisión Paritaria - ${dateLabel}`,
+        notes: String(session && session.code ? session.code : "").trim(),
+        sourceType: "paritaria-session",
+        sourceId: String(session && session.id ? session.id : "").trim()
+      };
+    }
+
+    function createParitariaMinuteFromSession(session) {
+      if (!session) return;
+      const payload = buildParitariaMinutePayload(session);
+      const creator = window.ActasModule && typeof window.ActasModule.createMinuteIfMissing === "function"
+        ? window.ActasModule.createMinuteIfMissing
+        : (typeof window.createMinuteIfMissing === "function" ? window.createMinuteIfMissing : null);
+
+      if (!creator) {
+        alert("No se ha podido acceder al alta segura de Actas.");
+        return;
+      }
+
+      const result = creator(payload);
+      if (result && result.created) {
+        alert("Acta creada correctamente.");
+        return;
+      }
+      if (result && result.reason === "duplicate") {
+        alert("Ya existe un acta equivalente para esta sesión. No se ha creado un duplicado.");
+        return;
+      }
+      alert("No se ha creado el acta porque faltan datos obligatorios.");
+    }
+
+    function promptParitariaMinuteCreation(session) {
+      if (!session) return;
+      const modal = ensureParitariaMinutePromptModal();
+      const preview = modal.querySelector("#paritariaMinutePromptPreview");
+      const skipButton = modal.querySelector("[data-minute-skip]");
+      const createButton = modal.querySelector("[data-minute-create]");
+      const payload = buildParitariaMinutePayload(session);
+
+      if (preview) {
+        preview.innerHTML = `
+          <div><strong>Asunto:</strong> ${escapeHtml(payload.title)}</div>
+          <div><strong>Notas:</strong> ${escapeHtml(payload.notes || "Sin código")}</div>
+        `;
+      }
+
+      function close() {
+        modal.classList.remove("open");
+        modal.removeEventListener("click", handleBackdropClick);
+        document.removeEventListener("keydown", handleEscape);
+        skipButton?.removeEventListener("click", handleSkip);
+        createButton?.removeEventListener("click", handleCreate);
+      }
+
+      function handleSkip() {
+        close();
+      }
+
+      function handleCreate() {
+        close();
+        createParitariaMinuteFromSession(session);
+      }
+
+      function handleBackdropClick(event) {
+        if (event.target === modal) close();
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape" && modal.classList.contains("open")) close();
+      }
+
+      skipButton?.addEventListener("click", handleSkip);
+      createButton?.addEventListener("click", handleCreate);
+      modal.addEventListener("click", handleBackdropClick);
+      document.addEventListener("keydown", handleEscape);
+      modal.classList.add("open");
+      setTimeout(() => skipButton?.focus(), 0);
+    }
+
     function getParitariaItems() {
       return load("rrll_paritaria_items", []);
     }
@@ -67,7 +253,7 @@
       toggleParitariaCreateForm(false);
     }
 
-    function moveParitariaItem(id, status) {
+    function executeMoveParitariaItem(id, status) {
       const now = new Date().toISOString();
       const items = getParitariaItems().map(item => {
         if (item.id !== id) return item;
@@ -81,7 +267,19 @@
       renderParitariaItems();
     }
 
-    function deleteParitariaItem(id) {
+    function moveParitariaItem(id, status) {
+      const item = getParitariaItems().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "este punto";
+      const nextStatus = paritariaStatusLabel(status).toLowerCase();
+      confirmParitariaAction({
+        title: "Cambiar estado del punto",
+        message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeMoveParitariaItem(id, status)
+      });
+    }
+
+    function executeDeleteParitariaItem(id) {
       const items = getParitariaItems();
       const item = items.find(i => i.id === id);
       if (item) moveToTrash("paritaria", item);
@@ -90,6 +288,17 @@
       renderTrash();
       restoreAlertsPanelState();
       renderAlertsPanel();
+    }
+
+    function deleteParitariaItem(id) {
+      const item = getParitariaItems().find(i => i.id === id);
+      const title = item && item.title ? `“${item.title}”` : "este punto";
+      confirmParitariaAction({
+        title: "Eliminar punto de Paritaria",
+        message: `¿Quieres eliminar ${title}? Se moverá a la papelera.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteParitariaItem(id)
+      });
     }
 
     let activeParitariaUpdateId = null;
@@ -146,6 +355,7 @@
       if (petitionerInput) petitionerInput.value = item.petitioner || "";
       if (requestDateInput) requestDateInput.value = item.requestDate || "";
       if (statusInput) statusInput.value = item.status || "paritaria-pending";
+      populateParitariaSessionSelect(item);
       if (notesInput) notesInput.value = item.notes || "";
       if (updateInput) updateInput.value = "";
       renderEditableUpdates("paritariaExistingUpdates", item.updates || []);
@@ -158,7 +368,7 @@
       activeParitariaUpdateId = null;
       const modal = document.getElementById("paritariaUpdateModal");
       if (modal) modal.classList.remove("open");
-      ["paritariaEditTitle", "paritariaEditPetitioner", "paritariaEditRequestDate", "paritariaEditNotes", "paritariaUpdateModalText"].forEach(id => {
+      ["paritariaEditTitle", "paritariaEditPetitioner", "paritariaEditRequestDate", "paritariaEditSession", "paritariaEditNotes", "paritariaUpdateModalText"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
       });
@@ -180,9 +390,23 @@
       const petitioner = (document.getElementById("paritariaEditPetitioner")?.value || "").trim();
       const requestDate = document.getElementById("paritariaEditRequestDate")?.value || "";
       const status = document.getElementById("paritariaEditStatus")?.value || "paritaria-pending";
+      const selectedSessionId = document.getElementById("paritariaEditSession")?.value || "";
       const notes = (document.getElementById("paritariaEditNotes")?.value || "").trim();
       const updateText = (document.getElementById("paritariaUpdateModalText")?.value || "").trim();
       const now = new Date().toISOString();
+      const originalItem = getParitariaItems().find(item => item.id === activeParitariaUpdateId);
+
+      if (selectedSessionId && status === "paritaria-closed") {
+        alert("Solo los puntos abiertos o en curso pueden asignarse a sesiones abiertas de Paritaria.");
+        return;
+      }
+
+      const sessionPatch = assignParitariaItemToSession(activeParitariaUpdateId, selectedSessionId);
+      if (!sessionPatch) {
+        alert("La sesión seleccionada ya no está abierta.");
+        populateParitariaSessionSelect(originalItem);
+        return;
+      }
 
       const items = getParitariaItems().map(item => {
         if (item.id !== activeParitariaUpdateId) return item;
@@ -192,6 +416,7 @@
           : editedUpdates;
         return {
           ...item,
+          ...sessionPatch,
           title,
           petitioner,
           requestDate,
@@ -247,8 +472,22 @@
     }
 
     function getParitariaSessionDisplayItems(session) {
-      const paritariaById = Object.fromEntries(getParitariaItems().map(item => [item.id, item]));
-      return (Array.isArray(session.items) ? session.items : []).map((raw, index) => ({
+      const paritariaItems = getParitariaItems();
+      const paritariaById = Object.fromEntries(paritariaItems.map(item => [item.id, item]));
+      const rawItems = Array.isArray(session.items) ? [...session.items] : [];
+      const seenIds = new Set(rawItems.map(raw => paritariaSessionItemId(raw)).filter(Boolean));
+
+      paritariaItems
+        .filter(item => paritariaMatchesSession(item, session))
+        .sort((a, b) => (Number(a.paritariaSessionOrder) || Number.MAX_SAFE_INTEGER) - (Number(b.paritariaSessionOrder) || Number.MAX_SAFE_INTEGER))
+        .forEach(item => {
+          if (!seenIds.has(item.id)) {
+            rawItems.push(item.id);
+            seenIds.add(item.id);
+          }
+        });
+
+      return rawItems.map((raw, index) => ({
         raw,
         key: paritariaSessionItemId(raw),
         title: paritariaSessionItemTitle(raw, paritariaById),
@@ -270,22 +509,28 @@
           alert("No se han detectado sesiones importables en el documento.");
           return;
         }
-        const confirmed = confirm(`Se han detectado ${result.sessionCount} sesiones y ${result.pointCount} puntos del orden del día en ${result.fileName}.\n\nSe importarán solo como sesiones históricas de Paritaria, sin crear puntos en el gestor de puntos.\n\n¿Continuar?`);
-        if (!confirmed) return;
-        const existing = getParitariaSessions();
-        const existingKeys = new Set(existing.map(s => `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`));
-        const incoming = result.sessions.filter(s => {
-          const key = `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`;
-          return !existingKeys.has(key);
+        confirmParitariaAction({
+          title: "Importar histórico Word",
+          message: `Se han detectado ${result.sessionCount} sesiones y ${result.pointCount} puntos del orden del día en ${result.fileName}. Se importarán solo como sesiones históricas de Paritaria, sin crear puntos en el gestor de puntos.`,
+          confirmLabel: "Importar",
+          danger: false,
+          onConfirm: () => {
+            const existing = getParitariaSessions();
+            const existingKeys = new Set(existing.map(s => `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`));
+            const incoming = result.sessions.filter(s => {
+              const key = `${String(s.code || "").trim().toLowerCase()}|${String(s.date || s.rawDate || "").trim().toLowerCase()}`;
+              return !existingKeys.has(key);
+            });
+            if (!incoming.length) {
+              alert("Todas las sesiones detectadas ya existen en la app. No se ha importado nada.");
+              return;
+            }
+            setParitariaSessions([...incoming, ...existing]);
+            renderParitariaSessions();
+            updateQuickCounts();
+            alert(`Importación completada.\nSesiones importadas: ${incoming.length}\nSesiones omitidas por posible duplicado: ${result.sessions.length - incoming.length}`);
+          }
         });
-        if (!incoming.length) {
-          alert("Todas las sesiones detectadas ya existen en la app. No se ha importado nada.");
-          return;
-        }
-        setParitariaSessions([...incoming, ...existing]);
-        renderParitariaSessions();
-        updateQuickCounts();
-        alert(`Importación completada.\nSesiones importadas: ${incoming.length}\nSesiones omitidas por posible duplicado: ${result.sessions.length - incoming.length}`);
       } catch (error) {
         alert(`No se pudo importar el histórico.\nDetalle: ${error && error.message ? error.message : error}`);
       }
@@ -336,8 +581,84 @@
       return `${session.code || "Sin código"} · ${date}`;
     }
 
+    function isOpenParitariaSession(session) {
+      return !!session && session.status !== "closed";
+    }
+
+    function getOpenParitariaSessions() {
+      return getParitariaSessions()
+        .filter(isOpenParitariaSession)
+        .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.code || "").localeCompare(String(b.code || ""), "es"));
+    }
+
+    function paritariaSessionSelectLabel(session) {
+      const code = String(session && session.code ? session.code : "Sin código").trim();
+      const date = session && session.date
+        ? new Date(session.date + "T00:00:00").toLocaleDateString("es-ES")
+        : "Sin fecha";
+      return `${code} - ${date}`;
+    }
+
+    function paritariaMatchesSession(item, session) {
+      if (!item || !session) return false;
+      const sessionId = String(session.id || "");
+      const sessionCode = String(session.code || "");
+      return (sessionId && item.paritariaSessionId === sessionId) || (sessionCode && item.paritariaSessionCode === sessionCode);
+    }
+
+    function populateParitariaSessionSelect(item) {
+      const select = document.getElementById("paritariaEditSession");
+      if (!select) return;
+      const currentSessionId = item && item.paritariaSessionId ? String(item.paritariaSessionId) : "";
+      const openSessions = getOpenParitariaSessions();
+      select.innerHTML = `<option value="">Sin sesión</option>` + openSessions.map(session => `
+        <option value="${escapeHtml(session.id)}">${escapeHtml(paritariaSessionSelectLabel(session))}</option>
+      `).join("");
+      const currentOpenSession = openSessions.find(session => session.id === currentSessionId || paritariaMatchesSession(item, session));
+      select.value = currentOpenSession ? currentOpenSession.id : "";
+    }
+
+    function assignParitariaItemToSession(paritariaId, targetSessionId) {
+      const sessions = getParitariaSessions();
+      const targetSession = targetSessionId ? sessions.find(session => session.id === targetSessionId && isOpenParitariaSession(session)) : null;
+      if (targetSessionId && !targetSession) return null;
+
+      const affectedSessionIds = new Set();
+      sessions.forEach(session => {
+        if (!isOpenParitariaSession(session) && session.id !== targetSessionId) return;
+        const items = Array.isArray(session.items) ? session.items : [];
+        const filteredItems = items.filter(raw => paritariaSessionItemId(raw) !== paritariaId);
+        if (filteredItems.length !== items.length) affectedSessionIds.add(session.id);
+        session.items = filteredItems;
+      });
+
+      if (targetSession) {
+        targetSession.items = Array.isArray(targetSession.items) ? targetSession.items : [];
+        if (!targetSession.items.some(raw => paritariaSessionItemId(raw) === paritariaId)) targetSession.items.push(paritariaId);
+        affectedSessionIds.add(targetSession.id);
+      }
+
+      setParitariaSessions(sessions);
+      affectedSessionIds.forEach(syncParitariaSessionOrder);
+      const order = targetSession ? targetSession.items.findIndex(raw => paritariaSessionItemId(raw) === paritariaId) : -1;
+      return targetSession ? {
+        paritariaSessionId: targetSession.id,
+        paritariaSessionCode: targetSession.code,
+        paritariaSessionDate: targetSession.date,
+        paritariaSessionOrder: order >= 0 ? order + 1 : null,
+        closedByParitaria: false
+      } : {
+        paritariaSessionId: "",
+        paritariaSessionCode: "",
+        paritariaSessionDate: "",
+        paritariaSessionOrder: null,
+        closedByParitaria: false
+      };
+    }
+
     let activeParitariaAddToSessionId = null;
     let activeParitariaOrderSessionId = null;
+    let activeParitariaCloseSessionId = null;
     let paritariaOrderDraft = [];
     let draggedParitariaParitariaId = null;
 
@@ -393,18 +714,17 @@
         return;
       }
 
-      session.items = Array.isArray(session.items) ? session.items : [];
-      if (!session.items.includes(paritariaId)) session.items.push(paritariaId);
+      const sessionPatch = assignParitariaItemToSession(paritariaId, session.id);
+      if (!sessionPatch) {
+        alert("La sesión seleccionada no está abierta.");
+        return;
+      }
 
       const updatedParitaria = paritaria.map(i => i.id === paritariaId ? {
         ...i,
-        paritariaSessionId: session.id,
-        paritariaSessionCode: session.code,
-        paritariaSessionDate: session.date,
-        paritariaSessionOrder: session.items.indexOf(paritariaId) + 1
+        ...sessionPatch
       } : i);
 
-      setParitariaSessions(sessions);
       setParitariaItems(updatedParitaria);
       closeAddParitariaToParitariaModal();
       renderParitariaSessions();
@@ -413,6 +733,131 @@
 
     function addParitariaItemToParitariaSession(paritariaId) {
       openAddParitariaToParitariaModal(paritariaId);
+    }
+
+    function getParitariaSessionAssignedIds(session) {
+      return new Set((Array.isArray(session && session.items) ? session.items : [])
+        .map(raw => paritariaSessionItemId(raw))
+        .filter(Boolean));
+    }
+
+    function getAvailableParitariaPointsForSession(session) {
+      if (!session) return [];
+      const assignedToCurrentSession = getParitariaSessionAssignedIds(session);
+      return getParitariaItems()
+        .filter(item => item && item.status !== "paritaria-closed")
+        .filter(item => !assignedToCurrentSession.has(item.id))
+        .filter(item => !item.paritariaSessionId || item.paritariaSessionId === session.id)
+        .sort((a, b) => {
+          const aDate = a.requestDate || "9999-12-31";
+          const bDate = b.requestDate || "9999-12-31";
+          return aDate.localeCompare(bDate) || String(a.title || "").localeCompare(String(b.title || ""), "es");
+        });
+    }
+
+    function openParitariaSessionAddPointModal() {
+      if (!activeParitariaOrderSessionId) return;
+      applyParitariaOrderTextEdits();
+
+      const session = getParitariaSessions().find(s => s.id === activeParitariaOrderSessionId);
+      if (!session || session.status === "closed") {
+        alert("Solo se pueden añadir puntos a sesiones abiertas de Paritaria.");
+        return;
+      }
+
+      const titleEl = document.getElementById("paritariaSessionAddPointTitle");
+      const listEl = document.getElementById("paritariaSessionAddPointList");
+      const modal = document.getElementById("paritariaSessionAddPointModal");
+      if (!titleEl || !listEl || !modal) {
+        alert("No se ha encontrado la ventana para añadir puntos.");
+        return;
+      }
+
+      titleEl.textContent = `${session.title || "Sesión de Paritaria"} · ${sessionLabel(session)}`;
+      const available = getAvailableParitariaPointsForSession(session);
+      listEl.innerHTML = available.length ? available.map(item => `
+        <label class="paritaria-session-add-point-row">
+          <input type="checkbox" data-paritaria-add-point value="${escapeHtml(item.id)}" />
+          <span class="paritaria-session-add-point-content">
+            <strong>${escapeHtml(item.title || "Sin título")}</strong>
+            <small>
+              <span>Peticionario: ${escapeHtml(item.petitioner || "Sin indicar")}</span>
+              <span>Fecha solicitud: ${escapeHtml(item.requestDate ? new Date(item.requestDate + "T00:00:00").toLocaleDateString("es-ES") : "Sin fecha")}</span>
+              <span>Estado: ${escapeHtml(paritariaStatusLabel(item.status))}</span>
+              ${item.paritariaSessionId || item.paritariaSessionCode ? `<span>Sesión actual: ${escapeHtml(item.paritariaSessionCode || item.paritariaSessionId || "Sin código")}</span>` : ""}
+            </small>
+          </span>
+        </label>
+      `).join("") : `<p class="muted">No hay puntos abiertos o en curso disponibles para añadir.</p>`;
+
+      modal.classList.add("open");
+      setTimeout(() => modal.querySelector("[data-paritaria-add-point]")?.focus(), 0);
+    }
+
+    function closeParitariaSessionAddPointModal() {
+      const modal = document.getElementById("paritariaSessionAddPointModal");
+      if (modal) modal.classList.remove("open");
+    }
+
+    function confirmAddSelectedParitariaPoints() {
+      if (!activeParitariaOrderSessionId) return;
+      const modal = document.getElementById("paritariaSessionAddPointModal");
+      const selectedIds = Array.from(modal?.querySelectorAll("[data-paritaria-add-point]:checked") || []).map(input => input.value);
+      if (!selectedIds.length) {
+        alert("Selecciona al menos un punto abierto o en curso para añadir.");
+        return;
+      }
+
+      applyParitariaOrderTextEdits();
+      const sessions = getParitariaSessions();
+      const session = sessions.find(s => s.id === activeParitariaOrderSessionId);
+      if (!session || session.status === "closed") {
+        alert("La sesión ya no está abierta.");
+        closeParitariaSessionAddPointModal();
+        return;
+      }
+
+      const availableIds = new Set(getAvailableParitariaPointsForSession(session).map(item => item.id));
+      const idsToAdd = selectedIds.filter(id => availableIds.has(id));
+      if (!idsToAdd.length) {
+        alert("No hay puntos abiertos o en curso disponibles para añadir.");
+        closeParitariaSessionAddPointModal();
+        return;
+      }
+
+      session.items = Array.isArray(session.items) ? session.items : [];
+      const existingIds = getParitariaSessionAssignedIds(session);
+      const affectedSessionIds = new Set([session.id]);
+      sessions.forEach(otherSession => {
+        if (otherSession.id === session.id || !isOpenParitariaSession(otherSession)) return;
+        const items = Array.isArray(otherSession.items) ? otherSession.items : [];
+        const filteredItems = items.filter(raw => !idsToAdd.includes(paritariaSessionItemId(raw)));
+        if (filteredItems.length !== items.length) affectedSessionIds.add(otherSession.id);
+        otherSession.items = filteredItems;
+      });
+      idsToAdd.forEach(id => {
+        if (!existingIds.has(id)) {
+          session.items.push(id);
+          paritariaOrderDraft.push(id);
+          existingIds.add(id);
+        }
+      });
+
+      setParitariaSessions(sessions);
+      affectedSessionIds.forEach(syncParitariaSessionOrder);
+      const paritaria = getParitariaItems().map(item => idsToAdd.includes(item.id) ? {
+        ...item,
+        paritariaSessionId: session.id,
+        paritariaSessionCode: session.code,
+        paritariaSessionDate: session.date,
+        paritariaSessionOrder: session.items.indexOf(item.id) + 1,
+        closedByParitaria: false
+      } : item);
+      setParitariaItems(paritaria);
+      closeParitariaSessionAddPointModal();
+      renderParitariaSessionOrderDraft();
+      renderParitariaSessions();
+      renderParitariaItems();
     }
 
     function moveParitariaSessionItem(sessionId, paritariaId, direction) {
@@ -466,45 +911,118 @@
       setParitariaItems(paritaria);
     }
 
-    function closeParitariaSession(sessionId) {
+    function openParitariaSessionCloseModal(sessionId) {
+      const session = getParitariaSessions().find(s => s.id === sessionId);
+      if (!session || session.status === "closed") return;
+      activeParitariaCloseSessionId = sessionId;
+
+      const titleEl = document.getElementById("paritariaSessionCloseTitle");
+      const listEl = document.getElementById("paritariaSessionCloseList");
+      const modal = document.getElementById("paritariaSessionCloseModal");
+      if (!titleEl || !listEl || !modal) {
+        alert("No se ha encontrado la ventana de cierre de sesión.");
+        return;
+      }
+
+      titleEl.textContent = `${session.title || "Sesión de Paritaria"} · ${sessionLabel(session)}`;
+      const items = getParitariaSessionDisplayItems(session);
+      listEl.innerHTML = items.length ? items.map((item, index) => {
+        const linked = typeof item.raw === "string" ? getParitariaItems().find(paritariaItem => paritariaItem.id === item.raw) : null;
+        const currentStatus = linked ? paritariaStatusLabel(linked.status) : "Histórico importado";
+        const petitioner = linked && linked.petitioner ? linked.petitioner : "Sin indicar";
+        return `
+          <label class="session-close-row">
+            <input type="checkbox" data-session-close-point value="${escapeHtml(item.key)}" checked />
+            <span class="session-close-content">
+              <strong><span class="session-close-number">${index + 1}.</span> ${escapeHtml(item.title || "Sin título")}</strong>
+              <small><span>Estado actual: ${escapeHtml(currentStatus)}</span><span>Peticionario: ${escapeHtml(petitioner)}</span></small>
+            </span>
+          </label>
+        `;
+      }).join("") : `<p class="muted">Esta sesión no tiene puntos asignados. Puedes cerrarla sin modificar puntos.</p>`;
+
+      modal.classList.add("open");
+      setTimeout(() => modal.querySelector("[data-session-close-point]")?.focus(), 0);
+    }
+
+    function closeParitariaSessionCloseModal() {
+      activeParitariaCloseSessionId = null;
+      const modal = document.getElementById("paritariaSessionCloseModal");
+      if (modal) modal.classList.remove("open");
+    }
+
+    function confirmParitariaSessionCloseFromModal() {
+      const sessionId = activeParitariaCloseSessionId;
+      if (!sessionId) return;
+      const modal = document.getElementById("paritariaSessionCloseModal");
+      const treatedIds = new Set(Array.from(modal?.querySelectorAll("[data-session-close-point]:checked") || []).map(input => input.value));
+
       const sessions = getParitariaSessions();
       const session = sessions.find(s => s.id === sessionId);
-      if (!session || session.status === "closed") return;
-      const confirmed = confirm(`Cerrar la sesión ${sessionLabel(session)} y pasar sus puntos al histórico de Paritaria?`);
-      if (!confirmed) return;
+      if (!session || session.status === "closed") {
+        closeParitariaSessionCloseModal();
+        return;
+      }
 
       const now = new Date().toISOString();
+      const originalItems = Array.isArray(session.items) ? [...session.items] : [];
+      const displayedItems = getParitariaSessionDisplayItems(session);
+      const linkedDisplayedIds = new Set(displayedItems.filter(item => item.linked).map(item => item.key));
+      session.items = displayedItems.filter(item => treatedIds.has(item.key)).map(item => item.raw);
       session.status = "closed";
       session.closedAt = now;
-      session.items = Array.isArray(session.items) ? session.items : [];
 
       const paritaria = getParitariaItems().map(item => {
+        const wasInSession = originalItems.includes(item.id) || linkedDisplayedIds.has(item.id);
+        if (!wasInSession) return item;
         const order = session.items.indexOf(item.id);
-        if (order < 0) return item;
+        if (order >= 0) {
+          return {
+            ...item,
+            status: "paritaria-closed",
+            closedAt: item.closedAt || now,
+            paritariaSessionId: session.id,
+            paritariaSessionCode: session.code,
+            paritariaSessionDate: session.date,
+            paritariaSessionOrder: order + 1,
+            closedByParitaria: true
+          };
+        }
         return {
           ...item,
-          status: "paritaria-closed",
-          closedAt: item.closedAt || now,
-          paritariaSessionId: session.id,
-          paritariaSessionCode: session.code,
-          paritariaSessionDate: session.date,
-          paritariaSessionOrder: order + 1,
-          closedByParitaria: true
+          status: item.status === "paritaria-closed" ? "paritaria-progress" : item.status,
+          closedAt: item.status === "paritaria-closed" ? null : item.closedAt,
+          paritariaSessionId: "",
+          paritariaSessionCode: "",
+          paritariaSessionDate: "",
+          paritariaSessionOrder: null,
+          closedByParitaria: false
         };
       });
 
       setParitariaSessions(sessions);
       setParitariaItems(paritaria);
+      closeParitariaSessionCloseModal();
       renderParitariaSessions();
       renderParitariaItems();
+      promptParitariaMinuteCreation({ ...session });
     }
 
-    function reopenParitariaSession(sessionId) {
+    function closeParitariaSession(sessionId) {
+      openParitariaSessionCloseModal(sessionId);
+    }
+
+    function closeParitariaSessionFromOrderModal() {
+      const sessionId = activeParitariaOrderSessionId;
+      if (!sessionId) return;
+      closeParitariaSessionOrderModal();
+      openParitariaSessionCloseModal(sessionId);
+    }
+
+    function executeReopenParitariaSession(sessionId) {
       const sessions = getParitariaSessions();
       const session = sessions.find(s => s.id === sessionId);
       if (!session || session.status !== "closed") return;
-      const confirmed = confirm("Reabrir esta sesión? Los puntos seguirán cerrados salvo que los reabras manualmente.");
-      if (!confirmed) return;
       session.status = "open";
       session.closedAt = null;
       setParitariaSessions(sessions);
@@ -512,12 +1030,18 @@
       updateQuickCounts();
     }
 
-    function deleteParitariaSession(sessionId) {
+    function reopenParitariaSession(sessionId) {
+      confirmParitariaAction({
+        title: "Reabrir sesión",
+        message: "¿Quieres reabrir esta sesión? Los puntos seguirán cerrados salvo que los reabras manualmente.",
+        confirmLabel: "Reabrir",
+        danger: false,
+        onConfirm: () => executeReopenParitariaSession(sessionId)
+      });
+    }
+
+    function executeDeleteParitariaSession(sessionId) {
       const sessions = getParitariaSessions();
-      const session = sessions.find(s => s.id === sessionId);
-      if (!session) return;
-      const confirmed = confirm("Eliminar esta sesión? No eliminará los puntos, solo la agrupación de sesión.");
-      if (!confirmed) return;
       setParitariaSessions(sessions.filter(s => s.id !== sessionId));
       const paritaria = getParitariaItems().map(item => item.paritariaSessionId === sessionId ? {
         ...item,
@@ -530,6 +1054,17 @@
       setParitariaItems(paritaria);
       renderParitariaSessions();
       renderParitariaItems();
+    }
+
+    function deleteParitariaSession(sessionId) {
+      const session = getParitariaSessions().find(s => s.id === sessionId);
+      if (!session) return;
+      confirmParitariaAction({
+        title: "Eliminar sesión de Paritaria",
+        message: `¿Quieres eliminar la sesión ${sessionLabel(session)}? No eliminará los puntos, solo la agrupación de sesión.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteParitariaSession(sessionId)
+      });
     }
 
     function getParitariaSessionView() {
@@ -669,7 +1204,7 @@
       card.innerHTML = `
         <div class="session-card-toolbar" onclick="event.stopPropagation()">
           <button class="session-card-icon" type="button" onclick="printParitariaSession('${session.id}')" title="Imprimir esta sesión">🖨️</button>
-          <button class="session-card-icon excel-icon" type="button" onclick="exportParitariaSessionExcel('${session.id}')" title="Exportar esta sesión a Excel">X</button>
+          <button class="session-card-icon excel-icon" type="button" onclick="exportParitariaSessionExcel('${session.id}')" title="Exportar esta sesión a Excel" aria-label="Exportar esta sesión a Excel">X</button>
         </div>
         <div class="rrll-session-card-head">
           <button class="rrll-session-card-toggle" type="button" onclick="event.stopPropagation(); toggleParitariaSessionCard('${session.id}')" aria-expanded="${collapsed ? "false" : "true"}" title="Plegar/desplegar sesión">${collapsed ? "▸" : "▾"}</button>
@@ -688,7 +1223,7 @@
           <div class="session-items">${itemsHtml}</div>
           <div class="task-actions section-gap" onclick="event.stopPropagation()">
             ${!isClosed ? `<button class="small secondary" onclick="openParitariaSessionOrderModal('${session.id}')">Ordenar puntos</button><button class="small" onclick="closeParitariaSession('${session.id}')">Cerrar sesión</button>` : `<button class="small secondary" onclick="openParitariaSessionOrderModal('${session.id}')">Editar histórico</button><button class="small secondary" onclick="reopenParitariaSession('${session.id}')">Reabrir</button>`}
-            <button class="small danger" onclick="deleteParitariaSession('${session.id}')">Eliminar sesión</button>
+            <button class="small danger rrll-delete-icon-button" onclick="deleteParitariaSession('${session.id}')" title="Eliminar sesión" aria-label="Eliminar sesión"><span aria-hidden="true">🗑️</span></button>
           </div>
         </div>
       `;
@@ -762,13 +1297,18 @@
       draggedParitariaParitariaId = null;
 
       const titleEl = document.getElementById("paritariaSessionOrderTitle");
+      const addPointButton = document.getElementById("paritariaSessionAddPointButton");
+      const closeSessionButton = document.getElementById("paritariaSessionCloseButton");
       const modal = document.getElementById("paritariaSessionOrderModal");
       if (titleEl) titleEl.textContent = `${session.title || "Sesión de Paritaria"} · ${sessionLabel(session)}`;
+      if (addPointButton) addPointButton.style.display = session.status === "closed" ? "none" : "inline-flex";
+      if (closeSessionButton) closeSessionButton.style.display = session.status === "closed" ? "none" : "inline-flex";
       renderParitariaSessionOrderDraft();
       if (modal) modal.classList.add("open");
     }
 
     function closeParitariaSessionOrderModal() {
+      closeParitariaSessionAddPointModal();
       activeParitariaOrderSessionId = null;
       paritariaOrderDraft = [];
       draggedParitariaParitariaId = null;
@@ -801,8 +1341,8 @@
           ondrop="handleParitariaOrderDrop(event, '${escapeHtml(item.key)}')"
           ondragend="handleParitariaOrderDragEnd(event)">
           <div class="session-order-number">${index + 1}</div>
-          <div>
-            <textarea class="session-order-edit" data-order-key="${escapeHtml(item.key)}" ${item.linked ? "readonly title='Los puntos vinculados se editan desde el gestor de puntos'" : ""}>${escapeHtml(item.title || "Sin título")}</textarea>
+          <div class="session-order-content">
+            <textarea class="session-order-edit" aria-label="Título del punto ${index + 1}" data-order-key="${escapeHtml(item.key)}" ${item.linked ? "readonly title='Los puntos vinculados se editan desde el gestor de puntos'" : ""}>${escapeHtml(item.title || "Sin título")}</textarea>
             <div class="session-item-meta">${escapeHtml(item.meta || "")}${item.linked ? " · Editar texto desde el gestor de puntos" : ""}</div>
           </div>
           <div class="session-order-handle" title="Arrastra para ordenar">☰</div>
@@ -998,7 +1538,7 @@
             ${item.status !== "paritaria-progress" ? `<button class="small black" onclick="event.stopPropagation(); moveParitariaItem('${item.id}', 'paritaria-progress')">En curso</button>` : ""}
             ${item.status === "paritaria-progress" ? `<button class="small" onclick="event.stopPropagation(); addParitariaItemToParitariaSession('${item.id}')">Añadir a Paritaria</button>` : ""}
             ${item.status !== "paritaria-closed" ? `<button class="small" onclick="event.stopPropagation(); moveParitariaItem('${item.id}', 'paritaria-closed')">Cerrar</button>` : ""}
-            <button class="small danger" onclick="event.stopPropagation(); deleteParitariaItem('${item.id}')">Eliminar</button>
+            <button class="small danger rrll-delete-icon-button" onclick="event.stopPropagation(); deleteParitariaItem('${item.id}')" title="Eliminar punto" aria-label="Eliminar punto"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
       `;
@@ -1076,10 +1616,16 @@
     closeAddParitariaToParitariaModal,
     confirmAddParitariaToParitariaSession,
     addParitariaItemToParitariaSession,
+    openParitariaSessionAddPointModal,
+    closeParitariaSessionAddPointModal,
+    confirmAddSelectedParitariaPoints,
+    closeParitariaSessionCloseModal,
+    confirmParitariaSessionCloseFromModal,
     moveParitariaSessionItem,
     removeParitariaSessionItem,
     syncParitariaSessionOrder,
     closeParitariaSession,
+    closeParitariaSessionFromOrderModal,
     reopenParitariaSession,
     deleteParitariaSession,
     getParitariaSessionView,

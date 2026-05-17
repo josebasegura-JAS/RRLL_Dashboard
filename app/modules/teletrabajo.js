@@ -13,9 +13,18 @@
   const RENEWAL_VALIDATION_VALUES = ["Pendiente", "Sí", "No", "No aplica"];
   const DIRECTION_VALUES = ["Pendiente", "Aprobada", "Denegada"];
   const DAYS = ["Martes", "Miércoles", "Jueves"];
+  const TELEWORK_JOB_CATALOG_HEADERS = [
+    "Puesto Organizativo",
+    "Dirección",
+    "Unidad",
+    "Plantilla",
+    "Teletrabajo S/N",
+    "Presencialidad mínima de personas por puesto para el normal funcionamiento de la unidad Puestos 2 o mas personas"
+  ];
 
   let teleworkViewFilter = "all";
   let editingTeleworkId = null;
+  let teleworkCatalogDraft = null;
 
   function getTeleworkItems() {
     const items = load(KEY, []);
@@ -26,12 +35,9 @@
     save(KEY, Array.isArray(items) ? items.map(normalizeTeleworkItem) : []);
   }
 
-  function currentTeleworkPeriod() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const start = month >= 8 ? year : year - 1;
-    return `${start}-${start + 1}`;
+  function currentTeleworkPeriod(date = new Date()) {
+    const year = date.getFullYear();
+    return `${year}-${year + 1}`;
   }
 
   function normalizeTeleworkPeriod(value) {
@@ -48,16 +54,16 @@
   }
 
   function getTeleworkCampaignInfo(date = new Date()) {
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    if (month >= 9) return { active: `${year}-${year + 1}`, suggested: `${year}-${year + 1}`, manual: false };
-    if (month <= 6) return { active: `${year - 1}-${year}`, suggested: `${year - 1}-${year}`, manual: false };
-    return { active: `${year}-${year + 1}`, suggested: `${year}-${year + 1}`, manual: true };
+    const active = currentTeleworkPeriod(date);
+    return { active, suggested: active, manual: false };
   }
 
   function getTeleworkActiveCampaign() {
-    const selected = String(load(CAMPAIGN_KEY, "") || "").trim();
-    return selected ? normalizeTeleworkPeriod(selected) : getTeleworkCampaignInfo().active;
+    const active = getTeleworkCampaignInfo().active;
+    const selected = normalizeTeleworkPeriod(String(load(CAMPAIGN_KEY, "") || "").trim());
+    const selectedStart = teleworkCampaignStart(selected);
+    const activeStart = teleworkCampaignStart(active);
+    return Number.isFinite(selectedStart) && selectedStart >= activeStart ? selected : active;
   }
 
   function setTeleworkActiveCampaign(period) {
@@ -71,6 +77,28 @@
 
   function compareTeleworkCampaignsDesc(a, b) {
     return teleworkCampaignStart(b) - teleworkCampaignStart(a) || String(b).localeCompare(String(a), "es");
+  }
+
+  function getTeleworkActiveHistoryBoundary() {
+    return teleworkCampaignStart(getTeleworkCampaignInfo().active);
+  }
+
+  function isTeleworkHistoricalCampaign(period) {
+    const start = teleworkCampaignStart(normalizeTeleworkPeriod(period));
+    if (!Number.isFinite(start)) return false;
+    return start < getTeleworkActiveHistoryBoundary();
+  }
+
+  function isTeleworkFutureCampaign(period) {
+    const start = teleworkCampaignStart(normalizeTeleworkPeriod(period));
+    if (!Number.isFinite(start)) return false;
+    return start > getTeleworkActiveHistoryBoundary();
+  }
+
+  function getTeleworkDuplicateKey(item) {
+    const employeeNumber = String(item?.employeeNumber || "").trim().toLowerCase();
+    const period = normalizeTeleworkPeriod(item?.period);
+    return employeeNumber && period !== TELEWORK_NO_PERIOD ? `${employeeNumber}::${period}` : "";
   }
 
   function getTeleworkJobCatalog() {
@@ -89,15 +117,37 @@
     return true;
   }
 
+  function parseTeleworkCatalogNumber(value) {
+    const raw = String(value ?? "").replace(/,/g, ".").trim();
+    if (!raw) return "";
+    const number = Number(raw);
+    return Number.isFinite(number) ? number : String(value ?? "").trim();
+  }
+
+  function normalizeTeleworkSN(value, fallback = "") {
+    const text = normalizeTeleworkLookup(value).replace(/[^a-z0-9]/g, "");
+    if (["s", "si", "sí", "true", "1", "x", "ok", "apto", "apta", "teletrabajable"].includes(text)) return "S";
+    if (["n", "no", "false", "0", "noapto", "noapta", "noelegible", "excluido"].includes(text)) return "N";
+    return fallback;
+  }
+
   function normalizeTeleworkCatalogItem(item) {
     const source = item && typeof item === "object" ? item : {};
-    const job = String(source.job || source.puesto || source["Puesto"] || "").trim();
-    return {
-      job,
-      jobKey: normalizeTeleworkLookup(job),
-      eligible: parseCatalogEligibility(source.eligible ?? source.elegible ?? source.apto ?? source["Elegible"]),
+    const puestoOrganizativo = String(source.puestoOrganizativo || source.job || source.puesto || source["Puesto Organizativo"] || source["Puesto"] || "").trim();
+    const teletrabajoSN = normalizeTeleworkSN(source.teletrabajoSN ?? source.teletrabajo ?? source.eligible ?? source.elegible ?? source.apto ?? source["Teletrabajo S/N"] ?? source["Elegible"], parseCatalogEligibility(source.eligible ?? source.elegible ?? source.apto ?? source["Elegible"]) ? "S" : "N");
+    const normalized = {
+      puestoOrganizativo,
+      direccion: String(source.direccion || source["Dirección"] || source.direccionArea || "").trim(),
+      unidad: String(source.unidad || source["Unidad"] || "").trim(),
+      plantilla: parseTeleworkCatalogNumber(source.plantilla ?? source["Plantilla"]),
+      teletrabajoSN,
+      presencialidadMinima: parseTeleworkCatalogNumber(source.presencialidadMinima ?? source.presencialidad ?? source["Presencialidad mínima"] ?? source["Presencialidad minima"]),
+      jobKey: normalizeTeleworkLookup(puestoOrganizativo),
+      eligible: teletrabajoSN !== "N",
       warning: String(source.warning || source.advertencia || source.observations || source.observaciones || "").trim()
     };
+    normalized.job = normalized.puestoOrganizativo;
+    return normalized;
   }
 
   function getTeleworkJobEligibility(job) {
@@ -109,6 +159,79 @@
     if (!match.eligible) warnings.push("Puesto marcado como no elegible en el catálogo.");
     if (match.warning) warnings.push(match.warning);
     return { eligible: match.eligible, warnings };
+  }
+
+  function getTeleworkCatalogMatchByJob(job, catalog = getTeleworkJobCatalog()) {
+    const key = normalizeTeleworkLookup(job);
+    if (!key) return null;
+    return catalog.find(item => item.jobKey === key) || null;
+  }
+
+  function buildTeleworkRequestCountByJob(items) {
+    return items.reduce((acc, item) => {
+      if (item.status === "telework-denied") return acc;
+      const key = normalizeTeleworkLookup(item.job);
+      if (!key) return acc;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+  }
+
+  function toTeleworkNumericValue(value) {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    const text = String(value ?? "").replace(/,/g, ".").trim();
+    if (!text) return null;
+    const number = Number(text);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function getTeleworkPositionIndicator(item, context = {}) {
+    const catalog = context.catalog || getTeleworkJobCatalog();
+    const countsByJob = context.countsByJob || buildTeleworkRequestCountByJob(getTeleworkVisibleItems());
+    const key = normalizeTeleworkLookup(item.job);
+    const match = getTeleworkCatalogMatchByJob(item.job, catalog);
+    if (!key || !match || match.teletrabajoSN === "N" || !match.eligible) {
+      return {
+        status: "error",
+        className: "telework-status-dot telework-status-dot--error",
+        symbol: "",
+        label: "Puesto no encontrado en catálogo o no teletrabajable"
+      };
+    }
+
+    const plantilla = toTeleworkNumericValue(match.plantilla);
+    const presencialidadMinima = toTeleworkNumericValue(match.presencialidadMinima);
+    if (plantilla === null || presencialidadMinima === null) {
+      return {
+        status: "ok",
+        className: "telework-status-dot telework-status-dot--ok",
+        symbol: "",
+        label: "Puesto teletrabajable dentro del límite permitido"
+      };
+    }
+
+    const maximumAllowed = plantilla - presencialidadMinima;
+    const requests = countsByJob[key] || 0;
+    if (requests > maximumAllowed) {
+      return {
+        status: "warning",
+        className: "telework-status-dot telework-status-dot--warning",
+        symbol: "!",
+        label: "Solicitudes para este puesto por encima del límite permitido"
+      };
+    }
+
+    return {
+      status: "ok",
+      className: "telework-status-dot telework-status-dot--ok",
+      symbol: "",
+      label: "Puesto teletrabajable dentro del límite permitido"
+    };
+  }
+
+  function renderTeleworkPositionIndicator(item, context) {
+    const indicator = getTeleworkPositionIndicator(item, context);
+    return `<span class="${indicator.className}" title="${escapeHtml(indicator.label)}" aria-label="${escapeHtml(indicator.label)}" role="img">${escapeHtml(indicator.symbol)}</span>`;
   }
 
   function pick(value, allowed, fallback) {
@@ -230,6 +353,8 @@
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[\r\n\t]+/g, " ")
+      .replace(/\s{2,}/g, " ")
       .trim();
   }
 
@@ -401,8 +526,14 @@
   function addTelework() {
     const draft = readTeleworkForm("new");
     if (!draft) return;
-    const id = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : String(Date.now());
     const items = getTeleworkItems();
+    const duplicateKey = getTeleworkDuplicateKey(draft);
+    const duplicate = duplicateKey ? items.find(item => getTeleworkDuplicateKey(item) === duplicateKey) : null;
+    if (duplicate) {
+      const message = `Ya existe una solicitud para Nº empleado ${draft.employeeNumber} en la campaña ${draft.period}. Abre la solicitud existente para editarla o confirma si quieres crear un duplicado manual.`;
+      if (!confirm(message)) return;
+    }
+    const id = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : String(Date.now());
     items.unshift({ ...draft, id });
     setTeleworkItems(items);
     resetTeleworkCreateForm();
@@ -410,9 +541,24 @@
     refreshTeleworkDependents();
   }
 
-  function moveTeleworkToProcessing(id) {
+  function executeMoveTeleworkToProcessing(id) {
     setTeleworkItems(getTeleworkItems().map(item => item.id === id ? { ...item, status: "telework-processing", statusManual: true, updatedAt: new Date().toISOString() } : item));
     refreshTeleworkDependents();
+  }
+
+  function moveTeleworkToProcessing(id) {
+    const item = getTeleworkItems().find(entry => entry.id === id);
+    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    if (typeof confirmDangerAction === "function") {
+      confirmDangerAction({
+        title: "Cambiar estado de solicitud",
+        message: `¿Quieres cambiar el estado de ${title} a validaciones pendientes?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeMoveTeleworkToProcessing(id)
+      });
+      return;
+    }
+    executeMoveTeleworkToProcessing(id);
   }
 
   function setTeleworkCheck(id, field, value) {
@@ -425,7 +571,7 @@
     refreshTeleworkDependents();
   }
 
-  function resolveTelework(id, status) {
+  function executeResolveTelework(id, status) {
     if (!["telework-approved", "telework-denied"].includes(status)) return;
     const directionValidation = status === "telework-denied" ? "Denegada" : "Aprobada";
     const now = new Date().toISOString();
@@ -440,12 +586,44 @@
     refreshTeleworkDependents();
   }
 
-  function deleteTelework(id) {
+  function resolveTelework(id, status) {
+    if (!["telework-approved", "telework-denied"].includes(status)) return;
+    const item = getTeleworkItems().find(entry => entry.id === id);
+    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    const nextStatus = teleworkStatusLabel(status).toLowerCase();
+    if (typeof confirmDangerAction === "function") {
+      confirmDangerAction({
+        title: "Cambiar estado de teletrabajo",
+        message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
+        confirmLabel: "Cambiar estado",
+        onConfirm: () => executeResolveTelework(id, status)
+      });
+      return;
+    }
+    executeResolveTelework(id, status);
+  }
+
+  function executeDeleteTelework(id) {
     const items = getTeleworkItems();
     const item = items.find(i => i.id === id);
     if (item && typeof moveToTrash === "function") moveToTrash("telework", item);
     setTeleworkItems(items.filter(i => i.id !== id));
     refreshTeleworkDependents();
+  }
+
+  function deleteTelework(id) {
+    const item = getTeleworkItems().find(i => i.id === id);
+    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    if (typeof confirmDangerAction === "function") {
+      confirmDangerAction({
+        title: "Eliminar solicitud de teletrabajo",
+        message: `¿Quieres eliminar ${title}? Se enviará a la papelera.`,
+        confirmLabel: "Eliminar",
+        onConfirm: () => executeDeleteTelework(id)
+      });
+      return;
+    }
+    executeDeleteTelework(id);
   }
 
   function setTeleworkViewFilter(filter) {
@@ -665,7 +843,7 @@
     try { return new Date(value).toLocaleString("es-ES"); } catch { return "Sin fecha"; }
   }
 
-  function renderTeleworkRow(rawItem) {
+  function renderTeleworkCard(rawItem) {
     const item = normalizeTeleworkItem(rawItem);
     const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
     const daysHtml = item.days.length
@@ -697,15 +875,50 @@
           ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
           ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
           <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
-          <button class="small danger" onclick="deleteTelework('${escapeJs(item.id)}')">Eliminar</button>
+          <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
         </div>
       </article>`;
   }
 
+  function renderTeleworkRow(rawItem, indicatorContext) {
+    const item = normalizeTeleworkItem(rawItem);
+    const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
+    const daysHtml = item.days.length
+      ? item.days.map(day => `<span class="telework-day rrll-pro-source">${escapeHtml(day)}</span>`).join("")
+      : `<span class="telework-day rrll-pro-source">Sin días</span>`;
+    const statusClass = teleworkStatusClass(item.status);
+    const eligibilityWarnings = getTeleworkJobEligibility(item.job).warnings;
+    const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
+
+    return `
+      <tr id="rrll-telework-${escapeHtml(item.id)}" class="rrll-pro-row telework-request-row status-${statusClass}" ondblclick="event.preventDefault(); event.stopPropagation(); openTeleworkEditModal('${escapeJs(item.id)}')" title="Doble clic para editar la ficha completa">
+        <td class="rrll-pro-main-cell telework-col-person">
+          <div class="telework-person-with-indicator">
+            ${renderTeleworkPositionIndicator(item, indicatorContext)}
+            <div class="telework-person-text">
+              <div class="rrll-pro-title">${escapeHtml(item.name || "Sin solicitante")}</div>
+              <div class="rrll-pro-subtitle">Nº empleado: ${escapeHtml(item.employeeNumber || "Sin número")} · ${escapeHtml(item.job || "Sin puesto")}</div>
+            </div>
+          </div>
+          ${eligibilityHtml}
+        </td>
+        <td class="telework-col-status"><span class="rrll-status-pill ${statusClass}">${escapeHtml(teleworkStatusLabel(item.status))}</span></td>
+        <td class="telework-col-period"><span class="rrll-pro-source">${escapeHtml(item.period || "Sin periodo")}</span></td>
+        <td class="telework-col-type"><span class="rrll-pro-source">${escapeHtml(item.type || "Nuevo")}</span></td>
+        <td class="telework-col-days"><div class="telework-days rrll-pro-day-list">${daysHtml}</div></td>
+        <td class="telework-col-created"><span class="rrll-pro-created">${escapeHtml(created)}</span></td>
+      </tr>`;
+  }
+
   function getTeleworkCampaigns() {
     const info = getTeleworkCampaignInfo();
+    const activeStart = teleworkCampaignStart(info.active);
     const campaigns = new Set([info.active, info.suggested, getTeleworkActiveCampaign()]);
-    getTeleworkItems().forEach(item => campaigns.add(normalizeTeleworkPeriod(item.period)));
+    getTeleworkItems().forEach(item => {
+      const period = normalizeTeleworkPeriod(item.period);
+      const start = teleworkCampaignStart(period);
+      if (Number.isFinite(start) && start >= activeStart) campaigns.add(period);
+    });
     return Array.from(campaigns).filter(Boolean).sort(compareTeleworkCampaignsDesc);
   }
 
@@ -723,19 +936,25 @@
     const hint = document.getElementById("teleworkCampaignHint");
     if (hint) {
       const info = getTeleworkCampaignInfo();
-      hint.textContent = info.manual ? `Julio/agosto: elige manualmente. Sugerida ${info.suggested}.` : `Campaña calculada automáticamente: ${info.active}.`;
+      hint.textContent = `Campaña vigente por año natural: ${info.active}. Las campañas anteriores se muestran solo en histórico.`;
     }
   }
 
   function changeTeleworkCampaign(period) {
-    setTeleworkActiveCampaign(period);
+    const normalized = normalizeTeleworkPeriod(period);
+    if (isTeleworkHistoricalCampaign(normalized)) {
+      alert(`La campaña ${normalized} es histórica y se consulta en el bloque Histórico de campañas.`);
+      ensureTeleworkPeriodControls();
+      return;
+    }
+    setTeleworkActiveCampaign(normalized);
     const periodEl = document.getElementById("newTeleworkPeriod");
     if (periodEl) periodEl.value = getTeleworkActiveCampaign();
     refreshTeleworkDependents();
   }
 
   function addTeleworkCampaignOption() {
-    const answer = prompt("Indica la campaña a seleccionar (formato 2025-2026):", getTeleworkCampaignInfo().suggested);
+    const answer = prompt("Indica la campaña futura/manual a seleccionar (formato 2026-2027):", getTeleworkCampaignInfo().suggested);
     if (answer === null) return;
     const period = normalizeTeleworkPeriod(answer);
     if (!period || period === TELEWORK_NO_PERIOD) return;
@@ -791,18 +1010,23 @@
   function renderTeleworkHistory(items) {
     const box = document.getElementById("teleworkHistoryList");
     if (!box) return;
-    const active = getTeleworkActiveCampaign();
     const grouped = groupTeleworkByPeriod(items);
-    const periods = Object.keys(grouped).sort(compareTeleworkCampaignsDesc);
-    box.innerHTML = periods.map(period => {
-      const rows = grouped[period].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).map(renderTeleworkRow).join("");
-      const isCurrent = period === active;
-      const warning = isCurrent ? "" : `<div class="telework-history-warning">Campaña no seleccionada: vista de histórico.</div>`;
-      return `<details class="telework-history-campaign" ${isCurrent ? "open" : ""}>
-        <summary><strong>${escapeHtml(period)}</strong><span>${isCurrent ? "Campaña seleccionada" : "Histórico"} · ${grouped[period].length} solicitudes</span></summary>
-        ${warning}<div class="telework-request-list">${rows}</div>
+    const renderPeriodBlock = (period, label, className = "telework-history-campaign") => {
+      const rows = grouped[period].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).map(renderTeleworkCard).join("");
+      return `<details class="${className}">
+        <summary><strong>${escapeHtml(period)}</strong><span>${label} · ${grouped[period].length} solicitudes</span></summary>
+        <div class="history-table-wrapper telework-history-table-wrapper"><div class="telework-request-list">${rows}</div></div>
       </details>`;
-    }).join("") || `<div class="rrll-pro-empty">Sin campañas registradas.</div>`;
+    };
+    const historicalPeriods = Object.keys(grouped)
+      .filter(period => isTeleworkHistoricalCampaign(period))
+      .sort(compareTeleworkCampaignsDesc);
+    const futurePeriods = Object.keys(grouped)
+      .filter(period => isTeleworkFutureCampaign(period))
+      .sort(compareTeleworkCampaignsDesc);
+    const historicalHtml = historicalPeriods.map(period => renderPeriodBlock(period, "Histórico")).join("") || `<div class="rrll-pro-empty">Sin campañas históricas cerradas.</div>`;
+    const futureHtml = futurePeriods.length ? `<div class="telework-future-heading">Campañas futuras/manuales</div>${futurePeriods.map(period => renderPeriodBlock(period, "Planificada", "telework-history-campaign telework-future-campaign")).join("")}` : "";
+    box.innerHTML = `${historicalHtml}${futureHtml}`;
   }
 
   function renderTelework() {
@@ -827,11 +1051,138 @@
     if (activeFilter) activeFilter.classList.add("active");
 
     const filtered = getTeleworkVisibleItems(items);
+    const indicatorContext = {
+      catalog: getTeleworkJobCatalog(),
+      countsByJob: buildTeleworkRequestCountByJob(selectedItems)
+    };
     const list = document.getElementById("teleworkListBody") || document.getElementById("teleworkTableBody");
     const empty = document.getElementById("teleworkTableEmpty");
-    if (list) list.innerHTML = filtered.map(renderTeleworkRow).join("");
+    if (list) {
+      list.innerHTML = `
+        <div class="rrll-pro-table-wrap telework-table-wrap">
+          <table class="rrll-pro-table telework-table">
+            <thead>
+              <tr>
+                <th>Solicitante</th>
+                <th>Estado</th>
+                <th>Campaña</th>
+                <th>Tipo</th>
+                <th>Días</th>
+                <th>Creada</th>
+              </tr>
+            </thead>
+            <tbody>${filtered.map(item => renderTeleworkRow(item, indicatorContext)).join("")}</tbody>
+          </table>
+        </div>`;
+    }
     if (empty) empty.style.display = filtered.length ? "none" : "block";
     renderTeleworkHistory(items);
+  }
+
+  function openTeleworkJobCatalogModal() {
+    const modal = document.getElementById("teleworkJobCatalogModal");
+    if (!modal) return;
+    teleworkCatalogDraft = getTeleworkJobCatalog();
+    renderTeleworkJobCatalogModal();
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    setTimeout(() => document.getElementById("teleworkJobCatalogSearch")?.focus(), 0);
+  }
+
+  function closeTeleworkJobCatalogModal() {
+    const modal = document.getElementById("teleworkJobCatalogModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    teleworkCatalogDraft = null;
+  }
+
+  function teleworkCatalogDraftFromRow(index) {
+    const field = name => document.querySelector(`[data-telework-catalog-index="${index}"][data-telework-catalog-field="${name}"]`);
+    return normalizeTeleworkCatalogItem({
+      puestoOrganizativo: field("puestoOrganizativo")?.value || "",
+      direccion: field("direccion")?.value || "",
+      unidad: field("unidad")?.value || "",
+      plantilla: field("plantilla")?.value || "",
+      teletrabajoSN: field("teletrabajoSN")?.value || "",
+      presencialidadMinima: field("presencialidadMinima")?.value || ""
+    });
+  }
+
+  function getTeleworkCatalogDraftSource() {
+    if (!Array.isArray(teleworkCatalogDraft)) teleworkCatalogDraft = getTeleworkJobCatalog();
+    return [...teleworkCatalogDraft];
+  }
+
+  function getTeleworkCatalogDraftFromModal() {
+    const next = getTeleworkCatalogDraftSource();
+    document.querySelectorAll("#teleworkJobCatalogBody tr[data-telework-catalog-index]").forEach(row => {
+      const index = Number(row.dataset.teleworkCatalogIndex);
+      next[index] = teleworkCatalogDraftFromRow(index);
+    });
+    teleworkCatalogDraft = next;
+    return next.filter(item => item && item.jobKey);
+  }
+
+  function renderTeleworkJobCatalogModal() {
+    const body = document.getElementById("teleworkJobCatalogBody");
+    if (!body) return;
+    const query = normalizeTeleworkLookup(document.getElementById("teleworkJobCatalogSearch")?.value || "");
+    const items = getTeleworkCatalogDraftFromModal();
+    const filtered = items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => !query || [item.puestoOrganizativo, item.direccion, item.unidad, item.teletrabajoSN].some(value => normalizeTeleworkLookup(value).includes(query)));
+    const count = document.getElementById("teleworkJobCatalogCount");
+    if (count) count.textContent = `${filtered.length} de ${items.length} puestos`;
+    body.innerHTML = filtered.map(({ item, index }) => renderTeleworkCatalogRow(item, index)).join("") || `<tr><td colspan="7" class="telework-catalog-empty">Sin puestos importados. Usa “Nuevo puesto” o importa un modelo Excel.</td></tr>`;
+  }
+
+  function renderTeleworkCatalogRow(item, index) {
+    const input = (field, value, type = "text") => `<input data-telework-catalog-index="${index}" data-telework-catalog-field="${field}" type="${type}" value="${escapeHtml(value ?? "")}" />`;
+    return `<tr data-telework-catalog-index="${index}">
+      <td>${input("puestoOrganizativo", item.puestoOrganizativo)}</td>
+      <td>${input("direccion", item.direccion)}</td>
+      <td>${input("unidad", item.unidad)}</td>
+      <td>${input("plantilla", item.plantilla, "number")}</td>
+      <td><select data-telework-catalog-index="${index}" data-telework-catalog-field="teletrabajoSN"><option value="S" ${item.teletrabajoSN === "S" ? "selected" : ""}>S</option><option value="N" ${item.teletrabajoSN === "N" ? "selected" : ""}>N</option></select></td>
+      <td>${input("presencialidadMinima", item.presencialidadMinima, "number")}</td>
+      <td><button class="secondary telework-catalog-delete" type="button" onclick="deleteTeleworkCatalogRow(${index})">Eliminar</button></td>
+    </tr>`;
+  }
+
+  function addTeleworkCatalogRow() {
+    const current = getTeleworkCatalogDraftFromModal();
+    current.push(normalizeTeleworkCatalogItem({ puestoOrganizativo: "Nuevo puesto", teletrabajoSN: "S" }));
+    teleworkCatalogDraft = current;
+    const search = document.getElementById("teleworkJobCatalogSearch");
+    if (search) search.value = "";
+    renderTeleworkJobCatalogModal();
+    setTimeout(() => document.querySelector("#teleworkJobCatalogBody tr:last-child input")?.focus(), 0);
+  }
+
+  function deleteTeleworkCatalogRow(index) {
+    const item = getTeleworkCatalogDraftFromModal()[Number(index)];
+    const title = item?.puestoOrganizativo ? `“${item.puestoOrganizativo}”` : "este puesto";
+    const remove = () => {
+      const next = getTeleworkCatalogDraftFromModal().filter((_, idx) => idx !== Number(index));
+      teleworkCatalogDraft = next;
+      renderTeleworkJobCatalogModal();
+    };
+    if (typeof confirmDangerAction === "function") {
+      confirmDangerAction({ title: "Eliminar puesto teletrabajo", message: `¿Quieres eliminar ${title} del catálogo?`, confirmLabel: "Eliminar", onConfirm: remove });
+      return;
+    }
+    if (confirm(`¿Quieres eliminar ${title} del catálogo?`)) remove();
+  }
+
+  function saveTeleworkJobCatalogModal() {
+    const next = getTeleworkCatalogDraftFromModal();
+    setTeleworkJobCatalog(next);
+    renderTeleworkJobCatalogModal();
+    renderTeleworkEligibilityWarning("new");
+    renderTeleworkEligibilityWarning("edit");
+    renderTelework();
+    alert(`Catálogo guardado. Puestos: ${next.length}.`);
   }
 
   function escapeJs(value) {
@@ -874,16 +1225,153 @@
     return rows.filter(r => r.some(c => String(c || "").trim()));
   }
 
+  function spreadsheetCellToText(value) {
+    return String(value ?? "").replace(/\u00a0/g, " ").trim();
+  }
+
+  function columnLettersToIndex(ref) {
+    const letters = String(ref || "").replace(/[^A-Z]/gi, "").toUpperCase();
+    let index = 0;
+    for (const letter of letters) index = (index * 26) + letter.charCodeAt(0) - 64;
+    return Math.max(index - 1, 0);
+  }
+
+  function columnIndexToLetters(index) {
+    let number = index + 1;
+    let letters = "";
+    while (number > 0) {
+      const remainder = (number - 1) % 26;
+      letters = String.fromCharCode(65 + remainder) + letters;
+      number = Math.floor((number - 1) / 26);
+    }
+    return letters;
+  }
+
+  async function inflateTeleworkZipEntry(bytes, compressionMethod) {
+    if (compressionMethod === 0) return bytes;
+    if (compressionMethod !== 8) throw new Error("El Excel usa un método de compresión no soportado.");
+    if (typeof DecompressionStream !== "function") throw new Error("Este entorno no permite descomprimir archivos .xlsx.");
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  function decodeTeleworkUtf8(bytes) {
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  async function readTeleworkZipEntries(buffer) {
+    const data = new Uint8Array(buffer);
+    const view = new DataView(buffer);
+    const entries = {};
+    for (let i = data.length - 22; i >= 0; i -= 1) {
+      if (view.getUint32(i, true) !== 0x06054b50) continue;
+      const total = view.getUint16(i + 10, true);
+      let offset = view.getUint32(i + 16, true);
+      for (let e = 0; e < total; e += 1) {
+        if (view.getUint32(offset, true) !== 0x02014b50) break;
+        const method = view.getUint16(offset + 10, true);
+        const compressedSize = view.getUint32(offset + 20, true);
+        const fileNameLength = view.getUint16(offset + 28, true);
+        const extraLength = view.getUint16(offset + 30, true);
+        const commentLength = view.getUint16(offset + 32, true);
+        const localOffset = view.getUint32(offset + 42, true);
+        const fileName = decodeTeleworkUtf8(data.slice(offset + 46, offset + 46 + fileNameLength));
+        const localNameLength = view.getUint16(localOffset + 26, true);
+        const localExtraLength = view.getUint16(localOffset + 28, true);
+        const dataStart = localOffset + 30 + localNameLength + localExtraLength;
+        entries[fileName] = decodeTeleworkUtf8(await inflateTeleworkZipEntry(data.slice(dataStart, dataStart + compressedSize), method));
+        offset += 46 + fileNameLength + extraLength + commentLength;
+      }
+      return entries;
+    }
+    throw new Error("No se pudo abrir el archivo Excel.");
+  }
+
+  function parseTeleworkSharedStrings(xmlText) {
+    if (!xmlText) return [];
+    const doc = new DOMParser().parseFromString(xmlText, "application/xml");
+    return [...doc.querySelectorAll("si")].map(si => [...si.querySelectorAll("t")].map(t => t.textContent || "").join(""));
+  }
+
+  function getFirstTeleworkWorksheetPath(entries) {
+    const workbook = entries["xl/workbook.xml"];
+    const rels = entries["xl/_rels/workbook.xml.rels"];
+    if (!workbook || !rels) return "xl/worksheets/sheet1.xml";
+    const workbookDoc = new DOMParser().parseFromString(workbook, "application/xml");
+    const firstSheet = workbookDoc.querySelector("sheet");
+    const relId = firstSheet?.getAttribute("r:id");
+    if (!relId) return "xl/worksheets/sheet1.xml";
+    const relsDoc = new DOMParser().parseFromString(rels, "application/xml");
+    const relationship = [...relsDoc.querySelectorAll("Relationship")].find(rel => rel.getAttribute("Id") === relId);
+    const target = relationship?.getAttribute("Target") || "worksheets/sheet1.xml";
+    return `xl/${target.replace(/^\//, "").replace(/^xl\//, "")}`;
+  }
+
+  function parseTeleworkWorksheetRows(xmlText, sharedStrings) {
+    const doc = new DOMParser().parseFromString(xmlText, "application/xml");
+    return [...doc.querySelectorAll("sheetData row")].map(rowNode => {
+      const row = [];
+      [...rowNode.querySelectorAll("c")].forEach(cell => {
+        const index = columnLettersToIndex(cell.getAttribute("r"));
+        const type = cell.getAttribute("t");
+        let value = "";
+        if (type === "inlineStr") {
+          value = [...cell.querySelectorAll("is t")].map(t => t.textContent || "").join("");
+        } else {
+          value = cell.querySelector("v")?.textContent || "";
+          if (type === "s") value = sharedStrings[Number(value)] || "";
+        }
+        row[index] = spreadsheetCellToText(value);
+      });
+      return row.map(cell => cell || "");
+    }).filter(row => row.some(Boolean));
+  }
+
+  async function readTeleworkImportRows(file) {
+    const name = String(file?.name || "").toLowerCase();
+    const buffer = await file.arrayBuffer();
+    if (name.endsWith(".xlsx")) {
+      const entries = await readTeleworkZipEntries(buffer);
+      const worksheetPath = getFirstTeleworkWorksheetPath(entries);
+      if (!entries[worksheetPath]) throw new Error("No se encontró la primera hoja del Excel.");
+      return parseTeleworkWorksheetRows(entries[worksheetPath], parseTeleworkSharedStrings(entries["xl/sharedStrings.xml"]));
+    }
+    return parseTeleworkCsv(new TextDecoder("utf-8").decode(buffer));
+  }
+
+  function teleworkRowsToRecords(rows) {
+    if (rows.length < 2) return { headers: [], records: [] };
+    const headers = rows[0].map(teleworkHeaderKey);
+    const records = rows.slice(1).map(row => Object.fromEntries(headers.map((h, idx) => [h, row[idx] || ""])));
+    return { headers, records };
+  }
+
   function teleworkHeaderKey(value) {
     return normalizeTeleworkLookup(value).replace(/[^a-z0-9]/g, "");
   }
 
   function teleworkCell(record, aliases) {
+    const recordKeys = Object.keys(record);
     for (const alias of aliases) {
-      const key = Object.keys(record).find(k => k === teleworkHeaderKey(alias));
+      const aliasKey = teleworkHeaderKey(alias);
+      const key = recordKeys.find(k => k === aliasKey);
       if (key) return String(record[key] || "").trim();
     }
     return "";
+  }
+
+  function buildTeleworkCatalogItemFromRecord(record) {
+    const puestoOrganizativo = teleworkCell(record, ["Puesto Organizativo", "Puesto de trabajo", "Puesto", "Job"]);
+    if (!puestoOrganizativo) return null;
+    return normalizeTeleworkCatalogItem({
+      puestoOrganizativo,
+      direccion: teleworkCell(record, ["Dirección", "Direccion"]),
+      unidad: teleworkCell(record, ["Unidad"]),
+      plantilla: teleworkCell(record, ["Plantilla"]),
+      teletrabajoSN: teleworkCell(record, ["Teletrabajo S/N", "Teletrabajo SN", "Teletrabajo", "Elegible", "Apto", "Teletrabajable"]),
+      presencialidadMinima: teleworkCell(record, ["Presencialidad mínima de personas por puesto para el normal funcionamiento de la unidad Puestos 2 o mas personas", "Presencialidad minima de personas por puesto para el normal funcionamiento de la unidad Puestos 2 o mas personas", "Presencialidad mínima", "Presencialidad minima", "Presencialidad"]),
+      warning: teleworkCell(record, ["Advertencia", "Observaciones", "Notas"])
+    });
   }
 
   function renderTeleworkEligibilityWarning(prefix = "new") {
@@ -895,33 +1383,30 @@
     box.classList.toggle("visible", warnings.length > 0);
   }
 
-  function importTeleworkJobCatalog(event) {
+  function applyTeleworkJobCatalogRows(rows) {
+    if (rows.length < 2) throw new Error("El catálogo no contiene filas importables.");
+    const { records } = teleworkRowsToRecords(rows);
+    const catalog = records.map(buildTeleworkCatalogItemFromRecord).filter(item => item && item.jobKey);
+    setTeleworkJobCatalog(catalog);
+    renderTelework();
+    renderTeleworkEligibilityWarning("new");
+    renderTeleworkJobCatalogModal();
+    return catalog;
+  }
+
+  async function importTeleworkJobCatalog(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const rows = parseTeleworkCsv(String(reader.result || ""));
-        if (rows.length < 2) { alert("El catálogo no contiene filas importables."); return; }
-        const headers = rows[0].map(teleworkHeaderKey);
-        const records = rows.slice(1).map(row => Object.fromEntries(headers.map((h, idx) => [h, row[idx] || ""])));
-        const catalog = records.map(record => normalizeTeleworkCatalogItem({
-          job: teleworkCell(record, ["Puesto", "Puesto de trabajo", "Job"]),
-          eligible: teleworkCell(record, ["Elegible", "Apto", "Teletrabajable"]),
-          warning: teleworkCell(record, ["Advertencia", "Observaciones", "Notas"])
-        })).filter(item => item.jobKey);
-        setTeleworkJobCatalog(catalog);
-        renderTelework();
-        renderTeleworkEligibilityWarning("new");
-        alert(`Catálogo de puestos importado. Puestos: ${catalog.length}.`);
-      } catch (error) {
-        console.error("Error importando catálogo de puestos:", error);
-        alert(`No se pudo importar el catálogo. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
-      } finally {
-        event.target.value = "";
-      }
-    };
-    reader.readAsText(file, "utf-8");
+    try {
+      const catalog = applyTeleworkJobCatalogRows(await readTeleworkImportRows(file));
+      alert(`Catálogo de puestos importado. Puestos: ${catalog.length}.`);
+    } catch (error) {
+      console.error("Error importando catálogo de puestos:", error);
+      alert(`No se pudo importar el catálogo. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
+    } finally {
+      event.target.value = "";
+      closeTeleworkImportModal();
+    }
   }
 
   function parseTeleworkBoolean(value) {
@@ -930,13 +1415,26 @@
       return ["si", "sí", "s", "true", "1", "x", "ok", "aprobado", "favorable"].includes(text);
     }
 
+  function teleworkStatusFromImport(record) {
+      const value = teleworkCell(record, ["Estado", "Estado solicitud", "Estado de solicitud", "Situación", "Situacion"]);
+      const text = normalizeTeleworkLookup(value);
+      if (!text) return "";
+      if (text.includes("aprob")) return "telework-approved";
+      if (text.includes("deneg") || text.includes("rechaz")) return "telework-denied";
+      if (text.includes("direccion")) return "telework-direction";
+      if (text.includes("validacion") || text.includes("validaciones") || text.includes("tram") || text.includes("proceso")) return "telework-processing";
+      if (text.includes("recibid") || text.includes("entrada") || text.includes("solicitud")) return "telework-entry";
+      return STATUS_VALUES.includes(value) ? value : "";
+    }
+
   function buildTeleworkImportItem(record, defaultPeriod) {
       const original = teleworkCell(record, ["Petición original", "Peticion original", "Días solicitados", "Dias solicitados"]);
       const days = ["Martes", "Miércoles", "Jueves"].filter(day => parseTeleworkBoolean(teleworkCell(record, [day])));
       if (!days.length && original) {
         ["Martes", "Miércoles", "Jueves"].forEach(day => { if (normalizeTeleworkLookup(original).includes(normalizeTeleworkLookup(day))) days.push(day); });
       }
-      const status = parseTeleworkBoolean(teleworkCell(record, ["Validación Dirección", "Validacion Direccion"])) ? "telework-approved" : "telework-processing";
+      const directionApproved = parseTeleworkBoolean(teleworkCell(record, ["Validación Dirección", "Validacion Direccion"]));
+      const importedStatus = teleworkStatusFromImport(record);
       const resolvedAt = teleworkCell(record, ["Fecha resolución", "Fecha resolucion"]);
       return normalizeTeleworkItem({
         id: (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
@@ -952,59 +1450,196 @@
         prevention: parseTeleworkBoolean(teleworkCell(record, ["Prevención", "Prevencion"])) ? "Sí" : "Pendiente",
         previousYearTeleworked: parseTeleworkBoolean(teleworkCell(record, ["Año anterior teletrabajado", "Ano anterior teletrabajado"])) ? "Sí" : "No aplica",
         unitHeadRepeatValidation: parseTeleworkBoolean(teleworkCell(record, ["Validación Jefatura Unidad a repetir", "Validacion Jefatura Unidad a repetir"])) ? "Sí" : "No aplica",
-        directionValidation: parseTeleworkBoolean(teleworkCell(record, ["Validación Dirección", "Validacion Direccion"])) ? "Aprobada" : "Pendiente",
-        status: resolvedAt ? status : "telework-processing",
+        directionValidation: directionApproved ? "Aprobada" : "Pendiente",
+        resolutionDate: resolvedAt || "",
+        status: importedStatus || (resolvedAt || directionApproved ? "telework-approved" : "telework-entry"),
+        statusManual: true,
         resolvedAt: resolvedAt || null,
         observations: teleworkCell(record, ["Observaciones", "Notas"]),
         createdAt: new Date().toISOString()
       });
     }
 
-  function importTeleworkData(event) {
+  function applyTeleworkDataRows(rows) {
+      if (rows.length < 2) throw new Error("El fichero no contiene filas importables.");
+      const { headers, records } = teleworkRowsToRecords(rows);
+      const hasPeriod = headers.some(h => h === "periodo" || h === "campana");
+      const periodAnswer = hasPeriod ? "" : prompt("El fichero no trae periodo/campaña. Indica campaña para asignar a todos los registros:", getTeleworkActiveCampaign());
+      if (!hasPeriod && periodAnswer === null) return null;
+      const defaultPeriod = hasPeriod ? "" : normalizeTeleworkPeriod(periodAnswer);
+      const imported = records.map(record => buildTeleworkImportItem(record, defaultPeriod)).filter(item => item.employeeNumber && item.name);
+      const existing = getTeleworkItems();
+      const existingKeys = new Set(existing.map(getTeleworkDuplicateKey).filter(Boolean));
+      const seenImportKeys = new Set();
+      const duplicateCount = imported.reduce((count, item) => {
+        const key = getTeleworkDuplicateKey(item);
+        const duplicated = key && (existingKeys.has(key) || seenImportKeys.has(key));
+        if (key) seenImportKeys.add(key);
+        return duplicated ? count + 1 : count;
+      }, 0);
+      let mode = "append";
+      if (duplicateCount) {
+        const answer = prompt(`${duplicateCount} posible(s) duplicado(s) por Nº empleado + campaña. Escribe "omitir" para no importarlos, "actualizar" para actualizar registros existentes o "cancelar".`, "omitir");
+        if (!answer || normalizeTeleworkLookup(answer).startsWith("cancel")) return null;
+        mode = normalizeTeleworkLookup(answer).startsWith("actual") ? "update" : "skip";
+      }
+      const next = [...existing];
+      let added = 0, updated = 0, skipped = 0;
+      imported.forEach(item => {
+        const key = getTeleworkDuplicateKey(item);
+        const index = key ? next.findIndex(current => getTeleworkDuplicateKey(current) === key) : -1;
+        if (index >= 0 && mode === "update") { next[index] = { ...next[index], ...item, id: next[index].id, createdAt: next[index].createdAt || item.createdAt, updatedAt: new Date().toISOString() }; updated += 1; return; }
+        if (index >= 0) { skipped += 1; return; }
+        next.unshift(item); added += 1;
+      });
+      setTeleworkItems(next);
+      renderTelework();
+      if (typeof updateQuickCounts === "function") updateQuickCounts();
+      if (typeof renderHomeDashboard === "function") renderHomeDashboard();
+      return { added, updated, skipped };
+    }
+
+  function isTeleworkCatalogImport(headers) {
+    const catalogColumns = ["puestoorganizativo", "teletrabajosn", "teletrabajo", "direccion", "unidad", "plantilla", "presencialidadminimadepersonasporpuestoparaelnormalfuncionamientodelaunidadpuestos2omaspersonas", "presencialidadminima", "elegible", "apto", "teletrabajable"];
+    const hasCatalogColumn = headers.some(h => catalogColumns.includes(h));
+    const hasPersonColumn = headers.some(h => ["noempleado", "nempleado", "numeroempleado", "nombre", "nombreyapellidos", "solicitante"].includes(h));
+    return hasCatalogColumn && !hasPersonColumn;
+  }
+
+  async function importTeleworkData(event) {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const rows = parseTeleworkCsv(String(reader.result || ""));
-          if (rows.length < 2) { alert("El fichero no contiene filas importables."); return; }
-          const headers = rows[0].map(teleworkHeaderKey);
-          const records = rows.slice(1).map(row => Object.fromEntries(headers.map((h, idx) => [h, row[idx] || ""])));
-          const hasPeriod = headers.some(h => h === "periodo" || h === "campana");
-          const periodAnswer = hasPeriod ? "" : prompt("El fichero no trae periodo/campaña. Indica campaña para asignar a todos los registros:", getTeleworkActiveCampaign());
-          if (!hasPeriod && periodAnswer === null) return;
-          const defaultPeriod = hasPeriod ? "" : normalizeTeleworkPeriod(periodAnswer);
-          const imported = records.map(record => buildTeleworkImportItem(record, defaultPeriod)).filter(item => item.employeeNumber && item.name);
-          const existing = getTeleworkItems();
-          const duplicates = imported.filter(item => existing.some(current => String(current.employeeNumber || "").trim() === String(item.employeeNumber || "").trim() && normalizeTeleworkPeriod(current.period) === normalizeTeleworkPeriod(item.period)));
-          let mode = "append";
-          if (duplicates.length) {
-            const answer = prompt(`${duplicates.length} posible(s) duplicado(s) por Nº empleado + periodo. Escribe "omitir" para no importarlos, "actualizar" para actualizar registros existentes o "cancelar".`, "omitir");
-            if (!answer || normalizeTeleworkLookup(answer).startsWith("cancel")) return;
-            mode = normalizeTeleworkLookup(answer).startsWith("actual") ? "update" : "skip";
-          }
-          const next = [...existing];
-          let added = 0, updated = 0, skipped = 0;
-          imported.forEach(item => {
-            const index = next.findIndex(current => String(current.employeeNumber || "").trim() === String(item.employeeNumber || "").trim() && normalizeTeleworkPeriod(current.period) === normalizeTeleworkPeriod(item.period));
-            if (index >= 0 && mode === "update") { next[index] = { ...next[index], ...item, id: next[index].id, createdAt: next[index].createdAt || item.createdAt, updatedAt: new Date().toISOString() }; updated += 1; return; }
-            if (index >= 0) { skipped += 1; return; }
-            next.unshift(item); added += 1;
-          });
-          setTeleworkItems(next);
-          renderTelework();
-          if (typeof updateQuickCounts === "function") updateQuickCounts();
-          if (typeof renderHomeDashboard === "function") renderHomeDashboard();
-          alert(`Importación finalizada. Añadidos: ${added}. Actualizados: ${updated}. Omitidos: ${skipped}.`);
-        } catch (error) {
-          console.error("Error importando teletrabajo:", error);
-          alert(`No se pudo importar el fichero. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
-        } finally {
-          event.target.value = "";
+      try {
+        const rows = await readTeleworkImportRows(file);
+        const { headers } = teleworkRowsToRecords(rows);
+        if (isTeleworkCatalogImport(headers)) {
+          const catalog = applyTeleworkJobCatalogRows(rows);
+          alert(`Catálogo de puestos importado. Puestos: ${catalog.length}.`);
+          return;
         }
-      };
-      reader.readAsText(file, "utf-8");
+        const summary = applyTeleworkDataRows(rows);
+        if (summary) alert(`Importación finalizada. Añadidos: ${summary.added}. Actualizados: ${summary.updated}. Omitidos: ${summary.skipped}.`);
+      } catch (error) {
+        console.error("Error importando teletrabajo:", error);
+        alert(`No se pudo importar el fichero. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
+      } finally {
+        event.target.value = "";
+        closeTeleworkImportModal();
+      }
     }
+
+  function teleworkXmlEscape(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function buildTeleworkWorksheetXml(rows) {
+    const sheetRows = rows.map((row, rowIndex) => {
+      const cells = row.map((value, columnIndex) => {
+        const ref = `${columnIndexToLetters(columnIndex)}${rowIndex + 1}`;
+        return `<c r="${ref}" t="inlineStr"><is><t>${teleworkXmlEscape(value)}</t></is></c>`;
+      }).join("");
+      return `<row r="${rowIndex + 1}">${cells}</row>`;
+    }).join("");
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`;
+  }
+
+  function teleworkCrc32(bytes) {
+    let crc = -1;
+    for (const byte of bytes) {
+      crc ^= byte;
+      for (let i = 0; i < 8; i += 1) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+    }
+    return (crc ^ -1) >>> 0;
+  }
+
+  function teleworkUint16(value) {
+    return [value & 255, (value >>> 8) & 255];
+  }
+
+  function teleworkUint32(value) {
+    return [value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255];
+  }
+
+  function buildTeleworkXlsxBlob(sheetName, rows) {
+    const enc = new TextEncoder();
+    const files = [
+      ["[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+      ["_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+      ["xl/workbook.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${teleworkXmlEscape(sheetName)}" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+      ["xl/_rels/workbook.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+      ["xl/styles.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts><fills count="1"><fill><patternFill patternType="none"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="1"><xf xfId="0"/></cellXfs></styleSheet>`],
+      ["xl/worksheets/sheet1.xml", buildTeleworkWorksheetXml(rows)]
+    ].map(([name, content]) => ({ name, nameBytes: enc.encode(name), bytes: enc.encode(content) }));
+    const chunks = [];
+    const central = [];
+    let offset = 0;
+    files.forEach(file => {
+      const crc = teleworkCrc32(file.bytes);
+      const local = new Uint8Array([0x50, 0x4b, 0x03, 0x04, ...teleworkUint16(20), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint32(crc), ...teleworkUint32(file.bytes.length), ...teleworkUint32(file.bytes.length), ...teleworkUint16(file.nameBytes.length), ...teleworkUint16(0)]);
+      chunks.push(local, file.nameBytes, file.bytes);
+      central.push({ ...file, crc, offset });
+      offset += local.length + file.nameBytes.length + file.bytes.length;
+    });
+    const centralStart = offset;
+    central.forEach(file => {
+      const header = new Uint8Array([0x50, 0x4b, 0x01, 0x02, ...teleworkUint16(20), ...teleworkUint16(20), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint32(file.crc), ...teleworkUint32(file.bytes.length), ...teleworkUint32(file.bytes.length), ...teleworkUint16(file.nameBytes.length), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint32(0), ...teleworkUint32(file.offset)]);
+      chunks.push(header, file.nameBytes);
+      offset += header.length + file.nameBytes.length;
+    });
+    const centralSize = offset - centralStart;
+    chunks.push(new Uint8Array([0x50, 0x4b, 0x05, 0x06, ...teleworkUint16(0), ...teleworkUint16(0), ...teleworkUint16(files.length), ...teleworkUint16(files.length), ...teleworkUint32(centralSize), ...teleworkUint32(centralStart), ...teleworkUint16(0)]));
+    return new Blob(chunks, { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+
+  function downloadTeleworkTemplate(kind) {
+    const templates = {
+      requests: {
+        sheetName: "Solicitudes Teletrabajo",
+        filename: "modelo-solicitudes-teletrabajo.xlsx",
+        rows: [["Nº empleado", "Nombre y apellidos", "Puesto de trabajo", "Periodo", "Tipo solicitud", "Martes", "Miércoles", "Jueves", "Cumplimiento presencialidad", "Informe favorable", "Seguridad informática", "Prevención", "Validación Dirección", "Fecha resolución", "Observaciones"], ["12345", "Nombre Apellido", "Técnico/a RRLL", "2026", "Renovación", "Sí", "Sí", "No", "Sí", "Sí", "Sí", "Sí", "Aprobado", "15/05/2026", "Sin incidencias"]]
+      },
+      jobs: {
+        sheetName: "Puestos Teletrabajo",
+        filename: "modelo-catalogo-puestos.xlsx",
+        rows: [TELEWORK_JOB_CATALOG_HEADERS, ["Técnico/a Relaciones Laborales", "Capital Humano", "Relaciones Laborales", "3", "S", "2"]]
+      }
+    };
+    const template = templates[kind];
+    if (!template) return;
+    const url = URL.createObjectURL(buildTeleworkXlsxBlob(template.sheetName, template.rows));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = template.filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  function openTeleworkImportModal() {
+    const modal = document.getElementById("teleworkImportModal");
+    if (modal) {
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+  }
+
+  function closeTeleworkImportModal() {
+    const modal = document.getElementById("teleworkImportModal");
+    if (modal) {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function teleworkImportChooseFile() {
+    document.getElementById("teleworkImportFileInput")?.click();
+  }
+
 
 
   const api = {
@@ -1014,6 +1649,9 @@
     addTelework,
     moveTeleworkToProcessing,
     setTeleworkCheck,
+    executeMoveTeleworkToProcessing,
+    executeResolveTelework,
+    executeDeleteTelework,
     resolveTelework,
     deleteTelework,
     openTeleworkEditModal,
@@ -1031,7 +1669,17 @@
     exportTeleworkHistoryExcel,
     importTeleworkData,
     importTeleworkJobCatalog,
-    renderTeleworkEligibilityWarning
+    openTeleworkImportModal,
+    closeTeleworkImportModal,
+    teleworkImportChooseFile,
+    downloadTeleworkTemplate,
+    renderTeleworkEligibilityWarning,
+    openTeleworkJobCatalogModal,
+    closeTeleworkJobCatalogModal,
+    renderTeleworkJobCatalogModal,
+    addTeleworkCatalogRow,
+    deleteTeleworkCatalogRow,
+    saveTeleworkJobCatalogModal
   };
 
   window.TeletrabajoModule = api;
@@ -1039,9 +1687,12 @@
   window.setTeleworkItems = setTeleworkItems;
   window.toggleTeleworkCreateForm = toggleTeleworkCreateForm;
   window.addTelework = addTelework;
+  window.executeMoveTeleworkToProcessing = executeMoveTeleworkToProcessing;
   window.moveTeleworkToProcessing = moveTeleworkToProcessing;
   window.setTeleworkCheck = setTeleworkCheck;
+  window.executeResolveTelework = executeResolveTelework;
   window.resolveTelework = resolveTelework;
+  window.executeDeleteTelework = executeDeleteTelework;
   window.deleteTelework = deleteTelework;
   window.openTeleworkEditModal = openTeleworkEditModal;
   window.closeTeleworkEditModal = closeTeleworkEditModal;
@@ -1058,9 +1709,19 @@
   window.exportTeleworkHistoryExcel = exportTeleworkHistoryExcel;
   window.importTeleworkData = importTeleworkData;
   window.importTeleworkJobCatalog = importTeleworkJobCatalog;
+  window.openTeleworkImportModal = openTeleworkImportModal;
+  window.closeTeleworkImportModal = closeTeleworkImportModal;
+  window.teleworkImportChooseFile = teleworkImportChooseFile;
+  window.downloadTeleworkTemplate = downloadTeleworkTemplate;
   window.renderTeleworkEligibilityWarning = renderTeleworkEligibilityWarning;
   window.teleworkEmployeeNumberChanged = teleworkEmployeeNumberChanged;
   window.teleworkNameAutocomplete = teleworkNameAutocomplete;
   window.selectTeleworkPerson = selectTeleworkPerson;
   window.hideTeleworkSuggestionsDelayed = hideTeleworkSuggestionsDelayed;
+  window.openTeleworkJobCatalogModal = openTeleworkJobCatalogModal;
+  window.closeTeleworkJobCatalogModal = closeTeleworkJobCatalogModal;
+  window.renderTeleworkJobCatalogModal = renderTeleworkJobCatalogModal;
+  window.addTeleworkCatalogRow = addTeleworkCatalogRow;
+  window.deleteTeleworkCatalogRow = deleteTeleworkCatalogRow;
+  window.saveTeleworkJobCatalogModal = saveTeleworkJobCatalogModal;
 })();
