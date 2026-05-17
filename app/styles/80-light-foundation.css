@@ -1398,6 +1398,46 @@ body.phase4-view-module #gestor-vinculograma .vinculograma-table .rrll-pro-actio
   margin-inline: auto !important;
 }
 
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-actions-cell {
+  display: table-cell !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  width: 1% !important;
+  white-space: nowrap !important;
+}
+
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  color: #fecaca !important;
+  background: rgba(220, 38, 38, .16) !important;
+  border-color: rgba(248, 113, 113, .36) !important;
+}
+
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-btn:hover {
+  color: #fff !important;
+  background: #dc2626 !important;
+  border-color: #ef4444 !important;
+}
+
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-icon {
+  width: 15px !important;
+  height: 15px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  pointer-events: none !important;
+}
+
 body.phase4-view-module #gestor-licencias .licencias-columns {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
