@@ -5,13 +5,95 @@ const TICKET_RESTAURANT_ABSENCE_HEADERS = ["Nº empleado", "Desde", "Hasta", "Mo
 const TICKET_RESTAURANT_EXPORT_HEADERS = ["Nombre", "Apellido1", "Apellido2", "DNI", "Pedido", "Nº Emp", "Numero Tickets", "Importe", "Total", "Fec Inicio", "Fec Cad", "Hoja Gastos", "Ausencias"];
 const TICKET_RESTAURANT_DEFAULT_CONFIG = { pedido: "2404407", importe: "14,57" };
 
-let ticketRestaurantActiveArea = "calendar";
+const TICKET_RESTAURANT_PEOPLE_FILTERS = [
+  ["ticketPeopleFilterEmployee", item => item.employeeNumber],
+  ["ticketPeopleFilterName", item => item.name],
+  ["ticketPeopleFilterSurname1", item => item.surname1],
+  ["ticketPeopleFilterSurname2", item => item.surname2],
+  ["ticketPeopleFilterDni", item => item.dni],
+  ["ticketPeopleFilterPosition", item => item.position],
+  ["ticketPeopleFilterCalendar", item => item.calendar]
+];
+const TICKET_RESTAURANT_COMPUTE_FILTERS = [
+  ["ticketComputeFilterEmployee", row => row.person && row.person.employeeNumber],
+  ["ticketComputeFilterName", row => ticketRestaurantFullName(row.person)],
+  ["ticketComputeFilterCalendar", row => row.person && row.person.calendar],
+  ["ticketComputeFilterTheoretical", row => row.theoretical],
+  ["ticketComputeFilterAbsences", row => row.absenceDays],
+  ["ticketComputeFilterFinal", row => row.finalTickets]
+];
+const TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS = ["Nº empleado", "Nombre y apellidos", "Número de días con ticket", "Importe ticket"];
+const TICKET_RESTAURANT_MONTHLY_FILTERS = [
+  ["ticketMonthlyQuoteFilterEmployee", row => row.employeeNumber],
+  ["ticketMonthlyQuoteFilterName", row => row.fullName],
+  ["ticketMonthlyQuoteFilterDays", row => row.ticketDays],
+  ["ticketMonthlyQuoteFilterAmount", row => row.ticketAmount]
+];
+
+function ticketRestaurantFullName(person) {
+  return [person && person.name, person && person.surname1, person && person.surname2].filter(Boolean).join(" ");
+}
+
+function getTicketRestaurantFilterValue(id) {
+  const el = document.getElementById(id);
+  return normalizeTicketText(el ? el.value : "");
+}
+
+function ticketRestaurantMatchesColumnFilters(item, filters) {
+  return filters.every(([id, getter]) => {
+    const filter = getTicketRestaurantFilterValue(id);
+    if (!filter) return true;
+    return normalizeTicketText(getter(item)).includes(filter);
+  });
+}
+
+function getVisibleTicketRestaurantPeople() {
+  return getTicketRestaurantPeople().filter(item => ticketRestaurantMatchesColumnFilters(item, TICKET_RESTAURANT_PEOPLE_FILTERS));
+}
+
+function getVisibleTicketRestaurantComputeRows(calc) {
+  const source = calc || ticketRestaurantLastVisibleCompute || calculateTicketRestaurantCompute();
+  return (source.rows || []).filter(row => ticketRestaurantMatchesColumnFilters(row, TICKET_RESTAURANT_COMPUTE_FILTERS));
+}
+
+function getVisibleTicketRestaurantMonthlyQuoteRows(calc) {
+  const source = calc || ticketRestaurantLastVisibleMonthlyQuote || calculateTicketRestaurantMonthlyQuote();
+  return (source.rows || []).filter(row => ticketRestaurantMatchesColumnFilters(row, TICKET_RESTAURANT_MONTHLY_FILTERS));
+}
+
+function htmlEscapeTicketRestaurantOutput(value) {
+  return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+}
+
+function buildTicketRestaurantTablePrintHtml(title, headers, rows) {
+  const headerHtml = headers.map(header => `<th>${htmlEscapeTicketRestaurantOutput(header)}</th>`).join("");
+  const bodyHtml = rows.length
+    ? rows.map(row => `<tr>${row.map(cell => `<td>${htmlEscapeTicketRestaurantOutput(cell)}</td>`).join("")}</tr>`).join("")
+    : `<tr><td colspan="${Math.max(headers.length, 1)}">Sin registros.</td></tr>`;
+  return `<h1>${htmlEscapeTicketRestaurantOutput(title)}</h1><div class="date">Generado: ${new Date().toLocaleString("es-ES")}</div><table><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+}
+
+function openTicketRestaurantPrintPreview(title, headers, rows) {
+  const html = buildTicketRestaurantTablePrintHtml(title, headers, rows);
+  if (typeof openPrintPreviewWithHtml === "function") openPrintPreviewWithHtml(html);
+  else {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${htmlEscapeTicketRestaurantOutput(title)}</title></head><body>${html}</body></html>`);
+    printWindow.document.close();
+    printWindow.print();
+  }
+}
+
+
+let ticketRestaurantActiveArea = "compute";
 let ticketRestaurantSelectedCalendar = "Servicios Centrales";
 let ticketRestaurantCalendarYear = new Date().getFullYear();
 let ticketRestaurantEditingEmployee = null;
 let ticketRestaurantLastPlantillaLookup = "";
 let ticketRestaurantPlantillaLookupTimer = null;
 let ticketRestaurantLastVisibleCompute = null;
+let ticketRestaurantLastVisibleMonthlyQuote = null;
 
 function trTodayNextMonth() {
   const now = new Date();
@@ -483,12 +565,24 @@ function renderTicketRestaurantPeople() {
   const body = document.getElementById("ticketRestaurantPeopleBody");
   const count = document.getElementById("ticketRestaurantPeopleCount");
   if (!body) return;
-  const people = getTicketRestaurantPeople();
-  if (count) count.textContent = `${people.length} personas`;
+  const total = getTicketRestaurantPeople().length;
+  const people = getVisibleTicketRestaurantPeople();
+  if (count) count.textContent = people.length === total ? `${total} personas` : `${people.length} de ${total} personas`;
   body.innerHTML = people.length ? people.map(item => `<tr>
     <td>${escapeHtml(item.employeeNumber)}</td><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.surname1)}</td><td>${escapeHtml(item.surname2)}</td><td>${escapeHtml(item.dni)}</td><td>${escapeHtml(item.position)}</td><td>${escapeHtml(item.calendar)}</td>
     <td class="table-actions"><button class="secondary small" type="button" onclick="openTicketRestaurantPersonForm('${escapeHtml(item.employeeNumber)}')">Editar</button><button class="danger small" type="button" onclick="deleteTicketRestaurantPerson('${escapeHtml(item.employeeNumber)}')">Eliminar</button></td>
-  </tr>`).join("") : `<tr><td colspan="8" class="muted">Sin personas cargadas.</td></tr>`;
+  </tr>`).join("") : `<tr><td colspan="8" class="muted">Sin personas que coincidan con los filtros.</td></tr>`;
+}
+
+async function exportTicketRestaurantPeopleVisible() {
+  const rows = [TICKET_RESTAURANT_PERSON_HEADERS, ...getVisibleTicketRestaurantPeople().map(item => [item.employeeNumber || "", item.name || "", item.surname1 || "", item.surname2 || "", item.dni || "", item.position || "", item.calendar || ""] )];
+  const result = await exportTicketWorkbook({ title: "Personas con derecho Ticket Restaurante", fileName: "Personas_con_derecho_ticket_restaurante.xlsx", sheetName: "Personas", rows, widths: [16, 20, 18, 18, 16, 26, 24] });
+  if (result && !result.canceled) alert(`Excel generado correctamente:\n${result.filePath}`);
+}
+
+function printTicketRestaurantPeopleVisible() {
+  const rows = getVisibleTicketRestaurantPeople().map(item => [item.employeeNumber || "", item.name || "", item.surname1 || "", item.surname2 || "", item.dni || "", item.position || "", item.calendar || ""]);
+  openTicketRestaurantPrintPreview("Personas con derecho a Ticket Restaurante", TICKET_RESTAURANT_PERSON_HEADERS, rows);
 }
 
 async function downloadTicketRestaurantPeopleTemplate() {
@@ -727,9 +821,12 @@ function renderTicketRestaurantComputePreview() {
     noticeEl.innerHTML = uniqueWarnings.map(item => `<div>${escapeHtml(item)} Tickets = 0 para esa persona.</div>`).join("");
     noticeEl.hidden = uniqueWarnings.length === 0;
   }
-  body.innerHTML = calc.rows.length ? calc.rows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}">
-    <td>${escapeHtml(row.person.employeeNumber)}</td><td>${escapeHtml([row.person.name, row.person.surname1, row.person.surname2].filter(Boolean).join(" "))}</td><td>${escapeHtml(row.person.calendar)}${row.calendarWarning ? " · revisar" : ""}</td><td>${row.theoretical}</td><td>${row.absenceDays}</td><td><strong>${row.finalTickets}</strong></td>
-  </tr>`).join("") : `<tr><td colspan="6" class="muted">No hay personas con derecho cargadas.</td></tr>`;
+  const visibleRows = getVisibleTicketRestaurantComputeRows(calc);
+  body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}">
+    <td>${escapeHtml(row.person.employeeNumber)}</td><td>${escapeHtml(ticketRestaurantFullName(row.person))}</td><td>${escapeHtml(row.person.calendar)}${row.calendarWarning ? " · revisar" : ""}</td><td>${row.theoretical}</td><td>${row.absenceDays}</td><td><strong>${row.finalTickets}</strong></td>
+  </tr>`).join("") : `<tr><td colspan="6" class="muted">No hay personas con derecho que coincidan con los filtros.</td></tr>`;
+  const monthlyPanel = document.getElementById("ticketRestaurantMonthlyQuotePanel");
+  if (monthlyPanel && !monthlyPanel.hidden) renderTicketRestaurantMonthlyQuotePreview();
 }
 
 function saveTicketRestaurantConfigFromInputs() {
@@ -738,6 +835,7 @@ function saveTicketRestaurantConfigFromInputs() {
   saveTicketRestaurantConfig({ pedido, importe });
   renderTicketRestaurantConfig();
   renderTicketRestaurantComputePreview();
+  if (ticketRestaurantLastVisibleMonthlyQuote || !document.getElementById("ticketRestaurantMonthlyQuotePanel")?.hidden) renderTicketRestaurantMonthlyQuotePreview();
 }
 
 function renderTicketRestaurantConfig() {
@@ -748,19 +846,72 @@ function renderTicketRestaurantConfig() {
   if (importe && document.activeElement !== importe) importe.value = cfg.importe;
 }
 
+function buildTicketRestaurantComputeExportRows(calc) {
+  const source = calc || ticketRestaurantLastVisibleCompute || calculateTicketRestaurantCompute();
+  const cfg = getTicketRestaurantConfig();
+  const amount = parseTicketNumber(cfg.importe);
+  const startDate = `01/${String(source.month).padStart(2, "0")}/${source.year}`;
+  return getVisibleTicketRestaurantComputeRows(source).map(row => {
+    const total = row.finalTickets * amount;
+    return [row.person.name || "", row.person.surname1 || "", row.person.surname2 || "", row.person.dni || "", cfg.pedido, row.person.employeeNumber || "", row.finalTickets, cfg.importe, total.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), startDate, "01/01/2010", "", row.absenceDetails || ""];
+  });
+}
+
 async function exportTicketRestaurantCompute() {
   renderTicketRestaurantComputePreview();
   const calc = ticketRestaurantLastVisibleCompute || calculateTicketRestaurantCompute();
-  const cfg = getTicketRestaurantConfig();
-  const amount = parseTicketNumber(cfg.importe);
-  const startDate = `01/${String(calc.month).padStart(2, "0")}/${calc.year}`;
-  const rows = [TICKET_RESTAURANT_EXPORT_HEADERS, ...calc.rows.map(row => {
-    const total = row.finalTickets * amount;
-    return [row.person.name || "", row.person.surname1 || "", row.person.surname2 || "", row.person.dni || "", cfg.pedido, row.person.employeeNumber || "", row.finalTickets, cfg.importe, total.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), startDate, "01/01/2010", "", row.absenceDetails || ""];
-  })];
+  const rows = [TICKET_RESTAURANT_EXPORT_HEADERS, ...buildTicketRestaurantComputeExportRows(calc)];
   const fileName = `Computo_${TICKET_RESTAURANT_MONTHS[calc.month - 1]}_${calc.year}.xlsx`;
   const result = await exportTicketWorkbook({ title: "Generar cómputo Ticket Restaurante", fileName, sheetName: "Computo", rows, widths: [20, 18, 18, 14, 12, 12, 16, 12, 12, 14, 14, 14, 45] });
   if (result && !result.canceled) alert(`Excel generado correctamente:\n${result.filePath}`);
+}
+
+function printTicketRestaurantComputeVisible() {
+  renderTicketRestaurantComputePreview();
+  const calc = ticketRestaurantLastVisibleCompute || calculateTicketRestaurantCompute();
+  const rows = getVisibleTicketRestaurantComputeRows(calc).map(row => [row.person.employeeNumber || "", ticketRestaurantFullName(row.person), row.person.calendar || "", row.theoretical, row.absenceDays, row.finalTickets]);
+  openTicketRestaurantPrintPreview(`Cómputo Ticket Restaurante - ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} ${calc.year}`, ["Nº empleado", "Nombre completo", "Calendario", "Tickets teóricos", "Ausencias aplicadas", "Tickets finales"], rows);
+}
+
+function calculateTicketRestaurantMonthlyQuote() {
+  const calc = calculateTicketRestaurantCompute();
+  const cfg = getTicketRestaurantConfig();
+  const rows = calc.rows.map(row => ({
+    employeeNumber: row.person.employeeNumber || "",
+    fullName: ticketRestaurantFullName(row.person),
+    ticketDays: row.finalTickets,
+    ticketAmount: cfg.importe
+  }));
+  return { month: calc.month, year: calc.year, rows };
+}
+
+function renderTicketRestaurantMonthlyQuotePreview() {
+  const panel = document.getElementById("ticketRestaurantMonthlyQuotePanel");
+  const periodEl = document.getElementById("ticketRestaurantMonthlyQuotePeriod");
+  const body = document.getElementById("ticketRestaurantMonthlyQuoteBody");
+  if (!panel || !body) return;
+  const calc = calculateTicketRestaurantMonthlyQuote();
+  ticketRestaurantLastVisibleMonthlyQuote = calc;
+  panel.hidden = false;
+  if (periodEl) periodEl.textContent = `Cómputo Cotización Mensual para ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} de ${calc.year}`;
+  const visibleRows = getVisibleTicketRestaurantMonthlyQuoteRows(calc);
+  body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr><td>${escapeHtml(row.employeeNumber)}</td><td>${escapeHtml(row.fullName)}</td><td>${escapeHtml(row.ticketDays)}</td><td>${escapeHtml(row.ticketAmount)}</td></tr>`).join("") : `<tr><td colspan="4" class="muted">Sin resultados que coincidan con los filtros.</td></tr>`;
+}
+
+async function exportTicketRestaurantMonthlyQuote() {
+  renderTicketRestaurantMonthlyQuotePreview();
+  const calc = ticketRestaurantLastVisibleMonthlyQuote || calculateTicketRestaurantMonthlyQuote();
+  const rows = [TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS, ...getVisibleTicketRestaurantMonthlyQuoteRows(calc).map(row => [row.employeeNumber, row.fullName, row.ticketDays, row.ticketAmount])];
+  const fileName = `Computo_Cotizacion_Mensual_${TICKET_RESTAURANT_MONTHS[calc.month - 1]}_${calc.year}.xlsx`;
+  const result = await exportTicketWorkbook({ title: "Cómputo Cotización Mensual Ticket Restaurante", fileName, sheetName: "Cotizacion mensual", rows, widths: [16, 34, 24, 16] });
+  if (result && !result.canceled) alert(`Excel generado correctamente:\n${result.filePath}`);
+}
+
+function printTicketRestaurantMonthlyQuote() {
+  renderTicketRestaurantMonthlyQuotePreview();
+  const calc = ticketRestaurantLastVisibleMonthlyQuote || calculateTicketRestaurantMonthlyQuote();
+  const rows = getVisibleTicketRestaurantMonthlyQuoteRows(calc).map(row => [row.employeeNumber, row.fullName, row.ticketDays, row.ticketAmount]);
+  openTicketRestaurantPrintPreview(`Cómputo Cotización Mensual - ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} ${calc.year}`, TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS, rows);
 }
 
 window.showTicketRestaurantArea = showTicketRestaurantArea;
@@ -777,8 +928,15 @@ window.downloadTicketRestaurantPeopleTemplate = downloadTicketRestaurantPeopleTe
 window.importTicketRestaurantAbsences = importTicketRestaurantAbsences;
 window.downloadTicketRestaurantAbsenceTemplate = downloadTicketRestaurantAbsenceTemplate;
 window.deleteTicketRestaurantAbsence = deleteTicketRestaurantAbsence;
+window.renderTicketRestaurantPeople = renderTicketRestaurantPeople;
+window.exportTicketRestaurantPeopleVisible = exportTicketRestaurantPeopleVisible;
+window.printTicketRestaurantPeopleVisible = printTicketRestaurantPeopleVisible;
 window.renderTicketRestaurantComputePreview = renderTicketRestaurantComputePreview;
 window.exportTicketRestaurantCompute = exportTicketRestaurantCompute;
+window.printTicketRestaurantComputeVisible = printTicketRestaurantComputeVisible;
+window.renderTicketRestaurantMonthlyQuotePreview = renderTicketRestaurantMonthlyQuotePreview;
+window.exportTicketRestaurantMonthlyQuote = exportTicketRestaurantMonthlyQuote;
+window.printTicketRestaurantMonthlyQuote = printTicketRestaurantMonthlyQuote;
 window.saveTicketRestaurantConfigFromInputs = saveTicketRestaurantConfigFromInputs;
 window.renderTicketRestaurant = renderTicketRestaurant;
 window.getTicketRestaurantConfig = getTicketRestaurantConfig;

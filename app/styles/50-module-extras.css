@@ -2483,3 +2483,10 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 .ticket-config-form label { display: grid; gap: 4px; font-size: .85rem; font-weight: 700; }
 @media (max-width: 1280px) { .ticket-calendar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .ticket-calendar-grid, .ticket-compute-summary { grid-template-columns: 1fr; } }
+#gestor-ticket-restaurante .rrll-icon-only { min-width: 34px; width: 34px; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; }
+#gestor-ticket-restaurante .ticket-filter-row th { padding: 5px 6px; background: rgba(15, 23, 42, .22); }
+#gestor-ticket-restaurante .ticket-filter-row input { width: 100%; min-width: 72px; height: 28px; border: 1px solid rgba(148, 163, 184, .24); border-radius: 8px; background: rgba(15, 23, 42, .34); color: inherit; padding: 4px 7px; font-size: .78rem; }
+#gestor-ticket-restaurante .ticket-filter-row input::placeholder { color: var(--muted-color, #64748b); }
+#gestor-ticket-restaurante .ticket-monthly-quote-button { white-space: nowrap; }
+#gestor-ticket-restaurante .ticket-monthly-quote-panel { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(148, 163, 184, .24); }
+@media (max-width: 900px) { #gestor-ticket-restaurante .ticket-monthly-quote-button { width: 100%; } }

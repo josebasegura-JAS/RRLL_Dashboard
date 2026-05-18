@@ -1242,13 +1242,13 @@
             </div>
 
             <div class="ticket-restaurant-tabs" role="tablist" aria-label="Áreas de Ticket Restaurante">
-              <button type="button" class="ticket-restaurant-tab active" data-ticket-area="calendar" onclick="showTicketRestaurantArea('calendar')">Definir calendarios</button>
-              <button type="button" class="ticket-restaurant-tab" data-ticket-area="people" onclick="showTicketRestaurantArea('people')">Personas con derecho</button>
+              <button type="button" class="ticket-restaurant-tab active" data-ticket-area="compute" onclick="showTicketRestaurantArea('compute')">Generar cómputo</button>
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="absences" onclick="showTicketRestaurantArea('absences')">Importar ausencias</button>
-              <button type="button" class="ticket-restaurant-tab" data-ticket-area="compute" onclick="showTicketRestaurantArea('compute')">Generar cómputo</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="calendar" onclick="showTicketRestaurantArea('calendar')">Definir calendarios</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="people" onclick="showTicketRestaurantArea('people')">Personas con derecho</button>
             </div>
 
-            <section class="ticket-restaurant-area" data-ticket-area="calendar">
+            <section class="ticket-restaurant-area" data-ticket-area="calendar" hidden>
               <div class="rrll-pro-list-card">
                 <div class="ticket-calendar-toolbar">
                   <label class="rrll-pro-field">
@@ -1271,12 +1271,14 @@
                 <div class="rrll-pro-list-toolbar">
                   <div><h3>Personas con derecho a ticket</h3><p class="rrll-pro-subtitle" id="ticketRestaurantPeopleCount">0 personas</p></div>
                   <div class="rrll-pro-list-actions">
+                    <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printTicketRestaurantPeopleVisible()" title="Imprimir personas filtradas" aria-label="Imprimir personas con derecho">🖨️</button>
+                    <button class="rrll-pro-tool-button excel rrll-icon-only" type="button" onclick="exportTicketRestaurantPeopleVisible()" title="Exportar personas filtradas a Excel" aria-label="Exportar personas con derecho a Excel">X</button>
                     <button type="button" onclick="importTicketRestaurantPeople()">Cargar fichero</button>
                     <button type="button" class="secondary" onclick="downloadTicketRestaurantPeopleTemplate()">Descargar modelo</button>
                     <button type="button" class="rrll-pro-primary" onclick="openTicketRestaurantPersonForm()">Nueva persona</button>
                   </div>
                 </div>
-                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre</th><th>Apellido1</th><th>Apellido2</th><th>DNI</th><th>Puesto</th><th>Calendario</th><th>Acciones</th></tr></thead><tbody id="ticketRestaurantPeopleBody"></tbody></table></div>
+                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre</th><th>Apellido1</th><th>Apellido2</th><th>DNI</th><th>Puesto</th><th>Calendario</th><th>Acciones</th></tr><tr class="ticket-filter-row"><th><input id="ticketPeopleFilterEmployee" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterName" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterSurname1" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterSurname2" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterDni" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterPosition" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterCalendar" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th></th></tr></thead><tbody id="ticketRestaurantPeopleBody"></tbody></table></div>
                 <div id="ticketRestaurantPeopleImportSummary" class="ticket-import-summary" aria-live="polite"></div>
               </div>
             </section>
@@ -1295,18 +1297,30 @@
               </div>
             </section>
 
-            <section class="ticket-restaurant-area" data-ticket-area="compute" hidden>
+            <section class="ticket-restaurant-area" data-ticket-area="compute">
               <div class="rrll-pro-list-card">
                 <div class="ticket-compute-toolbar">
                   <label class="rrll-pro-field"><span>Mes</span><select id="ticketRestaurantComputeMonth" onchange="renderTicketRestaurantComputePreview()"></select></label>
                   <label class="rrll-pro-field"><span>Año</span><input id="ticketRestaurantComputeYear" type="number" min="2000" max="2100" onchange="renderTicketRestaurantComputePreview()" oninput="renderTicketRestaurantComputePreview()" /></label>
-                  <button type="button" class="rrll-pro-primary" onclick="exportTicketRestaurantCompute()">Generar Excel</button>
+                  <button class="rrll-pro-tool-button excel rrll-icon-only" type="button" onclick="exportTicketRestaurantCompute()" title="Exportar cómputo filtrado a Excel" aria-label="Exportar cómputo a Excel">X</button>
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printTicketRestaurantComputeVisible()" title="Imprimir cómputo filtrado" aria-label="Imprimir cómputo">🖨️</button>
+                  <button type="button" class="secondary ticket-monthly-quote-button" onclick="renderTicketRestaurantMonthlyQuotePreview()">Cómputo Cotización Mensual</button>
                 </div>
                 <div id="ticketRestaurantComputePeriod" class="ticket-compute-period" aria-live="polite"></div>
                 <div id="ticketRestaurantComputeSummary" class="ticket-compute-summary"></div>
                 <div id="ticketRestaurantComputeNotice" class="ticket-compute-notice" aria-live="polite" hidden></div>
                 <h3>Preview por persona</h3>
-                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre completo</th><th>Calendario</th><th>Tickets teóricos</th><th>Ausencias aplicadas</th><th>Tickets finales</th></tr></thead><tbody id="ticketRestaurantComputeBody"></tbody></table></div>
+                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre completo</th><th>Calendario</th><th>Tickets teóricos</th><th>Ausencias aplicadas</th><th>Tickets finales</th></tr><tr class="ticket-filter-row"><th><input id="ticketComputeFilterEmployee" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterName" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterCalendar" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterTheoretical" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterAbsences" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterFinal" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th></tr></thead><tbody id="ticketRestaurantComputeBody"></tbody></table></div>
+                <div id="ticketRestaurantMonthlyQuotePanel" class="ticket-monthly-quote-panel" hidden>
+                  <div class="rrll-pro-list-toolbar">
+                    <div><h3>Cómputo Cotización Mensual</h3><p class="rrll-pro-subtitle" id="ticketRestaurantMonthlyQuotePeriod" aria-live="polite"></p></div>
+                    <div class="rrll-pro-list-actions">
+                      <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printTicketRestaurantMonthlyQuote()" title="Imprimir cotización mensual filtrada" aria-label="Imprimir cotización mensual">🖨️</button>
+                      <button class="rrll-pro-tool-button excel rrll-icon-only" type="button" onclick="exportTicketRestaurantMonthlyQuote()" title="Exportar cotización mensual filtrada a Excel" aria-label="Exportar cotización mensual a Excel">X</button>
+                    </div>
+                  </div>
+                  <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre y apellidos</th><th>Número de días con ticket</th><th>Importe ticket</th></tr><tr class="ticket-filter-row"><th><input id="ticketMonthlyQuoteFilterEmployee" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantMonthlyQuotePreview()" /></th><th><input id="ticketMonthlyQuoteFilterName" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantMonthlyQuotePreview()" /></th><th><input id="ticketMonthlyQuoteFilterDays" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantMonthlyQuotePreview()" /></th><th><input id="ticketMonthlyQuoteFilterAmount" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantMonthlyQuotePreview()" /></th></tr></thead><tbody id="ticketRestaurantMonthlyQuoteBody"></tbody></table></div>
+                </div>
               </div>
             </section>
           </div>
