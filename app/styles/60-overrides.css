@@ -4338,3 +4338,60 @@ body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions {
     min-width: 220px;
   }
 }
+
+/* Origen en Peticiones/Tareas: badges compactos y columnas centradas. */
+body.phase4-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-origin-heading,
+body.phase4-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-origin-cell,
+body.phase4-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-pro-table th:nth-child(2),
+body.phase4-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-pro-table td:nth-child(2) {
+  text-align: center !important;
+}
+
+.petition-origin-badge,
+.task-origin-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 20px !important;
+  max-width: 100% !important;
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(148, 163, 184, .24) !important;
+  background: rgba(148, 163, 184, .12) !important;
+  color: rgba(226, 232, 240, .84) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  letter-spacing: .02em !important;
+  white-space: nowrap !important;
+}
+
+.petition-origin-badge.is-empty,
+.task-origin-badge.is-empty {
+  color: rgba(148, 163, 184, .78) !important;
+  font-weight: 700 !important;
+}
+
+.settings-petition-origins .petition-origins-config-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.settings-petition-origin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.rrll-legacy-source-checks {
+  display: none !important;
+}
+
+html[data-theme="light"] .petition-origin-badge,
+html[data-theme="light"] .task-origin-badge {
+  background: rgba(15, 23, 42, .06) !important;
+  border-color: rgba(15, 23, 42, .12) !important;
+  color: rgba(15, 23, 42, .78) !important;
+}

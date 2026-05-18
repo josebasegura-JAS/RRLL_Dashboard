@@ -20,6 +20,7 @@ function rrllSafeCall(label, fn) {
       rrllSafeCall("dashboard", () => renderHomeDashboard());
       rrllSafeCall("accesos rápidos", () => renderLinks());
       rrllSafeCall("configuración de accesos", () => renderLinkConfig());
+      rrllSafeCall("orígenes de peticiones", () => { if (typeof renderPetitionOriginSettings === "function") renderPetitionOriginSettings(); });
       rrllSafeCall("tareas", () => renderTasks());
       rrllSafeCall("sincronización comité-actas", () => syncPastCommitteeSessionsToMinutes());
       rrllSafeCall("actas", () => renderMinutes());
@@ -61,6 +62,7 @@ function rrllSafeCall(label, fn) {
       const modal = document.getElementById("configModal");
       if (!modal) return;
       modal.classList.add("open");
+      if (typeof renderPetitionOriginSettings === "function") renderPetitionOriginSettings();
       await refreshDatabaseInfo();
     }
 

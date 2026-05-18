@@ -609,9 +609,10 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table 
   border-spacing: 0 !important;
 }
 
-body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-main { width: 43%; }
-body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-priority { width: 12%; }
-body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-status { width: 13%; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-main { width: 34%; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-source { width: 11%; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-priority { width: 11%; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-status { width: 12%; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-date { width: 10%; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-actions { width: 22%; }
 
@@ -807,7 +808,8 @@ body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-actio
     text-align: center !important;
   }
 
-  body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-main { width: 34%; }
+  body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-main { width: 28%; }
+  body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-source { width: 10%; }
   body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-col-actions { width: 26%; }
   body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-main { width: 28%; }
   body.phase4-view-module #gestor-peticiones .rrll-pro-table .rrll-col-actions { width: 22%; }

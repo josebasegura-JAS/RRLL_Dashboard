@@ -325,6 +325,12 @@
                 </select>
               </div>
               <div class="rrll-pro-field">
+                <label>Origen</label>
+                <select id="newTaskOrigin" class="petition-origin-select" title="Origen de la tarea">
+                  <option value="">Sin origen</option>
+                </select>
+              </div>
+              <div class="rrll-pro-field">
                 <label>Estado</label>
                 <select id="newTaskStatus">
                   <option value="pending">Pendiente</option>
@@ -361,6 +367,7 @@
                 <table class="rrll-pro-table rrll-pro-table-tasks">
                   <colgroup>
                     <col class="rrll-col-main" />
+                    <col class="rrll-col-source" />
                     <col class="rrll-col-priority" />
                     <col class="rrll-col-status" />
                     <col class="rrll-col-date" />
@@ -369,6 +376,7 @@
                   <thead>
                     <tr>
                       <th class="sortable" data-task-sort="title" onclick="setTaskSort('title')">Tarea</th>
+                      <th class="sortable rrll-origin-heading" data-task-sort="origin" onclick="setTaskSort('origin')">Origen</th>
                       <th class="sortable" data-task-sort="priority" onclick="setTaskSort('priority')">Prioridad</th>
                       <th class="sortable" data-task-sort="status" onclick="setTaskSort('status')">Estado</th>
                       <th class="sortable" data-task-sort="dueDate" onclick="setTaskSort('dueDate')">Fecha límite</th>
@@ -416,7 +424,8 @@
               </div>
               <div class="rrll-pro-field rrll-pro-source-field">
                 <label>Origen</label>
-                <div class="rrll-pro-checks">
+                <select id="newPetitionOrigin" class="petition-origin-select" title="Origen de la petición"></select>
+                <div class="rrll-pro-checks rrll-legacy-source-checks" aria-label="Clasificación anterior">
                   <label><input id="newPetitionUnion" type="checkbox" /> Sindicato</label>
                   <label><input id="newPetitionCompany" type="checkbox" /> Empresa</label>
                 </div>
@@ -1372,6 +1381,16 @@
         <input id="configBackupFileInput" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)" />
       </div>
 
+      <div class="config-section settings-petition-origins">
+        <h4>Orígenes de peticiones</h4>
+        <p class="muted">Gestiona los valores disponibles en el desplegable Origen de Peticiones y Tareas vinculadas.</p>
+        <div class="dynamic-access-form">
+          <input id="newPetitionOriginConfig" placeholder="Nuevo origen" />
+          <button type="button" onclick="addPetitionOrigin()">Añadir origen</button>
+        </div>
+        <div id="petitionOriginsConfigList" class="petition-origins-config-list"></div>
+      </div>
+
       <div class="modal-actions">
         <button class="secondary" onclick="closeConfigModal()">Cerrar</button>
       </div>
@@ -1434,7 +1453,13 @@
             <option value="urgent">Urgente</option>
           </select>
         </div>
-        <div class="full">
+        <div>
+          <label for="taskEditOrigin">Origen</label>
+          <select id="taskEditOrigin" class="petition-origin-select">
+            <option value="">Sin origen</option>
+          </select>
+        </div>
+        <div>
           <label for="taskEditStatus">Estado</label>
           <select id="taskEditStatus">
             <option value="pending">Pendiente</option>
@@ -1492,8 +1517,11 @@
           </select>
         </div>
         <div>
-          <label>Origen</label>
-          <div class="checks">
+          <label for="petitionEditOrigin">Origen</label>
+          <select id="petitionEditOrigin" class="petition-origin-select">
+            <option value="">Sin origen</option>
+          </select>
+          <div class="checks rrll-legacy-source-checks">
             <label class="check-option"><input id="petitionEditUnion" type="checkbox" /> Sindicato</label>
             <label class="check-option"><input id="petitionEditCompany" type="checkbox" /> Empresa</label>
           </div>
