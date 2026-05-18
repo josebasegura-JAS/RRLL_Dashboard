@@ -9,6 +9,8 @@ let ticketRestaurantActiveArea = "calendar";
 let ticketRestaurantSelectedCalendar = "Servicios Centrales";
 let ticketRestaurantCalendarYear = new Date().getFullYear();
 let ticketRestaurantEditingEmployee = null;
+let ticketRestaurantLastPlantillaLookup = "";
+let ticketRestaurantPlantillaLookupTimer = null;
 
 function trTodayNextMonth() {
   const now = new Date();
@@ -20,7 +22,18 @@ function getTicketRestaurantCalendarMarks() {
 }
 
 function saveTicketRestaurantCalendarMarks(items) {
-  save("rrll_ticket_restaurant_calendar_marks", Array.isArray(items) ? items : []);
+  const normalized = [];
+  const seen = new Set();
+  (Array.isArray(items) ? items : []).forEach(item => {
+    const calendar = normalizeTicketCalendar(item && item.calendar);
+    const date = parseTicketDate(item && item.date);
+    if (!calendar || !date || !item.noTicket) return;
+    const key = ticketRestaurantMarkKey(calendar, date);
+    if (seen.has(key)) return;
+    seen.add(key);
+    normalized.push({ calendar, date, noTicket: true });
+  });
+  save("rrll_ticket_restaurant_calendar_marks", normalized);
 }
 
 function getTicketRestaurantPeople() {
@@ -49,7 +62,15 @@ function saveTicketRestaurantConfig(cfg) {
 }
 
 function normalizeTicketEmployee(value) {
-  return String(value || "").trim();
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function normalizeTicketEmployeeLookup(value) {
+  const raw = normalizeTicketEmployee(value).toLowerCase();
+  const compact = raw.replace(/\s+/g, "");
+  const digits = compact.replace(/[^0-9]/g, "");
+  if (digits && /^0*\d+$/.test(compact)) return String(Number(digits));
+  return compact.replace(/^0+(?=\d)/, "");
 }
 
 function normalizeTicketCalendar(value) {
@@ -110,6 +131,127 @@ function ticketRestaurantRowsToObjects(rows, headers) {
   });
 }
 
+function splitTicketRestaurantFullName(value) {
+  const parts = String(value || "").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  if (!parts.length) return { name: "", surname1: "", surname2: "" };
+  if (parts.length === 1) return { name: parts[0], surname1: "", surname2: "" };
+  if (parts.length === 2) return { name: parts[0], surname1: parts[1], surname2: "" };
+  return { name: parts.slice(0, -2).join(" "), surname1: parts[parts.length - 2], surname2: parts[parts.length - 1] };
+}
+
+function getTicketRestaurantPlantillaItems() {
+  if (typeof window.getPlantilla === "function") {
+    const items = window.getPlantilla();
+    return Array.isArray(items) ? items : [];
+  }
+  const items = load("rrll_plantilla", []);
+  return Array.isArray(items) ? items : [];
+}
+
+function getTicketRestaurantPlantillaValue(person, keys) {
+  for (const key of keys) {
+    const value = person && person[key];
+    if (value != null && String(value).trim()) return String(value).trim();
+  }
+  return "";
+}
+
+function findTicketRestaurantPlantillaPerson(employeeNumber) {
+  const target = normalizeTicketEmployeeLookup(employeeNumber);
+  if (!target) return null;
+  return getTicketRestaurantPlantillaItems().find(person => normalizeTicketEmployeeLookup(person && person.employeeNumber) === target) || null;
+}
+
+function buildTicketRestaurantPlantillaAutofill(person) {
+  if (!person) return null;
+  const fullName = getTicketRestaurantPlantillaValue(person, ["fullName", "displayName", "name"]);
+  const splitName = splitTicketRestaurantFullName(fullName);
+  return {
+    name: getTicketRestaurantPlantillaValue(person, ["firstName", "nombre"]) || splitName.name,
+    surname1: getTicketRestaurantPlantillaValue(person, ["surname1", "apellido1", "firstSurname"]) || splitName.surname1,
+    surname2: getTicketRestaurantPlantillaValue(person, ["surname2", "apellido2", "secondSurname"]) || splitName.surname2,
+    dni: getTicketRestaurantPlantillaValue(person, ["dni", "DNI", "nif", "documentNumber"]),
+    position: getTicketRestaurantPlantillaValue(person, ["position", "puesto", "job", "jobTitle"])
+  };
+}
+
+function setTicketRestaurantPersonNotice(message, type = "info") {
+  let notice = document.getElementById("ticketPersonPlantillaNotice");
+  const grid = document.querySelector("#ticketPersonModal .form-grid");
+  if (!notice && grid) {
+    notice = document.createElement("div");
+    notice.id = "ticketPersonPlantillaNotice";
+    notice.className = "ticket-person-autofill-notice full";
+    notice.setAttribute("aria-live", "polite");
+    grid.appendChild(notice);
+  }
+  if (!notice) return;
+  notice.textContent = message || "";
+  notice.dataset.type = type;
+  notice.hidden = !message;
+}
+
+function ensureTicketRestaurantPersonAutofill() {
+  const employee = document.getElementById("ticketPersonEmployee");
+  if (!employee || employee.dataset.ticketAutofillReady === "1") return;
+  const schedule = () => {
+    window.clearTimeout(ticketRestaurantPlantillaLookupTimer);
+    ticketRestaurantPlantillaLookupTimer = window.setTimeout(() => autocompleteTicketRestaurantPersonFromPlantilla(), 450);
+  };
+  employee.addEventListener("input", schedule);
+  employee.addEventListener("change", () => autocompleteTicketRestaurantPersonFromPlantilla(true));
+  employee.addEventListener("blur", () => autocompleteTicketRestaurantPersonFromPlantilla(true));
+  employee.dataset.ticketAutofillReady = "1";
+}
+
+function autocompleteTicketRestaurantPersonFromPlantilla(force = false) {
+  const employee = document.getElementById("ticketPersonEmployee");
+  if (!employee) return;
+  const lookupKey = normalizeTicketEmployeeLookup(employee.value);
+  if (!lookupKey) {
+    ticketRestaurantLastPlantillaLookup = "";
+    setTicketRestaurantPersonNotice("");
+    return;
+  }
+  if (!force && lookupKey === ticketRestaurantLastPlantillaLookup) return;
+  ticketRestaurantLastPlantillaLookup = lookupKey;
+  const person = findTicketRestaurantPlantillaPerson(employee.value);
+  if (!person) {
+    setTicketRestaurantPersonNotice("No se encontró el empleado en Plantilla.", "warning");
+    return;
+  }
+
+  const fields = [
+    ["ticketPersonName", "name", "Nombre"],
+    ["ticketPersonSurname1", "surname1", "Apellido1"],
+    ["ticketPersonSurname2", "surname2", "Apellido2"],
+    ["ticketPersonDni", "dni", "DNI"],
+    ["ticketPersonPosition", "position", "Puesto"]
+  ];
+  const source = buildTicketRestaurantPlantillaAutofill(person);
+  const conflicts = fields.filter(([id, key]) => {
+    const el = document.getElementById(id);
+    const sourceValue = source && source[key];
+    return el && sourceValue && String(el.value || "").trim() && String(el.value || "").trim() !== sourceValue;
+  });
+  const overwrite = conflicts.length ? confirm(`Plantilla contiene datos distintos para ${conflicts.map(([, , label]) => label).join(", ")}. ¿Quieres sustituir esos campos por los de Plantilla?`) : false;
+  let filled = 0;
+  let preserved = 0;
+  fields.forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    const value = source && source[key];
+    if (!el || !value) return;
+    if (!String(el.value || "").trim() || overwrite) {
+      el.value = value;
+      filled += 1;
+    } else {
+      preserved += 1;
+    }
+  });
+  const suffix = preserved ? " Se han mantenido los campos ya rellenados." : "";
+  setTicketRestaurantPersonNotice(filled ? `Datos cargados desde Plantilla.${suffix}` : `Empleado encontrado en Plantilla.${suffix}`, "success");
+}
+
 function showTicketRestaurantArea(area) {
   ticketRestaurantActiveArea = area || "calendar";
   document.querySelectorAll(".ticket-restaurant-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.ticketArea === ticketRestaurantActiveArea));
@@ -136,7 +278,9 @@ function renderTicketRestaurantCalendarSelector() {
 
 function setTicketRestaurantCalendar(value) {
   ticketRestaurantSelectedCalendar = normalizeTicketCalendar(value) || TICKET_RESTAURANT_CALENDARS[0];
+  renderTicketRestaurantCalendarSelector();
   renderTicketRestaurantCalendar();
+  if (ticketRestaurantActiveArea === "compute") renderTicketRestaurantComputePreview();
 }
 
 function moveTicketRestaurantCalendarYear(delta) {
@@ -163,6 +307,14 @@ function toggleTicketRestaurantNoTicket(date) {
 function renderTicketRestaurantCalendar() {
   const root = document.getElementById("ticketRestaurantCalendarGrid");
   if (!root) return;
+  if (root.dataset.ticketCalendarReady !== "1") {
+    root.addEventListener("click", event => {
+      const day = event.target.closest(".ticket-day[data-ticket-date]");
+      if (!day || !root.contains(day)) return;
+      toggleTicketRestaurantNoTicket(day.dataset.ticketDate);
+    });
+    root.dataset.ticketCalendarReady = "1";
+  }
   const marks = new Set(getTicketRestaurantCalendarMarks()
     .filter(item => item && item.calendar === ticketRestaurantSelectedCalendar && item.noTicket)
     .map(item => item.date));
@@ -176,7 +328,7 @@ function renderTicketRestaurantCalendar() {
       const weekday = new Date(ticketRestaurantCalendarYear, monthIndex, day).getDay();
       const weekend = weekday === 0 || weekday === 6;
       const noTicket = marks.has(date);
-      cells.push(`<button type="button" class="ticket-day ${weekend ? "weekend" : ""} ${noTicket ? "no-ticket" : ""}" onclick="toggleTicketRestaurantNoTicket('${date}')" title="${formatTicketDate(date)}${noTicket ? " · Sin ticket" : ""}">${day}</button>`);
+      cells.push(`<button type="button" class="ticket-day ${weekend ? "weekend" : ""} ${noTicket ? "no-ticket" : ""}" data-ticket-date="${date}" aria-pressed="${noTicket ? "true" : "false"}" title="${formatTicketDate(date)}${noTicket ? " · Sin ticket" : ""}">${day}</button>`);
     }
     return `<section class="ticket-month-card"><h4>${TICKET_RESTAURANT_MONTHS[monthIndex]}</h4><div class="ticket-weekdays"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div><div class="ticket-days-grid">${cells.join("")}</div></section>`;
   }).join("");
@@ -184,6 +336,7 @@ function renderTicketRestaurantCalendar() {
 
 function openTicketRestaurantPersonForm(employeeNumber) {
   ticketRestaurantEditingEmployee = employeeNumber ? normalizeTicketEmployee(employeeNumber) : null;
+  ticketRestaurantLastPlantillaLookup = "";
   const people = getTicketRestaurantPeople();
   const person = people.find(item => item.employeeNumber === ticketRestaurantEditingEmployee) || {};
   document.getElementById("ticketPersonModalTitle").textContent = ticketRestaurantEditingEmployee ? "Editar persona" : "Nueva persona";
@@ -194,6 +347,8 @@ function openTicketRestaurantPersonForm(employeeNumber) {
   document.getElementById("ticketPersonDni").value = person.dni || "";
   document.getElementById("ticketPersonPosition").value = person.position || "";
   document.getElementById("ticketPersonCalendar").innerHTML = TICKET_RESTAURANT_CALENDARS.map(item => `<option value="${escapeHtml(item)}" ${item === (person.calendar || ticketRestaurantSelectedCalendar) ? "selected" : ""}>${escapeHtml(item)}</option>`).join("");
+  ensureTicketRestaurantPersonAutofill();
+  setTicketRestaurantPersonNotice("");
   const modal = document.getElementById("ticketPersonModal");
   if (modal) modal.classList.add("open");
 }
@@ -202,6 +357,8 @@ function closeTicketRestaurantPersonForm() {
   const modal = document.getElementById("ticketPersonModal");
   if (modal) modal.classList.remove("open");
   ticketRestaurantEditingEmployee = null;
+  ticketRestaurantLastPlantillaLookup = "";
+  setTicketRestaurantPersonNotice("");
 }
 
 function saveTicketRestaurantPersonForm() {
@@ -444,6 +601,7 @@ window.showTicketRestaurantArea = showTicketRestaurantArea;
 window.setTicketRestaurantCalendar = setTicketRestaurantCalendar;
 window.moveTicketRestaurantCalendarYear = moveTicketRestaurantCalendarYear;
 window.toggleTicketRestaurantNoTicket = toggleTicketRestaurantNoTicket;
+window.autocompleteTicketRestaurantPersonFromPlantilla = autocompleteTicketRestaurantPersonFromPlantilla;
 window.openTicketRestaurantPersonForm = openTicketRestaurantPersonForm;
 window.closeTicketRestaurantPersonForm = closeTicketRestaurantPersonForm;
 window.saveTicketRestaurantPersonForm = saveTicketRestaurantPersonForm;
