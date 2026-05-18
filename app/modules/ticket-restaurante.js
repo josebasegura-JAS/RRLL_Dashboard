@@ -55,6 +55,17 @@ function ticketRestaurantMatchesColumnFilters(item, filters) {
   });
 }
 
+function applyTicketEmployeeNameColumnLayout(tableSelector) {
+  const el = document.querySelector(tableSelector);
+  const table = el && (el.tagName === "TABLE" ? el : el.closest("table"));
+  if (!table) return;
+  const headerRow = table.querySelector("thead tr");
+  const first = headerRow && headerRow.children[0];
+  const second = headerRow && headerRow.children[1];
+  if (first) first.style.width = "7rem";
+  if (second) second.style.minWidth = "16rem";
+}
+
 function normalizeTicketRestaurantSortValue(value, type) {
   if (type === "number") return parseTicketNumber(value);
   const date = parseTicketDate(value);
@@ -135,11 +146,50 @@ let ticketRestaurantLastVisibleCompute = null;
 let ticketRestaurantLastVisibleMonthlyQuote = null;
 let ticketRestaurantComputeSort = { key: null, direction: null };
 let ticketRestaurantVisibleAbsenceMonth = null;
+let ticketRestaurantVisibleComputeMonth = null;
+let ticketRestaurantVisibleContributionMonth = null;
+let ticketRestaurantAbsencePreviewRows = [];
+let ticketRestaurantVisiblePreviewMonth = null;
 let ticketRestaurantAbsenceSort = { key: null, direction: null };
 
-function trTodayNextMonth() {
+function normalizeTicketMonth(month) {
+  const base = month || getPreviousSystemMonth();
+  const date = new Date(Number(base.year), Number(base.month) - 1, 1);
+  return { month: date.getMonth() + 1, year: date.getFullYear() };
+}
+
+function getPreviousSystemMonth() {
   const now = new Date();
-  return { month: now.getMonth() === 11 ? 1 : now.getMonth() + 2, year: now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear() };
+  const previous = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return { month: previous.getMonth() + 1, year: previous.getFullYear() };
+}
+
+function addTicketMonths(month, delta) {
+  const current = normalizeTicketMonth(month);
+  const next = new Date(current.year, current.month - 1 + (Number(delta) || 0), 1);
+  return { month: next.getMonth() + 1, year: next.getFullYear() };
+}
+
+function ticketMonthKey(month) {
+  const normalized = normalizeTicketMonth(month);
+  return `${normalized.year}-${String(normalized.month).padStart(2, "0")}`;
+}
+
+function formatTicketMonthLabel(month) {
+  const normalized = normalizeTicketMonth(month);
+  const monthName = TICKET_RESTAURANT_MONTHS[normalized.month - 1] || "";
+  return `${monthName.charAt(0).toUpperCase()}${monthName.slice(1)} ${normalized.year}`;
+}
+
+function renderTicketMonthNavigator({ visibleMonth, onPrev, onNext, label = "" } = {}) {
+  const monthLabel = formatTicketMonthLabel(visibleMonth || getPreviousSystemMonth());
+  const safeLabel = label ? `<span class="muted">${escapeHtml(label)}</span>` : "";
+  return `<div class="rrll-pro-list-toolbar ticket-month-navigator" style="justify-content:center;gap:12px;margin:8px 0;">
+    ${safeLabel}
+    <button type="button" class="secondary small" aria-label="Mes anterior" onclick="${escapeHtml(onPrev || "")}">←</button>
+    <strong>${escapeHtml(monthLabel)}</strong>
+    <button type="button" class="secondary small" aria-label="Mes siguiente" onclick="${escapeHtml(onNext || "")}">→</button>
+  </div>`;
 }
 
 function getTicketRestaurantCalendarMarks() {
@@ -897,6 +947,8 @@ function ensureTicketRestaurantAbsencePreviewModal() {
       <p id="ticketRestaurantAbsencePreviewSummary" class="muted"></p>
       <div id="ticketRestaurantAbsencePreviewWarnings" class="muted" style="font-size:.9rem;"></div>
       <div id="ticketRestaurantAbsencePreviewErrors" style="color:#b42318;font-size:.9rem;" aria-live="polite"></div>
+      <div id="ticketRestaurantAbsencePreviewMonthSelector"></div>
+      <p id="ticketRestaurantAbsencePreviewMonthCount" class="muted" style="margin:.25rem 0 .75rem;"></p>
       <div class="rrll-pro-table-wrap" style="overflow:auto;min-height:180px;max-height:55vh;">
         <table class="rrll-pro-table ticket-table">
           <thead><tr><th style="width:7rem;">Nº empleado</th><th style="min-width:16rem;">Nombre y apellidos</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Total días</th><th>Acciones</th></tr></thead>
@@ -915,24 +967,115 @@ function ensureTicketRestaurantAbsencePreviewModal() {
   return modal;
 }
 
+function getTicketPreviewVisibleMonth() {
+  if (!ticketRestaurantVisiblePreviewMonth) ticketRestaurantVisiblePreviewMonth = getPreviousSystemMonth();
+  return ticketRestaurantVisiblePreviewMonth;
+}
+
+function getTicketPreviewRowMonth(row) {
+  const fromPeriod = ticketRestaurantMonthYearFromDate(row && row.fromDate);
+  if (fromPeriod.month && fromPeriod.year) return fromPeriod;
+  return row && row._previewMonth ? normalizeTicketMonth(row._previewMonth) : getTicketPreviewVisibleMonth();
+}
+
+function filterTicketPreviewRowsByMonth(rows, month) {
+  const visible = normalizeTicketMonth(month || getTicketPreviewVisibleMonth());
+  return (Array.isArray(rows) ? rows : []).filter(row => {
+    const period = getTicketPreviewRowMonth(row);
+    return period.month === visible.month && period.year === visible.year;
+  });
+}
+
+function getTicketPreviewAvailableMonths() {
+  const byKey = new Map();
+  ticketRestaurantAbsencePreviewRows.forEach(row => {
+    const period = getTicketPreviewRowMonth(row);
+    if (period.month && period.year) byKey.set(ticketMonthKey(period), period);
+  });
+  return [...byKey.values()].sort((a, b) => a.year - b.year || a.month - b.month);
+}
+
+function ticketRestaurantSyncPreviewRowsFromDom() {
+  document.querySelectorAll('#ticketRestaurantAbsencePreviewBody tr[data-preview-index]').forEach(rowEl => {
+    const index = Number(rowEl.dataset.previewIndex);
+    if (!Number.isInteger(index) || !ticketRestaurantAbsencePreviewRows[index]) return;
+    const next = {
+      ...ticketRestaurantAbsencePreviewRows[index],
+      employeeNumber: rowEl.querySelector('[data-field="employeeNumber"]')?.value || "",
+      employeeName: rowEl.querySelector('[data-field="employeeName"]')?.value || "",
+      fromDate: rowEl.querySelector('[data-field="fromDate"]')?.value || "",
+      toDate: rowEl.querySelector('[data-field="toDate"]')?.value || "",
+      reason: rowEl.querySelector('[data-field="reason"]')?.value || "",
+      totalDays: rowEl.querySelector('[data-field="totalDays"]')?.value || ""
+    };
+    const period = ticketRestaurantMonthYearFromDate(next.fromDate);
+    next._previewMonth = period.month && period.year ? period : (next._previewMonth || getTicketPreviewVisibleMonth());
+    ticketRestaurantAbsencePreviewRows[index] = next;
+  });
+}
+
+function changeTicketPreviewMonth(delta) {
+  ticketRestaurantSyncPreviewRowsFromDom();
+  const months = getTicketPreviewAvailableMonths();
+  if (!months.length) {
+    ticketRestaurantVisiblePreviewMonth = addTicketMonths(getTicketPreviewVisibleMonth(), delta);
+    renderTicketRestaurantAbsencePreviewRows();
+    return;
+  }
+  const currentKey = ticketMonthKey(getTicketPreviewVisibleMonth());
+  let index = months.findIndex(month => ticketMonthKey(month) === currentKey);
+  if (index < 0) {
+    const direction = Number(delta) || 0;
+    index = direction >= 0 ? months.findIndex(month => ticketMonthKey(month) > currentKey) : -1;
+    if (index < 0 && direction >= 0) index = months.length - 1;
+    if (index < 0) {
+      const monthKeys = months.map(ticketMonthKey);
+      for (let i = monthKeys.length - 1; i >= 0; i -= 1) {
+        if (monthKeys[i] < currentKey) { index = i; break; }
+      }
+    }
+    if (index < 0) index = 0;
+  } else {
+    index = Math.max(0, Math.min(months.length - 1, index + (Number(delta) || 0)));
+  }
+  ticketRestaurantVisiblePreviewMonth = months[index];
+  renderTicketRestaurantAbsencePreviewRows();
+}
+
+function renderTicketPreviewMonthSelector() {
+  const target = document.getElementById("ticketRestaurantAbsencePreviewMonthSelector");
+  if (!target) return;
+  target.innerHTML = renderTicketMonthNavigator({
+    visibleMonth: getTicketPreviewVisibleMonth(),
+    onPrev: "changeTicketPreviewMonth(-1)",
+    onNext: "changeTicketPreviewMonth(1)"
+  });
+}
+
 function ticketRestaurantReadPreviewRowsFromDom() {
-  return Array.from(document.querySelectorAll("#ticketRestaurantAbsencePreviewBody tr"))
-    .filter(row => row.querySelector('[data-field="employeeNumber"]'))
-    .map(row => ({
-      employeeNumber: row.querySelector('[data-field="employeeNumber"]')?.value || "",
-      employeeName: row.querySelector('[data-field="employeeName"]')?.value || "",
-      fromDate: row.querySelector('[data-field="fromDate"]')?.value || "",
-      toDate: row.querySelector('[data-field="toDate"]')?.value || "",
-      reason: row.querySelector('[data-field="reason"]')?.value || "",
-      totalDays: row.querySelector('[data-field="totalDays"]')?.value || ""
-    }));
+  ticketRestaurantSyncPreviewRowsFromDom();
+  return ticketRestaurantAbsencePreviewRows.map(({ _previewMonth, ...row }) => row);
 }
 
 function renderTicketRestaurantAbsencePreviewRows(rows) {
+  if (Array.isArray(rows)) {
+    ticketRestaurantAbsencePreviewRows = rows.map(row => {
+      const normalized = normalizeTicketRestaurantAbsenceRow(row);
+      const period = ticketRestaurantMonthYearFromDate(normalized.fromDate);
+      return { ...normalized, _previewMonth: period.month && period.year ? period : getTicketPreviewVisibleMonth() };
+    });
+  }
   const body = document.getElementById("ticketRestaurantAbsencePreviewBody");
   if (!body) return;
-  body.innerHTML = (Array.isArray(rows) ? rows : []).map((row, index) => `
-    <tr data-index="${index}">
+  renderTicketPreviewMonthSelector();
+  const visibleMonth = getTicketPreviewVisibleMonth();
+  const visibleRows = ticketRestaurantAbsencePreviewRows
+    .map((row, index) => ({ row, index }))
+    .filter(({ row }) => filterTicketPreviewRowsByMonth([row], visibleMonth).length);
+  const count = document.getElementById("ticketRestaurantAbsencePreviewMonthCount");
+  if (count) count.textContent = `Mostrando ${visibleRows.length} ausencias de ${formatTicketMonthLabel(visibleMonth)}`;
+  body.innerHTML = visibleRows.map(({ row, index }) => `
+    <tr data-index="${index}" data-preview-index="${index}">
       <td><input data-field="employeeNumber" value="${escapeHtml(row.employeeNumber || "")}" /></td>
       <td><input data-field="employeeName" value="${escapeHtml(row.employeeName || "")}" /></td>
       <td><input data-field="fromDate" value="${escapeHtml(row.fromDate || "")}" placeholder="dd/mm/aaaa" /></td>
@@ -940,32 +1083,40 @@ function renderTicketRestaurantAbsencePreviewRows(rows) {
       <td><input data-field="reason" value="${escapeHtml(row.reason || "")}" /></td>
       <td><input data-field="totalDays" value="${escapeHtml(row.totalDays || "")}" /></td>
       <td class="table-actions"><button class="danger small" type="button" onclick="removeTicketRestaurantAbsencePreviewRow(this)">Eliminar</button></td>
-    </tr>`).join("") || `<tr><td colspan="7" class="muted">No hay ausencias en la previsualización. Puedes añadir una manualmente.</td></tr>`;
+    </tr>`).join("") || `<tr><td colspan="7" class="muted">No hay ausencias para este mes. Puedes añadir una manualmente.</td></tr>`;
 }
+
 
 function openTicketRestaurantAbsencePreviewModal(parsedRows, meta = {}) {
   const modal = ensureTicketRestaurantAbsencePreviewModal();
   modal.dataset.fileName = meta.fileName || "";
   modal.dataset.ignoredRows = String(meta.ignoredRows || 0);
   const rows = (Array.isArray(parsedRows) ? parsedRows : []).map(normalizeTicketRestaurantAbsenceRow);
+  ticketRestaurantVisiblePreviewMonth = getPreviousSystemMonth();
+  ticketRestaurantAbsencePreviewRows = rows.map(row => {
+    const period = ticketRestaurantMonthYearFromDate(row.fromDate);
+    return { ...row, _previewMonth: period.month && period.year ? period : ticketRestaurantVisiblePreviewMonth };
+  });
   document.getElementById("ticketRestaurantAbsencePreviewSummary").textContent = `Ausencias detectadas: ${rows.length}. Filas ignoradas: ${meta.ignoredRows || 0}.`;
   document.getElementById("ticketRestaurantAbsencePreviewWarnings").textContent = (meta.warnings || []).filter(Boolean).join(" ");
   document.getElementById("ticketRestaurantAbsencePreviewErrors").textContent = "";
-  renderTicketRestaurantAbsencePreviewRows(rows);
+  renderTicketRestaurantAbsencePreviewRows();
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
 }
 
 function addTicketRestaurantAbsencePreviewRow() {
-  const rows = ticketRestaurantReadPreviewRowsFromDom();
-  rows.push({ employeeNumber: "", employeeName: "", fromDate: "", toDate: "", reason: "", totalDays: "" });
-  renderTicketRestaurantAbsencePreviewRows(rows);
+  ticketRestaurantSyncPreviewRowsFromDom();
+  ticketRestaurantAbsencePreviewRows.push({ employeeNumber: "", employeeName: "", fromDate: "", toDate: "", reason: "", totalDays: "", _previewMonth: getTicketPreviewVisibleMonth() });
+  renderTicketRestaurantAbsencePreviewRows();
 }
 
 function removeTicketRestaurantAbsencePreviewRow(button) {
   const row = button && button.closest("tr");
-  if (row) row.remove();
-  renderTicketRestaurantAbsencePreviewRows(ticketRestaurantReadPreviewRowsFromDom());
+  const index = row ? Number(row.dataset.previewIndex) : -1;
+  ticketRestaurantSyncPreviewRowsFromDom();
+  if (Number.isInteger(index) && index >= 0) ticketRestaurantAbsencePreviewRows.splice(index, 1);
+  renderTicketRestaurantAbsencePreviewRows();
 }
 
 function saveTicketRestaurantAbsencePreviewRows() {
@@ -1043,20 +1194,16 @@ async function importTicketRestaurantAbsences() {
 
 
 function getDefaultTicketAbsenceMonth() {
-  const now = new Date();
-  const previous = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  return { month: previous.getMonth() + 1, year: previous.getFullYear() };
+  return getPreviousSystemMonth();
 }
 
 function getTicketAbsenceVisibleMonth() {
-  if (!ticketRestaurantVisibleAbsenceMonth) ticketRestaurantVisibleAbsenceMonth = getDefaultTicketAbsenceMonth();
+  if (!ticketRestaurantVisibleAbsenceMonth) ticketRestaurantVisibleAbsenceMonth = getPreviousSystemMonth();
   return ticketRestaurantVisibleAbsenceMonth;
 }
 
 function changeTicketAbsenceMonth(delta) {
-  const current = getTicketAbsenceVisibleMonth();
-  const next = new Date(current.year, current.month - 1 + (Number(delta) || 0), 1);
-  ticketRestaurantVisibleAbsenceMonth = { month: next.getMonth() + 1, year: next.getFullYear() };
+  ticketRestaurantVisibleAbsenceMonth = addTicketMonths(getTicketAbsenceVisibleMonth(), delta);
   renderTicketRestaurantAbsences();
 }
 
@@ -1076,22 +1223,18 @@ function renderTicketAbsenceMonthSelector() {
       <th>Acciones</th>
     </tr>`;
     const wrap = table.closest(".rrll-pro-table-wrap");
-    if (wrap && !document.getElementById("ticketRestaurantAbsenceMonthSelector")) {
-      wrap.insertAdjacentHTML("beforebegin", `<div id="ticketRestaurantAbsenceMonthSelector" class="rrll-pro-list-toolbar" style="justify-content:center;gap:12px;margin:8px 0;">
-        <button type="button" class="secondary small" aria-label="Mes anterior" onclick="changeTicketAbsenceMonth(-1)">←</button>
-        <strong id="ticketRestaurantAbsenceMonthLabel"></strong>
-        <button type="button" class="secondary small" aria-label="Mes siguiente" onclick="changeTicketAbsenceMonth(1)">→</button>
-      </div>`);
+    if (wrap) {
+      let selector = document.getElementById("ticketRestaurantAbsenceMonthSelector");
+      if (!selector) {
+        wrap.insertAdjacentHTML("beforebegin", `<div id="ticketRestaurantAbsenceMonthSelector"></div>`);
+        selector = document.getElementById("ticketRestaurantAbsenceMonthSelector");
+      }
+      if (selector) selector.innerHTML = renderTicketMonthNavigator({ visibleMonth: getTicketAbsenceVisibleMonth(), onPrev: "changeTicketAbsenceMonth(-1)", onNext: "changeTicketAbsenceMonth(1)" });
     }
-  }
-  const visible = getTicketAbsenceVisibleMonth();
-  const label = document.getElementById("ticketRestaurantAbsenceMonthLabel");
-  if (label) {
-    const monthName = TICKET_RESTAURANT_MONTHS[visible.month - 1] || "";
-    label.textContent = `${monthName.charAt(0).toUpperCase()}${monthName.slice(1)} ${visible.year}`;
   }
   updateTicketRestaurantAbsenceSortIndicators();
 }
+
 
 function filterTicketAbsencesByVisibleMonth(absences) {
   const visible = getTicketAbsenceVisibleMonth();
@@ -1166,31 +1309,57 @@ function renderTicketRestaurantAbsences() {
   body.innerHTML = absences.length ? absences.map(item => `<tr>
     <td>${escapeHtml(item.employeeNumber)}</td><td>${escapeHtml(item.employeeName || "")}</td><td>${formatTicketDate(item.from)}</td><td>${formatTicketDate(item.to)}</td><td>${escapeHtml(item.reason)}</td><td>${escapeHtml(item.totalDays)}</td>
     <td class="table-actions"><button class="danger small" type="button" onclick="deleteTicketRestaurantAbsence('${escapeHtml(item.id)}')">Eliminar</button></td>
-  </tr>`).join("") : `<tr><td colspan="7" class="muted">Sin ausencias importadas para el mes visible.</td></tr>`;
+  </tr>`).join("") : `<tr><td colspan="7" class="muted">No hay ausencias para este mes</td></tr>`;
   updateTicketRestaurantAbsenceSortIndicators();
+}
+
+function getTicketComputeVisibleMonth() {
+  if (!ticketRestaurantVisibleComputeMonth) ticketRestaurantVisibleComputeMonth = getPreviousSystemMonth();
+  return ticketRestaurantVisibleComputeMonth;
+}
+
+function changeTicketComputeMonth(delta) {
+  ticketRestaurantVisibleComputeMonth = addTicketMonths(getTicketComputeVisibleMonth(), delta);
+  renderTicketRestaurantComputeControls();
+}
+
+function renderTicketComputeMonthSelector() {
+  const periodEl = document.getElementById("ticketRestaurantComputePeriod");
+  if (!periodEl) return;
+  let selector = document.getElementById("ticketRestaurantComputeMonthSelector");
+  if (!selector) {
+    periodEl.insertAdjacentHTML("beforebegin", `<div id="ticketRestaurantComputeMonthSelector"></div>`);
+    selector = document.getElementById("ticketRestaurantComputeMonthSelector");
+  }
+  if (selector) selector.innerHTML = renderTicketMonthNavigator({ visibleMonth: getTicketComputeVisibleMonth(), onPrev: "changeTicketComputeMonth(-1)", onNext: "changeTicketComputeMonth(1)" });
 }
 
 function renderTicketRestaurantComputeControls() {
   const month = document.getElementById("ticketRestaurantComputeMonth");
   const year = document.getElementById("ticketRestaurantComputeYear");
-  if (!month || !year) return;
-  const def = trTodayNextMonth();
-  if (month.dataset.ready !== "1") {
-    month.innerHTML = TICKET_RESTAURANT_MONTHS.map((name, index) => `<option value="${index + 1}" ${index + 1 === def.month ? "selected" : ""}>${name}</option>`).join("");
-    month.dataset.ready = "1";
+  const visible = getTicketComputeVisibleMonth();
+  if (month) {
+    if (month.dataset.ready !== "1") {
+      month.innerHTML = TICKET_RESTAURANT_MONTHS.map((name, index) => `<option value="${index + 1}">${name}</option>`).join("");
+      month.dataset.ready = "1";
+    }
+    month.value = String(visible.month);
+    const field = month.closest(".rrll-pro-field");
+    if (field) field.style.display = "none";
   }
-  if (!year.value) year.value = def.year;
+  if (year) {
+    year.value = visible.year;
+    const field = year.closest(".rrll-pro-field");
+    if (field) field.style.display = "none";
+  }
+  renderTicketComputeMonthSelector();
   renderTicketRestaurantComputePreview();
 }
 
 function getTicketRestaurantComputeSelection() {
-  const def = trTodayNextMonth();
-  const selectedMonth = Number((document.getElementById("ticketRestaurantComputeMonth") || {}).value);
-  const selectedYear = Number((document.getElementById("ticketRestaurantComputeYear") || {}).value);
-  const month = Number.isInteger(selectedMonth) && selectedMonth >= 1 && selectedMonth <= 12 ? selectedMonth : def.month;
-  const year = Number.isInteger(selectedYear) && selectedYear >= 2000 && selectedYear <= 2100 ? selectedYear : def.year;
-  return { month, year };
+  return getTicketComputeVisibleMonth();
 }
+
 
 function ticketRestaurantWorkingDays(month, year, calendar) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
@@ -1231,11 +1400,16 @@ function ticketRestaurantNoTicketWeekdays(month, year, calendar) {
   return count;
 }
 
-function calculateTicketRestaurantCompute() {
-  const { month, year } = getTicketRestaurantComputeSelection();
+function calculateTicketRestaurantCompute(period = null) {
+  const { month, year } = period ? normalizeTicketMonth(period) : getTicketRestaurantComputeSelection();
   const calendarTheoretical = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
   const calendarNoTicketWeekdays = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantNoTicketWeekdays(month, year, calendar)]));
-  const absences = getTicketRestaurantAbsences().filter(item => Number(item.month) === month && Number(item.year) === year);
+  const absences = getTicketRestaurantAbsences().filter(item => {
+    const period = ticketRestaurantMonthYearFromDate(item && item.from);
+    const itemMonth = period.month || Number(item && item.month);
+    const itemYear = period.year || Number(item && item.year);
+    return itemMonth === month && itemYear === year;
+  });
   const byEmployee = new Map();
   absences.forEach(item => {
     const key = normalizeTicketEmployeeLookup(item.employeeNumber);
@@ -1297,6 +1471,7 @@ function renderTicketRestaurantComputePreview() {
   const noticeEl = document.getElementById("ticketRestaurantComputeNotice");
   const body = document.getElementById("ticketRestaurantComputeBody");
   if (!summaryEl || !body) return;
+  renderTicketComputeMonthSelector();
   const calc = calculateTicketRestaurantCompute();
   ticketRestaurantLastVisibleCompute = calc;
   if (periodEl) periodEl.textContent = `Cómputo automático para ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} de ${calc.year}`;
@@ -1306,6 +1481,9 @@ function renderTicketRestaurantComputePreview() {
     noticeEl.innerHTML = uniqueWarnings.map(item => `<div>${escapeHtml(item)} Tickets = 0 para esa persona.</div>`).join("");
     noticeEl.hidden = uniqueWarnings.length === 0;
   }
+  const nameSortButton = document.querySelector('[data-ticket-compute-sort="name"]');
+  if (nameSortButton && nameSortButton.firstChild) nameSortButton.firstChild.nodeValue = "Nombre y apellidos";
+  applyTicketEmployeeNameColumnLayout("#ticketRestaurantComputeBody");
   const visibleRows = getVisibleTicketRestaurantComputeRows(calc);
   updateTicketRestaurantComputeSortHeaders();
   body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}">
@@ -1355,11 +1533,32 @@ function printTicketRestaurantComputeVisible() {
   renderTicketRestaurantComputePreview();
   const calc = ticketRestaurantLastVisibleCompute || calculateTicketRestaurantCompute();
   const rows = getVisibleTicketRestaurantComputeRows(calc).map(row => [row.person.employeeNumber || "", ticketRestaurantFullName(row.person), row.person.calendar || "", row.theoretical, row.absenceDays, row.finalTickets]);
-  openTicketRestaurantPrintPreview(`Cómputo Ticket Restaurante - ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} ${calc.year}`, ["Nº empleado", "Nombre completo", "Calendario", "Tickets teóricos", "Ausencias aplicadas", "Tickets finales"], rows);
+  openTicketRestaurantPrintPreview(`Cómputo Ticket Restaurante - ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} ${calc.year}`, ["Nº empleado", "Nombre y apellidos", "Calendario", "Tickets teóricos", "Ausencias aplicadas", "Tickets finales"], rows);
+}
+
+function getTicketContributionVisibleMonth() {
+  if (!ticketRestaurantVisibleContributionMonth) ticketRestaurantVisibleContributionMonth = getPreviousSystemMonth();
+  return ticketRestaurantVisibleContributionMonth;
+}
+
+function changeTicketContributionMonth(delta) {
+  ticketRestaurantVisibleContributionMonth = addTicketMonths(getTicketContributionVisibleMonth(), delta);
+  renderTicketRestaurantMonthlyQuotePreview();
+}
+
+function renderTicketContributionMonthSelector() {
+  const periodEl = document.getElementById("ticketRestaurantMonthlyQuotePeriod");
+  if (!periodEl) return;
+  let selector = document.getElementById("ticketRestaurantContributionMonthSelector");
+  if (!selector) {
+    periodEl.insertAdjacentHTML("afterend", `<div id="ticketRestaurantContributionMonthSelector"></div>`);
+    selector = document.getElementById("ticketRestaurantContributionMonthSelector");
+  }
+  if (selector) selector.innerHTML = renderTicketMonthNavigator({ visibleMonth: getTicketContributionVisibleMonth(), onPrev: "changeTicketContributionMonth(-1)", onNext: "changeTicketContributionMonth(1)" });
 }
 
 function calculateTicketRestaurantMonthlyQuote() {
-  const calc = calculateTicketRestaurantCompute();
+  const calc = calculateTicketRestaurantCompute(getTicketContributionVisibleMonth());
   const cfg = getTicketRestaurantConfig();
   const rows = calc.rows.map(row => ({
     employeeNumber: row.person.employeeNumber || "",
@@ -1375,10 +1574,12 @@ function renderTicketRestaurantMonthlyQuotePreview() {
   const periodEl = document.getElementById("ticketRestaurantMonthlyQuotePeriod");
   const body = document.getElementById("ticketRestaurantMonthlyQuoteBody");
   if (!panel || !body) return;
+  renderTicketContributionMonthSelector();
   const calc = calculateTicketRestaurantMonthlyQuote();
   ticketRestaurantLastVisibleMonthlyQuote = calc;
   panel.hidden = false;
   if (periodEl) periodEl.textContent = `Cómputo Cotización Mensual para ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} de ${calc.year}`;
+  applyTicketEmployeeNameColumnLayout("#ticketRestaurantMonthlyQuoteBody");
   const visibleRows = getVisibleTicketRestaurantMonthlyQuoteRows(calc);
   body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr><td>${escapeHtml(row.employeeNumber)}</td><td>${escapeHtml(row.fullName)}</td><td>${escapeHtml(row.ticketDays)}</td><td>${escapeHtml(row.ticketAmount)}</td></tr>`).join("") : `<tr><td colspan="4" class="muted">Sin resultados que coincidan con los filtros.</td></tr>`;
 }
@@ -1418,15 +1619,18 @@ window.saveTicketRestaurantAbsencePreviewRows = saveTicketRestaurantAbsencePrevi
 window.downloadTicketRestaurantAbsenceTemplate = downloadTicketRestaurantAbsenceTemplate;
 window.deleteTicketRestaurantAbsence = deleteTicketRestaurantAbsence;
 window.changeTicketAbsenceMonth = changeTicketAbsenceMonth;
+window.changeTicketPreviewMonth = changeTicketPreviewMonth;
 window.setTicketRestaurantAbsenceSort = setTicketRestaurantAbsenceSort;
 window.renderTicketRestaurantPeople = renderTicketRestaurantPeople;
 window.exportTicketRestaurantPeopleVisible = exportTicketRestaurantPeopleVisible;
 window.printTicketRestaurantPeopleVisible = printTicketRestaurantPeopleVisible;
 window.renderTicketRestaurantComputePreview = renderTicketRestaurantComputePreview;
+window.changeTicketComputeMonth = changeTicketComputeMonth;
 window.setTicketRestaurantComputeSort = setTicketRestaurantComputeSort;
 window.exportTicketRestaurantCompute = exportTicketRestaurantCompute;
 window.printTicketRestaurantComputeVisible = printTicketRestaurantComputeVisible;
 window.renderTicketRestaurantMonthlyQuotePreview = renderTicketRestaurantMonthlyQuotePreview;
+window.changeTicketContributionMonth = changeTicketContributionMonth;
 window.exportTicketRestaurantMonthlyQuote = exportTicketRestaurantMonthlyQuote;
 window.printTicketRestaurantMonthlyQuote = printTicketRestaurantMonthlyQuote;
 window.saveTicketRestaurantConfigFromInputs = saveTicketRestaurantConfigFromInputs;
