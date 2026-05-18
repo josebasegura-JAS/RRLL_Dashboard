@@ -39,7 +39,13 @@ function getTodayKey() {
       };
 
       label.textContent = labels[status] || "Sincronizado";
-      detailEl.textContent = detail || `Última comprobación: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+      const fallbackDetail = `Última comprobación: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+      detailEl.textContent = compactSidebarSyncDetail(status, detail || fallbackDetail);
+    }
+
+    function compactSidebarSyncDetail(status, detail) {
+      if (status !== "synced" || !detail) return detail;
+      return String(detail).replace(/^Sincronizado:\s*/i, "").replace(/^Sincronizado\s+/i, "");
     }
 
     function markSaveStarted() {

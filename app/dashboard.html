@@ -41,7 +41,7 @@
       <div class="phase4-sidebar-section">Herramientas</div>
       <nav class="phase4-nav phase4-nav-secondary">
         <button type="button" class="phase4-nav-item phase4-nav-button" onclick="openTrashModal()">🗑 <span>Papelera</span> <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
-        <button type="button" class="phase4-nav-item phase4-nav-button" onclick="openConfigModal()">⚙ <span>Configuración</span></button>
+        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙</button>
       </nav>
       <div id="saveStatusWidget" class="save-status-widget synced phase5-sidebar-sync" aria-live="polite">
         <span class="save-status-dot"></span>
@@ -49,7 +49,7 @@
           <b id="saveStatusLabel">Sincronizado</b>
           <span id="saveStatusDetail">Esperando cambios</span>
         </span>
-        <button type="button" class="sync-now-button" onclick="reloadDatabaseFromDisk()">Sincronizar ahora</button>
+        <button type="button" class="sync-now-button" onclick="reloadDatabaseFromDisk()" title="Sincronizar ahora" aria-label="Sincronizar ahora">↻</button>
       </div>
     </aside>
     <div class="phase4-main">
