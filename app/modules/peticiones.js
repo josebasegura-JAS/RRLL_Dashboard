@@ -76,6 +76,38 @@
       save("rrll_petitions", items);
     }
 
+    function getLinkedTasksForPetition(petition) {
+      if (!petition || typeof getTasks !== "function") return [];
+      const linkedIds = [petition.taskId, petition.linkedTaskId].filter(Boolean).map(String);
+      return getTasks().filter(task => {
+        if (!task) return false;
+        if (linkedIds.includes(String(task.id))) return true;
+        return task.petitionId && String(task.petitionId) === String(petition.id);
+      });
+    }
+
+    function closeLinkedTasksForPetition(petition, closedAt) {
+      const linkedTasks = getLinkedTasksForPetition(petition);
+      if (!linkedTasks.length || typeof getTasks !== "function" || typeof setTasks !== "function") return;
+      const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
+      const now = closedAt || new Date().toISOString();
+      setTasks(getTasks().map(task => linkedTaskIds.has(String(task.id))
+        ? { ...task, status: "closed", closedAt: task.closedAt || now, updatedAt: now }
+        : task));
+      if (typeof renderTasks === "function") renderTasks();
+    }
+
+    function deleteLinkedTasksForPetition(petition) {
+      const linkedTasks = getLinkedTasksForPetition(petition);
+      if (!linkedTasks.length || typeof getTasks !== "function" || typeof setTasks !== "function") return;
+      const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
+      if (typeof moveToTrash === "function") {
+        linkedTasks.forEach(task => moveToTrash("tasks", task));
+      }
+      setTasks(getTasks().filter(task => !linkedTaskIds.has(String(task.id))));
+      if (typeof renderTasks === "function") renderTasks();
+    }
+
     function togglePetitionCreateForm(forceOpen) {
       const form = document.getElementById("petitionCreateForm");
       if (!form) return;
@@ -109,7 +141,8 @@
       if (companyEl.checked) sources.push("Empresa");
 
       const now = new Date().toISOString();
-      populatePetitionOriginSelect("newPetitionOrigin", document.getElementById("newPetitionOrigin")?.value || getPetitionOrigins()[0] || "", false);
+      const origin = normalizePetitionOrigin(originEl ? originEl.value : "") || getPetitionOrigins()[0] || "";
+      populatePetitionOriginSelect("newPetitionOrigin", origin, false);
       const items = getPetitions();
       items.unshift({
         id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
@@ -148,13 +181,25 @@
           closedAt: status === "petition-closed" ? (item.closedAt || now) : null
         };
       });
+      const movedPetition = items.find(item => item.id === id);
       setPetitions(items);
+      if (status === "petition-closed") closeLinkedTasksForPetition(movedPetition, now);
       renderPetitions();
     }
 
     function movePetition(id, status) {
       if (typeof confirmDangerAction !== "function") return;
       const item = getPetitions().find(i => i.id === id);
+      const linkedTasks = getLinkedTasksForPetition(item);
+      if (status === "petition-closed" && linkedTasks.length) {
+        confirmDangerAction({
+          title: "Cerrar petición con tarea vinculada",
+          message: "Esta petición tiene una tarea vinculada. Si cierras la petición, también se cerrará la tarea asociada. ¿Quieres continuar?",
+          confirmLabel: "Cerrar petición y tarea",
+          onConfirm: () => executeMovePetition(id, status)
+        });
+        return;
+      }
       const title = item && item.title ? `“${item.title}”` : "esta petición";
       const nextStatus = petitionStatusLabel(status).toLowerCase();
       confirmDangerAction({
@@ -168,7 +213,10 @@
     function executeDeletePetition(id) {
       const items = getPetitions();
       const item = items.find(i => i.id === id);
-      if (item) moveToTrash("petitions", item);
+      if (item) {
+        deleteLinkedTasksForPetition(item);
+        moveToTrash("petitions", item);
+      }
       setPetitions(items.filter(i => i.id !== id));
       renderPetitions();
       renderTrash();
@@ -179,6 +227,16 @@
     function deletePetition(id) {
       if (typeof confirmDangerAction !== "function") return;
       const item = getPetitions().find(i => i.id === id);
+      const linkedTasks = getLinkedTasksForPetition(item);
+      if (linkedTasks.length) {
+        confirmDangerAction({
+          title: "Eliminar petición con tarea vinculada",
+          message: "Esta petición tiene una tarea vinculada. Si eliminas la petición, también se eliminará la tarea asociada. ¿Quieres continuar?",
+          confirmLabel: "Eliminar petición y tarea",
+          onConfirm: () => executeDeletePetition(id)
+        });
+        return;
+      }
       const title = item && item.title ? `“${item.title}”` : "esta petición";
       confirmDangerAction({
         title: "Eliminar petición",
@@ -631,32 +689,54 @@
     const priority = normalizePriority(document.getElementById("petitionEditPriority")?.value || "normal");
     const notes = (document.getElementById("petitionEditNotes")?.value || "").trim();
     const updateText = (document.getElementById("petitionUpdateModalText")?.value || "").trim();
-    const now = new Date().toISOString();
+    const currentItem = getPetitions().find(item => item.id === activePetitionUpdateId);
+    const shouldCloseLinkedTask = status === "petition-closed"
+      && currentItem
+      && currentItem.status !== "petition-closed"
+      && getLinkedTasksForPetition(currentItem).length;
 
-    const updatedItems = getPetitions().map(item => {
-      if (item.id !== activePetitionUpdateId) return item;
-      const editedUpdates = collectPetitionEditableUpdates("petitionExistingUpdates", item.updates || []);
-      const updates = updateText
-        ? [...editedUpdates, { text: updateText, createdAt: now }]
-        : editedUpdates;
-      return {
-        ...item,
-        title,
-        status,
-        sources,
-        origin,
-        dueDate,
-        priority,
-        notes,
-        closedAt: status === "petition-closed" ? (item.closedAt || now) : null,
-        updatedAt: now,
-        updates
-      };
-    });
+    const applySave = () => {
+      const now = new Date().toISOString();
+      let savedPetition = null;
+      const updatedItems = getPetitions().map(item => {
+        if (item.id !== activePetitionUpdateId) return item;
+        const editedUpdates = collectPetitionEditableUpdates("petitionExistingUpdates", item.updates || []);
+        const updates = updateText
+          ? [...editedUpdates, { text: updateText, createdAt: now }]
+          : editedUpdates;
+        savedPetition = {
+          ...item,
+          title,
+          status,
+          sources,
+          origin,
+          dueDate,
+          priority,
+          notes,
+          closedAt: status === "petition-closed" ? (item.closedAt || now) : null,
+          updatedAt: now,
+          updates
+        };
+        return savedPetition;
+      });
 
-    setPetitions(updatedItems);
-    closePetitionUpdateModal();
-    renderPetitions();
+      setPetitions(updatedItems);
+      if (status === "petition-closed") closeLinkedTasksForPetition(savedPetition, now);
+      closePetitionUpdateModal();
+      renderPetitions();
+    };
+
+    if (shouldCloseLinkedTask && typeof confirmDangerAction === "function") {
+      confirmDangerAction({
+        title: "Cerrar petición con tarea vinculada",
+        message: "Esta petición tiene una tarea vinculada. Si cierras la petición, también se cerrará la tarea asociada. ¿Quieres continuar?",
+        confirmLabel: "Cerrar petición y tarea",
+        onConfirm: applySave
+      });
+      return;
+    }
+
+    applySave();
   };
 
   function renderPetitionOriginSettings() {
