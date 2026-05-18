@@ -2173,3 +2173,157 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
     max-width: 198px;
   }
 }
+
+/* Compactación específica del sidebar principal para portátiles de 14". */
+.phase4-sidebar {
+  gap: 9px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(203, 213, 225, .24) transparent !important;
+}
+.phase4-sidebar::-webkit-scrollbar {
+  width: 5px !important;
+  height: 5px !important;
+}
+.phase4-sidebar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.phase4-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(203, 213, 225, .22) !important;
+  border-radius: 999px !important;
+}
+.phase4-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(203, 213, 225, .32) !important;
+}
+.phase4-nav {
+  gap: 4px !important;
+}
+.phase4-nav-item,
+.phase4-nav-subitem,
+.phase4-nav-button {
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+.phase4-nav-item {
+  min-height: 33px !important;
+  padding: 6px 9px !important;
+  border-radius: 9px !important;
+}
+.phase4-nav-submenu {
+  margin: -1px 0 4px 24px !important;
+  padding-left: 8px !important;
+}
+.phase4-nav-submenu.open {
+  gap: 3px !important;
+}
+.phase4-nav-subitem {
+  min-height: 27px !important;
+  padding: 5px 8px !important;
+  border-radius: 8px !important;
+}
+.phase4-sidebar-section {
+  margin: 8px 8px 1px !important;
+  letter-spacing: .075em !important;
+}
+.phase4-nav-secondary {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 34px !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+.phase4-nav-secondary .phase4-nav-item:not(.phase4-nav-settings-icon) {
+  width: auto !important;
+}
+.phase4-nav-settings-icon {
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  border-radius: 10px !important;
+}
+.phase5-sidebar-sync.save-status-widget {
+  grid-template-columns: 10px minmax(0, 1fr) 32px !important;
+  align-items: center !important;
+  gap: 5px 8px !important;
+  margin: auto 8px 10px !important;
+  padding: 8px 9px !important;
+  border-radius: 12px !important;
+}
+.phase5-sidebar-sync .save-status-dot {
+  width: 8px !important;
+  height: 8px !important;
+  margin-top: 0 !important;
+}
+.phase5-sidebar-sync .save-status-text {
+  grid-column: 2 !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+}
+.phase5-sidebar-sync .save-status-text b,
+.phase5-sidebar-sync .save-status-text span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.phase5-sidebar-sync .save-status-text b {
+  font-size: 11px !important;
+  line-height: 1.15 !important;
+}
+.phase5-sidebar-sync .save-status-text span {
+  font-size: 11px !important;
+  line-height: 1.15 !important;
+}
+.phase5-sidebar-sync .sync-now-button {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+.phase5-sidebar-sync.offline .save-status-dot,
+.phase5-sidebar-sync.error .save-status-dot {
+  background: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, .14) !important;
+}
+
+@media (max-height: 820px) {
+  .phase4-sidebar {
+    gap: 7px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+  .phase4-nav {
+    gap: 3px !important;
+  }
+  .phase4-nav-item {
+    min-height: 31px !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+  }
+  .phase4-nav-subitem {
+    min-height: 25px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+  .phase4-sidebar-section {
+    margin-top: 6px !important;
+  }
+  .phase5-sidebar-sync.save-status-widget {
+    margin-bottom: 8px !important;
+    padding: 7px 8px !important;
+  }
+  .phase5-sidebar-sync .save-status-text b {
+    display: none !important;
+  }
+}
