@@ -63,6 +63,7 @@ function rrllSafeCall(label, fn) {
       if (!modal) return;
       modal.classList.add("open");
       if (typeof renderPetitionOriginSettings === "function") renderPetitionOriginSettings();
+      if (typeof renderRRLLFolderConfig === "function") await renderRRLLFolderConfig();
       await refreshDatabaseInfo();
     }
 

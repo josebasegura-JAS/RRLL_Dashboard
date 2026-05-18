@@ -38,11 +38,12 @@
           <a href="#gestor-sesiones-paritaria" class="phase4-nav-subitem">• <span>Sesiones Paritaria</span></a>
         </div>
       </nav>
-      <div class="phase4-sidebar-section">Herramientas</div>
-      <nav class="phase4-nav phase4-nav-secondary">
+      <nav class="phase4-nav phase4-nav-secondary" aria-label="Accesos rápidos">
+        <button type="button" class="phase4-nav-item phase4-nav-button" onclick="openRRLLFolderShortcut()" title="Abrir carpeta Relaciones Laborales">📁 <span>Relaciones Laborales</span></button>
         <button type="button" class="phase4-nav-item phase4-nav-button" onclick="openTrashModal()">🗑 <span>Papelera</span> <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙</button>
       </nav>
+      <div id="rrllFolderNotice" class="sidebar-folder-notice" aria-live="polite"></div>
       <div id="saveStatusWidget" class="save-status-widget synced phase5-sidebar-sync" aria-live="polite">
         <span class="save-status-dot"></span>
         <span class="save-status-text">
@@ -1336,7 +1337,7 @@
   <div id="configModal" class="modal-backdrop" onclick="closeConfigModal()">
     <div class="modal-box config-modal-box" onclick="event.stopPropagation()">
       <h3>Configuración</h3>
-      <p class="muted">Base de datos, sincronización, apariencia y copias manuales JSON.</p>
+      <p class="muted">Base de datos, sincronización, apariencia, carpeta RRLL y copias manuales JSON.</p>
 
       <div class="config-section rrll-theme-config">
         <h4>Apariencia</h4>
@@ -1369,6 +1370,17 @@
           <button type="button" class="secondary" onclick="useLocalDatabaseMode()">Usar local</button>
           <button type="button" class="secondary" onclick="reloadDatabaseFromDisk()">Recargar base</button>
         </div>
+      </div>
+
+
+      <div class="config-section rrll-folder-config">
+        <h4>Carpeta Relaciones Laborales</h4>
+        <p class="muted">Configura la carpeta local o de red que abrirá el acceso directo del sidebar.</p>
+        <div class="dynamic-access-form rrll-folder-path-form">
+          <input id="rrllFolderPathInput" type="text" placeholder="G:\Capital Humano\Relaciones Laborales" autocomplete="off" />
+          <button type="button" onclick="saveRRLLFolderPath()">Guardar</button>
+        </div>
+        <p id="rrllFolderConfigMessage" class="muted rrll-folder-config-message" aria-live="polite"></p>
       </div>
 
       <div class="config-section">
@@ -1846,6 +1858,7 @@
   <script src="modules/backup-import.js"></script>
   <script src="modules/home-dashboard.js"></script>
   <script src="modules/database-sync.js"></script>
+  <script src="modules/rrll-folder.js"></script>
   <script src="modules/navigation.js"></script>
   <script src="app.js"></script>
   <script src="modules/theme.js"></script>
