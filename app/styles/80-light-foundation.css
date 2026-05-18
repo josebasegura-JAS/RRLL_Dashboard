@@ -2327,3 +2327,244 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
     display: none !important;
   }
 }
+
+/* Dashboard/Home density pass for 14" laptop screens.
+   Scope is intentionally limited to the Home dashboard so modules, tables,
+   sidebar, modals and navigation keep their established sizing. */
+body.phase4-view-home .phase4-main main {
+  padding: 10px 18px 22px !important;
+}
+
+body.phase4-view-home .phase4-main .top-strip,
+body.phase4-view-home .top-strip {
+  min-height: 48px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  gap: 17px !important;
+}
+
+body.phase4-view-home .header-logo-wrapper {
+  width: clamp(146px, 22.7vw, 227px) !important;
+  max-width: 227px !important;
+  padding: 3px 7px !important;
+}
+
+body.phase4-view-home .top-title h1 {
+  font-size: 19px !important;
+  line-height: 1.08 !important;
+}
+
+body.phase4-view-home .top-title p {
+  margin-top: 1px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard {
+  gap: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase5-metric-grid {
+  gap: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase5-metric-card {
+  grid-template-columns: 34px minmax(0, 1fr) 38px !important;
+  min-height: 112px !important;
+  padding: 10px 11px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 26px rgba(17, 24, 39, .16) !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase5-metric-card .phase4-metric-icon {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 9px !important;
+  font-size: 16px !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase5-metric-card span:not(.phase4-metric-icon) {
+  font-size: 9.8px !important;
+  line-height: 1.15 !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase5-metric-card strong {
+  font-size: 21px !important;
+  line-height: 1 !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase5-metric-card small {
+  font-size: 10.5px !important;
+  line-height: 1.18 !important;
+}
+
+body.phase4-view-home .phase5-mini-donut {
+  width: 34px !important;
+  height: 34px !important;
+}
+
+body.phase4-view-home .phase5-mini-donut::after {
+  inset: 8px !important;
+}
+
+body.phase4-view-home .phase5-metric-legend {
+  gap: 4px 7px !important;
+  margin-top: 7px !important;
+  padding-top: 7px !important;
+}
+
+body.phase4-view-home .phase5-metric-legend-item,
+body.phase4-view-home .phase5-metric-legend-item b,
+body.phase4-view-home .phase5-empty-legend {
+  font-size: 9.5px !important;
+  line-height: 1.05 !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase5-dashboard-grid {
+  gap: 12px !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase5-dashboard-card {
+  padding: 13px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 13px 28px rgba(17, 24, 39, .16), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase4-card-head {
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase4-card-head h3 {
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase4-card-head span {
+  font-size: 10.5px !important;
+  line-height: 1.2 !important;
+}
+
+body.phase4-view-home .phase5-due-layout {
+  grid-template-columns: minmax(240px, 1fr) 242px !important;
+  gap: 11px !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase4-list {
+  max-height: 328px !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+  gap: 2px 8px !important;
+  min-height: 44px !important;
+  padding: 7px 6px !important;
+  border-radius: 9px !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase4-list-row span,
+body.phase4-view-home .phase5-useful-dashboard .phase4-list-row small,
+body.phase4-view-home .phase5-useful-dashboard .phase4-list-row em {
+  font-size: 10.5px !important;
+  line-height: 1.2 !important;
+}
+
+body.phase4-view-home .phase5-useful-dashboard .phase4-list-row b {
+  font-size: 11.5px !important;
+  line-height: 1.2 !important;
+}
+
+body.phase4-view-home .phase5-calendar-card {
+  padding: 10px !important;
+  border-radius: 14px !important;
+}
+
+body.phase4-view-home .phase5-calendar-head {
+  gap: 8px !important;
+  margin-bottom: 7px !important;
+}
+
+body.phase4-view-home .phase5-calendar-head strong {
+  font-size: 12.5px !important;
+  line-height: 1.15 !important;
+}
+
+body.phase4-view-home .phase5-calendar-head small {
+  font-size: 9.5px !important;
+  line-height: 1.15 !important;
+}
+
+body.phase4-view-home .phase5-calendar-weekdays,
+body.phase4-view-home .phase5-calendar-grid {
+  gap: 4px !important;
+}
+
+body.phase4-view-home .phase5-calendar-weekdays {
+  margin-bottom: 4px !important;
+}
+
+body.phase4-view-home .phase5-calendar-weekdays span {
+  font-size: 9.5px !important;
+  line-height: 1.1 !important;
+}
+
+body.phase4-view-home .phase5-calendar-day {
+  height: 28px !important;
+  padding: 2px !important;
+  border-radius: 8px !important;
+  grid-template-rows: 1fr 6px !important;
+}
+
+body.phase4-view-home .phase5-calendar-day b {
+  font-size: 10.5px !important;
+  line-height: 1 !important;
+}
+
+body.phase4-view-home .phase5-calendar-day span {
+  gap: 2px !important;
+  min-height: 4px !important;
+}
+
+body.phase4-view-home .phase5-calendar-day i,
+body.phase4-view-home .phase5-calendar-legend i {
+  width: 4.5px !important;
+  height: 4.5px !important;
+}
+
+body.phase4-view-home .phase5-calendar-legend {
+  gap: 5px 8px !important;
+  margin-top: 8px !important;
+  font-size: 9.5px !important;
+  line-height: 1.15 !important;
+}
+
+body.phase4-view-home .dashboard-search-card {
+  padding: 10px 12px !important;
+}
+
+body.phase4-view-home .dashboard-search-header {
+  min-height: 36px !important;
+  padding-block: 0 !important;
+}
+
+@media (max-width: 1400px) {
+  body.phase4-view-home .phase5-useful-dashboard .phase5-metric-grid {
+    grid-template-columns: repeat(3, minmax(160px, 1fr)) !important;
+  }
+
+  body.phase4-view-home .phase5-due-layout {
+    grid-template-columns: minmax(0, 1fr) 242px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.phase4-view-home .phase4-main main {
+    padding-inline: 14px !important;
+  }
+
+  body.phase4-view-home .phase5-due-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
