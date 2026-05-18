@@ -1,7 +1,7 @@
 const TICKET_RESTAURANT_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela"];
 const TICKET_RESTAURANT_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const TICKET_RESTAURANT_PERSON_HEADERS = ["Nº empleado", "Nombre", "Apellido1", "Apellido2", "DNI", "Puesto", "Calendario"];
-const TICKET_RESTAURANT_ABSENCE_HEADERS = ["Nº empleado", "Desde", "Hasta", "Motivo", "Total días"];
+const TICKET_RESTAURANT_ABSENCE_HEADERS = ["Nº empleado", "Nombre y apellidos", "Desde", "Hasta", "Motivo", "Total días"];
 const TICKET_RESTAURANT_EXPORT_HEADERS = ["Nombre", "Apellido1", "Apellido2", "DNI", "Pedido", "Nº Emp", "Numero Tickets", "Importe", "Total", "Fec Inicio", "Fec Cad", "Hoja Gastos", "Ausencias"];
 const TICKET_RESTAURANT_DEFAULT_CONFIG = { pedido: "2404407", importe: "14,57" };
 
@@ -134,6 +134,8 @@ let ticketRestaurantPlantillaLookupTimer = null;
 let ticketRestaurantLastVisibleCompute = null;
 let ticketRestaurantLastVisibleMonthlyQuote = null;
 let ticketRestaurantComputeSort = { key: null, direction: null };
+let ticketRestaurantVisibleAbsenceMonth = null;
+let ticketRestaurantAbsenceSort = { key: null, direction: null };
 
 function trTodayNextMonth() {
   const now = new Date();
@@ -282,6 +284,7 @@ function getTicketRestaurantHeaderAliases(header) {
     Calendario: ["Calendario", "Calendar"],
     Desde: ["Desde", "FromDate", "From Date", "Fecha desde", "Fec desde", "Inicio"],
     Hasta: ["Hasta", "ToDate", "To Date", "Fecha hasta", "Fec hasta", "Fin"],
+    "Nombre y apellidos": ["Nombre y apellidos", "Nombre completo", "Nombre", "Apellidos", "Empleado nombre", "EmployeeName", "Employee Name"],
     Motivo: ["Motivo", "Reason", "Aus.", "Aus", "Ausencia", "Código", "Codigo"],
     "Total días": ["Total días", "Total dias", "TotalDays", "Total Days", "Días", "Dias", "Nº días", "No dias"]
   };
@@ -635,7 +638,7 @@ async function downloadTicketRestaurantPeopleTemplate() {
 }
 
 async function downloadTicketRestaurantAbsenceTemplate() {
-  await exportTicketWorkbook({ title: "Descargar modelo ausencias", fileName: "Modelo_ausencias_ticket_restaurante.xlsx", sheetName: "Ausencias", rows: [TICKET_RESTAURANT_ABSENCE_HEADERS], widths: [16, 14, 14, 28, 12] });
+  await exportTicketWorkbook({ title: "Descargar modelo ausencias", fileName: "Modelo_ausencias_ticket_restaurante.xlsx", sheetName: "Ausencias", rows: [TICKET_RESTAURANT_ABSENCE_HEADERS], widths: [14, 34, 14, 14, 28, 12] });
 }
 
 async function exportTicketWorkbook(payload) {
@@ -756,12 +759,13 @@ function detectTicketRestaurantAbsenceFormat(rows) {
 
 function normalizeTicketRestaurantAbsenceRow(row) {
   const employeeNumber = normalizeTicketEmployee(row && (row.employeeNumber ?? row["Nº empleado"] ?? row.empleado));
+  const employeeName = String(row && (row.employeeName ?? row["Nombre y apellidos"] ?? row.nombreApellidos ?? row.nombreCompleto) || "").replace(/\s+/g, " ").trim();
   const fromDate = ticketRestaurantNormalizePreviewDate(row && (row.fromDate ?? row.Desde ?? row.desde));
   const toDate = ticketRestaurantNormalizePreviewDate(row && (row.toDate ?? row.Hasta ?? row.hasta)) || fromDate;
   const reason = String(row && (row.reason ?? row.Motivo ?? row.motivo) || "").replace(/\s+/g, " ").trim();
   let totalDays = row && (row.totalDays ?? row["Total días"] ?? row.totalDias);
   if (String(totalDays ?? "").trim() === "") totalDays = ticketRestaurantInclusiveDateDays(fromDate, toDate) || "";
-  return { employeeNumber, fromDate, toDate, reason, totalDays: String(totalDays ?? "").replace(",", ".").trim() };
+  return { employeeNumber, employeeName, fromDate, toDate, reason, totalDays: String(totalDays ?? "").replace(",", ".").trim() };
 }
 
 function parseTicketRestaurantCleanAbsenceRows(rows) {
@@ -775,7 +779,7 @@ function parseTicketRestaurantCleanAbsenceRows(rows) {
     const raw = {};
     TICKET_RESTAURANT_ABSENCE_HEADERS.forEach((header, fallbackIndex) => {
       const index = headerIndex[header] != null ? headerIndex[header] : fallbackIndex;
-      raw[header] = row[index] == null ? "" : row[index];
+      raw[header] = headerIndex[header] != null || header !== "Nombre y apellidos" ? (row[index] == null ? "" : row[index]) : "";
     });
     const normalized = normalizeTicketRestaurantAbsenceRow(raw);
     if (!normalized.employeeNumber && !normalized.fromDate && !normalized.reason) { ignoredRows += 1; return; }
@@ -794,17 +798,25 @@ function ticketRestaurantInclusiveDateDays(fromDate, toDate) {
   return Math.round((end - start) / 86400000) + 1;
 }
 
-function ticketRestaurantDetectZerkosEmployee(row) {
+function ticketRestaurantDetectZerkosEmployeeInfo(row) {
   const cells = (Array.isArray(row) ? row : []).map(cell => String(cell ?? "").replace(/\s+/g, " ").trim()).filter(Boolean);
-  if (!cells.length) return "";
+  if (!cells.length) return null;
   const joined = cells.join(" ");
-  let match = joined.match(/^empleado\s+(\d{1,10})\b/i);
-  if (match) return normalizeTicketEmployee(match[1]);
-  if (/total\s+d[ií]as/i.test(joined)) return "";
-  if (ticketRestaurantExtractZerkosAbsence(row, "__employee_probe__")) return "";
-  match = cells[0].match(/^(\d{1,10})(?:\s+|$)/);
-  if (match && cells.some(cell => /[a-záéíóúñ]/i.test(cell)) && !ticketRestaurantLooksLikeDateCell(cells[0])) return normalizeTicketEmployee(match[1]);
-  return "";
+  if (/total\s+d[ií]as/i.test(joined)) return null;
+  if (ticketRestaurantExtractZerkosAbsence(row, "__employee_probe__")) return null;
+  let match = joined.match(/^empleado\s+(\d{1,10})\b\s*(.*)$/i);
+  if (!match) match = cells[0].match(/^(\d{1,10})(?:\s+|$)(.*)$/);
+  if (!match || ticketRestaurantLooksLikeDateCell(cells[0])) return null;
+  const employeeNumber = normalizeTicketEmployee(match[1]);
+  const rawName = (match[2] || cells.slice(1).join(" ")).replace(/^[\s:-]+/, "").replace(/\s+/g, " ").trim();
+  const employeeName = /[a-záéíóúñ]/i.test(rawName) ? rawName : "";
+  if (!employeeNumber || (!employeeName && !cells.some(cell => /[a-záéíóúñ]/i.test(cell)))) return null;
+  return { employeeNumber, employeeName };
+}
+
+function ticketRestaurantDetectZerkosEmployee(row) {
+  const employee = ticketRestaurantDetectZerkosEmployeeInfo(row);
+  return employee ? employee.employeeNumber : "";
 }
 
 function ticketRestaurantExtractZerkosAbsence(row, employeeNumber) {
@@ -832,15 +844,16 @@ function parseTicketRestaurantZerkosAbsenceRows(rows) {
   const parsedRows = [];
   const warnings = [];
   let ignoredRows = 0;
-  let activeEmployee = "";
+  let activeEmployee = null;
   safeRows.forEach(row => {
     if (ticketRestaurantRowIsEmpty(row)) { ignoredRows += 1; return; }
     const text = String((row || []).join(" "));
     if (/total\s+d[ií]as/i.test(text)) return;
-    const employeeNumber = ticketRestaurantDetectZerkosEmployee(row);
-    if (employeeNumber) { activeEmployee = employeeNumber; return; }
+    const employee = ticketRestaurantDetectZerkosEmployeeInfo(row);
+    if (employee) { activeEmployee = employee; return; }
     if (ticketRestaurantRowContainsAny(row, ["PUESTO ORGANIZATIVO", "RESIDENCIA", "NIVEL", "AUS.", "AÑO", "DESDE", "HASTA", "DIAS", "DÍAS", "EMPLEADO"])) return;
-    const absence = activeEmployee ? ticketRestaurantExtractZerkosAbsence(row, activeEmployee) : null;
+    const absence = activeEmployee ? ticketRestaurantExtractZerkosAbsence(row, activeEmployee.employeeNumber) : null;
+    if (absence && activeEmployee.employeeName) absence.employeeName = activeEmployee.employeeName;
     if (absence) parsedRows.push(absence);
     else ignoredRows += 1;
   });
@@ -886,7 +899,7 @@ function ensureTicketRestaurantAbsencePreviewModal() {
       <div id="ticketRestaurantAbsencePreviewErrors" style="color:#b42318;font-size:.9rem;" aria-live="polite"></div>
       <div class="rrll-pro-table-wrap" style="overflow:auto;min-height:180px;max-height:55vh;">
         <table class="rrll-pro-table ticket-table">
-          <thead><tr><th>Nº empleado</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Total días</th><th>Acciones</th></tr></thead>
+          <thead><tr><th style="width:7rem;">Nº empleado</th><th style="min-width:16rem;">Nombre y apellidos</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Total días</th><th>Acciones</th></tr></thead>
           <tbody id="ticketRestaurantAbsencePreviewBody"></tbody>
         </table>
       </div>
@@ -907,6 +920,7 @@ function ticketRestaurantReadPreviewRowsFromDom() {
     .filter(row => row.querySelector('[data-field="employeeNumber"]'))
     .map(row => ({
       employeeNumber: row.querySelector('[data-field="employeeNumber"]')?.value || "",
+      employeeName: row.querySelector('[data-field="employeeName"]')?.value || "",
       fromDate: row.querySelector('[data-field="fromDate"]')?.value || "",
       toDate: row.querySelector('[data-field="toDate"]')?.value || "",
       reason: row.querySelector('[data-field="reason"]')?.value || "",
@@ -920,12 +934,13 @@ function renderTicketRestaurantAbsencePreviewRows(rows) {
   body.innerHTML = (Array.isArray(rows) ? rows : []).map((row, index) => `
     <tr data-index="${index}">
       <td><input data-field="employeeNumber" value="${escapeHtml(row.employeeNumber || "")}" /></td>
+      <td><input data-field="employeeName" value="${escapeHtml(row.employeeName || "")}" /></td>
       <td><input data-field="fromDate" value="${escapeHtml(row.fromDate || "")}" placeholder="dd/mm/aaaa" /></td>
       <td><input data-field="toDate" value="${escapeHtml(row.toDate || "")}" placeholder="dd/mm/aaaa" /></td>
       <td><input data-field="reason" value="${escapeHtml(row.reason || "")}" /></td>
       <td><input data-field="totalDays" value="${escapeHtml(row.totalDays || "")}" /></td>
       <td class="table-actions"><button class="danger small" type="button" onclick="removeTicketRestaurantAbsencePreviewRow(this)">Eliminar</button></td>
-    </tr>`).join("") || `<tr><td colspan="6" class="muted">No hay ausencias en la previsualización. Puedes añadir una manualmente.</td></tr>`;
+    </tr>`).join("") || `<tr><td colspan="7" class="muted">No hay ausencias en la previsualización. Puedes añadir una manualmente.</td></tr>`;
 }
 
 function openTicketRestaurantAbsencePreviewModal(parsedRows, meta = {}) {
@@ -943,7 +958,7 @@ function openTicketRestaurantAbsencePreviewModal(parsedRows, meta = {}) {
 
 function addTicketRestaurantAbsencePreviewRow() {
   const rows = ticketRestaurantReadPreviewRowsFromDom();
-  rows.push({ employeeNumber: "", fromDate: "", toDate: "", reason: "", totalDays: "" });
+  rows.push({ employeeNumber: "", employeeName: "", fromDate: "", toDate: "", reason: "", totalDays: "" });
   renderTicketRestaurantAbsencePreviewRows(rows);
 }
 
@@ -981,6 +996,7 @@ function saveTicketRestaurantAbsencePreviewRows() {
     return {
       id: `tr-absence-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       employeeNumber: normalizeTicketEmployee(row.employeeNumber),
+      employeeName: String(row.employeeName || "").replace(/\s+/g, " ").trim(),
       from,
       to,
       reason: String(row.reason || "").trim(),
@@ -1025,6 +1041,112 @@ async function importTicketRestaurantAbsences() {
   openTicketRestaurantAbsencePreviewModal(parsed.rows, meta);
 }
 
+
+function getDefaultTicketAbsenceMonth() {
+  const now = new Date();
+  const previous = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return { month: previous.getMonth() + 1, year: previous.getFullYear() };
+}
+
+function getTicketAbsenceVisibleMonth() {
+  if (!ticketRestaurantVisibleAbsenceMonth) ticketRestaurantVisibleAbsenceMonth = getDefaultTicketAbsenceMonth();
+  return ticketRestaurantVisibleAbsenceMonth;
+}
+
+function changeTicketAbsenceMonth(delta) {
+  const current = getTicketAbsenceVisibleMonth();
+  const next = new Date(current.year, current.month - 1 + (Number(delta) || 0), 1);
+  ticketRestaurantVisibleAbsenceMonth = { month: next.getMonth() + 1, year: next.getFullYear() };
+  renderTicketRestaurantAbsences();
+}
+
+function renderTicketAbsenceMonthSelector() {
+  const body = document.getElementById("ticketRestaurantAbsencesBody");
+  if (!body) return;
+  const table = body.closest("table");
+  if (table) {
+    const thead = table.querySelector("thead");
+    if (thead) thead.innerHTML = `<tr>
+      <th style="width:7rem;"><button type="button" class="ticket-sort-button" data-ticket-absence-sort="employeeNumber" onclick="setTicketRestaurantAbsenceSort('employeeNumber')">Nº empleado<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th>
+      <th style="min-width:16rem;"><button type="button" class="ticket-sort-button" data-ticket-absence-sort="employeeName" onclick="setTicketRestaurantAbsenceSort('employeeName')">Nombre y apellidos<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th>
+      <th><button type="button" class="ticket-sort-button" data-ticket-absence-sort="from" onclick="setTicketRestaurantAbsenceSort('from')">Desde<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th>
+      <th>Hasta</th>
+      <th><button type="button" class="ticket-sort-button" data-ticket-absence-sort="reason" onclick="setTicketRestaurantAbsenceSort('reason')">Motivo<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th>
+      <th>Total días</th>
+      <th>Acciones</th>
+    </tr>`;
+    const wrap = table.closest(".rrll-pro-table-wrap");
+    if (wrap && !document.getElementById("ticketRestaurantAbsenceMonthSelector")) {
+      wrap.insertAdjacentHTML("beforebegin", `<div id="ticketRestaurantAbsenceMonthSelector" class="rrll-pro-list-toolbar" style="justify-content:center;gap:12px;margin:8px 0;">
+        <button type="button" class="secondary small" aria-label="Mes anterior" onclick="changeTicketAbsenceMonth(-1)">←</button>
+        <strong id="ticketRestaurantAbsenceMonthLabel"></strong>
+        <button type="button" class="secondary small" aria-label="Mes siguiente" onclick="changeTicketAbsenceMonth(1)">→</button>
+      </div>`);
+    }
+  }
+  const visible = getTicketAbsenceVisibleMonth();
+  const label = document.getElementById("ticketRestaurantAbsenceMonthLabel");
+  if (label) {
+    const monthName = TICKET_RESTAURANT_MONTHS[visible.month - 1] || "";
+    label.textContent = `${monthName.charAt(0).toUpperCase()}${monthName.slice(1)} ${visible.year}`;
+  }
+  updateTicketRestaurantAbsenceSortIndicators();
+}
+
+function filterTicketAbsencesByVisibleMonth(absences) {
+  const visible = getTicketAbsenceVisibleMonth();
+  return (Array.isArray(absences) ? absences : []).filter(item => {
+    const period = ticketRestaurantMonthYearFromDate(item && item.from);
+    const month = period.month || Number(item && item.month);
+    const year = period.year || Number(item && item.year);
+    return month === visible.month && year === visible.year;
+  });
+}
+
+function compareTicketRestaurantAbsenceDefault(a, b) {
+  const aName = normalizeTicketText(a && a.employeeName);
+  const bName = normalizeTicketText(b && b.employeeName);
+  if (aName && bName) {
+    const byName = aName.localeCompare(bName, "es", { numeric: true, sensitivity: "base" });
+    if (byName) return byName;
+  }
+  if (aName && !bName) return -1;
+  if (!aName && bName) return 1;
+  const byEmployee = compareTicketRestaurantSortValues(a && a.employeeNumber, b && b.employeeNumber, "text");
+  if (byEmployee) return byEmployee;
+  return compareTicketRestaurantSortValues(a && a.from, b && b.from, "date");
+}
+
+function sortTicketRestaurantAbsences(absences) {
+  const sort = ticketRestaurantAbsenceSort || {};
+  const columns = {
+    employeeNumber: { type: "text", getter: item => item && item.employeeNumber },
+    employeeName: { type: "text", getter: item => item && item.employeeName },
+    from: { type: "date", getter: item => item && item.from },
+    reason: { type: "text", getter: item => item && item.reason }
+  };
+  const column = columns[sort.key];
+  return [...(Array.isArray(absences) ? absences : [])].map((item, index) => ({ item, index })).sort((a, b) => {
+    const result = column && sort.direction ? compareTicketRestaurantSortValues(column.getter(a.item), column.getter(b.item), column.type) * (sort.direction === "desc" ? -1 : 1) : compareTicketRestaurantAbsenceDefault(a.item, b.item);
+    return result || a.index - b.index;
+  }).map(entry => entry.item);
+}
+
+function setTicketRestaurantAbsenceSort(key) {
+  ticketRestaurantAbsenceSort = ticketRestaurantAbsenceSort.key === key ? { key, direction: ticketRestaurantAbsenceSort.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" };
+  renderTicketRestaurantAbsences();
+}
+
+function updateTicketRestaurantAbsenceSortIndicators() {
+  document.querySelectorAll("[data-ticket-absence-sort]").forEach(button => {
+    const active = button.dataset.ticketAbsenceSort === ticketRestaurantAbsenceSort.key;
+    const indicator = button.querySelector(".ticket-sort-indicator");
+    if (indicator) indicator.textContent = active ? (ticketRestaurantAbsenceSort.direction === "desc" ? " ↓" : " ↑") : "";
+    const th = button.closest("th");
+    if (th) th.setAttribute("aria-sort", active ? (ticketRestaurantAbsenceSort.direction === "desc" ? "descending" : "ascending") : "none");
+  });
+}
+
 function deleteTicketRestaurantAbsence(id) {
   if (!id || !confirm("¿Eliminar esta ausencia importada?")) return;
   saveTicketRestaurantAbsences(getTicketRestaurantAbsences().filter(item => item.id !== id));
@@ -1036,12 +1158,16 @@ function renderTicketRestaurantAbsences() {
   const body = document.getElementById("ticketRestaurantAbsencesBody");
   const count = document.getElementById("ticketRestaurantAbsencesCount");
   if (!body) return;
-  const absences = getTicketRestaurantAbsences().sort((a, b) => String(b.from).localeCompare(String(a.from)));
-  if (count) count.textContent = `${absences.length} ausencias`;
+  renderTicketAbsenceMonthSelector();
+  const allAbsences = getTicketRestaurantAbsences();
+  const absences = sortTicketRestaurantAbsences(filterTicketAbsencesByVisibleMonth(allAbsences));
+  const visible = getTicketAbsenceVisibleMonth();
+  if (count) count.textContent = `${absences.length} de ${allAbsences.length} ausencias · ${String(visible.month).padStart(2, "0")}/${visible.year}`;
   body.innerHTML = absences.length ? absences.map(item => `<tr>
-    <td>${escapeHtml(item.employeeNumber)}</td><td>${formatTicketDate(item.from)}</td><td>${formatTicketDate(item.to)}</td><td>${escapeHtml(item.reason)}</td><td>${escapeHtml(item.totalDays)}</td><td>${String(item.month).padStart(2, "0")}/${item.year}</td>
+    <td>${escapeHtml(item.employeeNumber)}</td><td>${escapeHtml(item.employeeName || "")}</td><td>${formatTicketDate(item.from)}</td><td>${formatTicketDate(item.to)}</td><td>${escapeHtml(item.reason)}</td><td>${escapeHtml(item.totalDays)}</td>
     <td class="table-actions"><button class="danger small" type="button" onclick="deleteTicketRestaurantAbsence('${escapeHtml(item.id)}')">Eliminar</button></td>
-  </tr>`).join("") : `<tr><td colspan="7" class="muted">Sin ausencias importadas.</td></tr>`;
+  </tr>`).join("") : `<tr><td colspan="7" class="muted">Sin ausencias importadas para el mes visible.</td></tr>`;
+  updateTicketRestaurantAbsenceSortIndicators();
 }
 
 function renderTicketRestaurantComputeControls() {
@@ -1291,6 +1417,8 @@ window.removeTicketRestaurantAbsencePreviewRow = removeTicketRestaurantAbsencePr
 window.saveTicketRestaurantAbsencePreviewRows = saveTicketRestaurantAbsencePreviewRows;
 window.downloadTicketRestaurantAbsenceTemplate = downloadTicketRestaurantAbsenceTemplate;
 window.deleteTicketRestaurantAbsence = deleteTicketRestaurantAbsence;
+window.changeTicketAbsenceMonth = changeTicketAbsenceMonth;
+window.setTicketRestaurantAbsenceSort = setTicketRestaurantAbsenceSort;
 window.renderTicketRestaurantPeople = renderTicketRestaurantPeople;
 window.exportTicketRestaurantPeopleVisible = exportTicketRestaurantPeopleVisible;
 window.printTicketRestaurantPeopleVisible = printTicketRestaurantPeopleVisible;
