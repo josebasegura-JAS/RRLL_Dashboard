@@ -29,6 +29,14 @@ const TICKET_RESTAURANT_MONTHLY_FILTERS = [
   ["ticketMonthlyQuoteFilterDays", row => row.ticketDays],
   ["ticketMonthlyQuoteFilterAmount", row => row.ticketAmount]
 ];
+const TICKET_RESTAURANT_COMPUTE_SORT_COLUMNS = {
+  employee: { type: "text", getter: row => row.person && row.person.employeeNumber },
+  name: { type: "text", getter: row => ticketRestaurantFullName(row.person) },
+  calendar: { type: "text", getter: row => row.person && row.person.calendar },
+  theoretical: { type: "number", getter: row => row.theoretical },
+  absences: { type: "number", getter: row => row.absenceDays },
+  final: { type: "number", getter: row => row.finalTickets }
+};
 
 function ticketRestaurantFullName(person) {
   return [person && person.name, person && person.surname1, person && person.surname2].filter(Boolean).join(" ");
@@ -47,13 +55,44 @@ function ticketRestaurantMatchesColumnFilters(item, filters) {
   });
 }
 
+function normalizeTicketRestaurantSortValue(value, type) {
+  if (type === "number") return parseTicketNumber(value);
+  const date = parseTicketDate(value);
+  if (type === "date" || (/^\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}$/.test(String(value || "").trim()) && date)) {
+    return date || "";
+  }
+  return normalizeTicketText(value);
+}
+
+function compareTicketRestaurantSortValues(a, b, type) {
+  const left = normalizeTicketRestaurantSortValue(a, type);
+  const right = normalizeTicketRestaurantSortValue(b, type);
+  if (type === "number") return left - right;
+  return String(left).localeCompare(String(right), "es", { numeric: true, sensitivity: "base" });
+}
+
+function sortTicketRestaurantComputeRows(rows) {
+  const sort = ticketRestaurantComputeSort || {};
+  const column = TICKET_RESTAURANT_COMPUTE_SORT_COLUMNS[sort.key];
+  if (!column || !sort.direction) return rows;
+  const direction = sort.direction === "desc" ? -1 : 1;
+  return rows
+    .map((row, index) => ({ row, index }))
+    .sort((a, b) => {
+      const result = compareTicketRestaurantSortValues(column.getter(a.row), column.getter(b.row), column.type);
+      return result ? result * direction : a.index - b.index;
+    })
+    .map(item => item.row);
+}
+
 function getVisibleTicketRestaurantPeople() {
   return getTicketRestaurantPeople().filter(item => ticketRestaurantMatchesColumnFilters(item, TICKET_RESTAURANT_PEOPLE_FILTERS));
 }
 
 function getVisibleTicketRestaurantComputeRows(calc) {
   const source = calc || ticketRestaurantLastVisibleCompute || calculateTicketRestaurantCompute();
-  return (source.rows || []).filter(row => ticketRestaurantMatchesColumnFilters(row, TICKET_RESTAURANT_COMPUTE_FILTERS));
+  const filteredRows = (source.rows || []).filter(row => ticketRestaurantMatchesColumnFilters(row, TICKET_RESTAURANT_COMPUTE_FILTERS));
+  return sortTicketRestaurantComputeRows(filteredRows);
 }
 
 function getVisibleTicketRestaurantMonthlyQuoteRows(calc) {
@@ -94,6 +133,7 @@ let ticketRestaurantLastPlantillaLookup = "";
 let ticketRestaurantPlantillaLookupTimer = null;
 let ticketRestaurantLastVisibleCompute = null;
 let ticketRestaurantLastVisibleMonthlyQuote = null;
+let ticketRestaurantComputeSort = { key: null, direction: null };
 
 function trTodayNextMonth() {
   const now = new Date();
@@ -393,7 +433,7 @@ function autocompleteTicketRestaurantPersonFromPlantilla(force = false) {
 }
 
 function showTicketRestaurantArea(area) {
-  ticketRestaurantActiveArea = area || "calendar";
+  ticketRestaurantActiveArea = area || "compute";
   document.querySelectorAll(".ticket-restaurant-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.ticketArea === ticketRestaurantActiveArea));
   document.querySelectorAll(".ticket-restaurant-area").forEach(panel => panel.hidden = panel.dataset.ticketArea !== ticketRestaurantActiveArea);
   renderTicketRestaurant();
@@ -406,6 +446,7 @@ function renderTicketRestaurant() {
   renderTicketRestaurantAbsences();
   renderTicketRestaurantComputeControls();
   renderTicketRestaurantConfig();
+  if (ticketRestaurantActiveArea === "monthly") renderTicketRestaurantMonthlyQuotePreview();
 }
 
 function renderTicketRestaurantCalendarSelector() {
@@ -806,6 +847,25 @@ function calculateTicketRestaurantCompute() {
   return { month, year, rows, summary, warnings };
 }
 
+function setTicketRestaurantComputeSort(key) {
+  if (!TICKET_RESTAURANT_COMPUTE_SORT_COLUMNS[key]) return;
+  if (ticketRestaurantComputeSort.key !== key) ticketRestaurantComputeSort = { key, direction: "asc" };
+  else if (ticketRestaurantComputeSort.direction === "asc") ticketRestaurantComputeSort = { key, direction: "desc" };
+  else ticketRestaurantComputeSort = { key: null, direction: null };
+  renderTicketRestaurantComputePreview();
+}
+
+function updateTicketRestaurantComputeSortHeaders() {
+  document.querySelectorAll("[data-ticket-compute-sort]").forEach(button => {
+    const active = button.dataset.ticketComputeSort === ticketRestaurantComputeSort.key && ticketRestaurantComputeSort.direction;
+    const indicator = button.querySelector(".ticket-sort-indicator");
+    const th = button.closest("th");
+    if (indicator) indicator.textContent = active ? (ticketRestaurantComputeSort.direction === "asc" ? "↑" : "↓") : "";
+    button.setAttribute("aria-label", active ? `${button.textContent.replace(/[↑↓]/g, "").trim()}: orden ${ticketRestaurantComputeSort.direction === "asc" ? "ascendente" : "descendente"}` : `${button.textContent.trim()}: ordenar`);
+    if (th) th.setAttribute("aria-sort", active ? (ticketRestaurantComputeSort.direction === "asc" ? "ascending" : "descending") : "none");
+  });
+}
+
 function renderTicketRestaurantComputePreview() {
   const periodEl = document.getElementById("ticketRestaurantComputePeriod");
   const summaryEl = document.getElementById("ticketRestaurantComputeSummary");
@@ -822,11 +882,11 @@ function renderTicketRestaurantComputePreview() {
     noticeEl.hidden = uniqueWarnings.length === 0;
   }
   const visibleRows = getVisibleTicketRestaurantComputeRows(calc);
+  updateTicketRestaurantComputeSortHeaders();
   body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}">
     <td>${escapeHtml(row.person.employeeNumber)}</td><td>${escapeHtml(ticketRestaurantFullName(row.person))}</td><td>${escapeHtml(row.person.calendar)}${row.calendarWarning ? " · revisar" : ""}</td><td>${row.theoretical}</td><td>${row.absenceDays}</td><td><strong>${row.finalTickets}</strong></td>
   </tr>`).join("") : `<tr><td colspan="6" class="muted">No hay personas con derecho que coincidan con los filtros.</td></tr>`;
-  const monthlyPanel = document.getElementById("ticketRestaurantMonthlyQuotePanel");
-  if (monthlyPanel && !monthlyPanel.hidden) renderTicketRestaurantMonthlyQuotePreview();
+  if (ticketRestaurantActiveArea === "monthly") renderTicketRestaurantMonthlyQuotePreview();
 }
 
 function saveTicketRestaurantConfigFromInputs() {
@@ -835,7 +895,7 @@ function saveTicketRestaurantConfigFromInputs() {
   saveTicketRestaurantConfig({ pedido, importe });
   renderTicketRestaurantConfig();
   renderTicketRestaurantComputePreview();
-  if (ticketRestaurantLastVisibleMonthlyQuote || !document.getElementById("ticketRestaurantMonthlyQuotePanel")?.hidden) renderTicketRestaurantMonthlyQuotePreview();
+  if (ticketRestaurantLastVisibleMonthlyQuote || ticketRestaurantActiveArea === "monthly") renderTicketRestaurantMonthlyQuotePreview();
 }
 
 function renderTicketRestaurantConfig() {
@@ -932,6 +992,7 @@ window.renderTicketRestaurantPeople = renderTicketRestaurantPeople;
 window.exportTicketRestaurantPeopleVisible = exportTicketRestaurantPeopleVisible;
 window.printTicketRestaurantPeopleVisible = printTicketRestaurantPeopleVisible;
 window.renderTicketRestaurantComputePreview = renderTicketRestaurantComputePreview;
+window.setTicketRestaurantComputeSort = setTicketRestaurantComputeSort;
 window.exportTicketRestaurantCompute = exportTicketRestaurantCompute;
 window.printTicketRestaurantComputeVisible = printTicketRestaurantComputeVisible;
 window.renderTicketRestaurantMonthlyQuotePreview = renderTicketRestaurantMonthlyQuotePreview;
