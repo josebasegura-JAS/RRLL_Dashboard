@@ -1,18 +1,14 @@
 /*
-  Restauración visual global — base oscura compatible.
-  Esta capa se carga al final para devolver la carcasa a la estética carbón
-  de main sin tocar JS, IDs, onclick ni estructura de datos. Mantiene las
-  clases phase4/phase5 como alias visuales.
+  Capa final de tema — separación light/dark compatible.
+  El modo oscuro conserva la estética carbón estable; el modo claro activa
+  superficies claras sin tocar JS, IDs, onclick ni estructura de datos.
 */
 
-html,
-html[data-theme="light"],
-html[data-theme="dark"] {
-  color-scheme: dark;
+html {
+  color-scheme: light dark;
 
-  /* Restauración global oscura: esta capa final ya no debe convertir la
-     carcasa a modo claro. Mantiene los tokens semánticos existentes para no
-     tocar JS, estructura ni lógica de módulos. */
+  /* Tokens compartidos por la capa final. Las variables activas se asignan
+     solo por tema para que light y dark no se pisen entre sí. */
   --rrll-bg-app-dark: #1f2630;
   --rrll-bg-panel-dark: #2b313d;
   --rrll-bg-card-dark: #303746;
@@ -27,6 +23,22 @@ html[data-theme="dark"] {
   --rrll-border-dark: rgba(148, 163, 184, .18);
   --rrll-border-soft-dark: rgba(148, 163, 184, .10);
 
+  --rrll-sidebar-stable: #2b2f36;
+  --rrll-sidebar-stable-2: #22262d;
+  --rrll-sidebar-stable-hover: #3a3f48;
+  --rrll-sidebar-text: #e5e7eb;
+  --rrll-sidebar-text-soft: #cbd5e1;
+  --rrll-text-inverse: #ffffff;
+  --rrll-danger-bg: #dc2626;
+  --rrll-danger-border: #dc2626;
+  --rrll-success-bg: #15803d;
+  --rrll-success-bg-hover: #166534;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Modo oscuro: conserva la base visual carbón existente. */
   --dash-surface: var(--rrll-bg-card-dark);
   --dash-surface-2: var(--rrll-bg-soft-dark);
   --dash-border: var(--rrll-border-dark);
@@ -65,11 +77,58 @@ html[data-theme="dark"] {
   --rrll-component-border: var(--rrll-border);
   --rrll-component-text: var(--rrll-text-main);
   --rrll-component-muted: var(--rrll-text-muted);
-  --phase4-sidebar-bg: #2b2f36;
-  --phase4-sidebar-bg-2: #22262d;
-  --phase4-sidebar-hover: #3a3f48;
+  --phase4-sidebar-bg: var(--rrll-sidebar-stable);
+  --phase4-sidebar-bg-2: var(--rrll-sidebar-stable-2);
+  --phase4-sidebar-hover: var(--rrll-sidebar-stable-hover);
 }
 
+html[data-theme="light"] {
+  color-scheme: light;
+
+  /* Modo claro real: superficies claras y texto oscuro. Se mantiene la
+     navegación lateral carbón como elemento estable de marca. */
+  --dash-surface: var(--rrll-bg-card-light);
+  --dash-surface-2: var(--rrll-bg-soft-light);
+  --dash-border: var(--rrll-border-light);
+
+  --bg: var(--rrll-bg-app-light);
+  --panel: var(--rrll-bg-panel-light);
+  --text: var(--rrll-text-main-light);
+  --muted: var(--rrll-text-muted-light);
+  --border: var(--rrll-border-light);
+  --black: var(--rrll-text-main-light);
+  --red: var(--rrll-red-ui);
+  --red-dark: var(--rrll-red-hover);
+  --soft-red: rgba(167, 53, 53, .10);
+  --warning: rgba(217, 119, 6, .14);
+  --expired: rgba(185, 28, 28, .12);
+  --chart-gray: #6b7280;
+  --shadow: var(--rrll-shadow-panel-light);
+
+  --rrll-bg-app: var(--rrll-bg-app-light);
+  --rrll-surface-base: var(--rrll-bg-soft-light);
+  --rrll-surface-card: var(--rrll-bg-card-light);
+  --rrll-surface-raised: var(--rrll-bg-panel-light);
+  --rrll-surface-header: var(--rrll-bg-table-head-light);
+  --rrll-surface-hover: var(--rrll-bg-table-hover-light);
+  --rrll-field-bg: var(--rrll-bg-panel-light);
+  --rrll-field-bg-focus: var(--rrll-bg-soft-light);
+  --rrll-border: var(--rrll-border-light);
+  --rrll-border-strong: var(--rrll-separator-light);
+  --rrll-text-main: var(--rrll-text-main-light);
+  --rrll-text-soft: var(--rrll-text-secondary-light);
+  --rrll-text-muted: var(--rrll-text-muted-light);
+  --rrll-shadow-soft: var(--rrll-shadow-light);
+  --rrll-shadow-panel: var(--rrll-shadow-panel-light);
+  --rrll-component-bg: var(--rrll-surface-card);
+  --rrll-component-bg-soft: var(--rrll-surface-base);
+  --rrll-component-border: var(--rrll-border);
+  --rrll-component-text: var(--rrll-text-main);
+  --rrll-component-muted: var(--rrll-text-muted);
+  --phase4-sidebar-bg: var(--rrll-sidebar-stable);
+  --phase4-sidebar-bg-2: var(--rrll-sidebar-stable-2);
+  --phase4-sidebar-hover: var(--rrll-sidebar-stable-hover);
+}
 html,
 body,
 body.phase4-view-home,
@@ -108,7 +167,7 @@ main,
 .phase4-sidebar,
 .sidebar:not(.sidebar-left) {
   background: linear-gradient(180deg, var(--phase4-sidebar-bg) 0%, var(--phase4-sidebar-bg-2) 100%) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: 4px 0 18px rgba(0, 0, 0, .18) !important;
 }
 
@@ -119,7 +178,7 @@ main,
 .phase4-nav-button,
 .phase4-nav-chevron,
 .phase4-nav-pill {
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
 }
 
 .phase4-sidebar-section,
@@ -128,7 +187,10 @@ main,
 .phase4-nav-subitem,
 .phase4-nav-button,
 .phase4-nav-chevron,
-.phase4-nav-pill,
+.phase4-nav-pill {
+  color: var(--rrll-sidebar-text-soft) !important;
+}
+
 .save-status-text b,
 .save-status-text span,
 .phase5-sidebar-sync .save-status-text b,
@@ -152,7 +214,7 @@ main,
 .phase4-nav-button:hover {
   background: var(--phase4-sidebar-hover) !important;
   border-color: rgba(229, 231, 235, .10) !important;
-  color: #ffffff !important;
+  color: var(--rrll-text-inverse) !important;
 }
 
 .phase4-nav-item.active,
@@ -162,7 +224,7 @@ main,
 .phase4-nav-item.is-active {
   background: linear-gradient(90deg, #7d1f1f 0%, #a72722 100%) !important;
   border-color: rgba(255, 255, 255, .12) !important;
-  color: #ffffff !important;
+  color: var(--rrll-text-inverse) !important;
   box-shadow: inset 3px 0 0 var(--rrll-red-ui) !important;
 }
 
@@ -384,7 +446,7 @@ button.primary,
 .rrll-pro-primary {
   background: var(--rrll-red-ui) !important;
   border-color: var(--rrll-red-ui) !important;
-  color: #ffffff !important;
+  color: var(--rrll-text-inverse) !important;
 }
 
 button.primary:hover,
@@ -427,9 +489,9 @@ button.black:hover,
 button.danger,
 .danger,
 .rrll-button-danger {
-  background: #dc2626 !important;
-  border-color: #dc2626 !important;
-  color: #ffffff !important;
+  background: var(--rrll-danger-bg) !important;
+  border-color: var(--rrll-danger-border) !important;
+  color: var(--rrll-text-inverse) !important;
 }
 
 .badge,
@@ -706,8 +768,8 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-action
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-actions .rrll-delete-icon-button:hover {
-  color: #fff !important;
-  background: #dc2626 !important;
+  color: var(--rrll-text-inverse) !important;
+  background: var(--rrll-danger-bg) !important;
   border-color: #ef4444 !important;
 }
 
@@ -931,7 +993,7 @@ body.phase4-view-module .rrll-confirm-delete-actions {
 body.phase4-view-module .rrll-confirm-delete-actions .danger {
   background: var(--rrll-red-ui) !important;
   border-color: var(--rrll-red-ui) !important;
-  color: #ffffff !important;
+  color: var(--rrll-text-inverse) !important;
 }
 
 body.phase4-view-module .rrll-confirm-delete-actions .danger:hover {
@@ -949,21 +1011,21 @@ body[data-active-module="gestor-peticiones"] #gestor-peticiones {
   background: linear-gradient(180deg, #242b36 0%, #1f2630 100%) !important;
   border: 1px solid rgba(148, 163, 184, .16) !important;
   box-shadow: 0 18px 46px rgba(15, 23, 42, .18) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module > summary,
 body.phase4-view-module :is(.module-tasks, .module-petitions).rrll-pro-module > summary {
   background: linear-gradient(135deg, #343b46 0%, #303746 100%) !important;
   border: 1px solid rgba(148, 163, 184, .18) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: 0 12px 28px rgba(15, 23, 42, .16) !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
 body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
 body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confirm-delete-modal) :is(h2, h3, h4, label, strong, b) {
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
@@ -976,7 +1038,7 @@ body.phase4-view-module #gestor-tareas .rrll-pro-task-shell,
 body.phase4-view-module #gestor-peticiones .rrll-pro-petition-shell {
   background: linear-gradient(135deg, #2b313d 0%, #303746 100%) !important;
   border-color: rgba(148, 163, 184, .16) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: none !important;
 }
 
@@ -984,7 +1046,7 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-ta
 body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap) {
   background: linear-gradient(135deg, #2b313d 0%, #303746 100%) !important;
   border: 1px solid rgba(148, 163, 184, .18) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: 0 12px 28px rgba(15, 23, 42, .14) !important;
 }
 
@@ -992,7 +1054,7 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-task-h
 body.phase4-view-module :is(.module-tasks, .module-petitions) .rrll-pro-task-head {
   background: transparent !important;
   border-color: rgba(148, 163, 184, .14) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: none !important;
 }
 
@@ -1000,7 +1062,7 @@ html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdate
   background: #303746 !important;
   background-color: #303746 !important;
   background-image: none !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   border: 1px solid rgba(170, 179, 194, .24) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035) !important;
 }
@@ -1019,12 +1081,12 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) select option {
   background: #303746 !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
 }
 
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table {
   background: #2b313d !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   border-color: rgba(148, 163, 184, .18) !important;
 }
 
@@ -1036,7 +1098,7 @@ html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-t
 
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr {
   background: rgba(43, 49, 61, .88) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
 }
 
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:nth-child(even) {
@@ -1057,7 +1119,7 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-ta
 body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary) {
   background: linear-gradient(180deg, rgba(52, 59, 70, .92), rgba(43, 49, 61, .96)) !important;
   border: 1px solid rgba(148, 163, 184, .18) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: none !important;
 }
 
@@ -1065,14 +1127,14 @@ body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-ta
 body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover) {
   background: linear-gradient(180deg, rgba(59, 70, 86, .96), rgba(48, 55, 70, .98)) !important;
   border-color: rgba(148, 163, 184, .30) !important;
-  color: #f1f5f9 !important;
+  color: var(--rrll-text-main) !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-primary, .primary, button.primary),
 body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-primary, .primary, button.primary) {
   background: var(--rrll-red-ui) !important;
   border-color: var(--rrll-red-ui) !important;
-  color: #ffffff !important;
+  color: var(--rrll-text-inverse) !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-primary:hover, .primary:hover, button.primary:hover),
@@ -1082,14 +1144,14 @@ body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-prim
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-tool-button.excel {
-  background: #15803d !important;
-  border-color: #15803d !important;
-  color: #ffffff !important;
+  background: var(--rrll-success-bg) !important;
+  border-color: var(--rrll-success-bg) !important;
+  color: var(--rrll-text-inverse) !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-tool-button.excel:hover {
-  background: #166534 !important;
-  border-color: #166534 !important;
+  background: var(--rrll-success-bg-hover) !important;
+  border-color: var(--rrll-success-bg-hover) !important;
 }
 
 body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
@@ -1133,7 +1195,7 @@ body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-box,
 body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-box {
   background: linear-gradient(135deg, #2b313d 0%, #303746 100%) !important;
   border-color: rgba(148, 163, 184, .18) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: 0 24px 70px rgba(0, 0, 0, .32) !important;
 }
 
@@ -1148,14 +1210,14 @@ body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-actions 
 body.phase4-view-module #petitionUpdateModal .checks .check-option {
   background: rgba(15, 23, 42, .32) !important;
   border: 1px solid rgba(170, 179, 194, .24) !important;
-  color: #e5e7eb !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035) !important;
 }
 
 body.phase4-view-module #petitionUpdateModal .checks .check-option:has(input[type="checkbox"]:checked) {
   background: rgba(239, 68, 68, .18) !important;
   border-color: rgba(248, 113, 113, .58) !important;
-  color: #ffffff !important;
+  color: var(--rrll-text-inverse) !important;
   box-shadow: 0 0 0 1px rgba(248, 113, 113, .18), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
 }
 
@@ -1292,8 +1354,8 @@ body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-action
 }
 
 body.phase4-view-module :is(#gestor-actas, #gestor-teletrabajo) .rrll-pro-actions .rrll-delete-icon-button:hover {
-  color: #fff !important;
-  background: #dc2626 !important;
+  color: var(--rrll-text-inverse) !important;
+  background: var(--rrll-danger-bg) !important;
   border-color: #ef4444 !important;
 }
 
@@ -1430,8 +1492,8 @@ body.phase4-view-module #gestor-criterios .criteria-table .vinculograma-delete-b
 body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-delete-btn:hover,
 body.phase4-view-module #gestor-plantilla .plantilla-table .vinculograma-delete-btn:hover,
 body.phase4-view-module #gestor-criterios .criteria-table .vinculograma-delete-btn:hover {
-  color: #fff !important;
-  background: #dc2626 !important;
+  color: var(--rrll-text-inverse) !important;
+  background: var(--rrll-danger-bg) !important;
   border-color: #ef4444 !important;
 }
 
@@ -2633,7 +2695,7 @@ body.phase4-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day
 body.phase4-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day--no-ticket.ticket-day--today {
   background: #7f1d1d !important;
   border-color: #991b1b !important;
-  color: #fff !important;
+  color: var(--rrll-text-inverse) !important;
   font-weight: 800 !important;
   box-shadow: none !important;
 }
@@ -2643,4 +2705,111 @@ body.phase4-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day
   border-color: transparent !important;
   pointer-events: none !important;
   cursor: default !important;
+}
+
+/* Modo claro — corrección final de bloques que en el legado restauraban carbón.
+   Se limita a superficies, textos y controles; no altera estructura ni lógica. */
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module,
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions).rrll-pro-module,
+html[data-theme="light"] body[data-active-module="gestor-tareas"] #gestor-tareas,
+html[data-theme="light"] body[data-active-module="gestor-peticiones"] #gestor-peticiones,
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-task-shell,
+html[data-theme="light"] body.phase4-view-module #gestor-peticiones .rrll-pro-petition-shell,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
+html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-box,
+html[data-theme="light"] body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-box {
+  background: var(--rrll-surface-card) !important;
+  border-color: var(--rrll-border) !important;
+  color: var(--rrll-text-main) !important;
+  box-shadow: var(--rrll-shadow-soft) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module > summary,
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions).rrll-pro-module > summary,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-task-head,
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) .rrll-pro-task-head,
+html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-actions,
+html[data-theme="light"] body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-actions {
+  background: var(--rrll-surface-header) !important;
+  border-color: var(--rrll-border) !important;
+  color: var(--rrll-text-main) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
+html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confirm-delete-modal) :is(h2, h3, h4, label, strong, b),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table :is(td, th),
+html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .check-option {
+  color: var(--rrll-text-main) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confirm-delete-modal) :is(p, .muted, small) {
+  color: var(--rrll-text-muted) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) select option,
+html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .check-option input[type="checkbox"] {
+  background: var(--rrll-field-bg) !important;
+  background-color: var(--rrll-field-bg) !important;
+  border-color: var(--rrll-border) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  background: var(--rrll-field-bg-focus) !important;
+  border-color: rgba(37, 99, 235, .45) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) input::placeholder,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) textarea::placeholder,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) .rrll-pro-search-wrap input::placeholder {
+  color: var(--rrll-text-muted) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table thead th {
+  background: var(--rrll-surface-header) !important;
+  color: var(--rrll-text-main) !important;
+  border-color: var(--rrll-border) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr {
+  background: var(--rrll-surface-card) !important;
+  color: var(--rrll-text-main) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:nth-child(even) {
+  background: var(--rrll-surface-base) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:hover,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-row, .rrll-petition-row).expanded {
+  background: var(--rrll-surface-hover) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
+  background: var(--rrll-surface-base) !important;
+  border-color: var(--rrll-border) !important;
+  color: var(--rrll-text-soft) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
+html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .check-option:focus-within {
+  background: var(--rrll-surface-hover) !important;
+  border-color: var(--rrll-border-strong) !important;
+  color: var(--rrll-text-main) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .check-option:has(input[type="checkbox"]:checked) {
+  background: var(--soft-red) !important;
+  border-color: rgba(167, 53, 53, .35) !important;
+  color: var(--rrll-text-main) !important;
 }
