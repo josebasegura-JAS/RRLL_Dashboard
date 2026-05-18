@@ -14,3 +14,9 @@ contextBridge.exposeInMainWorld("rrllDB", {
   importParitariaHistoryDocx: () => ipcRenderer.invoke("db:importParitariaHistoryDocx"),
   generateCommitteeMinutesDraft: payload => ipcRenderer.invoke("db:generateCommitteeMinutesDraft", payload)
 });
+
+contextBridge.exposeInMainWorld("rrllFolder", {
+  getPath: () => ipcRenderer.invoke("rrllFolder:getPath"),
+  setPath: folderPath => ipcRenderer.invoke("rrllFolder:setPath", folderPath),
+  open: () => ipcRenderer.invoke("rrllFolder:open")
+});

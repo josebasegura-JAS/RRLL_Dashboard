@@ -7,6 +7,9 @@ let lastBackupAt = 0;
 let sqlReadyPromise = null;
 let SQLRef = null;
 
+const DEFAULT_RRLL_FOLDER_PATH = "G:\\Capital Humano\\Relaciones Laborales";
+
+
 function getLocalSqlitePath() {
   return path.join(app.getPath("userData"), "rrll-dashboard.sqlite");
 }
@@ -17,6 +20,10 @@ function getLegacyJsonPath() {
 
 function getDbConfigPath() {
   return path.join(app.getPath("userData"), "rrll-db-config.json");
+}
+
+function getRRLLFolderConfigPath() {
+  return path.join(app.getPath("userData"), "rrll-folder-config.json");
 }
 
 function getBackupsDir() {
@@ -405,6 +412,41 @@ async function getDbInfo() {
   return { mode: info.mode, path: info.path, sharedDir: info.sharedDir || "", user: info.user, localPath: info.localPath };
 }
 
+function normalizeRRLLFolderPath(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+async function getRRLLFolderPath() {
+  try {
+    const file = getRRLLFolderConfigPath();
+    if (!fs.existsSync(file)) return DEFAULT_RRLL_FOLDER_PATH;
+    const parsed = JSON.parse(fs.readFileSync(file, "utf-8") || "{}");
+    const savedPath = normalizeRRLLFolderPath(parsed && parsed.path);
+    return savedPath || DEFAULT_RRLL_FOLDER_PATH;
+  } catch {
+    return DEFAULT_RRLL_FOLDER_PATH;
+  }
+}
+
+async function setRRLLFolderPath(_event, folderPath) {
+  const safePath = normalizeRRLLFolderPath(folderPath);
+  if (!safePath) throw new Error("Ruta no válida.");
+  fs.writeFileSync(
+    getRRLLFolderConfigPath(),
+    JSON.stringify({ path: safePath, updatedAt: new Date().toISOString(), updatedBy: getWindowsUser() }, null, 2),
+    "utf-8"
+  );
+  return safePath;
+}
+
+async function openRRLLFolder() {
+  const folderPath = await getRRLLFolderPath();
+  if (!folderPath) return { ok: false, path: folderPath };
+  const openError = await shell.openPath(folderPath);
+  if (openError) return { ok: false, path: folderPath, error: openError };
+  return { ok: true, path: folderPath };
+}
+
 async function chooseSharedDirectory() {
   const result = await dialog.showOpenDialog({
     title: "Seleccionar carpeta compartida para la base de datos",
@@ -741,6 +783,9 @@ ipcMain.handle("db:useLocalDatabase", useLocalDatabase);
 ipcMain.handle("db:importCommitteeHistoryDocx", importCommitteeHistoryDocx);
 ipcMain.handle("db:importParitariaHistoryDocx", importParitariaHistoryDocx);
 ipcMain.handle("db:generateCommitteeMinutesDraft", generateCommitteeMinutesDraft);
+ipcMain.handle("rrllFolder:getPath", getRRLLFolderPath);
+ipcMain.handle("rrllFolder:setPath", setRRLLFolderPath);
+ipcMain.handle("rrllFolder:open", openRRLLFolder);
 
 function createWindow() {
   Menu.setApplicationMenu(null);
