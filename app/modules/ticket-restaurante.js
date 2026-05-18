@@ -374,8 +374,11 @@ function renderTicketRestaurantCalendar() {
     root.dataset.ticketCalendarReady = "1";
   }
   const marks = new Set(getTicketRestaurantCalendarMarks()
-    .filter(item => item && item.calendar === ticketRestaurantSelectedCalendar && item.noTicket)
-    .map(item => item.date));
+    .filter(item => item && normalizeTicketCalendar(item.calendar) === ticketRestaurantSelectedCalendar && item.noTicket)
+    .map(item => parseTicketDate(item.date))
+    .filter(Boolean));
+  const today = new Date();
+  const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   root.innerHTML = Array.from({ length: 12 }, (_, monthIndex) => {
     const daysInMonth = new Date(ticketRestaurantCalendarYear, monthIndex + 1, 0).getDate();
     const blanks = (new Date(ticketRestaurantCalendarYear, monthIndex, 1).getDay() + 6) % 7;
@@ -386,7 +389,14 @@ function renderTicketRestaurantCalendar() {
       const weekday = new Date(ticketRestaurantCalendarYear, monthIndex, day).getDay();
       const weekend = weekday === 0 || weekday === 6;
       const noTicket = marks.has(date);
-      cells.push(`<button type="button" class="ticket-day ${weekend ? "weekend" : ""} ${noTicket ? "no-ticket" : ""}" data-ticket-date="${date}" aria-pressed="${noTicket ? "true" : "false"}" title="${formatTicketDate(date)}${noTicket ? " · Sin ticket" : ""}">${day}</button>`);
+      const isToday = date === todayDate;
+      const dayClasses = [
+        "ticket-day",
+        weekend ? "ticket-day--weekend" : "",
+        isToday ? "ticket-day--today" : "",
+        noTicket ? "ticket-day--no-ticket" : ""
+      ].filter(Boolean).join(" ");
+      cells.push(`<button type="button" class="${dayClasses}" data-ticket-date="${date}" aria-pressed="${noTicket ? "true" : "false"}" title="${formatTicketDate(date)}${noTicket ? " · Sin ticket" : ""}">${day}</button>`);
     }
     return `<section class="ticket-month-card"><h4>${TICKET_RESTAURANT_MONTHS[monthIndex]}</h4><div class="ticket-weekdays"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div><div class="ticket-days-grid">${cells.join("")}</div></section>`;
   }).join("");
