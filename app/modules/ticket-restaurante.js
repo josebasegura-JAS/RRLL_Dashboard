@@ -74,9 +74,35 @@ function normalizeTicketEmployeeLookup(value) {
   return compact.replace(/^0+(?=\d)/, "");
 }
 
+function normalizeTicketText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/º/g, "o")
+    .replace(/ª/g, "a")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeTicketCompactText(value) {
+  return normalizeTicketText(value).replace(/[^a-z0-9]/g, "");
+}
+
 function normalizeTicketCalendar(value) {
   const text = String(value || "").replace(/\s+/g, " ").trim();
-  return TICKET_RESTAURANT_CALENDARS.find(item => item.toLowerCase() === text.toLowerCase()) || text;
+  const key = normalizeTicketCompactText(text);
+  const calendarAliases = new Map([
+    ["sscc", "Servicios Centrales"],
+    ["servicioscentrales", "Servicios Centrales"],
+    ["serviciocentrales", "Servicios Centrales"],
+    ["sopela", "Instalaciones Sopela"],
+    ["instalacionessopela", "Instalaciones Sopela"],
+    ["instalacionsopela", "Instalaciones Sopela"],
+    ["ariz", "Ingeniería Ariz"],
+    ["ingenieriaariz", "Ingeniería Ariz"]
+  ]);
+  return calendarAliases.get(key) || TICKET_RESTAURANT_CALENDARS.find(item => normalizeTicketCompactText(item) === key) || text;
 }
 
 function isKnownTicketCalendar(value) {
@@ -123,15 +149,42 @@ function ticketRestaurantRowIsEmpty(row) {
   return !row || !row.some(cell => String(cell || "").trim());
 }
 
+function getTicketRestaurantHeaderAliases(header) {
+  const aliases = {
+    "Nº empleado": ["Nº empleado", "N° empleado", "No empleado", "Num empleado", "Nº Emp", "N° Emp", "No Emp", "Numero empleado", "Número empleado", "N empleado", "Empleado", "Num Emp"],
+    Nombre: ["Nombre"],
+    Apellido1: ["Apellido1", "Apellido 1", "Primer apellido"],
+    Apellido2: ["Apellido2", "Apellido 2", "Segundo apellido"],
+    DNI: ["DNI", "NIF", "Documento"],
+    Puesto: ["Puesto", "Cargo", "Posición", "Posicion"],
+    Calendario: ["Calendario", "Calendar"]
+  };
+  return aliases[header] || [header];
+}
+
+function ticketRestaurantBuildHeaderIndex(row, headers) {
+  const normalizedCells = (Array.isArray(row) ? row : []).map(cell => normalizeTicketCompactText(cell));
+  const index = {};
+  headers.forEach(header => {
+    const aliases = getTicketRestaurantHeaderAliases(header).map(alias => normalizeTicketCompactText(alias));
+    const found = normalizedCells.findIndex(cell => aliases.includes(cell));
+    if (found >= 0) index[header] = found;
+  });
+  return index;
+}
+
 function ticketRestaurantRowsToObjects(rows, headers) {
   const safeRows = Array.isArray(rows) ? rows.filter(row => !ticketRestaurantRowIsEmpty(row)) : [];
   if (!safeRows.length) return [];
-  let start = 0;
-  const first = safeRows[0].map(cell => String(cell || "").trim().toLowerCase());
-  if (headers.some(header => first.includes(header.toLowerCase()))) start = 1;
+  const headerIndex = ticketRestaurantBuildHeaderIndex(safeRows[0], headers);
+  const hasHeader = Object.keys(headerIndex).length > 0;
+  const start = hasHeader ? 1 : 0;
   return safeRows.slice(start).map(row => {
     const obj = {};
-    headers.forEach((header, index) => { obj[header] = row[index] == null ? "" : String(row[index]).trim(); });
+    headers.forEach((header, fallbackIndex) => {
+      const index = hasHeader && headerIndex[header] != null ? headerIndex[header] : fallbackIndex;
+      obj[header] = row[index] == null ? "" : String(row[index]).replace(/^\ufeff/, "").replace(/\s+/g, " ").trim();
+    });
     return obj;
   });
 }
@@ -343,7 +396,8 @@ function openTicketRestaurantPersonForm(employeeNumber) {
   ticketRestaurantEditingEmployee = employeeNumber ? normalizeTicketEmployee(employeeNumber) : null;
   ticketRestaurantLastPlantillaLookup = "";
   const people = getTicketRestaurantPeople();
-  const person = people.find(item => item.employeeNumber === ticketRestaurantEditingEmployee) || {};
+  const editingKey = normalizeTicketEmployeeLookup(ticketRestaurantEditingEmployee);
+  const person = people.find(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === editingKey) || {};
   document.getElementById("ticketPersonModalTitle").textContent = ticketRestaurantEditingEmployee ? "Editar persona" : "Nueva persona";
   document.getElementById("ticketPersonEmployee").value = person.employeeNumber || "";
   document.getElementById("ticketPersonName").value = person.name || "";
@@ -368,24 +422,38 @@ function closeTicketRestaurantPersonForm() {
 
 function saveTicketRestaurantPersonForm() {
   const employeeNumber = normalizeTicketEmployee(document.getElementById("ticketPersonEmployee").value);
-  const name = String(document.getElementById("ticketPersonName").value || "").trim();
+  const name = String(document.getElementById("ticketPersonName").value || "").replace(/\s+/g, " ").trim();
   const calendar = normalizeTicketCalendar(document.getElementById("ticketPersonCalendar").value);
   if (!employeeNumber || !name || !calendar) {
     alert("Nº empleado, Nombre y Calendario son obligatorios.");
     return;
   }
+  if (!isKnownTicketCalendar(calendar)) {
+    alert("Selecciona un Calendario válido.");
+    return;
+  }
+  const peopleBefore = getTicketRestaurantPeople();
+  const employeeKey = normalizeTicketEmployeeLookup(employeeNumber);
+  const editingKey = normalizeTicketEmployeeLookup(ticketRestaurantEditingEmployee);
+  const existing = peopleBefore.find(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === employeeKey);
+  if (existing && !ticketRestaurantEditingEmployee && !confirm(`Ya existe una persona con Nº empleado ${employeeNumber}. ¿Quieres actualizarla?`)) return;
   const person = {
+    ...(existing || {}),
     employeeNumber,
     name,
-    surname1: String(document.getElementById("ticketPersonSurname1").value || "").trim(),
-    surname2: String(document.getElementById("ticketPersonSurname2").value || "").trim(),
-    dni: String(document.getElementById("ticketPersonDni").value || "").trim(),
-    position: String(document.getElementById("ticketPersonPosition").value || "").trim(),
+    surname1: String(document.getElementById("ticketPersonSurname1").value || "").replace(/\s+/g, " ").trim(),
+    surname2: String(document.getElementById("ticketPersonSurname2").value || "").replace(/\s+/g, " ").trim(),
+    dni: String(document.getElementById("ticketPersonDni").value || "").replace(/\s+/g, " ").trim(),
+    position: String(document.getElementById("ticketPersonPosition").value || "").replace(/\s+/g, " ").trim(),
     calendar,
+    createdAt: (existing || {}).createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
-  let people = getTicketRestaurantPeople().filter(item => item.employeeNumber !== employeeNumber && item.employeeNumber !== ticketRestaurantEditingEmployee);
-  people.push({ ...person, createdAt: (getTicketRestaurantPeople().find(item => item.employeeNumber === employeeNumber) || {}).createdAt || new Date().toISOString() });
+  let people = peopleBefore.filter(item => {
+    const key = normalizeTicketEmployeeLookup(item && item.employeeNumber);
+    return key !== employeeKey && key !== editingKey;
+  });
+  people.push(person);
   people.sort((a, b) => String(a.employeeNumber).localeCompare(String(b.employeeNumber), "es", { numeric: true }));
   saveTicketRestaurantPeople(people);
   closeTicketRestaurantPersonForm();
@@ -430,26 +498,52 @@ async function exportTicketWorkbook(payload) {
   catch (error) { console.error(error); alert(`No se pudo generar el Excel: ${error.message || error}`); return null; }
 }
 
+function buildTicketRestaurantPersonRecord(row, existing = {}) {
+  const employeeNumber = normalizeTicketEmployee(row && row["Nº empleado"]);
+  const name = String((row && row.Nombre) || "").replace(/\s+/g, " ").trim();
+  const calendar = normalizeTicketCalendar(row && row.Calendario);
+  if (!employeeNumber || !name || !isKnownTicketCalendar(calendar)) return null;
+  const now = new Date().toISOString();
+  return {
+    ...existing,
+    employeeNumber,
+    name,
+    surname1: String((row && row.Apellido1) || "").replace(/\s+/g, " ").trim(),
+    surname2: String((row && row.Apellido2) || "").replace(/\s+/g, " ").trim(),
+    dni: String((row && row.DNI) || "").replace(/\s+/g, " ").trim(),
+    position: String((row && row.Puesto) || "").replace(/\s+/g, " ").trim(),
+    calendar,
+    createdAt: existing.createdAt || now,
+    updatedAt: now
+  };
+}
+
 async function importTicketRestaurantPeople() {
   if (!window.rrllTicketRestaurant || typeof window.rrllTicketRestaurant.importSpreadsheet !== "function") return alert("Importación disponible solo en escritorio.");
-  const result = await window.rrllTicketRestaurant.importSpreadsheet();
+  let result = null;
+  try {
+    result = await window.rrllTicketRestaurant.importSpreadsheet();
+  } catch (error) {
+    console.error(error);
+    alert(`No se pudo importar el fichero: ${error.message || error}`);
+    return;
+  }
   if (!result) return;
   const rows = ticketRestaurantRowsToObjects(result.rows, TICKET_RESTAURANT_PERSON_HEADERS);
   const people = getTicketRestaurantPeople();
-  const map = new Map(people.map(item => [item.employeeNumber, item]));
+  const map = new Map();
+  people.forEach(item => {
+    const key = normalizeTicketEmployeeLookup(item && item.employeeNumber);
+    if (key) map.set(key, item);
+  });
   let imported = 0, updated = 0, omitted = 0;
   rows.forEach(row => {
-    const employeeNumber = normalizeTicketEmployee(row["Nº empleado"]);
-    const name = String(row.Nombre || "").trim();
-    const calendar = normalizeTicketCalendar(row.Calendario);
-    if (!employeeNumber || !name || !TICKET_RESTAURANT_CALENDARS.includes(calendar)) { omitted += 1; return; }
-    const exists = map.has(employeeNumber);
-    map.set(employeeNumber, {
-      ...(map.get(employeeNumber) || {}), employeeNumber, name,
-      surname1: String(row.Apellido1 || "").trim(), surname2: String(row.Apellido2 || "").trim(), dni: String(row.DNI || "").trim(), position: String(row.Puesto || "").trim(), calendar,
-      createdAt: (map.get(employeeNumber) || {}).createdAt || new Date().toISOString(), updatedAt: new Date().toISOString()
-    });
-    if (exists) updated += 1; else imported += 1;
+    const key = normalizeTicketEmployeeLookup(row && row["Nº empleado"]);
+    const existing = key ? map.get(key) : null;
+    const record = buildTicketRestaurantPersonRecord(row, existing || {});
+    if (!key || !record) { omitted += 1; return; }
+    map.set(key, record);
+    if (existing) updated += 1; else imported += 1;
   });
   saveTicketRestaurantPeople([...map.values()].sort((a, b) => String(a.employeeNumber).localeCompare(String(b.employeeNumber), "es", { numeric: true })));
   renderTicketRestaurantPeople();
