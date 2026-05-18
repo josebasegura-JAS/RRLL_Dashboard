@@ -1361,6 +1361,128 @@ function getTicketRestaurantComputeSelection() {
 }
 
 
+
+function ticketRestaurantEscapeJs(value) {
+  return String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+function ticketRestaurantDateToLocalDate(isoDate) {
+  const iso = parseTicketDate(isoDate);
+  if (!iso) return null;
+  return new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
+}
+
+function ticketRestaurantLocalDateToIso(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function expandDateRange(fromDate, toDate) {
+  const from = ticketRestaurantDateToLocalDate(fromDate);
+  const to = ticketRestaurantDateToLocalDate(toDate || fromDate);
+  if (!from && !to) return [];
+  const start = from || to;
+  const end = to || from;
+  const first = start <= end ? start : end;
+  const last = start <= end ? end : start;
+  const dates = [];
+  for (let current = new Date(first.getFullYear(), first.getMonth(), first.getDate()); current <= last; current.setDate(current.getDate() + 1)) {
+    dates.push(ticketRestaurantLocalDateToIso(current));
+  }
+  return dates;
+}
+
+function ticketRestaurantVisibleMonthRange(visibleMonth) {
+  const normalized = normalizeTicketMonth(visibleMonth || getTicketRestaurantComputeSelection());
+  const first = `${normalized.year}-${String(normalized.month).padStart(2, "0")}-01`;
+  const lastDay = new Date(normalized.year, normalized.month, 0).getDate();
+  const last = `${normalized.year}-${String(normalized.month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  return { ...normalized, first, last };
+}
+
+function ticketRestaurantDateIsInVisibleMonth(date, visibleMonth) {
+  const iso = parseTicketDate(date);
+  if (!iso) return false;
+  const range = ticketRestaurantVisibleMonthRange(visibleMonth);
+  return iso >= range.first && iso <= range.last;
+}
+
+function ticketRestaurantAbsenceIntersectsVisibleMonth(absence, visibleMonth) {
+  const dates = expandDateRange(absence && absence.from, absence && (absence.to || absence.from));
+  return dates.some(date => ticketRestaurantDateIsInVisibleMonth(date, visibleMonth));
+}
+
+function ticketRestaurantGetCalendarMarkSet(calendar) {
+  const normalizedCalendar = normalizeTicketCalendar(calendar);
+  return new Set(getTicketRestaurantCalendarMarks()
+    .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
+    .map(item => parseTicketDate(item.date))
+    .filter(Boolean));
+}
+
+function findTicketRestaurantPersonByEmployee(employeeNumber) {
+  const key = normalizeTicketEmployeeLookup(employeeNumber);
+  if (!key) return null;
+  return getTicketRestaurantPeople().find(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === key) || null;
+}
+
+function employeeHasTicketRightOnDate(employeeNumber, date, calendar = null) {
+  const normalizedCalendar = normalizeTicketCalendar(calendar || (findTicketRestaurantPersonByEmployee(employeeNumber) || {}).calendar);
+  if (!isKnownTicketCalendar(normalizedCalendar)) return false;
+  const iso = parseTicketDate(date);
+  if (!iso) return false;
+  const localDate = ticketRestaurantDateToLocalDate(iso);
+  if (!localDate) return false;
+  const weekday = localDate.getDay();
+  if (weekday === 0 || weekday === 6) return false;
+  return !ticketRestaurantGetCalendarMarkSet(normalizedCalendar).has(iso);
+}
+
+function getEffectiveAbsenceDaysForEmployee(employeeNumber, absence, calendar, visibleMonth = null) {
+  const normalizedCalendar = normalizeTicketCalendar(calendar);
+  const hasCalendar = isKnownTicketCalendar(normalizedCalendar);
+  const allDates = expandDateRange(absence && absence.from, absence && (absence.to || absence.from));
+  const visibleDates = visibleMonth ? allDates.filter(date => ticketRestaurantDateIsInVisibleMonth(date, visibleMonth)) : allDates;
+  const affectingDates = hasCalendar
+    ? visibleDates.filter(date => employeeHasTicketRightOnDate(employeeNumber, date, normalizedCalendar))
+    : [];
+  return {
+    absence,
+    allDates,
+    visibleDates,
+    affectingDates,
+    naturalDays: visibleDates.length,
+    ticketDays: affectingDates.length,
+    hasCalendar,
+    calendar: hasCalendar ? normalizedCalendar : (calendar || "")
+  };
+}
+
+function filterAbsencesAffectingTicket(employeeNumber, absences, visibleMonth, calendar = null, includeWithoutImpact = true) {
+  const key = normalizeTicketEmployeeLookup(employeeNumber);
+  if (!key) return [];
+  const employeeAbsences = (Array.isArray(absences) ? absences : [])
+    .filter(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === key)
+    .filter(item => !visibleMonth || ticketRestaurantAbsenceIntersectsVisibleMonth(item, visibleMonth));
+  return employeeAbsences
+    .map(item => getEffectiveAbsenceDaysForEmployee(employeeNumber, item, calendar, visibleMonth))
+    .filter(item => includeWithoutImpact || item.ticketDays > 0);
+}
+
+function calculateTicketAffectingAbsenceDays(employeeNumber, absences, visibleMonth, calendar = null) {
+  return filterAbsencesAffectingTicket(employeeNumber, absences, visibleMonth, calendar, false)
+    .reduce((sum, item) => sum + item.ticketDays, 0);
+}
+
+function formatTicketRestaurantAbsenceImpactDetail(detail) {
+  const reason = (detail.absence && detail.absence.reason) || "Ausencia";
+  const from = formatTicketDate(detail.absence && detail.absence.from);
+  const to = formatTicketDate(detail.absence && (detail.absence.to || detail.absence.from));
+  const impact = detail.hasCalendar ? `${detail.ticketDays} días que afectan a ticket` : "Empleado sin calendario asignado";
+  const noImpact = detail.hasCalendar && detail.ticketDays === 0 ? " · Sin impacto en ticket por calendario" : "";
+  return `${reason} ${from}-${to} (${detail.naturalDays} días ausencia; ${impact}${noImpact})`;
+}
+
 function ticketRestaurantWorkingDays(month, year, calendar) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
   if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
@@ -1402,34 +1524,30 @@ function ticketRestaurantNoTicketWeekdays(month, year, calendar) {
 
 function calculateTicketRestaurantCompute(period = null) {
   const { month, year } = period ? normalizeTicketMonth(period) : getTicketRestaurantComputeSelection();
+  const visibleMonth = { month, year };
   const calendarTheoretical = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
   const calendarNoTicketWeekdays = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantNoTicketWeekdays(month, year, calendar)]));
-  const absences = getTicketRestaurantAbsences().filter(item => {
-    const period = ticketRestaurantMonthYearFromDate(item && item.from);
-    const itemMonth = period.month || Number(item && item.month);
-    const itemYear = period.year || Number(item && item.year);
-    return itemMonth === month && itemYear === year;
-  });
-  const byEmployee = new Map();
-  absences.forEach(item => {
-    const key = normalizeTicketEmployeeLookup(item.employeeNumber);
-    if (!key) return;
-    if (!byEmployee.has(key)) byEmployee.set(key, { days: 0, details: [] });
-    const current = byEmployee.get(key);
-    const days = parseTicketNumber(item.totalDays);
-    current.days += days;
-    current.details.push(`${item.reason} ${formatTicketDate(item.from)}-${formatTicketDate(item.to)} (${days} días)`);
-  });
+  const absences = getTicketRestaurantAbsences();
   const warnings = [];
   const rows = getTicketRestaurantPeople().map(person => {
     const normalizedCalendar = normalizeTicketCalendar(person.calendar);
     const hasCalendar = isKnownTicketCalendar(normalizedCalendar);
-    if (!hasCalendar) warnings.push(`La persona ${person.employeeNumber || "sin nº"} no tiene un calendario válido asignado.`);
+    const employeeLabel = person.employeeNumber || "sin nº";
+    if (!hasCalendar) warnings.push(`Empleado sin calendario asignado: ${employeeLabel}.`);
     const theoretical = hasCalendar ? (calendarTheoretical.get(normalizedCalendar) || 0) : 0;
-    const absence = byEmployee.get(normalizeTicketEmployeeLookup(person.employeeNumber)) || { days: 0, details: [] };
-    const absenceDays = parseTicketNumber(absence.days);
+    const absenceDetails = filterAbsencesAffectingTicket(person.employeeNumber, absences, visibleMonth, normalizedCalendar, true);
+    const absenceDays = hasCalendar ? calculateTicketAffectingAbsenceDays(person.employeeNumber, absences, visibleMonth, normalizedCalendar) : 0;
+    if (!hasCalendar && absenceDetails.length) warnings.push(`Empleado sin calendario asignado: ${employeeLabel}. No se descuentan sus ausencias porque no se puede verificar el derecho a ticket.`);
     const finalTickets = Math.max(0, theoretical - absenceDays);
-    return { person: { ...person, calendar: hasCalendar ? normalizedCalendar : (person.calendar || "Sin calendario") }, theoretical, absenceDays, absenceDetails: absence.details.join("; "), finalTickets, calendarWarning: !hasCalendar };
+    return {
+      person: { ...person, calendar: hasCalendar ? normalizedCalendar : (person.calendar || "Sin calendario") },
+      theoretical,
+      absenceDays,
+      absenceImpactDetails: absenceDetails,
+      absenceDetails: absenceDetails.map(formatTicketRestaurantAbsenceImpactDetail).join("; "),
+      finalTickets,
+      calendarWarning: !hasCalendar
+    };
   });
   const summary = TICKET_RESTAURANT_CALENDARS.map(calendar => {
     const calendarRows = rows.filter(row => row.person.calendar === calendar);
@@ -1465,6 +1583,71 @@ function updateTicketRestaurantComputeSortHeaders() {
   });
 }
 
+function ensureTicketRestaurantAbsenceImpactModal() {
+  let modal = document.getElementById("ticketRestaurantAbsenceImpactModal");
+  if (modal) return modal;
+  modal = document.createElement("div");
+  modal.id = "ticketRestaurantAbsenceImpactModal";
+  modal.className = "modal-backdrop";
+  modal.setAttribute("aria-hidden", "true");
+  modal.innerHTML = `
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="ticketRestaurantAbsenceImpactTitle" onclick="event.stopPropagation()" style="width:min(900px,96vw);max-height:90vh;display:flex;flex-direction:column;">
+      <h3 id="ticketRestaurantAbsenceImpactTitle">Detalle de ausencias</h3>
+      <p id="ticketRestaurantAbsenceImpactSubtitle" class="muted"></p>
+      <div style="overflow:auto;">
+        <table class="data-table">
+          <thead><tr><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Días ausencia</th><th>Días que afectan a ticket</th><th>Observación</th></tr></thead>
+          <tbody id="ticketRestaurantAbsenceImpactBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions" style="position:sticky;bottom:0;background:inherit;padding-top:12px;">
+        <button type="button" class="secondary" onclick="closeTicketRestaurantAbsenceImpactModal()">Cerrar</button>
+      </div>
+    </div>`;
+  modal.addEventListener("click", event => { if (event.target === modal) closeTicketRestaurantAbsenceImpactModal(); });
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function closeTicketRestaurantAbsenceImpactModal() {
+  const modal = document.getElementById("ticketRestaurantAbsenceImpactModal");
+  if (!modal) return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function openTicketRestaurantAbsenceImpactDetail(employeeNumber, source = "compute") {
+  const visibleMonth = source === "monthly" ? getTicketContributionVisibleMonth() : getTicketComputeVisibleMonth();
+  const calc = calculateTicketRestaurantCompute(visibleMonth);
+  const key = normalizeTicketEmployeeLookup(employeeNumber);
+  const row = (calc.rows || []).find(item => normalizeTicketEmployeeLookup(item && item.person && item.person.employeeNumber) === key);
+  const modal = ensureTicketRestaurantAbsenceImpactModal();
+  const subtitle = modal.querySelector("#ticketRestaurantAbsenceImpactSubtitle");
+  const body = modal.querySelector("#ticketRestaurantAbsenceImpactBody");
+  const details = (row && row.absenceImpactDetails) || [];
+  if (subtitle) {
+    const fullName = row ? ticketRestaurantFullName(row.person) : employeeNumber;
+    subtitle.textContent = `${fullName || employeeNumber} · ${formatTicketMonthLabel(visibleMonth)} · Ausencias aplicadas: ${row ? row.absenceDays : 0}`;
+  }
+  if (body) {
+    body.innerHTML = details.length ? details.map(detail => {
+      const observation = !detail.hasCalendar
+        ? "Empleado sin calendario asignado"
+        : detail.ticketDays === 0 ? "Sin impacto en ticket por calendario" : "Afecta al ticket";
+      return `<tr>
+        <td>${formatTicketDate(detail.absence && detail.absence.from)}</td>
+        <td>${formatTicketDate(detail.absence && (detail.absence.to || detail.absence.from))}</td>
+        <td>${escapeHtml((detail.absence && detail.absence.reason) || "")}</td>
+        <td>${detail.naturalDays}</td>
+        <td>${detail.ticketDays}</td>
+        <td>${escapeHtml(observation)}</td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="6" class="muted">No hay ausencias importadas para esta persona en el mes seleccionado.</td></tr>`;
+  }
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+}
+
 function renderTicketRestaurantComputePreview() {
   const periodEl = document.getElementById("ticketRestaurantComputePeriod");
   const summaryEl = document.getElementById("ticketRestaurantComputeSummary");
@@ -1486,7 +1669,7 @@ function renderTicketRestaurantComputePreview() {
   applyTicketEmployeeNameColumnLayout("#ticketRestaurantComputeBody");
   const visibleRows = getVisibleTicketRestaurantComputeRows(calc);
   updateTicketRestaurantComputeSortHeaders();
-  body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}">
+  body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}" ondblclick="event.preventDefault(); event.stopPropagation(); openTicketRestaurantAbsenceImpactDetail('${ticketRestaurantEscapeJs(row.person.employeeNumber)}', 'compute')" title="Doble clic para ver detalle de ausencias">
     <td>${escapeHtml(row.person.employeeNumber)}</td><td>${escapeHtml(ticketRestaurantFullName(row.person))}</td><td>${escapeHtml(row.person.calendar)}${row.calendarWarning ? " · revisar" : ""}</td><td>${row.theoretical}</td><td>${row.absenceDays}</td><td><strong>${row.finalTickets}</strong></td>
   </tr>`).join("") : `<tr><td colspan="6" class="muted">No hay personas con derecho que coincidan con los filtros.</td></tr>`;
   if (ticketRestaurantActiveArea === "monthly") renderTicketRestaurantMonthlyQuotePreview();
@@ -1564,7 +1747,10 @@ function calculateTicketRestaurantMonthlyQuote() {
     employeeNumber: row.person.employeeNumber || "",
     fullName: ticketRestaurantFullName(row.person),
     ticketDays: row.finalTickets,
-    ticketAmount: cfg.importe
+    ticketAmount: cfg.importe,
+    absenceDays: row.absenceDays,
+    absenceImpactDetails: row.absenceImpactDetails || [],
+    calendarWarning: row.calendarWarning
   }));
   return { month: calc.month, year: calc.year, rows };
 }
@@ -1581,7 +1767,7 @@ function renderTicketRestaurantMonthlyQuotePreview() {
   if (periodEl) periodEl.textContent = `Cómputo Cotización Mensual para ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} de ${calc.year}`;
   applyTicketEmployeeNameColumnLayout("#ticketRestaurantMonthlyQuoteBody");
   const visibleRows = getVisibleTicketRestaurantMonthlyQuoteRows(calc);
-  body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr><td>${escapeHtml(row.employeeNumber)}</td><td>${escapeHtml(row.fullName)}</td><td>${escapeHtml(row.ticketDays)}</td><td>${escapeHtml(row.ticketAmount)}</td></tr>`).join("") : `<tr><td colspan="4" class="muted">Sin resultados que coincidan con los filtros.</td></tr>`;
+  body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}" ondblclick="event.preventDefault(); event.stopPropagation(); openTicketRestaurantAbsenceImpactDetail('${ticketRestaurantEscapeJs(row.employeeNumber)}', 'monthly')" title="Doble clic para ver detalle de ausencias"><td>${escapeHtml(row.employeeNumber)}</td><td>${escapeHtml(row.fullName)}</td><td>${escapeHtml(row.ticketDays)}</td><td>${escapeHtml(row.ticketAmount)}</td></tr>`).join("") : `<tr><td colspan="4" class="muted">Sin resultados que coincidan con los filtros.</td></tr>`;
 }
 
 async function exportTicketRestaurantMonthlyQuote() {
@@ -1618,6 +1804,8 @@ window.removeTicketRestaurantAbsencePreviewRow = removeTicketRestaurantAbsencePr
 window.saveTicketRestaurantAbsencePreviewRows = saveTicketRestaurantAbsencePreviewRows;
 window.downloadTicketRestaurantAbsenceTemplate = downloadTicketRestaurantAbsenceTemplate;
 window.deleteTicketRestaurantAbsence = deleteTicketRestaurantAbsence;
+window.openTicketRestaurantAbsenceImpactDetail = openTicketRestaurantAbsenceImpactDetail;
+window.closeTicketRestaurantAbsenceImpactModal = closeTicketRestaurantAbsenceImpactModal;
 window.changeTicketAbsenceMonth = changeTicketAbsenceMonth;
 window.changeTicketPreviewMonth = changeTicketPreviewMonth;
 window.setTicketRestaurantAbsenceSort = setTicketRestaurantAbsenceSort;
