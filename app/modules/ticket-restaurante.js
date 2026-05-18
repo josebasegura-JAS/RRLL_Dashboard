@@ -273,13 +273,17 @@ function ticketRestaurantRowIsEmpty(row) {
 
 function getTicketRestaurantHeaderAliases(header) {
   const aliases = {
-    "Nº empleado": ["Nº empleado", "N° empleado", "No empleado", "Num empleado", "Nº Emp", "N° Emp", "No Emp", "Numero empleado", "Número empleado", "N empleado", "Empleado", "Num Emp"],
+    "Nº empleado": ["Nº empleado", "N° empleado", "No empleado", "Num empleado", "Nº Emp", "N° Emp", "No Emp", "Numero empleado", "Número empleado", "N empleado", "Empleado", "EmployeeNumber", "Employee Number", "Num Emp"],
     Nombre: ["Nombre"],
     Apellido1: ["Apellido1", "Apellido 1", "Primer apellido"],
     Apellido2: ["Apellido2", "Apellido 2", "Segundo apellido"],
     DNI: ["DNI", "NIF", "Documento"],
     Puesto: ["Puesto", "Cargo", "Posición", "Posicion"],
-    Calendario: ["Calendario", "Calendar"]
+    Calendario: ["Calendario", "Calendar"],
+    Desde: ["Desde", "FromDate", "From Date", "Fecha desde", "Fec desde", "Inicio"],
+    Hasta: ["Hasta", "ToDate", "To Date", "Fecha hasta", "Fec hasta", "Fin"],
+    Motivo: ["Motivo", "Reason", "Aus.", "Aus", "Ausencia", "Código", "Codigo"],
+    "Total días": ["Total días", "Total dias", "TotalDays", "Total Days", "Días", "Dias", "Nº días", "No dias"]
   };
   return aliases[header] || [header];
 }
@@ -702,28 +706,323 @@ function showTicketRestaurantImportSummary(id, imported, updated, omitted, fileN
   el.innerHTML = `<strong>${escapeHtml(fileName || "Fichero")}</strong> · Importados: <b>${imported}</b> · Actualizados: <b>${updated}</b> · Omitidos: <b>${omitted}</b>`;
 }
 
-async function importTicketRestaurantAbsences() {
-  if (!window.rrllTicketRestaurant || typeof window.rrllTicketRestaurant.importSpreadsheet !== "function") return alert("Importación disponible solo en escritorio.");
-  const result = await window.rrllTicketRestaurant.importSpreadsheet();
-  if (!result) return;
-  const rows = ticketRestaurantRowsToObjects(result.rows, TICKET_RESTAURANT_ABSENCE_HEADERS);
-  const absences = getTicketRestaurantAbsences();
-  let imported = 0, omitted = 0;
-  rows.forEach(row => {
-    const employeeNumber = normalizeTicketEmployee(row["Nº empleado"]);
-    const from = parseTicketDate(row.Desde);
-    const to = parseTicketDate(row.Hasta) || from;
-    const reason = String(row.Motivo || "").trim();
-    const totalDays = parseTicketNumber(row["Total días"]);
-    if (!employeeNumber || !from || !reason || !totalDays) { omitted += 1; return; }
-    const period = ticketRestaurantMonthYearFromDate(from);
-    absences.push({ id: `tr-absence-${Date.now()}-${Math.random().toString(36).slice(2)}`, employeeNumber, from, to, reason, totalDays, month: period.month, year: period.year, createdAt: new Date().toISOString() });
-    imported += 1;
+function ticketRestaurantNormalizePreviewDate(value) {
+  return formatTicketDate(value) || String(value || "").trim();
+}
+
+function ticketRestaurantIsLikelyExcelSerial(value) {
+  const n = Number(String(value ?? "").replace(",", "."));
+  return Number.isFinite(n) && n > 20000 && n < 80000;
+}
+
+function ticketRestaurantLooksLikeDateCell(value) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return true;
+  const text = String(value ?? "").trim();
+  if (!text) return false;
+  return /^\d{4}-\d{1,2}-\d{1,2}$/.test(text) || /^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}$/.test(text) || ticketRestaurantIsLikelyExcelSerial(text);
+}
+
+function ticketRestaurantFindAbsenceHeaderIndex(rows) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  for (let i = 0; i < Math.min(safeRows.length, 25); i += 1) {
+    const index = ticketRestaurantBuildHeaderIndex(safeRows[i], TICKET_RESTAURANT_ABSENCE_HEADERS);
+    const hits = TICKET_RESTAURANT_ABSENCE_HEADERS.filter(header => index[header] != null).length;
+    if (hits >= 3 && index["Nº empleado"] != null && (index.Desde != null || index.Hasta != null) && index.Motivo != null) return i;
+  }
+  return -1;
+}
+
+function ticketRestaurantRowContainsAny(row, labels) {
+  const text = normalizeTicketText((Array.isArray(row) ? row : []).join(" "));
+  return labels.some(label => text.includes(normalizeTicketText(label)));
+}
+
+function detectTicketRestaurantAbsenceFormat(rows) {
+  const safeRows = Array.isArray(rows) ? rows.filter(row => !ticketRestaurantRowIsEmpty(row)) : [];
+  if (!safeRows.length) return "unknown";
+  const zerkosLabels = ["EMPLEADO", "PUESTO ORGANIZATIVO", "RESIDENCIA", "NIVEL", "AUS.", "AÑO", "DESDE", "HASTA", "DIAS", "DÍAS"];
+  const zerkosHits = new Set();
+  safeRows.slice(0, 40).forEach(row => {
+    zerkosLabels.forEach(label => {
+      if (ticketRestaurantRowContainsAny(row, [label])) zerkosHits.add(normalizeTicketCompactText(label));
+    });
   });
-  saveTicketRestaurantAbsences(absences);
+  const hasZerkosSpecificHeader = ["puestoorganizativo", "residencia", "nivel", "aus", "ano"].some(key => zerkosHits.has(key));
+  if (hasZerkosSpecificHeader && zerkosHits.size >= 4) return "zerkos";
+  if (ticketRestaurantFindAbsenceHeaderIndex(safeRows) >= 0) return "clean";
+  if (safeRows.some(row => /^\s*empleado\s+\d+/i.test(String((row || []).join(" ")))) && safeRows.some(row => ticketRestaurantExtractZerkosAbsence(row, "__employee__"))) return "zerkos";
+  return "unknown";
+}
+
+function normalizeTicketRestaurantAbsenceRow(row) {
+  const employeeNumber = normalizeTicketEmployee(row && (row.employeeNumber ?? row["Nº empleado"] ?? row.empleado));
+  const fromDate = ticketRestaurantNormalizePreviewDate(row && (row.fromDate ?? row.Desde ?? row.desde));
+  const toDate = ticketRestaurantNormalizePreviewDate(row && (row.toDate ?? row.Hasta ?? row.hasta)) || fromDate;
+  const reason = String(row && (row.reason ?? row.Motivo ?? row.motivo) || "").replace(/\s+/g, " ").trim();
+  let totalDays = row && (row.totalDays ?? row["Total días"] ?? row.totalDias);
+  if (String(totalDays ?? "").trim() === "") totalDays = ticketRestaurantInclusiveDateDays(fromDate, toDate) || "";
+  return { employeeNumber, fromDate, toDate, reason, totalDays: String(totalDays ?? "").replace(",", ".").trim() };
+}
+
+function parseTicketRestaurantCleanAbsenceRows(rows) {
+  const safeRows = Array.isArray(rows) ? rows.filter(row => !ticketRestaurantRowIsEmpty(row)) : [];
+  const headerRowIndex = ticketRestaurantFindAbsenceHeaderIndex(safeRows);
+  if (headerRowIndex < 0) return { rows: [], meta: { format: "clean", ignoredRows: safeRows.length, warnings: ["No se encontraron cabeceras reconocibles de ausencias."] } };
+  const headerIndex = ticketRestaurantBuildHeaderIndex(safeRows[headerRowIndex], TICKET_RESTAURANT_ABSENCE_HEADERS);
+  const parsedRows = [];
+  let ignoredRows = 0;
+  safeRows.slice(headerRowIndex + 1).forEach(row => {
+    const raw = {};
+    TICKET_RESTAURANT_ABSENCE_HEADERS.forEach((header, fallbackIndex) => {
+      const index = headerIndex[header] != null ? headerIndex[header] : fallbackIndex;
+      raw[header] = row[index] == null ? "" : row[index];
+    });
+    const normalized = normalizeTicketRestaurantAbsenceRow(raw);
+    if (!normalized.employeeNumber && !normalized.fromDate && !normalized.reason) { ignoredRows += 1; return; }
+    parsedRows.push(normalized);
+  });
+  return { rows: parsedRows, meta: { format: "clean", ignoredRows, warnings: [] } };
+}
+
+function ticketRestaurantInclusiveDateDays(fromDate, toDate) {
+  const from = parseTicketDate(fromDate);
+  const to = parseTicketDate(toDate) || from;
+  if (!from || !to) return 0;
+  const start = new Date(`${from}T00:00:00Z`);
+  const end = new Date(`${to}T00:00:00Z`);
+  if (end < start) return 0;
+  return Math.round((end - start) / 86400000) + 1;
+}
+
+function ticketRestaurantDetectZerkosEmployee(row) {
+  const cells = (Array.isArray(row) ? row : []).map(cell => String(cell ?? "").replace(/\s+/g, " ").trim()).filter(Boolean);
+  if (!cells.length) return "";
+  const joined = cells.join(" ");
+  let match = joined.match(/^empleado\s+(\d{1,10})\b/i);
+  if (match) return normalizeTicketEmployee(match[1]);
+  if (/total\s+d[ií]as/i.test(joined)) return "";
+  if (ticketRestaurantExtractZerkosAbsence(row, "__employee_probe__")) return "";
+  match = cells[0].match(/^(\d{1,10})(?:\s+|$)/);
+  if (match && cells.some(cell => /[a-záéíóúñ]/i.test(cell)) && !ticketRestaurantLooksLikeDateCell(cells[0])) return normalizeTicketEmployee(match[1]);
+  return "";
+}
+
+function ticketRestaurantExtractZerkosAbsence(row, employeeNumber) {
+  const cells = (Array.isArray(row) ? row : []).map(cell => cell == null ? "" : cell).filter(cell => String(cell).trim() !== "");
+  const joined = cells.map(cell => String(cell)).join(" ");
+  if (!cells.length || /total\s+d[ií]as/i.test(joined)) return null;
+  const reasonIndex = cells.findIndex(cell => /^[A-ZÑ]{2,6}\.?$/i.test(String(cell).trim()) && !/^(AUS|AÑO|ANO|DESDE|HASTA|DIAS|DÍAS)$/i.test(String(cell).trim()));
+  if (reasonIndex < 0) return null;
+  const reason = String(cells[reasonIndex]).replace(".", "").trim().toUpperCase();
+  const dateCells = cells.slice(reasonIndex + 1).filter(ticketRestaurantLooksLikeDateCell);
+  if (dateCells.length < 1) return null;
+  const fromDate = ticketRestaurantNormalizePreviewDate(dateCells[0]);
+  const toDate = ticketRestaurantNormalizePreviewDate(dateCells[1] || dateCells[0]);
+  if (!parseTicketDate(fromDate) || !parseTicketDate(toDate)) return null;
+  const dayCandidates = cells.slice(reasonIndex + 1).map(cell => String(cell).trim()).filter(text => {
+    const n = Number(text.replace(",", "."));
+    return Number.isFinite(n) && n > 0 && n < 367 && !/^20\d{2}$/.test(text) && !ticketRestaurantLooksLikeDateCell(text);
+  });
+  const totalDays = dayCandidates.length ? dayCandidates[dayCandidates.length - 1].replace(",", ".") : String(ticketRestaurantInclusiveDateDays(fromDate, toDate));
+  return normalizeTicketRestaurantAbsenceRow({ employeeNumber, fromDate, toDate, reason, totalDays });
+}
+
+function parseTicketRestaurantZerkosAbsenceRows(rows) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const parsedRows = [];
+  const warnings = [];
+  let ignoredRows = 0;
+  let activeEmployee = "";
+  safeRows.forEach(row => {
+    if (ticketRestaurantRowIsEmpty(row)) { ignoredRows += 1; return; }
+    const text = String((row || []).join(" "));
+    if (/total\s+d[ií]as/i.test(text)) return;
+    const employeeNumber = ticketRestaurantDetectZerkosEmployee(row);
+    if (employeeNumber) { activeEmployee = employeeNumber; return; }
+    if (ticketRestaurantRowContainsAny(row, ["PUESTO ORGANIZATIVO", "RESIDENCIA", "NIVEL", "AUS.", "AÑO", "DESDE", "HASTA", "DIAS", "DÍAS", "EMPLEADO"])) return;
+    const absence = activeEmployee ? ticketRestaurantExtractZerkosAbsence(row, activeEmployee) : null;
+    if (absence) parsedRows.push(absence);
+    else ignoredRows += 1;
+  });
+  if (!parsedRows.length) warnings.push("No se han encontrado ausencias ZERKOS interpretables en el fichero.");
+  return { rows: parsedRows, meta: { format: "zerkos", ignoredRows, warnings } };
+}
+
+function validateTicketRestaurantAbsencePreviewRows(rows) {
+  const errors = [];
+  const normalized = (Array.isArray(rows) ? rows : []).map((row, index) => {
+    const item = normalizeTicketRestaurantAbsenceRow(row);
+    const from = parseTicketDate(item.fromDate);
+    const to = parseTicketDate(item.toDate) || from;
+    if (!item.employeeNumber || !/^\d+$/.test(item.employeeNumber)) errors.push({ index, message: "Nº empleado obligatorio y numérico." });
+    if (!from) errors.push({ index, message: "Desde obligatorio y fecha válida." });
+    if (!to) errors.push({ index, message: "Hasta obligatorio y fecha válida." });
+    if (from && to && new Date(`${to}T00:00:00Z`) < new Date(`${from}T00:00:00Z`)) errors.push({ index, message: "Hasta no puede ser anterior a Desde." });
+    if (!item.reason) errors.push({ index, message: "Motivo obligatorio." });
+    if (!String(item.totalDays || "").trim()) item.totalDays = String(ticketRestaurantInclusiveDateDays(from, to));
+    if (!Number.isFinite(Number(String(item.totalDays).replace(",", "."))) || Number(String(item.totalDays).replace(",", ".")) <= 0) errors.push({ index, message: "Total días obligatorio y numérico." });
+    return { ...item, fromDate: from ? formatTicketDate(from) : item.fromDate, toDate: to ? formatTicketDate(to) : item.toDate };
+  });
+  return { valid: errors.length === 0, errors, rows: normalized };
+}
+
+function closeTicketRestaurantAbsencePreviewModal() {
+  const modal = document.getElementById("ticketRestaurantAbsencePreviewModal");
+  if (modal) modal.classList.remove("open");
+}
+
+function ensureTicketRestaurantAbsencePreviewModal() {
+  let modal = document.getElementById("ticketRestaurantAbsencePreviewModal");
+  if (modal) return modal;
+  modal = document.createElement("div");
+  modal.id = "ticketRestaurantAbsencePreviewModal";
+  modal.className = "modal-backdrop";
+  modal.setAttribute("aria-hidden", "true");
+  modal.innerHTML = `
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="ticketRestaurantAbsencePreviewTitle" onclick="event.stopPropagation()" style="width:min(1100px,96vw);max-height:92vh;display:flex;flex-direction:column;">
+      <h3 id="ticketRestaurantAbsencePreviewTitle">Revisar ausencias importadas</h3>
+      <p id="ticketRestaurantAbsencePreviewSummary" class="muted"></p>
+      <div id="ticketRestaurantAbsencePreviewWarnings" class="muted" style="font-size:.9rem;"></div>
+      <div id="ticketRestaurantAbsencePreviewErrors" style="color:#b42318;font-size:.9rem;" aria-live="polite"></div>
+      <div class="rrll-pro-table-wrap" style="overflow:auto;min-height:180px;max-height:55vh;">
+        <table class="rrll-pro-table ticket-table">
+          <thead><tr><th>Nº empleado</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Total días</th><th>Acciones</th></tr></thead>
+          <tbody id="ticketRestaurantAbsencePreviewBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions" style="position:sticky;bottom:0;background:inherit;padding-top:12px;">
+        <button type="button" class="secondary" onclick="addTicketRestaurantAbsencePreviewRow()">Añadir ausencia</button>
+        <span style="flex:1"></span>
+        <button type="button" class="secondary" onclick="closeTicketRestaurantAbsencePreviewModal()">Cancelar</button>
+        <button type="button" onclick="saveTicketRestaurantAbsencePreviewRows()">Guardar ausencias</button>
+      </div>
+    </div>`;
+  modal.addEventListener("click", event => { if (event.target === modal) closeTicketRestaurantAbsencePreviewModal(); });
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function ticketRestaurantReadPreviewRowsFromDom() {
+  return Array.from(document.querySelectorAll("#ticketRestaurantAbsencePreviewBody tr"))
+    .filter(row => row.querySelector('[data-field="employeeNumber"]'))
+    .map(row => ({
+      employeeNumber: row.querySelector('[data-field="employeeNumber"]')?.value || "",
+      fromDate: row.querySelector('[data-field="fromDate"]')?.value || "",
+      toDate: row.querySelector('[data-field="toDate"]')?.value || "",
+      reason: row.querySelector('[data-field="reason"]')?.value || "",
+      totalDays: row.querySelector('[data-field="totalDays"]')?.value || ""
+    }));
+}
+
+function renderTicketRestaurantAbsencePreviewRows(rows) {
+  const body = document.getElementById("ticketRestaurantAbsencePreviewBody");
+  if (!body) return;
+  body.innerHTML = (Array.isArray(rows) ? rows : []).map((row, index) => `
+    <tr data-index="${index}">
+      <td><input data-field="employeeNumber" value="${escapeHtml(row.employeeNumber || "")}" /></td>
+      <td><input data-field="fromDate" value="${escapeHtml(row.fromDate || "")}" placeholder="dd/mm/aaaa" /></td>
+      <td><input data-field="toDate" value="${escapeHtml(row.toDate || "")}" placeholder="dd/mm/aaaa" /></td>
+      <td><input data-field="reason" value="${escapeHtml(row.reason || "")}" /></td>
+      <td><input data-field="totalDays" value="${escapeHtml(row.totalDays || "")}" /></td>
+      <td class="table-actions"><button class="danger small" type="button" onclick="removeTicketRestaurantAbsencePreviewRow(this)">Eliminar</button></td>
+    </tr>`).join("") || `<tr><td colspan="6" class="muted">No hay ausencias en la previsualización. Puedes añadir una manualmente.</td></tr>`;
+}
+
+function openTicketRestaurantAbsencePreviewModal(parsedRows, meta = {}) {
+  const modal = ensureTicketRestaurantAbsencePreviewModal();
+  modal.dataset.fileName = meta.fileName || "";
+  modal.dataset.ignoredRows = String(meta.ignoredRows || 0);
+  const rows = (Array.isArray(parsedRows) ? parsedRows : []).map(normalizeTicketRestaurantAbsenceRow);
+  document.getElementById("ticketRestaurantAbsencePreviewSummary").textContent = `Ausencias detectadas: ${rows.length}. Filas ignoradas: ${meta.ignoredRows || 0}.`;
+  document.getElementById("ticketRestaurantAbsencePreviewWarnings").textContent = (meta.warnings || []).filter(Boolean).join(" ");
+  document.getElementById("ticketRestaurantAbsencePreviewErrors").textContent = "";
+  renderTicketRestaurantAbsencePreviewRows(rows);
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function addTicketRestaurantAbsencePreviewRow() {
+  const rows = ticketRestaurantReadPreviewRowsFromDom();
+  rows.push({ employeeNumber: "", fromDate: "", toDate: "", reason: "", totalDays: "" });
+  renderTicketRestaurantAbsencePreviewRows(rows);
+}
+
+function removeTicketRestaurantAbsencePreviewRow(button) {
+  const row = button && button.closest("tr");
+  if (row) row.remove();
+  renderTicketRestaurantAbsencePreviewRows(ticketRestaurantReadPreviewRowsFromDom());
+}
+
+function saveTicketRestaurantAbsencePreviewRows() {
+  const previewRows = ticketRestaurantReadPreviewRowsFromDom();
+  if (!previewRows.length) {
+    const errorEl = document.getElementById("ticketRestaurantAbsencePreviewErrors");
+    if (errorEl) errorEl.textContent = "Añade al menos una ausencia antes de guardar.";
+    return;
+  }
+  const validation = validateTicketRestaurantAbsencePreviewRows(previewRows);
+  document.querySelectorAll("#ticketRestaurantAbsencePreviewBody tr").forEach(row => row.style.outline = "");
+  if (!validation.valid) {
+    const firstMessages = validation.errors.slice(0, 5).map(error => `Fila ${error.index + 1}: ${error.message}`);
+    const more = validation.errors.length > 5 ? ` (${validation.errors.length - 5} errores más)` : "";
+    const errorEl = document.getElementById("ticketRestaurantAbsencePreviewErrors");
+    if (errorEl) errorEl.textContent = `${firstMessages.join(" ")}${more}`;
+    validation.errors.forEach(error => {
+      const row = document.querySelector(`#ticketRestaurantAbsencePreviewBody tr[data-index="${error.index}"]`);
+      if (row) row.style.outline = "2px solid #d92d20";
+    });
+    return;
+  }
+  const now = new Date().toISOString();
+  const records = validation.rows.map(row => {
+    const from = parseTicketDate(row.fromDate);
+    const to = parseTicketDate(row.toDate) || from;
+    const period = ticketRestaurantMonthYearFromDate(from);
+    return {
+      id: `tr-absence-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      employeeNumber: normalizeTicketEmployee(row.employeeNumber),
+      from,
+      to,
+      reason: String(row.reason || "").trim(),
+      totalDays: parseTicketNumber(row.totalDays),
+      month: period.month,
+      year: period.year,
+      createdAt: now
+    };
+  });
+  saveTicketRestaurantAbsences([...getTicketRestaurantAbsences(), ...records]);
+  closeTicketRestaurantAbsencePreviewModal();
   renderTicketRestaurantAbsences();
   renderTicketRestaurantComputePreview();
-  showTicketRestaurantImportSummary("ticketRestaurantAbsenceImportSummary", imported, 0, omitted, result.fileName);
+  showTicketRestaurantImportSummary("ticketRestaurantAbsenceImportSummary", records.length, 0, Number(document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.ignoredRows || 0), document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.fileName || "Fichero");
+  alert(`Ausencias importadas: ${records.length}.`);
+}
+
+async function importTicketRestaurantAbsences() {
+  if (!window.rrllTicketRestaurant || typeof window.rrllTicketRestaurant.importSpreadsheet !== "function") return alert("Importación disponible solo en escritorio.");
+  let result = null;
+  try {
+    result = await window.rrllTicketRestaurant.importSpreadsheet();
+  } catch (error) {
+    console.error(error);
+    alert(`No se pudo importar el fichero: ${error.message || error}`);
+    return;
+  }
+  if (!result) return;
+  const format = detectTicketRestaurantAbsenceFormat(result.rows);
+  let parsed = null;
+  if (format === "clean") parsed = parseTicketRestaurantCleanAbsenceRows(result.rows);
+  else if (format === "zerkos") parsed = parseTicketRestaurantZerkosAbsenceRows(result.rows);
+  else {
+    alert("No se ha podido detectar el formato de ausencias. Usa el modelo limpio (Nº empleado, Desde, Hasta, Motivo, Total días) o el informe bruto ZERKOS con cabeceras EMPLEADO/AUS./DESDE/HASTA/DIAS.");
+    return;
+  }
+  const meta = { ...(parsed.meta || {}), fileName: result.fileName || "Fichero" };
+  if (!parsed.rows.length) {
+    alert(`No se encontraron ausencias válidas para previsualizar. Filas ignoradas: ${meta.ignoredRows || 0}.`);
+    return;
+  }
+  openTicketRestaurantAbsencePreviewModal(parsed.rows, meta);
 }
 
 function deleteTicketRestaurantAbsence(id) {
@@ -986,6 +1285,10 @@ window.deleteTicketRestaurantPerson = deleteTicketRestaurantPerson;
 window.importTicketRestaurantPeople = importTicketRestaurantPeople;
 window.downloadTicketRestaurantPeopleTemplate = downloadTicketRestaurantPeopleTemplate;
 window.importTicketRestaurantAbsences = importTicketRestaurantAbsences;
+window.closeTicketRestaurantAbsencePreviewModal = closeTicketRestaurantAbsencePreviewModal;
+window.addTicketRestaurantAbsencePreviewRow = addTicketRestaurantAbsencePreviewRow;
+window.removeTicketRestaurantAbsencePreviewRow = removeTicketRestaurantAbsencePreviewRow;
+window.saveTicketRestaurantAbsencePreviewRows = saveTicketRestaurantAbsencePreviewRows;
 window.downloadTicketRestaurantAbsenceTemplate = downloadTicketRestaurantAbsenceTemplate;
 window.deleteTicketRestaurantAbsence = deleteTicketRestaurantAbsence;
 window.renderTicketRestaurantPeople = renderTicketRestaurantPeople;
