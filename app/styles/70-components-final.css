@@ -2098,3 +2098,163 @@ html[data-theme="light"] :is(
   background: #465366 !important;
   color: #ffffff !important;
 }
+
+/* Indicador común de desplegar/contraer para bloques colapsables.
+   Se resuelve solo con CSS para no alterar eventos ni lógica existente. */
+details > summary {
+  position: relative;
+  list-style: none;
+  padding-left: 1.9rem;
+}
+
+details > summary::marker {
+  content: "";
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+details:is(.card, .committee-subsection, .paritaria-subsection, .module-card) > summary::after {
+  display: none !important;
+  content: none !important;
+}
+
+details > summary::before {
+  content: "▶";
+  position: absolute;
+  left: .7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  font-size: .72rem;
+  font-weight: 850;
+  line-height: 1;
+  opacity: .68;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+details[open] > summary::before {
+  content: "▼";
+  transform: translateY(-50%);
+  opacity: .82;
+}
+
+body.phase4-view-module :is(
+  details.module-card,
+  details.committee-main,
+  details.paritaria-main,
+  details.committee-subsection,
+  details.paritaria-subsection
+) > summary {
+  padding-left: 42px !important;
+}
+
+body.phase4-view-module :is(
+  details.module-card,
+  details.committee-main,
+  details.paritaria-main,
+  details.committee-subsection,
+  details.paritaria-subsection
+) > summary::before {
+  left: 16px;
+  color: #cbd5e1;
+  font-size: .76rem;
+  opacity: .78;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(
+  details.module-card,
+  details.committee-main,
+  details.paritaria-main,
+  details.committee-subsection,
+  details.paritaria-subsection
+) > summary::before {
+  color: #475569;
+}
+
+.licencias-year > summary,
+.rrll-pro-list-card > summary {
+  padding-left: 2rem !important;
+}
+
+.licencias-year > summary::before,
+.rrll-pro-list-card > summary::before {
+  left: .8rem;
+}
+
+.dashboard-search-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 1rem !important;
+  color: #cbd5e1 !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+.dashboard-search-toggle::before {
+  content: "▼";
+  font-size: .78rem;
+  font-weight: 850;
+  opacity: .82;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.dashboard-search-collapsible.is-collapsed .dashboard-search-toggle::before {
+  content: "▶";
+  opacity: .72;
+}
+
+.session-year-header {
+  position: relative !important;
+  padding-left: 2.1rem !important;
+}
+
+.session-year-header::before {
+  content: "▶";
+  position: absolute;
+  left: .8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: currentColor;
+  font-size: .72rem;
+  font-weight: 850;
+  line-height: 1;
+  opacity: .7;
+  pointer-events: none;
+}
+
+.session-year-block.year-open > .session-year-header::before {
+  content: "▼";
+  opacity: .84;
+}
+
+.rrll-session-panel-chevron,
+.rrll-session-card-toggle {
+  font-size: 0 !important;
+}
+
+.rrll-session-panel-chevron::before,
+.rrll-session-card-toggle::before {
+  content: "▼";
+  font-size: .76rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.session-panel.rrll-session-panel-collapsed-full .rrll-session-panel-chevron::before,
+.session-card.rrll-session-card-collapsed .rrll-session-card-toggle::before {
+  content: "▶";
+}
+
+.dashboard-search-collapsible:not(.is-collapsed) .dashboard-search-toggle {
+  transform: none !important;
+}
