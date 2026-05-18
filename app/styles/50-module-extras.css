@@ -2472,10 +2472,13 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 .ticket-table th, .ticket-table td { white-space: nowrap; }
 .ticket-table .table-actions { display: flex; gap: 6px; }
 .ticket-import-summary { margin-top: 10px; font-size: .9rem; color: var(--muted-color, #64748b); }
+.ticket-compute-period { margin: 0 0 10px; color: var(--muted-color, #64748b); font-weight: 700; }
 .ticket-compute-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 10px 0 16px; }
 .ticket-summary-pill { border: 1px solid rgba(148, 163, 184, .24); border-radius: 14px; padding: 12px; background: rgba(148, 163, 184, .08); display: grid; gap: 4px; }
 .ticket-summary-pill strong { font-size: 1.5rem; }
 .ticket-summary-pill small { color: var(--muted-color, #64748b); }
+.ticket-compute-notice { margin: -4px 0 14px; padding: 9px 11px; border: 1px solid rgba(245, 158, 11, .32); border-radius: 12px; background: rgba(245, 158, 11, .10); color: #fbbf24; font-size: .88rem; }
+.ticket-row-warning td { background: rgba(245, 158, 11, .08); }
 .ticket-config-form label { display: grid; gap: 4px; font-size: .85rem; font-weight: 700; }
 @media (max-width: 1280px) { .ticket-calendar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .ticket-calendar-grid, .ticket-compute-summary { grid-template-columns: 1fr; } }

@@ -1303,7 +1303,9 @@
                   <label class="rrll-pro-field"><span>Año</span><input id="ticketRestaurantComputeYear" type="number" min="2000" max="2100" onchange="renderTicketRestaurantComputePreview()" oninput="renderTicketRestaurantComputePreview()" /></label>
                   <button type="button" class="rrll-pro-primary" onclick="exportTicketRestaurantCompute()">Generar Excel</button>
                 </div>
+                <div id="ticketRestaurantComputePeriod" class="ticket-compute-period" aria-live="polite"></div>
                 <div id="ticketRestaurantComputeSummary" class="ticket-compute-summary"></div>
+                <div id="ticketRestaurantComputeNotice" class="ticket-compute-notice" aria-live="polite" hidden></div>
                 <h3>Preview por persona</h3>
                 <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre completo</th><th>Calendario</th><th>Tickets teóricos</th><th>Ausencias aplicadas</th><th>Tickets finales</th></tr></thead><tbody id="ticketRestaurantComputeBody"></tbody></table></div>
               </div>

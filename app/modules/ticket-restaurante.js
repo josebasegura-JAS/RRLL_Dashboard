@@ -11,6 +11,7 @@ let ticketRestaurantCalendarYear = new Date().getFullYear();
 let ticketRestaurantEditingEmployee = null;
 let ticketRestaurantLastPlantillaLookup = "";
 let ticketRestaurantPlantillaLookupTimer = null;
+let ticketRestaurantLastVisibleCompute = null;
 
 function trTodayNextMonth() {
   const now = new Date();
@@ -74,8 +75,12 @@ function normalizeTicketEmployeeLookup(value) {
 }
 
 function normalizeTicketCalendar(value) {
-  const text = String(value || "").trim();
+  const text = String(value || "").replace(/\s+/g, " ").trim();
   return TICKET_RESTAURANT_CALENDARS.find(item => item.toLowerCase() === text.toLowerCase()) || text;
+}
+
+function isKnownTicketCalendar(value) {
+  return TICKET_RESTAURANT_CALENDARS.includes(normalizeTicketCalendar(value));
 }
 
 function parseTicketNumber(value) {
@@ -504,66 +509,122 @@ function renderTicketRestaurantAbsences() {
 function renderTicketRestaurantComputeControls() {
   const month = document.getElementById("ticketRestaurantComputeMonth");
   const year = document.getElementById("ticketRestaurantComputeYear");
-  if (!month || month.dataset.ready === "1") return;
+  if (!month || !year) return;
   const def = trTodayNextMonth();
-  month.innerHTML = TICKET_RESTAURANT_MONTHS.map((name, index) => `<option value="${index + 1}" ${index + 1 === def.month ? "selected" : ""}>${name}</option>`).join("");
-  year.value = def.year;
-  month.dataset.ready = "1";
+  if (month.dataset.ready !== "1") {
+    month.innerHTML = TICKET_RESTAURANT_MONTHS.map((name, index) => `<option value="${index + 1}" ${index + 1 === def.month ? "selected" : ""}>${name}</option>`).join("");
+    month.dataset.ready = "1";
+  }
+  if (!year.value) year.value = def.year;
   renderTicketRestaurantComputePreview();
 }
 
 function getTicketRestaurantComputeSelection() {
   const def = trTodayNextMonth();
-  const month = Number((document.getElementById("ticketRestaurantComputeMonth") || {}).value) || def.month;
-  const year = Number((document.getElementById("ticketRestaurantComputeYear") || {}).value) || def.year;
+  const selectedMonth = Number((document.getElementById("ticketRestaurantComputeMonth") || {}).value);
+  const selectedYear = Number((document.getElementById("ticketRestaurantComputeYear") || {}).value);
+  const month = Number.isInteger(selectedMonth) && selectedMonth >= 1 && selectedMonth <= 12 ? selectedMonth : def.month;
+  const year = Number.isInteger(selectedYear) && selectedYear >= 2000 && selectedYear <= 2100 ? selectedYear : def.year;
   return { month, year };
 }
 
 function ticketRestaurantWorkingDays(month, year, calendar) {
-  const marks = new Set(getTicketRestaurantCalendarMarks().filter(item => item.calendar === calendar && item.noTicket).map(item => item.date));
+  const normalizedCalendar = normalizeTicketCalendar(calendar);
+  if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
+  const marks = new Set(getTicketRestaurantCalendarMarks()
+    .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
+    .map(item => parseTicketDate(item.date))
+    .filter(Boolean));
   const totalDays = new Date(year, month, 0).getDate();
   let count = 0;
   for (let day = 1; day <= totalDays; day += 1) {
     const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const weekday = new Date(year, month - 1, day).getDay();
-    if (weekday === 0 || weekday === 6 || marks.has(date)) continue;
+    const weekend = weekday === 0 || weekday === 6;
+    const noTicket = marks.has(date);
+    if (weekend) continue;
+    if (noTicket) continue;
     count += 1;
   }
   return count;
 }
 
+function ticketRestaurantNoTicketWeekdays(month, year, calendar) {
+  const normalizedCalendar = normalizeTicketCalendar(calendar);
+  if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
+  const marks = new Set(getTicketRestaurantCalendarMarks()
+    .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
+    .map(item => parseTicketDate(item.date))
+    .filter(Boolean));
+  let count = 0;
+  marks.forEach(date => {
+    const markYear = Number(date.slice(0, 4));
+    const markMonth = Number(date.slice(5, 7));
+    if (markYear !== year || markMonth !== month) return;
+    const weekday = new Date(markYear, markMonth - 1, Number(date.slice(8, 10))).getDay();
+    if (weekday !== 0 && weekday !== 6) count += 1;
+  });
+  return count;
+}
+
 function calculateTicketRestaurantCompute() {
   const { month, year } = getTicketRestaurantComputeSelection();
+  const calendarTheoretical = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
+  const calendarNoTicketWeekdays = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantNoTicketWeekdays(month, year, calendar)]));
   const absences = getTicketRestaurantAbsences().filter(item => Number(item.month) === month && Number(item.year) === year);
   const byEmployee = new Map();
   absences.forEach(item => {
-    const key = normalizeTicketEmployee(item.employeeNumber);
+    const key = normalizeTicketEmployeeLookup(item.employeeNumber);
+    if (!key) return;
     if (!byEmployee.has(key)) byEmployee.set(key, { days: 0, details: [] });
     const current = byEmployee.get(key);
-    current.days += parseTicketNumber(item.totalDays);
-    current.details.push(`${item.reason} ${formatTicketDate(item.from)}-${formatTicketDate(item.to)} (${parseTicketNumber(item.totalDays)} días)`);
+    const days = parseTicketNumber(item.totalDays);
+    current.days += days;
+    current.details.push(`${item.reason} ${formatTicketDate(item.from)}-${formatTicketDate(item.to)} (${days} días)`);
   });
+  const warnings = [];
   const rows = getTicketRestaurantPeople().map(person => {
-    const theoretical = ticketRestaurantWorkingDays(month, year, person.calendar);
-    const absence = byEmployee.get(person.employeeNumber) || { days: 0, details: [] };
-    const finalTickets = Math.max(0, theoretical - absence.days);
-    return { person, theoretical, absenceDays: absence.days, absenceDetails: absence.details.join("; "), finalTickets };
+    const normalizedCalendar = normalizeTicketCalendar(person.calendar);
+    const hasCalendar = isKnownTicketCalendar(normalizedCalendar);
+    if (!hasCalendar) warnings.push(`La persona ${person.employeeNumber || "sin nº"} no tiene un calendario válido asignado.`);
+    const theoretical = hasCalendar ? (calendarTheoretical.get(normalizedCalendar) || 0) : 0;
+    const absence = byEmployee.get(normalizeTicketEmployeeLookup(person.employeeNumber)) || { days: 0, details: [] };
+    const absenceDays = parseTicketNumber(absence.days);
+    const finalTickets = Math.max(0, theoretical - absenceDays);
+    return { person: { ...person, calendar: hasCalendar ? normalizedCalendar : (person.calendar || "Sin calendario") }, theoretical, absenceDays, absenceDetails: absence.details.join("; "), finalTickets, calendarWarning: !hasCalendar };
   });
   const summary = TICKET_RESTAURANT_CALENDARS.map(calendar => {
     const calendarRows = rows.filter(row => row.person.calendar === calendar);
-    return { calendar, theoretical: calendarRows.reduce((sum, row) => sum + row.theoretical, 0), final: calendarRows.reduce((sum, row) => sum + row.finalTickets, 0) };
+    const theoretical = calendarTheoretical.get(calendar) || 0;
+    return {
+      calendar,
+      theoretical,
+      noTicketWeekdays: calendarNoTicketWeekdays.get(calendar) || 0,
+      people: calendarRows.length,
+      absenceDays: calendarRows.reduce((sum, row) => sum + row.absenceDays, 0),
+      final: calendarRows.reduce((sum, row) => sum + row.finalTickets, 0)
+    };
   });
-  return { month, year, rows, summary };
+  return { month, year, rows, summary, warnings };
 }
 
 function renderTicketRestaurantComputePreview() {
+  const periodEl = document.getElementById("ticketRestaurantComputePeriod");
   const summaryEl = document.getElementById("ticketRestaurantComputeSummary");
+  const noticeEl = document.getElementById("ticketRestaurantComputeNotice");
   const body = document.getElementById("ticketRestaurantComputeBody");
   if (!summaryEl || !body) return;
   const calc = calculateTicketRestaurantCompute();
-  summaryEl.innerHTML = calc.summary.map(item => `<div class="ticket-summary-pill"><span>${escapeHtml(item.calendar)}</span><strong>${item.theoretical}</strong><small>tickets teóricos · ${item.final} finales</small></div>`).join("");
-  body.innerHTML = calc.rows.length ? calc.rows.map(row => `<tr>
-    <td>${escapeHtml(row.person.employeeNumber)}</td><td>${escapeHtml([row.person.name, row.person.surname1, row.person.surname2].filter(Boolean).join(" "))}</td><td>${escapeHtml(row.person.calendar)}</td><td>${row.theoretical}</td><td>${row.absenceDays}</td><td><strong>${row.finalTickets}</strong></td>
+  ticketRestaurantLastVisibleCompute = calc;
+  if (periodEl) periodEl.textContent = `Cómputo automático para ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} de ${calc.year}`;
+  summaryEl.innerHTML = calc.summary.map(item => `<div class="ticket-summary-pill"><span>${escapeHtml(item.calendar)}</span><strong>${item.theoretical}</strong><small>tickets teóricos · ${item.noTicketWeekdays} días sin ticket · ${item.people} personas · ${item.absenceDays} ausencias · ${item.final} tickets finales</small></div>`).join("");
+  if (noticeEl) {
+    const uniqueWarnings = [...new Set(calc.warnings || [])];
+    noticeEl.innerHTML = uniqueWarnings.map(item => `<div>${escapeHtml(item)} Tickets = 0 para esa persona.</div>`).join("");
+    noticeEl.hidden = uniqueWarnings.length === 0;
+  }
+  body.innerHTML = calc.rows.length ? calc.rows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}">
+    <td>${escapeHtml(row.person.employeeNumber)}</td><td>${escapeHtml([row.person.name, row.person.surname1, row.person.surname2].filter(Boolean).join(" "))}</td><td>${escapeHtml(row.person.calendar)}${row.calendarWarning ? " · revisar" : ""}</td><td>${row.theoretical}</td><td>${row.absenceDays}</td><td><strong>${row.finalTickets}</strong></td>
   </tr>`).join("") : `<tr><td colspan="6" class="muted">No hay personas con derecho cargadas.</td></tr>`;
 }
 
@@ -584,7 +645,8 @@ function renderTicketRestaurantConfig() {
 }
 
 async function exportTicketRestaurantCompute() {
-  const calc = calculateTicketRestaurantCompute();
+  renderTicketRestaurantComputePreview();
+  const calc = ticketRestaurantLastVisibleCompute || calculateTicketRestaurantCompute();
   const cfg = getTicketRestaurantConfig();
   const amount = parseTicketNumber(cfg.importe);
   const startDate = `01/${String(calc.month).padStart(2, "0")}/${calc.year}`;
