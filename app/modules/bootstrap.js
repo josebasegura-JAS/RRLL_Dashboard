@@ -34,6 +34,7 @@ function rrllSafeCall(label, fn) {
       rrllSafeCall("licencias", () => { if (typeof renderLicencias === "function") renderLicencias(); });
       rrllSafeCall("plantilla", () => { if (typeof renderPlantilla === "function") renderPlantilla(); });
       rrllSafeCall("criterios RRLL", () => { if (typeof renderCriteria === "function") renderCriteria(); });
+      rrllSafeCall("Ticket Restaurante", () => { if (typeof renderTicketRestaurant === "function") renderTicketRestaurant(); });
       rrllSafeCall("papelera", () => renderTrash());
       rrllSafeCall("estado de alertas", () => restoreAlertsPanelState());
       rrllSafeCall("alertas", () => renderAlertsPanel());
@@ -64,6 +65,7 @@ function rrllSafeCall(label, fn) {
       modal.classList.add("open");
       if (typeof renderPetitionOriginSettings === "function") renderPetitionOriginSettings();
       if (typeof renderRRLLFolderConfig === "function") await renderRRLLFolderConfig();
+      if (typeof renderTicketRestaurantConfig === "function") renderTicketRestaurantConfig();
       await refreshDatabaseInfo();
     }
 
@@ -136,6 +138,7 @@ function forceActiveDetailsOpen() {
         rrllSafeCall("cerrar configuración", () => closeConfigModal());
         rrllSafeCall("cerrar papelera", () => closeTrashModal());
         rrllSafeCall("cerrar licencias", () => { if (typeof closeLicenciaModal === "function") closeLicenciaModal(); });
+        rrllSafeCall("cerrar Ticket Restaurante", () => { if (typeof closeTicketRestaurantPersonForm === "function") closeTicketRestaurantPersonForm(); });
         rrllSafeCall("cerrar criterios RRLL", () => { if (typeof closeCriteriaEditModal === "function") closeCriteriaEditModal(); });
       }
     });

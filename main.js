@@ -771,6 +771,204 @@ async function importParitariaHistoryDocx() {
   return { filePath, fileName: path.basename(filePath), sessions, sessionCount: sessions.length, pointCount };
 }
 
+function xlsxEscapeXml(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function columnName(index) {
+  let name = "";
+  let n = index + 1;
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    name = String.fromCharCode(65 + rem) + name;
+    n = Math.floor((n - 1) / 26);
+  }
+  return name;
+}
+
+function decodeXlsxXml(value) {
+  return String(value || "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
+function parseSharedStrings(zip) {
+  const entry = zip.getEntry("xl/sharedStrings.xml");
+  if (!entry) return [];
+  const xml = entry.getData().toString("utf8");
+  return (xml.match(/<si[\s\S]*?<\/si>/g) || []).map(si => {
+    const parts = [...si.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(match => decodeXlsxXml(match[1]));
+    return parts.join("");
+  });
+}
+
+function getFirstWorksheetPath(zip) {
+  const workbook = zip.getEntry("xl/workbook.xml");
+  if (!workbook) return "xl/worksheets/sheet1.xml";
+  const workbookXml = workbook.getData().toString("utf8");
+  const firstSheet = workbookXml.match(/<sheet\b[^>]*r:id="([^"]+)"/);
+  if (!firstSheet) return "xl/worksheets/sheet1.xml";
+  const rels = zip.getEntry("xl/_rels/workbook.xml.rels");
+  if (!rels) return "xl/worksheets/sheet1.xml";
+  const relsXml = rels.getData().toString("utf8");
+  const rel = new RegExp(`<Relationship[^>]*Id="${firstSheet[1]}"[^>]*Target="([^"]+)"`).exec(relsXml);
+  if (!rel) return "xl/worksheets/sheet1.xml";
+  return `xl/${rel[1].replace(/^\//, "").replace(/^xl\//, "")}`;
+}
+
+function excelSerialToIso(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return String(value || "");
+  const epoch = new Date(Date.UTC(1899, 11, 30));
+  const date = new Date(epoch.getTime() + num * 86400000);
+  return date.toISOString().slice(0, 10);
+}
+
+function parseWorksheetXml(xml, sharedStrings) {
+  const rows = [];
+  const rowMatches = xml.match(/<row[\s\S]*?<\/row>/g) || [];
+  rowMatches.forEach(rowXml => {
+    const row = [];
+    const cellMatches = rowXml.match(/<c\b[\s\S]*?<\/c>/g) || [];
+    cellMatches.forEach(cellXml => {
+      const ref = (cellXml.match(/r="([A-Z]+)\d+"/) || [])[1];
+      const col = ref ? ref.split("").reduce((sum, ch) => sum * 26 + ch.charCodeAt(0) - 64, 0) - 1 : row.length;
+      const type = (cellXml.match(/t="([^"]+)"/) || [])[1];
+      let value = "";
+      if (type === "inlineStr") {
+        value = [...cellXml.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(match => decodeXlsxXml(match[1])).join("");
+      } else {
+        const raw = (cellXml.match(/<v>([\s\S]*?)<\/v>/) || [])[1] || "";
+        value = type === "s" ? (sharedStrings[Number(raw)] || "") : decodeXlsxXml(raw);
+      }
+      row[col] = value;
+    });
+    rows.push(row.map(value => value == null ? "" : String(value)));
+  });
+  return rows;
+}
+
+function parseCsvText(text) {
+  const rows = [];
+  let row = [];
+  let value = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    const next = text[i + 1];
+    if (quoted) {
+      if (ch === '"' && next === '"') { value += '"'; i += 1; }
+      else if (ch === '"') quoted = false;
+      else value += ch;
+      continue;
+    }
+    if (ch === '"') quoted = true;
+    else if (ch === ';' || ch === ',') { row.push(value); value = ""; }
+    else if (ch === '\n') { row.push(value); rows.push(row); row = []; value = ""; }
+    else if (ch !== '\r') value += ch;
+  }
+  row.push(value);
+  if (row.some(cell => String(cell || "").trim())) rows.push(row);
+  return rows;
+}
+
+function parseHtmlSpreadsheetText(text) {
+  const rows = [];
+  const rowMatches = String(text || "").match(/<tr[\s\S]*?<\/tr>|<Row[\s\S]*?<\/Row>/gi) || [];
+  rowMatches.forEach(rowXml => {
+    const cells = [];
+    const cellMatches = rowXml.match(/<t[dh][^>]*>[\s\S]*?<\/t[dh]>|<Cell[\s\S]*?<\/Cell>/gi) || [];
+    cellMatches.forEach(cellXml => {
+      const textParts = [...cellXml.matchAll(/<Data[^>]*>([\s\S]*?)<\/Data>|<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(match => decodeXlsxXml(stripXml(match[1] || match[2] || "")));
+      cells.push((textParts.join("") || stripXml(cellXml)).replace(/\s+/g, " ").trim());
+    });
+    if (cells.some(Boolean)) rows.push(cells);
+  });
+  return rows;
+}
+
+function normalizeImportedSpreadsheetRows(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".csv") {
+    return parseCsvText(fs.readFileSync(filePath, "utf8"));
+  }
+  if (ext !== ".xlsx" && ext !== ".xls") throw new Error("Formato no soportado. Usa xlsx, xls o csv.");
+  const buffer = fs.readFileSync(filePath);
+  try {
+    const zip = new (require("adm-zip"))(buffer);
+    const shared = parseSharedStrings(zip);
+    const sheetPath = getFirstWorksheetPath(zip);
+    const sheet = zip.getEntry(sheetPath) || zip.getEntry("xl/worksheets/sheet1.xml");
+    if (!sheet) throw new Error("No se encontró la primera hoja del Excel.");
+    return parseWorksheetXml(sheet.getData().toString("utf8"), shared);
+  } catch (error) {
+    const text = buffer.toString("utf8");
+    const htmlRows = parseHtmlSpreadsheetText(text);
+    if (htmlRows.length) return htmlRows;
+    const csvRows = parseCsvText(text);
+    if (csvRows.length) return csvRows;
+    throw error;
+  }
+}
+
+async function importTicketRestaurantSpreadsheet() {
+  const result = await dialog.showOpenDialog({
+    title: "Cargar fichero Ticket Restaurante",
+    properties: ["openFile"],
+    filters: [{ name: "Excel o CSV", extensions: ["xlsx", "xls", "csv"] }]
+  });
+  if (result.canceled || !result.filePaths || !result.filePaths[0]) return null;
+  const filePath = result.filePaths[0];
+  const rows = normalizeImportedSpreadsheetRows(filePath);
+  return { filePath, fileName: path.basename(filePath), rows };
+}
+
+function buildSimpleXlsxBuffer(payload = {}) {
+  const sheetName = xlsxEscapeXml(payload.sheetName || "Ticket Restaurante").slice(0, 31);
+  const rows = Array.isArray(payload.rows) ? payload.rows : [];
+  const colWidths = Array.isArray(payload.widths) ? payload.widths : [];
+  const sheetRows = rows.map((row, rIndex) => {
+    const cells = (Array.isArray(row) ? row : []).map((cell, cIndex) => {
+      const ref = `${columnName(cIndex)}${rIndex + 1}`;
+      const value = cell == null ? "" : String(cell);
+      return `<c r="${ref}" t="inlineStr"><is><t>${xlsxEscapeXml(value)}</t></is></c>`;
+    }).join("");
+    return `<row r="${rIndex + 1}">${cells}</row>`;
+  }).join("");
+  const cols = colWidths.length ? `<cols>${colWidths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${Number(w) || 14}" customWidth="1"/>`).join("")}</cols>` : "";
+  const sheetXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${cols}<sheetData>${sheetRows}</sheetData></worksheet>`;
+  const zip = new (require("adm-zip"))();
+  zip.addFile("[Content_Types].xml", Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`, "utf8"));
+  zip.addFile("_rels/.rels", Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`, "utf8"));
+  zip.addFile("xl/workbook.xml", Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${sheetName}" sheetId="1" r:id="rId1"/></sheets></workbook>`, "utf8"));
+  zip.addFile("xl/_rels/workbook.xml.rels", Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`, "utf8"));
+  zip.addFile("xl/worksheets/sheet1.xml", Buffer.from(sheetXml, "utf8"));
+  const now = new Date().toISOString();
+  zip.addFile("docProps/core.xml", Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:creator>RRLL Dashboard</dc:creator><cp:lastModifiedBy>RRLL Dashboard</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${now}</dcterms:modified></cp:coreProperties>`, "utf8"));
+  zip.addFile("docProps/app.xml", Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>RRLL Dashboard</Application></Properties>`, "utf8"));
+  return zip.toBuffer();
+}
+
+async function exportTicketRestaurantWorkbook(_event, payload = {}) {
+  const defaultName = sanitizeFileNamePart(payload.fileName || "Ticket_Restaurante.xlsx", "Ticket_Restaurante.xlsx");
+  const result = await dialog.showSaveDialog({
+    title: payload.title || "Guardar Excel",
+    defaultPath: defaultName.endsWith(".xlsx") ? defaultName : `${defaultName}.xlsx`,
+    filters: [{ name: "Excel", extensions: ["xlsx"] }]
+  });
+  if (result.canceled || !result.filePath) return { canceled: true };
+  fs.writeFileSync(result.filePath, buildSimpleXlsxBuffer(payload));
+  return { canceled: false, filePath: result.filePath };
+}
+
 ipcMain.handle("db:loadAll", async () => loadAllData());
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
@@ -786,6 +984,8 @@ ipcMain.handle("db:generateCommitteeMinutesDraft", generateCommitteeMinutesDraft
 ipcMain.handle("rrllFolder:getPath", getRRLLFolderPath);
 ipcMain.handle("rrllFolder:setPath", setRRLLFolderPath);
 ipcMain.handle("rrllFolder:open", openRRLLFolder);
+ipcMain.handle("ticketRestaurant:importSpreadsheet", importTicketRestaurantSpreadsheet);
+ipcMain.handle("ticketRestaurant:exportWorkbook", exportTicketRestaurantWorkbook);
 
 function createWindow() {
   Menu.setApplicationMenu(null);
