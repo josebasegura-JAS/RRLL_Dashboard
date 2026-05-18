@@ -2228,13 +2228,16 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
 }
 .phase4-nav-secondary {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) 34px !important;
+  grid-template-columns: 34px 34px minmax(0, 1fr) !important;
   align-items: center !important;
+  justify-content: start !important;
   gap: 6px !important;
 }
-.phase4-nav-secondary .phase4-nav-item:not(.phase4-nav-settings-icon) {
-  width: auto !important;
+.phase4-nav-folder-link {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
 }
+.phase4-nav-trash-icon,
 .phase4-nav-settings-icon {
   width: 34px !important;
   min-width: 34px !important;
@@ -2245,6 +2248,23 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
   font-size: 16px !important;
   line-height: 1 !important;
   border-radius: 10px !important;
+}
+.phase4-nav-trash-icon {
+  position: relative !important;
+}
+.phase4-nav-trash-icon .phase4-nav-pill {
+  position: absolute !important;
+  top: -5px !important;
+  right: -6px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  padding: 0 4px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  box-shadow: 0 0 0 2px var(--phase4-sidebar-bg-2) !important;
 }
 .phase5-sidebar-sync.save-status-widget {
   grid-template-columns: 10px minmax(0, 1fr) 32px !important;
