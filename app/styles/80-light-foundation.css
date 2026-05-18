@@ -2267,12 +2267,12 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
   box-shadow: 0 0 0 2px var(--phase4-sidebar-bg-2) !important;
 }
 .phase5-sidebar-sync.save-status-widget {
-  grid-template-columns: 10px minmax(0, 1fr) 32px !important;
+  grid-template-columns: 8px minmax(0, 1fr) 28px !important;
   align-items: center !important;
-  gap: 5px 8px !important;
-  margin: auto 8px 10px !important;
-  padding: 8px 9px !important;
-  border-radius: 12px !important;
+  gap: 6px !important;
+  margin: auto 8px 8px !important;
+  padding: 6px 8px !important;
+  border-radius: 11px !important;
 }
 .phase5-sidebar-sync .save-status-dot {
   width: 8px !important;
@@ -2281,34 +2281,38 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
 }
 .phase5-sidebar-sync .save-status-text {
   grid-column: 2 !important;
-  gap: 1px !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 4px !important;
   min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
 }
 .phase5-sidebar-sync .save-status-text b,
 .phase5-sidebar-sync .save-status-text span {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
 }
 .phase5-sidebar-sync .save-status-text b {
-  font-size: 11px !important;
-  line-height: 1.15 !important;
+  flex: 0 0 auto !important;
 }
 .phase5-sidebar-sync .save-status-text span {
-  font-size: 11px !important;
-  line-height: 1.15 !important;
+  flex: 0 1 auto !important;
 }
 .phase5-sidebar-sync .sync-now-button {
   grid-column: 3 !important;
   grid-row: 1 !important;
-  width: 30px !important;
-  min-width: 30px !important;
-  height: 30px !important;
-  min-height: 30px !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
   margin: 0 !important;
   padding: 0 !important;
-  border-radius: 10px !important;
-  font-size: 16px !important;
+  border-radius: 9px !important;
+  font-size: 15px !important;
   line-height: 1 !important;
 }
 .phase5-sidebar-sync.offline .save-status-dot,
@@ -2341,10 +2345,10 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
   }
   .phase5-sidebar-sync.save-status-widget {
     margin-bottom: 8px !important;
-    padding: 7px 8px !important;
+    padding: 6px 8px !important;
   }
   .phase5-sidebar-sync .save-status-text b {
-    display: none !important;
+    display: inline !important;
   }
 }
 

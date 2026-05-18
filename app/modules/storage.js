@@ -31,21 +31,21 @@ function getTodayKey() {
       widget.classList.add(status || "synced");
 
       const labels = {
-        saving: "Guardando...",
-        saved: "Guardado",
-        synced: "Sincronizado",
-        offline: "Sin conexión",
-        error: "Error de sincronización"
+        saving: "Espera",
+        saved: "Sinc. OK",
+        synced: "Sinc. OK",
+        offline: "Sinc. ERR",
+        error: "Sinc. ERR"
       };
 
-      label.textContent = labels[status] || "Sincronizado";
-      const fallbackDetail = `Última comprobación: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
-      detailEl.textContent = compactSidebarSyncDetail(status, detail || fallbackDetail);
+      label.textContent = labels[status] || "Sinc. OK";
+      const fallbackDetail = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      detailEl.textContent = compactSidebarSyncDetail(detail || fallbackDetail);
     }
 
-    function compactSidebarSyncDetail(status, detail) {
-      if (status !== "synced" || !detail) return detail;
-      return String(detail).replace(/^Sincronizado:\s*/i, "").replace(/^Sincronizado\s+/i, "");
+    function compactSidebarSyncDetail(detail) {
+      const timeMatch = String(detail || "").match(/\b\d{1,2}:\d{2}:\d{2}\b/);
+      return timeMatch ? timeMatch[0] : new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     }
 
     function markSaveStarted() {
