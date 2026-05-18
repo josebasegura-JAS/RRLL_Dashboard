@@ -27,6 +27,7 @@
         <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
         <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
         <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
+        <a href="#gestor-ticket-restaurante" class="phase4-nav-item">🍽 <span>Ticket Restaurante</span></a>
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="phase4-nav-chevron">▾</strong></button>
         <div class="phase4-nav-submenu" id="phase4-submenu-comite">
           <a href="#gestor-puntos-comite" class="phase4-nav-subitem">• <span>Puntos de Comité</span></a>
@@ -1231,9 +1232,107 @@
             </details>
           </div>
         </details>
+        <details class="card module-card rrll-pro-module ticket-restaurant-module" id="gestor-ticket-restaurante"><summary><span class="module-title"><span class="module-icon">🍽</span>Ticket Restaurante</span><span class="summary-counts">Calendarios · Personas · Ausencias · Cómputo</span></summary>
+          <div class="rrll-pro-task-shell ticket-restaurant-shell">
+            <div class="rrll-pro-task-head">
+              <div>
+                <h2>Ticket Restaurante</h2>
+                <p>Gestión mensual de calendarios, personas con derecho, ausencias y generación del Excel de cómputo.</p>
+              </div>
+              <button type="button" class="rrll-pro-primary" onclick="showTicketRestaurantArea('compute')">Generar cómputo</button>
+            </div>
+
+            <div class="ticket-restaurant-tabs" role="tablist" aria-label="Áreas de Ticket Restaurante">
+              <button type="button" class="ticket-restaurant-tab active" data-ticket-area="calendar" onclick="showTicketRestaurantArea('calendar')">Definir calendarios</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="people" onclick="showTicketRestaurantArea('people')">Personas con derecho</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="absences" onclick="showTicketRestaurantArea('absences')">Importar ausencias</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="compute" onclick="showTicketRestaurantArea('compute')">Generar cómputo</button>
+            </div>
+
+            <section class="ticket-restaurant-area" data-ticket-area="calendar">
+              <div class="rrll-pro-list-card">
+                <div class="ticket-calendar-toolbar">
+                  <label class="rrll-pro-field">
+                    <span>Calendario</span>
+                    <select id="ticketRestaurantCalendarSelect" onchange="setTicketRestaurantCalendar(this.value)"></select>
+                  </label>
+                  <div class="ticket-year-nav" aria-label="Navegación anual">
+                    <button type="button" class="secondary" onclick="moveTicketRestaurantCalendarYear(-1)">←</button>
+                    <strong id="ticketRestaurantCalendarYear"></strong>
+                    <button type="button" class="secondary" onclick="moveTicketRestaurantCalendarYear(1)">→</button>
+                  </div>
+                  <div class="ticket-calendar-legend"><span>Día normal</span><span class="weekend">Fin de semana</span><span class="no-ticket">Sin ticket</span></div>
+                </div>
+                <div id="ticketRestaurantCalendarGrid" class="ticket-calendar-grid"></div>
+              </div>
+            </section>
+
+            <section class="ticket-restaurant-area" data-ticket-area="people" hidden>
+              <div class="rrll-pro-list-card">
+                <div class="rrll-pro-list-toolbar">
+                  <div><h3>Personas con derecho a ticket</h3><p class="rrll-pro-subtitle" id="ticketRestaurantPeopleCount">0 personas</p></div>
+                  <div class="rrll-pro-list-actions">
+                    <button type="button" onclick="importTicketRestaurantPeople()">Cargar fichero</button>
+                    <button type="button" class="secondary" onclick="downloadTicketRestaurantPeopleTemplate()">Descargar modelo</button>
+                    <button type="button" class="rrll-pro-primary" onclick="openTicketRestaurantPersonForm()">Nueva persona</button>
+                  </div>
+                </div>
+                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre</th><th>Apellido1</th><th>Apellido2</th><th>DNI</th><th>Puesto</th><th>Calendario</th><th>Acciones</th></tr></thead><tbody id="ticketRestaurantPeopleBody"></tbody></table></div>
+                <div id="ticketRestaurantPeopleImportSummary" class="ticket-import-summary" aria-live="polite"></div>
+              </div>
+            </section>
+
+            <section class="ticket-restaurant-area" data-ticket-area="absences" hidden>
+              <div class="rrll-pro-list-card">
+                <div class="rrll-pro-list-toolbar">
+                  <div><h3>Importar ausencias</h3><p class="rrll-pro-subtitle" id="ticketRestaurantAbsencesCount">0 ausencias</p></div>
+                  <div class="rrll-pro-list-actions">
+                    <button type="button" onclick="importTicketRestaurantAbsences()">Cargar fichero</button>
+                    <button type="button" class="secondary" onclick="downloadTicketRestaurantAbsenceTemplate()">Descargar modelo</button>
+                  </div>
+                </div>
+                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Total días</th><th>Mes/Año</th><th>Acciones</th></tr></thead><tbody id="ticketRestaurantAbsencesBody"></tbody></table></div>
+                <div id="ticketRestaurantAbsenceImportSummary" class="ticket-import-summary" aria-live="polite"></div>
+              </div>
+            </section>
+
+            <section class="ticket-restaurant-area" data-ticket-area="compute" hidden>
+              <div class="rrll-pro-list-card">
+                <div class="ticket-compute-toolbar">
+                  <label class="rrll-pro-field"><span>Mes</span><select id="ticketRestaurantComputeMonth" onchange="renderTicketRestaurantComputePreview()"></select></label>
+                  <label class="rrll-pro-field"><span>Año</span><input id="ticketRestaurantComputeYear" type="number" min="2000" max="2100" onchange="renderTicketRestaurantComputePreview()" oninput="renderTicketRestaurantComputePreview()" /></label>
+                  <button type="button" class="rrll-pro-primary" onclick="exportTicketRestaurantCompute()">Generar Excel</button>
+                </div>
+                <div id="ticketRestaurantComputeSummary" class="ticket-compute-summary"></div>
+                <h3>Preview por persona</h3>
+                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre completo</th><th>Calendario</th><th>Tickets teóricos</th><th>Ausencias aplicadas</th><th>Tickets finales</th></tr></thead><tbody id="ticketRestaurantComputeBody"></tbody></table></div>
+              </div>
+            </section>
+          </div>
+        </details>
+
       </section>
     </div>
   </main>
+    </div>
+  </div>
+
+  <div id="ticketPersonModal" class="modal-backdrop" onclick="closeTicketRestaurantPersonForm()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <h3 id="ticketPersonModalTitle">Nueva persona</h3>
+      <div class="form-grid">
+        <label><span>Nº empleado *</span><input id="ticketPersonEmployee" /></label>
+        <label><span>Nombre *</span><input id="ticketPersonName" /></label>
+        <label><span>Apellido1</span><input id="ticketPersonSurname1" /></label>
+        <label><span>Apellido2</span><input id="ticketPersonSurname2" /></label>
+        <label><span>DNI</span><input id="ticketPersonDni" /></label>
+        <label><span>Puesto</span><input id="ticketPersonPosition" /></label>
+        <label class="full"><span>Calendario *</span><select id="ticketPersonCalendar"></select></label>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary" type="button" onclick="closeTicketRestaurantPersonForm()">Cancelar</button>
+        <button type="button" onclick="saveTicketRestaurantPersonForm()">Guardar</button>
+      </div>
     </div>
   </div>
 
@@ -1391,6 +1490,16 @@
           <button type="button" class="secondary" onclick="document.getElementById('configBackupFileInput').click()">Importar JSON</button>
         </div>
         <input id="configBackupFileInput" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)" />
+      </div>
+
+      <div class="config-section ticket-restaurant-config-section">
+        <h4>Ticket Restaurante</h4>
+        <p class="muted">Configura los valores usados al generar el Excel mensual de cómputo.</p>
+        <div class="dynamic-access-form ticket-config-form">
+          <label>Pedido<input id="ticketRestaurantConfigPedido" placeholder="2404407" /></label>
+          <label>Importe ticket<input id="ticketRestaurantConfigImporte" placeholder="14,57" /></label>
+          <button type="button" onclick="saveTicketRestaurantConfigFromInputs()">Guardar</button>
+        </div>
       </div>
 
       <div class="config-section settings-petition-origins">
@@ -1852,6 +1961,7 @@
   <script src="modules/vinculograma.js"></script>
   <script src="modules/licencias.js"></script>
   <script src="modules/criterios-rrll.js"></script>
+  <script src="modules/ticket-restaurante.js"></script>
   <script src="modules/links-config.js"></script>
   <script src="modules/trash.js"></script>
   <script src="modules/search.js"></script>
