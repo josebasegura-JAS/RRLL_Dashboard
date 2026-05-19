@@ -4492,3 +4492,55 @@ html[data-theme="light"] body.phase4-view-module #gestor-actas :is(.rrll-status-
   border: 1px solid #dbe2ea !important;
   box-shadow: none !important;
 }
+
+/* Tareas/Peticiones (solo light): cabeceras claras y legibles sin afectar dark mode. */
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-task-head,
+html[data-theme="light"] body.phase4-view-module #gestor-peticiones .rrll-pro-petition-head,
+html[data-theme="light"] body.phase4-view-module #gestor-peticiones .rrll-pro-task-head {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .05) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-head, .rrll-pro-petition-head) :is(h2, h3, .rrll-pro-title, .module-title) {
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-head, .rrll-pro-petition-head) :is(p, .summary-counts) {
+  color: #4b5563 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-head, .rrll-pro-petition-head) .summary-icon-button {
+  background: #ffffff !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+/* Sidebar submenu Comité/Paritaria en light: mantener superficie oscura de navegación. */
+html[data-theme="light"] .phase4-sidebar .phase4-nav-submenu,
+html[data-theme="light"] .sidebar .phase4-nav-submenu,
+html[data-theme="light"] .phase4-sidebar .nav-submenu,
+html[data-theme="light"] .sidebar .nav-submenu {
+  background: #2d3645 !important;
+  border-color: rgba(255, 255, 255, .10) !important;
+  color: #e5e7eb !important;
+}
+
+html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem),
+html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem) {
+  color: #e5e7eb !important;
+}
+
+html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem):hover,
+html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem):hover {
+  background: rgba(255, 255, 255, .08) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem).active,
+html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active {
+  background: rgba(227, 6, 19, .18) !important;
+  color: #ffffff !important;
+}
