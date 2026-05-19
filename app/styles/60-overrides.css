@@ -4395,3 +4395,100 @@ html[data-theme="light"] .task-origin-badge {
   border-color: rgba(15, 23, 42, .12) !important;
   color: rgba(15, 23, 42, .78) !important;
 }
+
+/* Actas (solo modo claro): neutraliza superficies oscuras heredadas sin tocar dark mode. */
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas.rrll-pro-module {
+  background: #f4f6f8 !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas.rrll-pro-module > summary {
+  background: #fbfbfc !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .06) !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-shell,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-task-head,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-form,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-list-card,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-list-toolbar,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-table-wrap {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-task-head p,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .summary-counts,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-subtitle,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-update {
+  color: #4b5563 !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas input,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas select,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas textarea,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas #minuteInlineSearch {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border: 1px solid #dbe2ea !important;
+  box-shadow: inset 0 1px 1px rgba(15, 23, 42, .03) !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas input::placeholder,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas textarea::placeholder,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas #minuteInlineSearch::placeholder {
+  color: #6b7280 !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-table,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-table {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-table thead th,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-table thead th {
+  background: #f1f5f9 !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-table tbody tr,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-table tbody tr,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-minute-row {
+  background: #ffffff !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-table tbody tr:nth-child(even),
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-table tbody tr:nth-child(even) {
+  background: #fbfbfc !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-table tbody tr:hover,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-table th,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-table td,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-table th,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-minutes-table td {
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-actions button,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .rrll-pro-tool-button,
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas .summary-icon-button {
+  background: #ffffff !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+html:not([data-theme="dark"]) body.phase4-view-module #gestor-actas :is(.rrll-status-pill, .rrll-due-pill, .priority-badge) {
+  border: 1px solid #dbe2ea !important;
+  box-shadow: none !important;
+}
