@@ -3533,3 +3533,48 @@ body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #c
   background: #f8fafc !important;
   border-color: #dbe2ea !important;
 }
+
+/* Ajustes localizados modo claro: cabecera de Tareas + submenús sidebar Comité/Paritaria. */
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-task-head {
+  background: #fbfbfc !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .05) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas :is(.rrll-pro-title, .module-title, .summary-counts) {
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .summary-icon-button {
+  background: #eef2f7 !important;
+  color: #1f2937 !important;
+  border-color: #d1d9e6 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .summary-icon-button:hover {
+  background: #e2e8f0 !important;
+  color: #111827 !important;
+}
+
+html[data-theme="light"] :is(.phase4-sidebar .phase4-nav-submenu, .sidebar .phase4-nav-submenu, .phase4-sidebar .nav-submenu, .sidebar .nav-submenu) {
+  background: #2d3645 !important;
+  border-color: rgba(255, 255, 255, .10) !important;
+  color: #e5e7eb !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+
+html[data-theme="light"] :is(.phase4-sidebar .phase4-nav-subitem, .sidebar .phase4-nav-subitem, .phase4-sidebar .nav-subitem, .sidebar .nav-subitem) {
+  background: transparent !important;
+  color: #e5e7eb !important;
+}
+
+html[data-theme="light"] :is(.phase4-sidebar .phase4-nav-subitem:hover, .sidebar .phase4-nav-subitem:hover, .phase4-sidebar .nav-subitem:hover, .sidebar .nav-subitem:hover) {
+  background: #3a4658 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] :is(.phase4-sidebar .phase4-nav-subitem.active, .sidebar .phase4-nav-subitem.active, .phase4-sidebar .nav-subitem.active, .sidebar .nav-subitem.active) {
+  background: rgba(178, 56, 56, .85) !important;
+  color: #ffffff !important;
+}
