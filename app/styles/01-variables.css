@@ -61,7 +61,6 @@
   --border: var(--rrll-border-light);
   --black: var(--rrll-text-main-light);
   --red: var(--rrll-red-ui);
-  --red-dark: var(--rrll-red-hover);
   --shadow: var(--rrll-shadow-panel-light);
 
   --rrll-bg-app: var(--rrll-bg-app-light);
@@ -148,14 +147,23 @@
   --rrll-bg-app-light: #f4f6f8;
   --rrll-bg-panel-light: #ffffff;
   --rrll-bg-card-light: #fbfbfc;
+  --rrll-bg-surface-light: #ffffff;
+  --rrll-bg-surface-muted-light: #fbfbfc;
   --rrll-bg-soft-light: #eef2f6;
   --rrll-bg-table-head-light: #eef2f5;
-  --rrll-bg-table-row-light: #fbfbfc;
+  --rrll-bg-table-header-light: #f1f5f9;
+  --rrll-bg-table-row-light: #ffffff;
+  --rrll-bg-table-row-alt-light: #f8fafc;
   --rrll-bg-table-hover-light: #edf3f7;
+  --rrll-bg-input-light: #f8fafc;
   --rrll-text-main-light: #1f2937;
+  --rrll-text-primary-light: #1f2937;
   --rrll-text-secondary-light: #4b5563;
   --rrll-text-muted-light: #6b7280;
+  --rrll-text-placeholder-light: #64748b;
   --rrll-border-light: #e5e7eb;
+  --rrll-border-soft: #e5e7eb;
+  --rrll-border-input-light: #e5e7eb;
   --rrll-border-soft-light: rgba(209, 213, 219, .72);
 
   --rrll-bg-app-dark: #222936;
@@ -187,18 +195,17 @@ html[data-theme="light"] {
   --border: var(--rrll-border-light);
   --black: var(--rrll-text-main-light);
   --red: var(--rrll-red-ui);
-  --red-dark: var(--rrll-red-hover);
   --shadow: var(--rrll-shadow-panel-light);
 
   --rrll-bg-app: var(--rrll-bg-app-light);
-  --rrll-surface-base: var(--rrll-bg-soft-light);
-  --rrll-surface-card: var(--rrll-bg-card-light);
-  --rrll-surface-raised: var(--rrll-bg-panel-light);
-  --rrll-surface-header: var(--rrll-bg-table-head-light);
+  --rrll-surface-base: var(--rrll-bg-app-light);
+  --rrll-surface-card: var(--rrll-bg-surface-light);
+  --rrll-surface-raised: var(--rrll-bg-surface-muted-light);
+  --rrll-surface-header: var(--rrll-bg-table-header-light);
   --rrll-surface-hover: var(--rrll-bg-table-hover-light);
 
-  --rrll-field-bg: var(--rrll-bg-panel-light);
-  --rrll-field-bg-focus: var(--rrll-bg-soft-light);
+  --rrll-field-bg: var(--rrll-bg-input-light);
+  --rrll-field-bg-focus: var(--rrll-bg-surface-light);
 
   --rrll-border: var(--rrll-border-light);
   --rrll-border-strong: var(--rrll-separator-light);
@@ -269,7 +276,6 @@ html[data-theme="dark"] {
   --border: var(--rrll-border-dark);
   --black: var(--rrll-bg-soft-dark);
   --red: var(--rrll-red-ui);
-  --red-dark: var(--rrll-red-hover);
   --soft-red: rgba(239, 68, 68, .12);
   --warning: rgba(245, 158, 11, .14);
   --expired: rgba(239, 68, 68, .14);

@@ -50,7 +50,6 @@ html[data-theme="dark"] {
   --border: var(--rrll-border-dark);
   --black: var(--rrll-bg-soft-dark);
   --red: var(--rrll-red-ui);
-  --red-dark: var(--rrll-red-hover);
   --soft-red: rgba(239, 68, 68, .12);
   --warning: rgba(245, 158, 11, .14);
   --expired: rgba(239, 68, 68, .14);
@@ -98,7 +97,6 @@ html[data-theme="light"] {
   --border: var(--rrll-border-light);
   --black: var(--rrll-text-main-light);
   --red: var(--rrll-red-ui);
-  --red-dark: var(--rrll-red-hover);
   --soft-red: rgba(167, 53, 53, .10);
   --warning: rgba(217, 119, 6, .14);
   --expired: rgba(185, 28, 28, .12);
@@ -341,7 +339,7 @@ textarea:focus,
 input::placeholder,
 textarea::placeholder,
 .rrll-pro-search-wrap input::placeholder {
-  color: var(--rrll-text-placeholder-dark) !important;
+  color: var(--rrll-text-placeholder-light) !important;
 }
 
 label,
@@ -399,7 +397,7 @@ table:not(.print-frame table):not(.print-document table):not(.print-preview-cont
 .data-table tbody tr:nth-child(even),
 .licencias-table tbody tr:nth-child(even),
 .vinculograma-table tbody tr:nth-child(even) {
-  background: var(--rrll-bg-table-row-dark) !important;
+  background: var(--rrll-bg-table-row-alt-light) !important;
 }
 
 table:not(.print-frame table):not(.print-document table):not(.print-preview-content table) tbody tr:hover,
@@ -925,7 +923,7 @@ html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-t
 }
 
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:nth-child(even) {
-  background: var(--rrll-bg-table-row-dark) !important;
+  background: var(--rrll-bg-table-row-alt-light) !important;
 }
 
 html body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:hover,
@@ -2989,7 +2987,6 @@ html[data-theme="light"] {
   --muted: var(--text-muted);
   --border: var(--border-soft);
   --red: var(--accent-primary);
-  --red-dark: var(--rrll-red-hover);
   --soft-red: rgba(167, 53, 53, .09);
   --warning: rgba(183, 121, 31, .13);
   --expired: rgba(180, 35, 42, .11);
