@@ -1701,6 +1701,57 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
   text-align: center;
 }
 
+
+
+/* Plantilla (modo claro): neutraliza fondos grafito heredados sin tocar la tabla principal. */
+html[data-theme="light"] body[data-active-module="gestor-plantilla"] #gestor-plantilla,
+html[data-theme="light"] body.phase4-view-module #gestor-plantilla {
+  background: #f4f6f8 !important;
+  border-color: #e5e7eb !important;
+}
+
+html[data-theme="light"] #gestor-plantilla .rrll-pro-plantilla-shell {
+  background: transparent !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] #gestor-plantilla .rrll-pro-task-head,
+html[data-theme="light"] #gestor-plantilla .plantilla-toolbar,
+html[data-theme="light"] #gestor-plantilla .plantilla-list-card,
+html[data-theme="light"] #gestor-plantilla .rrll-pro-plantilla-form,
+html[data-theme="light"] #gestor-plantilla .plantilla-import-summary,
+html[data-theme="light"] #gestor-plantilla .rrll-pro-empty,
+html[data-theme="light"] #gestor-plantilla .rrll-pro-search-wrap {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+
+html[data-theme="light"] #gestor-plantilla .rrll-pro-task-head p,
+html[data-theme="light"] #gestor-plantilla .rrll-pro-subtitle,
+html[data-theme="light"] #gestor-plantilla .plantilla-import-summary {
+  color: #4b5563 !important;
+}
+
+html[data-theme="light"] #gestor-plantilla :is(input, select, textarea) {
+  background: #f8fafc !important;
+  border-color: #dbe2ea !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] #gestor-plantilla .rrll-pro-tool-button,
+html[data-theme="light"] #gestor-plantilla .plantilla-pagination .plantilla-pagination-btn {
+  background: #fbfbfc !important;
+  border-color: #dbe2ea !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] #plantillaEditModal :is(.modal-box, .rrll-pro-modal-box, .rrll-pro-edit-modal) {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
 /* Sesiones Comité: el orden del día necesita una fila estable para que el
    textarea del título no herede el tamaño de icono/botón de reglas globales. */
 #committeeSessionOrderModal .modal-box {
