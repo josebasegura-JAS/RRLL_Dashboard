@@ -3313,6 +3313,77 @@ html[data-theme="light"] #gestor-ticket-restaurante :is(.ticket-day--no-ticket, 
   font-weight: 800 !important;
 }
 
+/* Ticket Restaurante — saneado exclusivo de modo claro.
+   Corrige herencias oscuras sin tocar estructura, lógica ni dark mode. */
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante,
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante.rrll-pro-module {
+  background: #f4f6f8 !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-shell, .ticket-restaurant-area, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section, .rrll-pro-list-card, .rrll-pro-table-wrap, .ticket-monthly-quote-panel) {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.rrll-pro-task-head, .rrll-pro-list-toolbar, .ticket-filter-row th, .ticket-table thead th, .rrll-pro-table thead th) {
+  background: #f1f5f9 !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-tab, .ticket-month-navigator button, .ticket-year-nav button, .rrll-icon-only, .ticket-sort-button) {
+  background: #f8fafc !important;
+  border-color: #dbe2ea !important;
+  color: #4b5563 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-tab:hover, .ticket-month-navigator button:hover, .ticket-year-nav button:hover, .rrll-icon-only:hover) {
+  background: #eef2f7 !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .ticket-filter-row input, .rrll-pro-search-wrap input) {
+  background: #f8fafc !important;
+  border-color: #dbe2ea !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(input::placeholder, textarea::placeholder, .ticket-filter-row input::placeholder, .rrll-pro-search-wrap input::placeholder) {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-month-card, .ticket-summary-pill) {
+  background: #fbfbfc !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-weekdays span, .ticket-compute-period, .ticket-import-summary, .ticket-summary-pill small, .ticket-calendar-legend, .muted) {
+  color: #4b5563 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-table tbody tr, .rrll-pro-table tbody tr) {
+  background: #fbfbfc !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-table tbody tr:nth-child(even), .rrll-pro-table tbody tr:nth-child(even)) {
+  background: #f8fafc !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.modal-box, .modal-card, .popup-box, .dialog-box, .rrll-pro-modal-box, .config-modal-box, .config-modal-card) {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.modal-actions, .form-actions, .rrll-pro-form-actions, .modal-footer) {
+  background: #f8fafc !important;
+  border-color: #e5e7eb !important;
+}
+
 html[data-theme="light"] * {
   scrollbar-color: #cbd5e1 #eef2f6;
 }
