@@ -3466,3 +3466,73 @@ html[data-theme="light"] #gestor-tareas .rrll-status-pill.progress {
   border-color: rgba(47, 111, 187, .25) !important;
   color: #245a9a !important;
 }
+
+/* Comité y Paritaria: consolidación visual en modo claro (sin afectar modo oscuro). */
+body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) {
+  background: #f4f6f8 !important;
+  color: #1f2937 !important;
+}
+
+body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) > summary,
+body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) :is(.committee-subsection, .paritaria-subsection) > summary {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) :is(.rrll-pro-committee-shell, .rrll-pro-paritaria-shell),
+body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-list-card, .session-panel, .session-year-block, .session-card, .session-item, .session-form, .session-close-list, .session-close-row) {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+
+body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.column-header, .session-year-header, .rrll-pro-table th) {
+  background: #f1f5f9 !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+
+body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-table td, .session-meta, .session-item-meta, .muted, small, .rrll-pro-subtitle, .rrll-pro-update, .rrll-pro-created) {
+  color: #4b5563 !important;
+}
+
+body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(input, select, textarea, .rrll-pro-search-wrap, .rrll-pro-search-wrap input) {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-color: #dbe2ea !important;
+}
+
+body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button,
+body.phase4-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary {
+  background: #f8fafc !important;
+  color: #374151 !important;
+  border: 1px solid #dbe2ea !important;
+}
+
+body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button.active,
+body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button:hover,
+body.phase4-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary:hover {
+  background: #eef2f7 !important;
+  color: #1f2937 !important;
+  border-color: #cfd8e3 !important;
+}
+
+body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) .modal-box,
+body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) :is(.session-order-list, .session-order-row, .existing-updates-box, .existing-update-row) {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-row {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  border-left: 4px solid var(--red) !important;
+}
+
+#paritariaSessionAddPointModal .paritaria-session-add-point-row:hover {
+  background: #f8fafc !important;
+  border-color: #dbe2ea !important;
+}
