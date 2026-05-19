@@ -2878,9 +2878,13 @@ html[data-theme="light"] {
   --rrll-shadow-soft: 0 1px 2px rgba(15, 23, 42, .035), 0 8px 22px rgba(15, 23, 42, .055);
   --rrll-shadow-panel: 0 1px 2px rgba(15, 23, 42, .04), 0 14px 34px rgba(15, 23, 42, .07);
   --rrll-shadow-focus: 0 0 0 3px rgba(167, 53, 53, .13);
-  --phase4-sidebar-bg: var(--rrll-sidebar-light);
-  --phase4-sidebar-bg-2: #171d27;
-  --phase4-sidebar-hover: var(--rrll-sidebar-hover-light);
+  --phase4-sidebar-bg: #3b4556;
+  --phase4-sidebar-bg-2: #334155;
+  --phase4-sidebar-hover: #475569;
+  --phase4-sidebar-active: #c24141;
+  --phase4-sidebar-text: #f8fafc;
+  --phase4-sidebar-muted: #cbd5e1;
+  --phase4-sidebar-icon: #e2e8f0;
 
   --bg: var(--bg-primary);
   --panel: var(--surface);
@@ -2936,8 +2940,12 @@ html[data-theme="light"] :is(.phase4-sidebar, .sidebar:not(.sidebar-left)) {
   box-shadow: 6px 0 24px rgba(15, 23, 42, .18) !important;
 }
 
-html[data-theme="light"] :is(.phase4-sidebar-section, .phase4-nav-item, .nav-item, .phase4-nav-subitem, .phase4-nav-button, .phase4-nav-chevron) {
-  color: rgba(229, 231, 235, .82) !important;
+html[data-theme="light"] :is(.phase4-sidebar-section, .phase4-nav-item, .nav-item, .phase4-nav-subitem, .phase4-nav-button, .phase4-nav-chevron, .sidebar-folder-notice, .save-status-detail) {
+  color: var(--phase4-sidebar-muted) !important;
+}
+
+html[data-theme="light"] :is(.phase4-sidebar-brand strong, .phase4-nav-item span, .phase4-nav-subitem span, .phase4-nav-item, .phase4-nav-subitem) {
+  color: var(--phase4-sidebar-text) !important;
 }
 
 html[data-theme="light"] :is(.phase4-nav-item, .nav-item, .phase4-nav-subitem, .phase4-nav-button) {
@@ -2952,27 +2960,58 @@ html[data-theme="light"] :is(.phase4-nav-item:hover, .nav-item:hover, .phase4-na
 }
 
 html[data-theme="light"] :is(.phase4-nav-item.active, .nav-item.active, .phase4-nav-subitem.active, .phase4-nav-parent.active, .phase4-nav-item.is-active) {
-  background: linear-gradient(90deg, rgba(167, 53, 53, .96) 0%, rgba(125, 45, 45, .88) 100%) !important;
+  background: linear-gradient(90deg, var(--phase4-sidebar-active) 0%, #b73a3a 100%) !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, .12) !important;
-  box-shadow: inset 3px 0 0 #e5e7eb !important;
+  box-shadow: inset 3px 0 0 #fee2e2 !important;
 }
 
 html[data-theme="light"] :is(.save-status-widget, .phase5-sidebar-sync.save-status-widget) {
-  background: rgba(17, 24, 39, .28) !important;
-  border: 1px solid rgba(255, 255, 255, .08) !important;
-  color: rgba(229, 231, 235, .86) !important;
+  background: rgba(15, 23, 42, .26) !important;
+  border: 1px solid rgba(226, 232, 240, .20) !important;
+  color: var(--phase4-sidebar-text) !important;
   box-shadow: none !important;
 }
 
 html[data-theme="light"] :is(.save-status-text b, .save-status-text span, .phase5-sidebar-sync .save-status-text b, .phase5-sidebar-sync .save-status-text span) {
-  color: rgba(229, 231, 235, .86) !important;
+  color: var(--phase4-sidebar-text) !important;
 }
 
 html[data-theme="light"] .phase5-sidebar-sync .sync-now-button {
-  background: rgba(255, 255, 255, .08) !important;
-  border-color: rgba(255, 255, 255, .12) !important;
-  color: #f8fafc !important;
+  background: rgba(226, 232, 240, .16) !important;
+  border-color: rgba(226, 232, 240, .30) !important;
+  color: var(--phase4-sidebar-text) !important;
+}
+
+
+html[data-theme="light"] :is(.phase4-nav-item i, .phase4-nav-subitem i, .phase4-nav-item svg, .phase4-nav-subitem svg, .phase4-nav-chevron) {
+  color: var(--phase4-sidebar-icon) !important;
+  opacity: .98 !important;
+}
+
+html[data-theme="light"] :is(.phase4-nav-item:hover, .phase4-nav-subitem:hover, .phase4-nav-item.active, .phase4-nav-subitem.active) :is(i, svg, .phase4-nav-chevron) {
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-pill, .badge) {
+  background: rgba(226, 232, 240, .18) !important;
+  color: var(--phase4-sidebar-text) !important;
+  border: 1px solid rgba(226, 232, 240, .26) !important;
+}
+
+html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-item.active .phase4-nav-pill, .phase4-nav-subitem.active .phase4-nav-pill, .phase4-nav-item.active .badge, .phase4-nav-subitem.active .badge) {
+  background: rgba(255, 255, 255, .24) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .sidebar-collapse-toggle {
+  background: rgba(226, 232, 240, .14) !important;
+  border: 1px solid rgba(226, 232, 240, .30) !important;
+  color: var(--phase4-sidebar-text) !important;
+}
+
+html[data-theme="light"] .sidebar-collapse-toggle:hover {
+  background: rgba(226, 232, 240, .24) !important;
 }
 
 html[data-theme="light"] :is(.card, .dashboard-card, .widget-card, .panel-card, .module-card, details.module-card, .phase4-dashboard-card, .phase5-dashboard-card, .rrll-pro-card, .rrll-pro-list-card, .rrll-pro-task-shell, .rrll-pro-list, .session-panel, .session-card, .licencias-column, .vinculograma-column, .column, .committee-main, .paritaria-main, .committee-subsection, .paritaria-subsection, .phase4-metric-card, .phase5-metric-card, .quick-card, .phase5-calendar-card, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section) {
