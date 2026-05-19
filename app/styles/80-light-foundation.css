@@ -2709,15 +2709,17 @@ body.phase4-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day
 
 /* Modo claro — corrección final de bloques que en el legado restauraban carbón.
    Se limita a superficies, textos y controles; no altera estructura ni lógica. */
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module,
-html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions).rrll-pro-module,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo).rrll-pro-module,
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions, .module-telework).rrll-pro-module,
 html[data-theme="light"] body[data-active-module="gestor-tareas"] #gestor-tareas,
 html[data-theme="light"] body[data-active-module="gestor-peticiones"] #gestor-peticiones,
+html[data-theme="light"] body[data-active-module="gestor-teletrabajo"] #gestor-teletrabajo,
 html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-task-shell,
 html[data-theme="light"] body.phase4-view-module #gestor-peticiones .rrll-pro-petition-shell,
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
-html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
-html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-box,
+html[data-theme="light"] body.phase4-view-module #gestor-teletrabajo .rrll-pro-task-shell,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
+html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .modal-box,
 html[data-theme="light"] body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-box {
   background: var(--rrll-surface-card) !important;
   border-color: var(--rrll-border) !important;
@@ -2725,35 +2727,35 @@ html[data-theme="light"] body.phase4-view-module .rrll-confirm-delete-modal .rrl
   box-shadow: var(--rrll-shadow-soft) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones).rrll-pro-module > summary,
-html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions).rrll-pro-module > summary,
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-task-head,
-html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) .rrll-pro-task-head,
-html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal) .modal-actions,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo).rrll-pro-module > summary,
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions, .module-telework).rrll-pro-module > summary,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-task-head,
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions, .module-telework) .rrll-pro-task-head,
+html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .modal-actions,
 html[data-theme="light"] body.phase4-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-actions {
   background: var(--rrll-surface-header) !important;
   border-color: var(--rrll-border) !important;
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
-html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
-html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confirm-delete-modal) :is(h2, h3, h4, label, strong, b),
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table,
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table :is(td, th),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
+html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal, .rrll-confirm-delete-modal) :is(h2, h3, h4, label, strong, b),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table :is(td, th),
 html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .check-option {
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
-html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
-html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, .rrll-confirm-delete-modal) :is(p, .muted, small) {
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+html[data-theme="light"] body.phase4-view-module :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal, .rrll-confirm-delete-modal) :is(p, .muted, small) {
   color: var(--rrll-text-muted) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) select option,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) select option,
 html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .check-option input[type="checkbox"] {
   background: var(--rrll-field-bg) !important;
   background-color: var(--rrll-field-bg) !important;
@@ -2761,47 +2763,47 @@ html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .c
   box-shadow: none !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
   background: var(--rrll-field-bg-focus) !important;
   border-color: rgba(37, 99, 235, .45) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) input::placeholder,
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) textarea::placeholder,
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #taskUpdateModal, #petitionUpdateModal) .rrll-pro-search-wrap input::placeholder {
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) input::placeholder,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) textarea::placeholder,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .rrll-pro-search-wrap input::placeholder {
   color: var(--rrll-text-muted) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table thead th {
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table thead th {
   background: var(--rrll-surface-header) !important;
   color: var(--rrll-text-main) !important;
   border-color: var(--rrll-border) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr {
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr {
   background: var(--rrll-surface-card) !important;
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:nth-child(even) {
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr:nth-child(even) {
   background: var(--rrll-surface-base) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-pro-table tbody tr:hover,
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-task-row, .rrll-petition-row).expanded {
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr:hover,
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-task-row, .rrll-petition-row).expanded {
   background: var(--rrll-surface-hover) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
-html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.summary-counts, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.summary-counts, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
   background: var(--rrll-surface-base) !important;
   border-color: var(--rrll-border) !important;
   color: var(--rrll-text-soft) !important;
 }
 
-html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
-html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
+html[data-theme="light"] body.phase4-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
 html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .check-option:focus-within {
   background: var(--rrll-surface-hover) !important;
   border-color: var(--rrll-border-strong) !important;
