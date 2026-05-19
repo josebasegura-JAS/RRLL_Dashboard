@@ -1112,3 +1112,74 @@ html[data-theme="dark"] *::-webkit-scrollbar-thumb {
   border-color: rgba(36,42,54,.94) !important;
 }
 
+/* =========================================================
+   Fase 5.34 — Homogeneización dark por módulos (baseline: Licencias/Excedencias)
+   ========================================================= */
+html[data-theme="dark"] body.phase4-view-module :is(
+  #gestor-tareas,
+  #gestor-peticiones,
+  #gestor-actas,
+  #gestor-teletrabajo,
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-ticket-restaurante,
+  #gestor-plantilla,
+  #gestor-criterios,
+  #gestor-vinculograma
+) :is(
+  .rrll-pro-task-shell,
+  .rrll-pro-petition-shell,
+  .rrll-pro-minutes-shell,
+  .rrll-pro-telework-shell,
+  .rrll-pro-committee-shell,
+  .rrll-pro-paritaria-shell,
+  .rrll-pro-vinc-shell,
+  .rrll-pro-plantilla-shell,
+  .rrll-pro-list-card,
+  .rrll-pro-table-wrap,
+  .professional-table-wrap,
+  .rrll-pro-task-form,
+  .rrll-pro-petition-form,
+  .rrll-pro-minutes-form,
+  .rrll-pro-telework-form,
+  .rrll-pro-committee-form,
+  .rrll-pro-paritaria-form,
+  .rrll-pro-vinc-form,
+  .rrll-pro-search-wrap,
+  .module-search-box,
+  .modal-box,
+  .modal-card
+) {
+  background:
+    radial-gradient(circle at top left, rgba(148,163,184,.045), transparent 36%),
+    linear-gradient(180deg, rgba(43,49,61,.96), rgba(36,42,54,.98)) !important;
+  border-color: var(--rrll-border) !important;
+  color: var(--rrll-text) !important;
+}
+
+html[data-theme="dark"] body.phase4-view-module :is(
+  #gestor-tareas,
+  #gestor-peticiones,
+  #gestor-actas,
+  #gestor-teletrabajo,
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-ticket-restaurante,
+  #gestor-plantilla,
+  #gestor-criterios,
+  #gestor-vinculograma
+) :is(
+  .rrll-pro-task-head,
+  .rrll-pro-petition-head,
+  .rrll-pro-list-toolbar,
+  .module-header,
+  .professional-header,
+  .table-toolbar,
+  .rrll-session-create-head,
+  .column-header
+) {
+  background: linear-gradient(180deg, rgba(52,59,70,.86), rgba(48,55,70,.78)) !important;
+  border-color: var(--rrll-border) !important;
+  color: #f8fafc !important;
+}
+
