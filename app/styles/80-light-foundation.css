@@ -1510,6 +1510,50 @@ body.phase4-view-module #gestor-criterios .criteria-table .vinculograma-delete-i
   pointer-events: none !important;
 }
 
+/* Criterios RRLL en modo claro: alinear fondos/paneles con el resto de módulos claros. */
+html[data-theme="light"] body.phase4-view-module #gestor-criterios {
+  background: var(--rrll-bg-app-light) !important;
+  border-color: var(--rrll-border-light) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-criterios > .rrll-pro-task-shell,
+html[data-theme="light"] body.phase4-view-module #gestor-criterios .rrll-pro-task-head,
+html[data-theme="light"] body.phase4-view-module #gestor-criterios .criteria-list-card,
+html[data-theme="light"] body.phase4-view-module #gestor-criterios .criteria-form,
+html[data-theme="light"] body.phase4-view-module #gestor-criterios .criteria-modal-box {
+  background: var(--rrll-bg-panel-light) !important;
+  color: var(--rrll-text-main-light) !important;
+  border-color: var(--rrll-border-light) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.module-title, .rrll-pro-task-head h2) {
+  color: var(--rrll-text-main-light) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.rrll-pro-subtitle, .criteria-page-info, .criteria-search) {
+  color: var(--rrll-text-secondary-light) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.criteria-toolbar, .rrll-pro-form-actions) {
+  border-color: var(--rrll-border-light) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .criteria-search input) {
+  background: #f8fafc !important;
+  color: var(--rrll-text-main-light) !important;
+  border-color: #dbe2ea !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.rrll-pro-field input::placeholder, .rrll-pro-field textarea::placeholder, .criteria-search input::placeholder) {
+  color: var(--rrll-text-muted-light) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-criterios .criteria-page-btn {
+  background: var(--rrll-bg-card-light) !important;
+  color: var(--rrll-text-main-light) !important;
+  border-color: var(--rrll-border-light) !important;
+}
+
 body.phase4-view-module #gestor-licencias .licencias-columns {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
