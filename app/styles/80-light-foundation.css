@@ -5,7 +5,6 @@
 */
 
 html {
-  color-scheme: light dark;
 
   /* Tokens compartidos por la capa final. Las variables activas se asignan
      solo por tema para que light y dark no se pisen entre sí. */
@@ -35,98 +34,6 @@ html {
   --rrll-success-bg-hover: #166534;
 }
 
-html[data-theme="dark"] {
-  color-scheme: dark;
-
-  /* Modo oscuro: conserva la base visual carbón existente. */
-  --dash-surface: var(--rrll-bg-card-dark);
-  --dash-surface-2: var(--rrll-bg-soft-dark);
-  --dash-border: var(--rrll-border-dark);
-
-  --bg: var(--rrll-bg-app-dark);
-  --panel: var(--rrll-bg-panel-dark);
-  --text: var(--rrll-text-main-dark);
-  --muted: var(--rrll-text-muted-dark);
-  --border: var(--rrll-border-dark);
-  --black: var(--rrll-bg-soft-dark);
-  --red: var(--rrll-red-ui);
-  --soft-red: rgba(239, 68, 68, .12);
-  --warning: rgba(245, 158, 11, .14);
-  --expired: rgba(239, 68, 68, .14);
-  --chart-gray: #6b7280;
-  --shadow: var(--rrll-shadow-dark);
-
-  --rrll-bg-app: var(--rrll-bg-app-dark);
-  --rrll-surface-base: var(--rrll-bg-panel-dark);
-  --rrll-surface-card: var(--rrll-bg-card-dark);
-  --rrll-surface-raised: var(--rrll-bg-card-dark);
-  --rrll-surface-header: var(--rrll-bg-table-head-dark);
-  --rrll-surface-hover: var(--rrll-bg-table-hover-dark);
-  --rrll-field-bg: var(--rrll-bg-panel-dark);
-  --rrll-field-bg-focus: var(--rrll-bg-soft-dark);
-  --rrll-border: var(--rrll-border-dark);
-  --rrll-border-strong: rgba(170, 179, 194, .24);
-  --rrll-text-main: var(--rrll-text-main-dark);
-  --rrll-text-soft: var(--rrll-text-secondary-dark);
-  --rrll-text-muted: var(--rrll-text-muted-dark);
-  --rrll-shadow-soft: 0 10px 26px rgba(15, 23, 42, .14);
-  --rrll-shadow-panel: 0 12px 30px rgba(15, 23, 42, .16);
-  --rrll-component-bg: var(--rrll-surface-card);
-  --rrll-component-bg-soft: var(--rrll-surface-base);
-  --rrll-component-border: var(--rrll-border);
-  --rrll-component-text: var(--rrll-text-main);
-  --rrll-component-muted: var(--rrll-text-muted);
-  --phase4-sidebar-bg: var(--rrll-sidebar-stable);
-  --phase4-sidebar-bg-2: var(--rrll-sidebar-stable-2);
-  --phase4-sidebar-hover: var(--rrll-sidebar-stable-hover);
-}
-
-html[data-theme="light"] {
-  color-scheme: light;
-
-  /* Modo claro real: superficies claras y texto oscuro. Se mantiene la
-     navegación lateral carbón como elemento estable de marca. */
-  --dash-surface: var(--rrll-bg-card-light);
-  --dash-surface-2: var(--rrll-bg-soft-light);
-  --dash-border: var(--rrll-border-light);
-
-  --bg: var(--rrll-bg-app-light);
-  --panel: var(--rrll-bg-panel-light);
-  --text: var(--rrll-text-main-light);
-  --muted: var(--rrll-text-muted-light);
-  --border: var(--rrll-border-light);
-  --black: var(--rrll-text-main-light);
-  --red: var(--rrll-red-ui);
-  --soft-red: rgba(167, 53, 53, .10);
-  --warning: rgba(217, 119, 6, .14);
-  --expired: rgba(185, 28, 28, .12);
-  --chart-gray: #6b7280;
-  --shadow: var(--rrll-shadow-panel-light);
-
-  --rrll-bg-app: var(--rrll-bg-app-light);
-  --rrll-surface-base: var(--rrll-bg-soft-light);
-  --rrll-surface-card: var(--rrll-bg-card-light);
-  --rrll-surface-raised: var(--rrll-bg-panel-light);
-  --rrll-surface-header: var(--rrll-bg-table-head-light);
-  --rrll-surface-hover: var(--rrll-bg-table-hover-light);
-  --rrll-field-bg: var(--rrll-bg-panel-light);
-  --rrll-field-bg-focus: var(--rrll-bg-soft-light);
-  --rrll-border: var(--rrll-border-light);
-  --rrll-border-strong: var(--rrll-separator-light);
-  --rrll-text-main: var(--rrll-text-main-light);
-  --rrll-text-soft: var(--rrll-text-secondary-light);
-  --rrll-text-muted: var(--rrll-text-muted-light);
-  --rrll-shadow-soft: var(--rrll-shadow-light);
-  --rrll-shadow-panel: var(--rrll-shadow-panel-light);
-  --rrll-component-bg: var(--rrll-surface-card);
-  --rrll-component-bg-soft: var(--rrll-surface-base);
-  --rrll-component-border: var(--rrll-border);
-  --rrll-component-text: var(--rrll-text-main);
-  --rrll-component-muted: var(--rrll-text-muted);
-  --phase4-sidebar-bg: var(--rrll-sidebar-stable);
-  --phase4-sidebar-bg-2: var(--rrll-sidebar-stable-2);
-  --phase4-sidebar-hover: var(--rrll-sidebar-stable-hover);
-}
 html,
 body,
 body.phase4-view-home,
