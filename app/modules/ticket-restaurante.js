@@ -1412,6 +1412,63 @@ function ticketRestaurantAbsenceIntersectsVisibleMonth(absence, visibleMonth) {
   return dates.some(date => ticketRestaurantDateIsInVisibleMonth(date, visibleMonth));
 }
 
+function expandAbsenceIntoDays(absence) {
+  return expandDateRange(absence && absence.from, absence && (absence.to || absence.from));
+}
+
+function buildEmployeeAbsenceDayKey(employeeNumber, date) {
+  const employeeKey = normalizeTicketEmployeeLookup(employeeNumber);
+  const isoDate = parseTicketDate(date);
+  if (!employeeKey || !isoDate) return "";
+  return `${employeeKey}__${isoDate}`;
+}
+
+function getTicketAbsenceRecency(absence) {
+  const updatedAt = Date.parse(absence && absence.updatedAt);
+  if (Number.isFinite(updatedAt)) return { priority: 4, value: updatedAt };
+  const createdAt = Date.parse(absence && absence.createdAt);
+  if (Number.isFinite(createdAt)) return { priority: 3, value: createdAt };
+  const importDate = Date.parse(absence && absence.importDate);
+  if (Number.isFinite(importDate)) return { priority: 2, value: importDate };
+  const id = Number(absence && absence.id);
+  if (Number.isFinite(id)) return { priority: 1, value: id };
+  return { priority: 0, value: 0 };
+}
+
+function chooseLatestAbsence(existing, candidate) {
+  if (!existing) return candidate;
+  if (!candidate) return existing;
+  const left = getTicketAbsenceRecency(existing);
+  const right = getTicketAbsenceRecency(candidate);
+  if (right.priority !== left.priority) return right.priority > left.priority ? candidate : existing;
+  if (right.value !== left.value) return right.value > left.value ? candidate : existing;
+  return candidate;
+}
+
+function resolveEffectiveTicketAbsenceDays(absences) {
+  const effectiveByDay = new Map();
+  (Array.isArray(absences) ? absences : []).forEach(absence => {
+    const employeeNumber = absence && absence.employeeNumber;
+    expandAbsenceIntoDays(absence).forEach(date => {
+      const key = buildEmployeeAbsenceDayKey(employeeNumber, date);
+      if (!key) return;
+      const current = effectiveByDay.get(key);
+      const winner = chooseLatestAbsence(current && current.absence, absence);
+      if (winner === (current && current.absence)) return;
+      effectiveByDay.set(key, { key, employeeNumber, date, absence: winner });
+    });
+  });
+  return [...effectiveByDay.values()];
+}
+
+function getEffectiveEmployeeAbsencesForMonth(employeeNumber, month, absences = null) {
+  const key = normalizeTicketEmployeeLookup(employeeNumber);
+  if (!key) return [];
+  return resolveEffectiveTicketAbsenceDays(absences || getTicketRestaurantAbsences())
+    .filter(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === key)
+    .filter(item => !month || ticketRestaurantDateIsInVisibleMonth(item.date, month));
+}
+
 function ticketRestaurantGetCalendarMarkSet(calendar) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
   return new Set(getTicketRestaurantCalendarMarks()
@@ -1459,13 +1516,9 @@ function getEffectiveAbsenceDaysForEmployee(employeeNumber, absence, calendar, v
 }
 
 function filterAbsencesAffectingTicket(employeeNumber, absences, visibleMonth, calendar = null, includeWithoutImpact = true) {
-  const key = normalizeTicketEmployeeLookup(employeeNumber);
-  if (!key) return [];
-  const employeeAbsences = (Array.isArray(absences) ? absences : [])
-    .filter(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === key)
-    .filter(item => !visibleMonth || ticketRestaurantAbsenceIntersectsVisibleMonth(item, visibleMonth));
-  return employeeAbsences
-    .map(item => getEffectiveAbsenceDaysForEmployee(employeeNumber, item, calendar, visibleMonth))
+  const effectiveDailyAbsences = getEffectiveEmployeeAbsencesForMonth(employeeNumber, visibleMonth, absences);
+  return effectiveDailyAbsences
+    .map(item => getEffectiveAbsenceDaysForEmployee(employeeNumber, { ...item.absence, from: item.date, to: item.date }, calendar, visibleMonth))
     .filter(item => includeWithoutImpact || item.ticketDays > 0);
 }
 
