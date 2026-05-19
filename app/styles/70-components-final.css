@@ -2098,3 +2098,14 @@ html[data-theme="light"] :is(
   background: #465366 !important;
   color: #ffffff !important;
 }
+
+/* Estados críticos compartidos (migrado desde 40-theme.css) */
+.phase4-home-dashboard .danger,
+.phase4-home-dashboard .expired,
+.alert-danger,
+.row-danger {
+  background: rgba(239,68,68,.12) !important;
+  border-color: rgba(239,68,68,.22) !important;
+  color: #fecaca !important;
+}
+
