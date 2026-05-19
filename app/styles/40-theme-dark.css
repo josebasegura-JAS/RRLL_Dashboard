@@ -1099,3 +1099,16 @@ html[data-theme="dark"] .print-preview-content td {
   padding: 10px !important;
   vertical-align: top !important;
 }
+
+/* Scrollbar global modo dark (migrado desde 40-theme.css) */
+html[data-theme="dark"] * {
+  scrollbar-color: rgba(148,163,184,.42) rgba(36,42,54,.72) !important;
+}
+html[data-theme="dark"] *::-webkit-scrollbar-track {
+  background: rgba(36,42,54,.72) !important;
+}
+html[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,.42) !important;
+  border-color: rgba(36,42,54,.94) !important;
+}
+

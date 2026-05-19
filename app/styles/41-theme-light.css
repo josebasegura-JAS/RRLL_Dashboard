@@ -2071,3 +2071,16 @@ body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #c
   background: #f8fafc !important;
   border-color: #dbe2ea !important;
 }
+
+/* Scrollbar global modo light (equivalente al modo dark) */
+html[data-theme="light"] * {
+  scrollbar-color: rgba(100,116,139,.45) rgba(226,232,240,.88) !important;
+}
+html[data-theme="light"] *::-webkit-scrollbar-track {
+  background: rgba(226,232,240,.88) !important;
+}
+html[data-theme="light"] *::-webkit-scrollbar-thumb {
+  background: rgba(100,116,139,.45) !important;
+  border-color: rgba(203,213,225,.95) !important;
+}
+
