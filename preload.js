@@ -25,3 +25,10 @@ contextBridge.exposeInMainWorld("rrllFolder", {
   setPath: folderPath => ipcRenderer.invoke("rrllFolder:setPath", folderPath),
   open: () => ipcRenderer.invoke("rrllFolder:open")
 });
+
+
+contextBridge.exposeInMainWorld("rrllAttachments", {
+  selectFiles: () => ipcRenderer.invoke("attachments:selectFiles"),
+  openPath: filePath => ipcRenderer.invoke("attachments:openPath", filePath),
+  openFolder: filePath => ipcRenderer.invoke("attachments:openFolder", filePath)
+});

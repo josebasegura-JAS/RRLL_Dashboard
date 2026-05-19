@@ -969,6 +969,32 @@ async function exportTicketRestaurantWorkbook(_event, payload = {}) {
   return { canceled: false, filePath: result.filePath };
 }
 
+
+async function selectAttachmentFiles() {
+  const result = await dialog.showOpenDialog({
+    title: "Seleccionar documentos adjuntos",
+    properties: ["openFile", "multiSelections"]
+  });
+  if (result.canceled || !Array.isArray(result.filePaths)) return [];
+  return result.filePaths;
+}
+
+async function openAttachmentPath(_event, filePath) {
+  const safePath = typeof filePath === "string" ? filePath.trim() : "";
+  if (!safePath) return { ok: false, message: "Ruta no válida." };
+  if (!fs.existsSync(safePath)) return { ok: false, missing: true, message: "El archivo ya no existe o no es accesible." };
+  const openError = await shell.openPath(safePath);
+  if (openError) return { ok: false, message: "El archivo ya no existe o no es accesible.", detail: openError };
+  return { ok: true };
+}
+
+async function openAttachmentFolderPath(_event, filePath) {
+  const safePath = typeof filePath === "string" ? filePath.trim() : "";
+  if (!safePath) return { ok: false, message: "Ruta no válida." };
+  if (!fs.existsSync(safePath)) return { ok: false, missing: true, message: "El archivo ya no existe o no es accesible." };
+  shell.showItemInFolder(safePath);
+  return { ok: true };
+}
 ipcMain.handle("db:loadAll", async () => loadAllData());
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
@@ -986,6 +1012,9 @@ ipcMain.handle("rrllFolder:setPath", setRRLLFolderPath);
 ipcMain.handle("rrllFolder:open", openRRLLFolder);
 ipcMain.handle("ticketRestaurant:importSpreadsheet", importTicketRestaurantSpreadsheet);
 ipcMain.handle("ticketRestaurant:exportWorkbook", exportTicketRestaurantWorkbook);
+ipcMain.handle("attachments:selectFiles", selectAttachmentFiles);
+ipcMain.handle("attachments:openPath", openAttachmentPath);
+ipcMain.handle("attachments:openFolder", openAttachmentFolderPath);
 
 function createWindow() {
   Menu.setApplicationMenu(null);

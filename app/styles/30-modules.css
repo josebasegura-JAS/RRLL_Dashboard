@@ -1692,3 +1692,7 @@ td,
 
 /* Suavizar rojo en dashboard: reservarlo para vencidos/crítico */
 .phase4-home-dashboard .danger,
+.rrll-attachments-list { max-height: 180px; overflow: auto; display: grid; gap: 6px; margin-top: 6px; }
+.rrll-attachment-item { border: 1px solid #d9dde5; border-radius: 8px; padding: 6px 8px; background: #fff; display: grid; gap: 3px; }
+.rrll-attachment-item small { color: #6b7280; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rrll-attachment-item > div { display: flex; gap: 6px; flex-wrap: wrap; }

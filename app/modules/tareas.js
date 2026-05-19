@@ -147,6 +147,7 @@
 
         const now = new Date().toISOString();
         const status = statusEl.value;
+        const attachments = Array.isArray(window.__taskDraftAttachments) ? window.__taskDraftAttachments : [];
 
         const tasks = getTasks();
         tasks.unshift({
@@ -160,7 +161,8 @@
           petitionId: null,
           createdAt: now,
           closedAt: status === "closed" ? now : null,
-          updates: []
+          updates: [],
+          attachments
         });
 
         setTasks(tasks);
@@ -170,6 +172,8 @@
         if (dueDateEl) dueDateEl.value = "";
         if (priorityEl) priorityEl.value = "normal";
         populateTaskOriginSelect("newTaskOrigin", "", true);
+        window.__taskDraftAttachments = [];
+        if (typeof renderTaskAttachments === "function") renderTaskAttachments("newTaskAttachmentsList", []);
         toggleTaskCreateForm(false);
         renderTasks();
       }
@@ -310,6 +314,8 @@
         populateTaskOriginSelect("taskEditOrigin", taskOriginValue(task), true);
         if (updateInput) updateInput.value = "";
         renderEditableUpdates("taskExistingUpdates", task.updates || []);
+        window.__taskDraftAttachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
+        if (typeof renderTaskAttachments === "function") renderTaskAttachments("taskAttachmentsList", window.__taskDraftAttachments);
 
         document.getElementById("taskUpdateModal").classList.add("open");
         setTimeout(() => (updateInput || titleInput)?.focus(), 0);
@@ -363,7 +369,8 @@
             origin,
             closedAt: status === "closed" ? (task.closedAt || now) : null,
             updatedAt: now,
-            updates
+            updates,
+            attachments: Array.isArray(window.__taskDraftAttachments) ? window.__taskDraftAttachments : []
           };
         });
 
