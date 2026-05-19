@@ -680,6 +680,69 @@
   background: rgba(239, 68, 68, .22) !important;
 }
 
+
+/* Licencias (solo modo claro): eliminar herencia oscura sin tocar listado principal */
+html[data-theme="light"] #gestor-licencias {
+  background: #f4f6f8 !important;
+}
+html[data-theme="light"] #gestor-licencias > summary {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .08) !important;
+}
+html[data-theme="light"] #gestor-licencias > summary :is(.module-title, .summary-counts) {
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias > summary .summary-icon-button {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #dbe2ea !important;
+}
+html[data-theme="light"] #gestor-licencias :is(.rrll-pro-task-shell, .licencias-column, .licencias-history-card, .rrll-pro-task-head, .rrll-pro-list, .rrll-pro-list-card, .rrll-pro-form-shell, .rrll-pro-licencias-form, .rrll-pro-empty-state) {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-toolbar h3 {
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias :is(.rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update, .rrll-pro-muted, .summary-counts) {
+  color: #4b5563 !important;
+}
+html[data-theme="light"] #gestor-licencias :is(input, select, textarea) {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-color: #dbe2ea !important;
+}
+html[data-theme="light"] #gestor-licencias :is(input, select, textarea)::placeholder {
+  color: #6b7280 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year {
+  background: #fbfbfc !important;
+  border-color: #e5e7eb !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year > summary {
+  background: #f1f5f9 !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year > summary span {
+  color: #4b5563 !important;
+}
+html[data-theme="light"] #licenseUpdateModal :is(.modal-header, .rrll-modal-header) {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+html[data-theme="light"] #licenseUpdateModal :is(.modal-body, .rrll-modal-body) {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #licenseUpdateModal .existing-updates-box {
+  background: #f8fafc !important;
+  border: 1px solid #e5e7eb !important;
+}
+
 /* Tareas y peticiones: vista inicial compacta. Clic despliega detalle; doble clic edita. */
 .rrll-task-row,
 .rrll-petition-row {
