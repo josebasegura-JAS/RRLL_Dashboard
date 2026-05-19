@@ -142,6 +142,7 @@
 
       const now = new Date().toISOString();
       const origin = normalizePetitionOrigin(originEl ? originEl.value : "") || getPetitionOrigins()[0] || "";
+      const attachments = Array.isArray(window.__petitionDraftAttachments) ? window.__petitionDraftAttachments : [];
       populatePetitionOriginSelect("newPetitionOrigin", origin, false);
       const items = getPetitions();
       items.unshift({
@@ -155,7 +156,8 @@
         notes: notesEl.value.trim(),
         updates: [],
         createdAt: now,
-        closedAt: null
+        closedAt: null,
+        attachments
       });
 
       setPetitions(items);
@@ -167,6 +169,8 @@
       if (priorityEl) priorityEl.value = "normal";
       populatePetitionOriginSelect("newPetitionOrigin", getPetitionOrigins()[0] || "", false);
       notesEl.value = "";
+      window.__petitionDraftAttachments = [];
+      if (typeof renderPetitionAttachments === "function") renderPetitionAttachments("newPetitionAttachmentsList", []);
       togglePetitionCreateForm(false);
       renderPetitions();
     }
@@ -278,6 +282,8 @@
       if (originInput) originInput.value = petitionOriginValue(item);
       if (updateInput) updateInput.value = "";
       renderEditableUpdates("petitionExistingUpdates", item.updates || []);
+      window.__petitionDraftAttachments = Array.isArray(item.attachments) ? [...item.attachments] : [];
+      if (typeof renderPetitionAttachments === "function") renderPetitionAttachments("petitionAttachmentsList", window.__petitionDraftAttachments);
 
       document.getElementById("petitionUpdateModal").classList.add("open");
       setTimeout(() => (updateInput || titleInput)?.focus(), 0);
@@ -341,7 +347,8 @@
           notes,
           closedAt: status === "petition-closed" ? (item.closedAt || now) : null,
           updatedAt: now,
-          updates
+          updates,
+          attachments: Array.isArray(window.__petitionDraftAttachments) ? window.__petitionDraftAttachments : []
         };
       });
 

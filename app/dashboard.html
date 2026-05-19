@@ -344,6 +344,11 @@
                 <label>Descripción / notas</label>
                 <textarea id="newTaskNotes" placeholder="Describe la tarea, objetivos, referencia, persona afectada o próximos pasos..."></textarea>
               </div>
+              <div class="rrll-pro-field rrll-pro-field-full">
+                <label>Documentos Adjuntos</label>
+                <button type="button" class="secondary small" onclick="selectTaskAttachmentFiles()">Añadir documentos</button>
+                <div id="newTaskAttachmentsList" class="rrll-attachments-list"></div>
+              </div>
               <div class="rrll-pro-form-actions">
                 <button class="rrll-pro-primary" onclick="addTask()">Guardar tarea</button>
               </div>
@@ -435,6 +440,11 @@
               <div class="rrll-pro-field rrll-pro-field-full">
                 <label>Descripción / notas</label>
                 <textarea id="newPetitionNotes" placeholder="Notas iniciales de la petición, origen, referencia, persona o colectivo afectado..."></textarea>
+              </div>
+              <div class="rrll-pro-field rrll-pro-field-full">
+                <label>Documentos Adjuntos</label>
+                <button type="button" class="secondary small" onclick="selectPetitionAttachmentFiles()">Añadir documentos</button>
+                <div id="newPetitionAttachmentsList" class="rrll-attachments-list"></div>
               </div>
               <div class="rrll-pro-form-actions">
                 <button class="rrll-pro-primary" onclick="addPetition()">Guardar petición</button>
@@ -1620,6 +1630,11 @@
           <label for="taskUpdateModalText">Nueva actualización opcional</label>
           <textarea id="taskUpdateModalText" placeholder="Escribe aquí un avance si quieres añadirlo al historial..."></textarea>
         </div>
+        <div class="full">
+          <label>Documentos Adjuntos</label>
+          <button type="button" class="secondary small" onclick="selectTaskAttachmentFiles()">Añadir documentos</button>
+          <div id="taskAttachmentsList" class="rrll-attachments-list"></div>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="secondary" onclick="closeTaskUpdateModal()">Cancelar</button>
@@ -1678,6 +1693,11 @@
         <div class="full">
           <label for="petitionUpdateModalText">Nueva actualización opcional</label>
           <textarea id="petitionUpdateModalText" placeholder="Escribe aquí una actualización si quieres añadirla al historial..."></textarea>
+        </div>
+        <div class="full">
+          <label>Documentos Adjuntos</label>
+          <button type="button" class="secondary small" onclick="selectPetitionAttachmentFiles()">Añadir documentos</button>
+          <div id="petitionAttachmentsList" class="rrll-attachments-list"></div>
         </div>
       </div>
       <div class="modal-actions">
