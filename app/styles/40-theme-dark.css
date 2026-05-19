@@ -1,45 +1,502 @@
-/* Tema dark: tokens exclusivos del modo oscuro */
-html[data-theme="dark"] {
+/* =========================================================
+   Fase 5.3 — Paleta gris-carbón homogénea
+   Objetivo: eliminar negros/blancos residuales en pantalla.
+   La impresión física se mantiene blanca al final del bloque.
+   ========================================================= */
+
+html[data-theme="dark"] html,
+html[data-theme="dark"] body {
+  background: var(--rrll-bg) !important;
+  color: var(--rrll-text) !important;
   color-scheme: dark;
+}
 
-  --dash-surface: var(--rrll-bg-card-dark);
-  --dash-surface-2: var(--rrll-bg-soft-dark);
-  --dash-border: var(--rrll-border-dark);
+html[data-theme="dark"] body,
+html[data-theme="dark"] .phase4-shell,
+html[data-theme="dark"] .phase4-main,
+html[data-theme="dark"] .phase4-main main,
+html[data-theme="dark"] main,
+html[data-theme="dark"] .dashboard-layout,
+html[data-theme="dark"] .content-right,
+html[data-theme="dark"] .app-shell,
+html[data-theme="dark"] .app-main {
+  background:
+    radial-gradient(circle at top left, rgba(59,130,246,.035), transparent 30%),
+    linear-gradient(180deg, var(--rrll-bg-app-dark) 0%, #242b36 100%) !important;
+  color: var(--rrll-text) !important;
+}
 
-  --bg: var(--rrll-bg-app-dark);
-  --panel: var(--rrll-bg-panel-dark);
-  --text: var(--rrll-text-main-dark);
-  --muted: var(--rrll-text-muted-dark);
-  --border: var(--rrll-border-dark);
-  --black: var(--rrll-bg-soft-dark);
-  --red: var(--rrll-red-ui);
-  --soft-red: rgba(239, 68, 68, .12);
-  --warning: rgba(245, 158, 11, .14);
-  --expired: rgba(239, 68, 68, .14);
-  --chart-gray: #6b7280;
-  --shadow: var(--rrll-shadow-dark);
+/* Sidebar y cabecera: gris profundo, no negro */
+html[data-theme="dark"] .phase4-sidebar,
+html[data-theme="dark"] .sidebar-left,
+html[data-theme="dark"] .sidebar-inner,
+html[data-theme="dark"] .phase4-main .top-strip,
+html[data-theme="dark"] .top-strip,
+html[data-theme="dark"] .app-header,
+html[data-theme="dark"] .header,
+html[data-theme="dark"] .brand-panel,
+html[data-theme="dark"] .phase4-sidebar-brand,
+html[data-theme="dark"] .phase4-sidebar-footer {
+  background: linear-gradient(180deg, #242b36 0%, var(--rrll-bg-app-dark) 100%) !important;
+  color: var(--rrll-text) !important;
+  border-color: var(--rrll-border) !important;
+}
 
-  --rrll-bg-app: var(--rrll-bg-app-dark);
-  --rrll-surface-base: var(--rrll-bg-panel-dark);
-  --rrll-surface-card: var(--rrll-bg-card-dark);
-  --rrll-surface-raised: var(--rrll-bg-card-dark);
-  --rrll-surface-header: var(--rrll-bg-table-head-dark);
-  --rrll-surface-hover: var(--rrll-bg-table-hover-dark);
-  --rrll-field-bg: var(--rrll-bg-panel-dark);
-  --rrll-field-bg-focus: var(--rrll-bg-soft-dark);
-  --rrll-border: var(--rrll-border-dark);
-  --rrll-border-strong: rgba(170, 179, 194, .24);
-  --rrll-text-main: var(--rrll-text-main-dark);
-  --rrll-text-soft: var(--rrll-text-secondary-dark);
-  --rrll-text-muted: var(--rrll-text-muted-dark);
-  --rrll-shadow-soft: 0 10px 26px rgba(15, 23, 42, .14);
-  --rrll-shadow-panel: 0 12px 30px rgba(15, 23, 42, .16);
-  --rrll-component-bg: var(--rrll-surface-card);
-  --rrll-component-bg-soft: var(--rrll-surface-base);
-  --rrll-component-border: var(--rrll-border);
-  --rrll-component-text: var(--rrll-text-main);
-  --rrll-component-muted: var(--rrll-text-muted);
-  --phase4-sidebar-bg: var(--rrll-sidebar-stable);
-  --phase4-sidebar-bg-2: var(--rrll-sidebar-stable-2);
-  --phase4-sidebar-hover: var(--rrll-sidebar-stable-hover);
+html[data-theme="dark"] .phase4-nav-item,
+html[data-theme="dark"] .phase4-nav-subitem,
+html[data-theme="dark"] .sidebar-link,
+html[data-theme="dark"] .nav-item,
+html[data-theme="dark"] .quick-menu-trigger {
+  background: transparent !important;
+  color: rgba(229,231,235,.82) !important;
+  border-color: transparent !important;
+}
+
+html[data-theme="dark"] .phase4-nav-item:hover,
+html[data-theme="dark"] .phase4-nav-subitem:hover,
+html[data-theme="dark"] .sidebar-link:hover,
+html[data-theme="dark"] .nav-item:hover {
+  background: #2b313d !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .phase4-nav-item.active,
+html[data-theme="dark"] .phase4-nav-subitem.active,
+html[data-theme="dark"] .sidebar-link.active,
+html[data-theme="dark"] .nav-item.active,
+html[data-theme="dark"] .phase4-nav-parent.open {
+  background: linear-gradient(90deg, rgba(239,68,68,.30), rgba(48,55,70,.92)) !important;
+  color: #f8fafc !important;
+  border-color: rgba(239,68,68,.42) !important;
+}
+
+/* Superficies generales */
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .module-card,
+html[data-theme="dark"] details.module-card,
+html[data-theme="dark"] .phase4-dashboard-card,
+html[data-theme="dark"] .phase4-metric-card,
+html[data-theme="dark"] .phase4-home-hero,
+html[data-theme="dark"] .phase4-home-date,
+html[data-theme="dark"] .phase4-status-row,
+html[data-theme="dark"] .phase4-list-row,
+html[data-theme="dark"] .quick-card,
+html[data-theme="dark"] .alerts-card,
+html[data-theme="dark"] .dashboard-card,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .section-card,
+html[data-theme="dark"] .widget,
+html[data-theme="dark"] .box,
+html[data-theme="dark"] .stats-card,
+html[data-theme="dark"] .rrll-pro-list-card,
+html[data-theme="dark"] .rrll-pro-task-form,
+html[data-theme="dark"] .rrll-pro-committee-shell,
+html[data-theme="dark"] .rrll-pro-paritaria-shell,
+html[data-theme="dark"] .rrll-pro-table-wrap,
+html[data-theme="dark"] .professional-table-wrap,
+html[data-theme="dark"] .professional-card,
+html[data-theme="dark"] .professional-panel,
+html[data-theme="dark"] .enhanced-task-form,
+html[data-theme="dark"] .enhanced-petition-form,
+html[data-theme="dark"] .agenda-form-v18,
+html[data-theme="dark"] .paritaria-form-v18,
+html[data-theme="dark"] .session-form,
+html[data-theme="dark"] .telework-form,
+html[data-theme="dark"] .form-inline,
+html[data-theme="dark"] .config-modal-card,
+html[data-theme="dark"] .config-modal-box,
+html[data-theme="dark"] .trash-list,
+html[data-theme="dark"] .import-summary-grid,
+html[data-theme="dark"] .db-info-grid,
+html[data-theme="dark"] .db-sync-notice,
+html[data-theme="dark"] .module-search-box,
+html[data-theme="dark"] .modal-box,
+html[data-theme="dark"] .modal-card,
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .modal-panel,
+html[data-theme="dark"] .print-preview-box {
+  background:
+    radial-gradient(circle at top left, rgba(148,163,184,.045), transparent 36%),
+    linear-gradient(180deg, rgba(43,49,61,.96), rgba(36,42,54,.98)) !important;
+  color: var(--rrll-text) !important;
+  border-color: var(--rrll-border) !important;
+  box-shadow: 0 18px 42px rgba(17,24,39,.24) !important;
+}
+
+/* Cabeceras, títulos y bandas internas */
+html[data-theme="dark"] .module-card > summary,
+html[data-theme="dark"] details.module-card > summary,
+html[data-theme="dark"] .module-header,
+html[data-theme="dark"] .professional-header,
+html[data-theme="dark"] .rrll-pro-list-toolbar,
+html[data-theme="dark"] .card-header,
+html[data-theme="dark"] .panel-header,
+html[data-theme="dark"] .table-toolbar,
+html[data-theme="dark"] .toolbar,
+html[data-theme="dark"] .form-header,
+html[data-theme="dark"] .modal-header,
+html[data-theme="dark"] .print-preview-box h2,
+html[data-theme="dark"] .session-year-title,
+html[data-theme="dark"] .year-title {
+  background: linear-gradient(180deg, rgba(52,59,70,.86), rgba(48,55,70,.78)) !important;
+  color: #f8fafc !important;
+  border-color: var(--rrll-border) !important;
+}
+
+/* Interiores de gestores: gris consistente */
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module > div,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module section,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module article,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .module-body,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .card-body,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .rrll-pro-task-shell,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .workflow-columns,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .minutes-columns,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .telework-columns,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .session-columns,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .committee-section,
+html[data-theme="dark"] body.phase4-view-module .phase4-active-module .paritaria-section {
+  background-color: transparent !important;
+  color: var(--rrll-text) !important;
+}
+
+/* Columnas, listas, ítems y estados */
+html[data-theme="dark"] .workflow-column,
+html[data-theme="dark"] .task-column,
+html[data-theme="dark"] .petition-column,
+html[data-theme="dark"] .minutes-column,
+html[data-theme="dark"] .telework-column,
+html[data-theme="dark"] .session-column,
+html[data-theme="dark"] .kanban-column,
+html[data-theme="dark"] .list-column,
+html[data-theme="dark"] .closed-column,
+html[data-theme="dark"] .closed-panel,
+html[data-theme="dark"] .task-card,
+html[data-theme="dark"] .petition-card,
+html[data-theme="dark"] .minute-card,
+html[data-theme="dark"] .agenda-card,
+html[data-theme="dark"] .paritaria-card,
+html[data-theme="dark"] .telework-card,
+html[data-theme="dark"] .session-card,
+html[data-theme="dark"] .trash-item,
+html[data-theme="dark"] .update-item,
+html[data-theme="dark"] .alert-item,
+html[data-theme="dark"] .activity-item,
+html[data-theme="dark"] .home-alert-item,
+html[data-theme="dark"] .home-recent-item,
+html[data-theme="dark"] .home-workload-row,
+html[data-theme="dark"] .existing-updates-box,
+html[data-theme="dark"] .allegations-list,
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .empty,
+html[data-theme="dark"] .empty-list,
+html[data-theme="dark"] #taskExistingUpdates,
+html[data-theme="dark"] #petitionExistingUpdates,
+html[data-theme="dark"] #agendaExistingUpdates,
+html[data-theme="dark"] #paritariaExistingUpdates,
+html[data-theme="dark"] #minuteExistingUpdates,
+html[data-theme="dark"] #moduleSearchResults,
+html[data-theme="dark"] #importPreviewSummary,
+html[data-theme="dark"] #trashList,
+html[data-theme="dark"] #trashListModern,
+html[data-theme="dark"] .config-row,
+html[data-theme="dark"] .access-config-item,
+html[data-theme="dark"] .session-year-block,
+html[data-theme="dark"] .session-year-content,
+html[data-theme="dark"] .year-block,
+html[data-theme="dark"] .year-content,
+html[data-theme="dark"] .committee-session-year,
+html[data-theme="dark"] .paritaria-session-year {
+  background: #2b313d !important;
+  color: rgba(229,231,235,.90) !important;
+  border-color: var(--rrll-border-soft) !important;
+}
+
+html[data-theme="dark"] .task-card:hover,
+html[data-theme="dark"] .petition-card:hover,
+html[data-theme="dark"] .minute-card:hover,
+html[data-theme="dark"] .agenda-card:hover,
+html[data-theme="dark"] .paritaria-card:hover,
+html[data-theme="dark"] .telework-card:hover,
+html[data-theme="dark"] .session-card:hover,
+html[data-theme="dark"] .phase4-list-row:hover,
+html[data-theme="dark"] .activity-item:hover,
+html[data-theme="dark"] .alert-item:hover,
+html[data-theme="dark"] .trash-item:hover {
+  background: #303746 !important;
+  border-color: rgba(148,163,184,.24) !important;
+}
+
+/* Inputs y formularios */
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .input-like,
+html[data-theme="dark"] .search-input,
+html[data-theme="dark"] .rrll-pro-field input,
+html[data-theme="dark"] .rrll-pro-field select,
+html[data-theme="dark"] .rrll-pro-field textarea,
+html[data-theme="dark"] .rrll-pro-search-wrap input,
+html[data-theme="dark"] .professional-form input,
+html[data-theme="dark"] .professional-form select,
+html[data-theme="dark"] .professional-form textarea,
+html[data-theme="dark"] .modal-box input,
+html[data-theme="dark"] .modal-box select,
+html[data-theme="dark"] .modal-box textarea,
+html[data-theme="dark"] .modal-card input,
+html[data-theme="dark"] .modal-card select,
+html[data-theme="dark"] .modal-card textarea {
+  background: #252d39 !important;
+  color: var(--rrll-text) !important;
+  border: 1px solid rgba(148,163,184,.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03) !important;
+}
+
+html[data-theme="dark"] input:focus,
+html[data-theme="dark"] select:focus,
+html[data-theme="dark"] textarea:focus {
+  background: #2b313d !important;
+  border-color: rgba(59,130,246,.55) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.13) !important;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: rgba(170,179,194,.64) !important;
+}
+
+html[data-theme="dark"] select option {
+  background: #252d39 !important;
+  color: var(--rrll-text) !important;
+}
+
+html[data-theme="dark"] label,
+html[data-theme="dark"] .form-label,
+html[data-theme="dark"] .field-label,
+html[data-theme="dark"] .config-row label {
+  color: var(--rrll-muted) !important;
+}
+
+/* Tablas profesionales */
+html[data-theme="dark"] table:not(.print-frame table),
+html[data-theme="dark"] .professional-table,
+html[data-theme="dark"] .rrll-pro-table,
+html[data-theme="dark"] .data-table,
+html[data-theme="dark"] .table,
+html[data-theme="dark"] .table-view {
+  background: #2b313d !important;
+  color: rgba(229,231,235,.90) !important;
+  border-color: var(--rrll-border-soft) !important;
+}
+
+html[data-theme="dark"] thead,
+html[data-theme="dark"] thead tr,
+html[data-theme="dark"] th:not(.print-frame th),
+html[data-theme="dark"] .professional-table thead th,
+html[data-theme="dark"] .rrll-pro-table thead th,
+html[data-theme="dark"] .data-table thead th {
+  background: #343b46 !important;
+  color: rgba(248,250,252,.92) !important;
+  border-color: rgba(148,163,184,.14) !important;
+}
+
+html[data-theme="dark"] tbody tr,
+html[data-theme="dark"] tr:not(.print-frame tr),
+html[data-theme="dark"] td:not(.print-frame td),
+html[data-theme="dark"] .professional-table td,
+html[data-theme="dark"] .rrll-pro-table td,
+html[data-theme="dark"] .data-table td {
+  background: transparent !important;
+  color: rgba(229,231,235,.86) !important;
+  border-color: rgba(148,163,184,.11) !important;
+}
+
+html[data-theme="dark"] tbody tr:hover,
+html[data-theme="dark"] .professional-table tbody tr:hover,
+html[data-theme="dark"] .rrll-pro-table tbody tr:hover,
+html[data-theme="dark"] .data-table tbody tr:hover {
+  background: rgba(48,55,70,.78) !important;
+}
+
+/* Botones */
+html[data-theme="dark"] button,
+html[data-theme="dark"] .launch-button,
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] .action-button {
+  border-color: rgba(148,163,184,.18) !important;
+}
+
+html[data-theme="dark"] button.black,
+html[data-theme="dark"] .black,
+html[data-theme="dark"] .sidebar-collapse-toggle {
+  background: #343b46 !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme="dark"] button.secondary,
+html[data-theme="dark"] .secondary,
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] .modal-actions .secondary {
+  background: rgba(52,59,70,.82) !important;
+  color: #dbe4ef !important;
+  border-color: rgba(148,163,184,.20) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] button.secondary:hover,
+html[data-theme="dark"] .secondary:hover,
+html[data-theme="dark"] .btn-secondary:hover {
+  background: #303746 !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme="dark"] button.danger,
+html[data-theme="dark"] .danger-button,
+html[data-theme="dark"] .btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: #ffffff !important;
+}
+
+/* Zonas de acciones en modales: sin blanco */
+html[data-theme="dark"] .modal-actions,
+html[data-theme="dark"] .form-actions,
+html[data-theme="dark"] .rrll-pro-form-actions,
+html[data-theme="dark"] .professional-actions,
+html[data-theme="dark"] .footer-actions,
+html[data-theme="dark"] .modal-footer,
+html[data-theme="dark"] .print-preview-actions {
+  background: linear-gradient(180deg, rgba(48,55,70,.92), rgba(43,49,61,.94)) !important;
+  border-color: var(--rrll-border-soft) !important;
+  color: var(--rrll-text) !important;
+}
+
+/* Dashboard: colores funcionales, rojo solo crítico */
+html[data-theme="dark"] .phase4-home-dashboard .alert-item,
+html[data-theme="dark"] .phase4-home-dashboard .home-alert-item,
+html[data-theme="dark"] .phase4-home-dashboard .activity-item,
+html[data-theme="dark"] .phase4-home-dashboard .home-recent-item,
+html[data-theme="dark"] .phase4-home-dashboard .home-workload-row {
+  background: #2b313d !important;
+  border-color: rgba(148,163,184,.13) !important;
+  color: rgba(229,231,235,.90) !important;
+}
+
+html[data-theme="dark"] .phase4-home-dashboard .alert-item.expired,
+html[data-theme="dark"] .phase4-home-dashboard .home-alert-item.expired,
+html[data-theme="dark"] .phase4-home-dashboard .danger,
+html[data-theme="dark"] .phase4-home-dashboard .expired,
+html[data-theme="dark"] .alert-danger,
+html[data-theme="dark"] .row-danger {
+  background: linear-gradient(90deg, rgba(239,68,68,.16), rgba(43,49,61,.94)) !important;
+  border-color: rgba(239,68,68,.30) !important;
+  color: #fecaca !important;
+}
+
+html[data-theme="dark"] .phase4-home-dashboard .warning,
+html[data-theme="dark"] .alert-warning,
+html[data-theme="dark"] .row-warning {
+  background: linear-gradient(90deg, rgba(245,158,11,.14), rgba(43,49,61,.94)) !important;
+  border-color: rgba(245,158,11,.26) !important;
+  color: #fde68a !important;
+}
+
+/* Previsualización de impresión en pantalla: gris-carbón. Documento en papel: blanco solo al imprimir. */
+html[data-theme="dark"] .print-preview-content,
+html[data-theme="dark"] .print-preview-document,
+html[data-theme="dark"] .print-preview-content > div {
+  background: #2b313d !important;
+  color: var(--rrll-text) !important;
+  border-color: var(--rrll-border) !important;
+}
+
+html[data-theme="dark"] .print-preview-content h1,
+html[data-theme="dark"] .print-preview-content h2,
+html[data-theme="dark"] .print-preview-content h3,
+html[data-theme="dark"] .print-preview-content p,
+html[data-theme="dark"] .print-preview-content .date,
+html[data-theme="dark"] .print-preview-content table,
+html[data-theme="dark"] .print-preview-content tbody,
+html[data-theme="dark"] .print-preview-content tr,
+html[data-theme="dark"] .print-preview-content td {
+  background: transparent !important;
+  color: var(--rrll-text) !important;
+}
+
+html[data-theme="dark"] .print-preview-content th {
+  background: #343b46 !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .print-preview-content table,
+html[data-theme="dark"] .print-preview-content th,
+html[data-theme="dark"] .print-preview-content td {
+  border-color: rgba(148,163,184,.16) !important;
+}
+
+/* Salvaguarda frente a estilos heredados blancos/negros en pantalla */
+@media screen {
+  html[data-theme="dark"] [style*="background: white"],
+html[data-theme="dark"] [style*="background:white"],
+html[data-theme="dark"] [style*="background: #fff"],
+html[data-theme="dark"] [style*="background:#fff"],
+html[data-theme="dark"] [style*="background: #ffffff"],
+html[data-theme="dark"] [style*="background:#ffffff"],
+html[data-theme="dark"] [style*="background-color: white"],
+html[data-theme="dark"] [style*="background-color:white"],
+html[data-theme="dark"] [style*="background-color: #fff"],
+html[data-theme="dark"] [style*="background-color:#fff"],
+html[data-theme="dark"] [style*="background-color: #ffffff"],
+html[data-theme="dark"] [style*="background-color:#ffffff"] {
+    background: #2b313d !important;
+    color: var(--rrll-text) !important;
+  }
+
+  html[data-theme="dark"] [style*="background: black"],
+html[data-theme="dark"] [style*="background:black"],
+html[data-theme="dark"] [style*="background: #000"],
+html[data-theme="dark"] [style*="background:#000"],
+html[data-theme="dark"] [style*="background: #111"],
+html[data-theme="dark"] [style*="background:#111"],
+html[data-theme="dark"] [style*="background-color: black"],
+html[data-theme="dark"] [style*="background-color:black"],
+html[data-theme="dark"] [style*="background-color: #000"],
+html[data-theme="dark"] [style*="background-color:#000"],
+html[data-theme="dark"] [style*="background-color: #111"],
+html[data-theme="dark"] [style*="background-color:#111"] {
+    background: #343b46 !important;
+    color: var(--rrll-text) !important;
+  }
+}
+
+/* Scrollbars coherentes */
+html[data-theme="dark"] * {
+  scrollbar-color: rgba(170,179,194,.42) #242b36 !important;
+}
+html[data-theme="dark"] *::-webkit-scrollbar-track {
+  background: #242b36 !important;
+}
+html[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: rgba(170,179,194,.42) !important;
+  border-color: #242b36 !important;
+}
+html[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(170,179,194,.58) !important;
+}
+
+/* Última excepción controlada: salida física a papel */
+@media print {
+  html[data-theme="dark"] body,
+html[data-theme="dark"] .print-preview-content,
+html[data-theme="dark"] .print-preview-document,
+html[data-theme="dark"] .print-preview-content * {
+    background: #ffffff !important;
+    color: var(--rrll-text-main-light) !important;
+    box-shadow: none !important;
+  }
+  html[data-theme="dark"] .print-preview-content th {
+    background: #343b46 !important;
+    color: #ffffff !important;
+  }
 }
