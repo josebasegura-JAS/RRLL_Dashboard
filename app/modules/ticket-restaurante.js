@@ -978,12 +978,18 @@ function getTicketPreviewRowMonth(row) {
   return row && row._previewMonth ? normalizeTicketMonth(row._previewMonth) : getTicketPreviewVisibleMonth();
 }
 
-function filterTicketPreviewRowsByMonth(rows, month) {
+function ticketRestaurantPreviewRowIntersectsVisibleMonth(row, month) {
   const visible = normalizeTicketMonth(month || getTicketPreviewVisibleMonth());
-  return (Array.isArray(rows) ? rows : []).filter(row => {
-    const period = getTicketPreviewRowMonth(row);
-    return period.month === visible.month && period.year === visible.year;
-  });
+  const from = row && (row.fromDate || row.from);
+  const to = row && (row.toDate || row.to || from);
+  const dates = expandDateRange(from, to);
+  if (dates.length) return dates.some(date => ticketRestaurantDateIsInVisibleMonth(date, visible));
+  const period = getTicketPreviewRowMonth(row);
+  return period.month === visible.month && period.year === visible.year;
+}
+
+function filterTicketPreviewRowsByMonth(rows, month) {
+  return (Array.isArray(rows) ? rows : []).filter(row => ticketRestaurantPreviewRowIntersectsVisibleMonth(row, month));
 }
 
 function getTicketPreviewAvailableMonths() {
@@ -1239,6 +1245,7 @@ function renderTicketAbsenceMonthSelector() {
 function filterTicketAbsencesByVisibleMonth(absences) {
   const visible = getTicketAbsenceVisibleMonth();
   return (Array.isArray(absences) ? absences : []).filter(item => {
+    if (ticketRestaurantAbsenceIntersectsVisibleMonth(item, visible)) return true;
     const period = ticketRestaurantMonthYearFromDate(item && item.from);
     const month = period.month || Number(item && item.month);
     const year = period.year || Number(item && item.year);
