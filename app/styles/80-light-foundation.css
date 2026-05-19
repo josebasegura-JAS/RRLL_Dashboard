@@ -3233,3 +3233,64 @@ html[data-theme="light"] *::-webkit-scrollbar-thumb {
 html[data-theme="light"] *::-webkit-scrollbar-thumb:hover {
   background: #aab6c5;
 }
+
+/* Light mode fix — Gestor de Tareas: cabecera, acciones y estados (sin tocar dark mode). */
+html[data-theme="light"] body.phase4-view-module #gestor-tareas.rrll-pro-module,
+html[data-theme="light"] body.phase4-view-module #gestor-tareas.rrll-pro-module > summary {
+  background: #f8fafc !important;
+  border-color: var(--border-soft) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-task-head {
+  background: #f8fafc !important;
+  border: 1px solid var(--border-soft) !important;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button.small, .small) {
+  background: #f8fafc !important;
+  border: 1px solid var(--border-soft) !important;
+  color: var(--text-secondary) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button.small, .small):hover,
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button.small, .small):focus-visible {
+  background: var(--rrll-bg-table-hover-light) !important;
+  border-color: var(--rrll-separator-light) !important;
+  color: var(--text-primary) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button.black, .black, .small.black) {
+  background: rgba(47, 111, 187, .11) !important;
+  border-color: rgba(47, 111, 187, .24) !important;
+  color: #245a9a !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button.black, .black, .small.black):hover,
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button.black, .black, .small.black):focus-visible {
+  background: rgba(47, 111, 187, .18) !important;
+  border-color: rgba(47, 111, 187, .32) !important;
+  color: #1f4f87 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button:not(.danger):not(.black):not(.small.black), .small:not(.danger):not(.black):not(.small.black)) {
+  background: rgba(19, 138, 82, .11) !important;
+  border-color: rgba(19, 138, 82, .24) !important;
+  color: #11623d !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button:not(.danger):not(.black):not(.small.black), .small:not(.danger):not(.black):not(.small.black)):hover,
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-actions :is(button:not(.danger):not(.black):not(.small.black), .small:not(.danger):not(.black):not(.small.black)):focus-visible {
+  background: rgba(19, 138, 82, .18) !important;
+  border-color: rgba(19, 138, 82, .32) !important;
+  color: #0f5334 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-status-pill.progress {
+  background: rgba(47, 111, 187, .12) !important;
+  border-color: rgba(47, 111, 187, .25) !important;
+  color: #245a9a !important;
+}
