@@ -1539,10 +1539,11 @@
       const tableBody = document.getElementById("agendaTableBody");
       if (!tableBody) return;
       if (tableBody.dataset.clickBound !== "true") {
-        tableBody.dataset.clickBound = "true";
         tableBody.addEventListener("click", handleAgendaRowClick);
+        tableBody.dataset.clickBound = "true";
       }
       if (tableBody.dataset.dblclickBound !== "true") {
+        tableBody.addEventListener("dblclick", handleAgendaRowDoubleClick);
         tableBody.dataset.dblclickBound = "true";
       }
     }

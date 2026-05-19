@@ -1503,10 +1503,11 @@
       const tableBody = document.getElementById("paritariaTableBody");
       if (!tableBody) return;
       if (tableBody.dataset.clickBound !== "true") {
-        tableBody.dataset.clickBound = "true";
         tableBody.addEventListener("click", handleParitariaRowClick);
+        tableBody.dataset.clickBound = "true";
       }
       if (tableBody.dataset.dblclickBound !== "true") {
+        tableBody.addEventListener("dblclick", handleParitariaRowDoubleClick);
         tableBody.dataset.dblclickBound = "true";
       }
     }
