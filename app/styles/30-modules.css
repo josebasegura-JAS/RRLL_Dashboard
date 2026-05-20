@@ -290,6 +290,39 @@
   text-align: right;
 }
 
+
+#gestor-tareas .rrll-pro-table-tasks {
+  table-layout: fixed;
+}
+
+#gestor-tareas .rrll-pro-table-tasks th:nth-child(1),
+#gestor-tareas .rrll-pro-table-tasks td:nth-child(1) {
+  width: auto;
+}
+
+#gestor-tareas .rrll-pro-table-tasks th:nth-child(2),
+#gestor-tareas .rrll-pro-table-tasks td:nth-child(2),
+#gestor-tareas .rrll-pro-table-tasks th:nth-child(3),
+#gestor-tareas .rrll-pro-table-tasks td:nth-child(3),
+#gestor-tareas .rrll-pro-table-tasks th:nth-child(4),
+#gestor-tareas .rrll-pro-table-tasks td:nth-child(4),
+#gestor-tareas .rrll-pro-table-tasks th:nth-child(5),
+#gestor-tareas .rrll-pro-table-tasks td:nth-child(5) {
+  width: 120px;
+}
+
+#gestor-tareas .rrll-pro-table-tasks th:nth-child(6),
+#gestor-tareas .rrll-pro-table-tasks td:nth-child(6) {
+  width: 280px;
+  min-width: 280px;
+}
+
+#gestor-tareas .rrll-pro-table-tasks .rrll-pro-actions {
+  white-space: nowrap;
+  overflow: visible;
+  min-width: 280px;
+}
+
 .rrll-pro-actions button {
   margin: 0 0 5px 5px;
   box-shadow: none !important;

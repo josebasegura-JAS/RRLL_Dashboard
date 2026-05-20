@@ -438,7 +438,6 @@
             <div class="rrll-pro-title">${escapeHtml(item.title || "Sin título")}</div>
             <div class="rrll-pro-subtitle">${escapeHtml(notes)}</div>
             <div class="rrll-pro-created">Creada: ${escapeHtml(created)}${closed ? ` · Cerrada: ${escapeHtml(closed)}` : ""}</div>
-            <div class="rrll-pro-due-detail">${escapeHtml(dueDetail)}</div>
           </td>
           <td class="rrll-origin-cell">${originHtml}</td>
           <td>${petitionPriorityBadgeHtml(item.priority)}</td>
