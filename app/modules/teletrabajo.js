@@ -1467,6 +1467,44 @@
     }
   }
 
+
+  function normalizeTeleworkImportDate(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const normalized = raw.replace(/\./g, "/").replace(/-/g, "/");
+    const match = normalized.match(/^(\d{1,4})\/(\d{1,2})\/(\d{1,4})$/);
+    if (match) {
+      let first = Number(match[1]);
+      const second = Number(match[2]);
+      let third = Number(match[3]);
+      if (match[1].length === 4) {
+        const yyyy = first;
+        const mm = second;
+        const dd = third;
+        if (yyyy >= 1900 && mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+      }
+      if (match[3].length === 4) {
+        const dd = first;
+        const mm = second;
+        const yyyy = third;
+        if (yyyy >= 1900 && mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+      }
+    }
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+    return "";
+  }
+
+  function getTeleworkAbsenceKey(item) {
+    const employeeNumber = String(item?.employeeNumber || "").trim().toLowerCase();
+    const fullName = String(item?.name || "").trim().toLowerCase();
+    const dateKey = normalizeTeleworkImportDate(item?.absenceDate || item?.resolutionDate || item?.createdAt);
+    if (!dateKey) return "";
+    if (employeeNumber) return `emp::${employeeNumber}::${dateKey}`;
+    if (fullName) return `name::${fullName}::${dateKey}`;
+    return "";
+  }
+
   function parseTeleworkBoolean(value) {
       const text = normalizeTeleworkLookup(value);
       if (!text) return false;
@@ -1494,6 +1532,7 @@
       const directionApproved = parseTeleworkBoolean(teleworkCell(record, ["Validación Dirección", "Validacion Direccion"]));
       const importedStatus = teleworkStatusFromImport(record);
       const resolvedAt = teleworkCell(record, ["Fecha resolución", "Fecha resolucion"]);
+      const absenceDate = normalizeTeleworkImportDate(teleworkCell(record, ["Fecha ausencia", "Fecha ausencias", "Dia", "Día", "Fecha", "Fecha solicitud", "Fecha peticion", "Fecha petición"]) || resolvedAt);
       return normalizeTeleworkItem({
         id: (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
         employeeNumber: teleworkCell(record, ["Nº empleado", "No empleado", "N empleado", "Numero empleado"]),
@@ -1509,7 +1548,8 @@
         previousYearTeleworked: parseTeleworkBoolean(teleworkCell(record, ["Año anterior teletrabajado", "Ano anterior teletrabajado"])) ? "Sí" : "No aplica",
         unitHeadRepeatValidation: parseTeleworkBoolean(teleworkCell(record, ["Validación Jefatura Unidad a repetir", "Validacion Jefatura Unidad a repetir"])) ? "Sí" : "No aplica",
         directionValidation: directionApproved ? "Aprobada" : "Pendiente",
-        resolutionDate: resolvedAt || "",
+        resolutionDate: absenceDate || resolvedAt || "",
+        absenceDate,
         status: importedStatus || (resolvedAt || directionApproved ? "telework-approved" : "telework-entry"),
         statusManual: true,
         resolvedAt: resolvedAt || null,
@@ -1523,31 +1563,41 @@
       const { headers, records } = teleworkRowsToRecords(rows);
       const hasPeriod = headers.some(h => h === "periodo" || h === "campana");
       const defaultPeriod = hasPeriod ? "" : getTeleworkActiveCampaign();
-      const imported = records.map(record => buildTeleworkImportItem(record, defaultPeriod)).filter(item => item.employeeNumber && item.name);
-      const existing = getTeleworkItems();
-      const existingKeys = new Set(existing.map(getTeleworkDuplicateKey).filter(Boolean));
-      const seenImportKeys = new Set();
-      const duplicateCount = imported.reduce((count, item) => {
-        const key = getTeleworkDuplicateKey(item);
-        const duplicated = key && (existingKeys.has(key) || seenImportKeys.has(key));
-        if (key) seenImportKeys.add(key);
-        return duplicated ? count + 1 : count;
-      }, 0);
-      const mode = duplicateCount ? "skip" : "append";
-      const next = [...existing];
-      let added = 0, updated = 0, skipped = 0;
-      imported.forEach(item => {
-        const key = getTeleworkDuplicateKey(item);
-        const index = key ? next.findIndex(current => getTeleworkDuplicateKey(current) === key) : -1;
-        if (index >= 0 && mode === "update") { next[index] = { ...next[index], ...item, id: next[index].id, createdAt: next[index].createdAt || item.createdAt, updatedAt: new Date().toISOString() }; updated += 1; return; }
-        if (index >= 0) { skipped += 1; return; }
-        next.unshift(item); added += 1;
+      const importedRows = records.map(record => buildTeleworkImportItem(record, defaultPeriod));
+      const imported = [];
+      let invalid = 0;
+      importedRows.forEach(item => {
+        if ((!item.employeeNumber && !item.name) || !normalizeTeleworkImportDate(item.absenceDate || item.resolutionDate || item.createdAt)) {
+          invalid += 1;
+          return;
+        }
+        imported.push(item);
       });
+
+      const existing = getTeleworkItems();
+      const next = [...existing];
+      const existingKeys = new Set(existing.map(getTeleworkAbsenceKey).filter(Boolean));
+      const seenImportKeys = new Set();
+      let added = 0, skipped = 0;
+
+      imported.forEach(item => {
+        const key = getTeleworkAbsenceKey(item);
+        if (!key) { invalid += 1; return; }
+        if (existingKeys.has(key) || seenImportKeys.has(key)) {
+          skipped += 1;
+          return;
+        }
+        seenImportKeys.add(key);
+        existingKeys.add(key);
+        next.unshift(item);
+        added += 1;
+      });
+
       setTeleworkItems(next);
       renderTelework();
       if (typeof updateQuickCounts === "function") updateQuickCounts();
       if (typeof renderHomeDashboard === "function") renderHomeDashboard();
-      return { added, updated, skipped };
+      return { added, skipped, invalid };
     }
 
   function isTeleworkCatalogImport(headers) {
@@ -1569,7 +1619,7 @@
           return;
         }
         const summary = applyTeleworkDataRows(rows);
-        if (summary) alert(`Importación finalizada. Añadidos: ${summary.added}. Actualizados: ${summary.updated}. Omitidos: ${summary.skipped}.`);
+        if (summary) alert(`Importación finalizada. Ausencias importadas: ${summary.added}. Ausencias ignoradas por duplicadas: ${summary.skipped}. Filas con error/no válidas: ${summary.invalid}.`);
       } catch (error) {
         console.error("Error importando teletrabajo:", error);
         alert(`No se pudo importar el fichero. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
