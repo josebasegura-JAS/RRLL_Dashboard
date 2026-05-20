@@ -1424,3 +1424,26 @@ html[data-theme="dark"] body.phase4-view-module #gestor-comite #gestor-sesiones-
   background: transparent !important;
   color: var(--rrll-text-main-dark) !important;
 }
+
+/* Paritaria > Sesiones (dark): ocultar controles blancos en cabeceras y oscurecer años del histórico. */
+html[data-theme="dark"] body.phase4-view-module #gestor-paritaria #gestor-sesiones-paritaria .rrll-session-panel-chevron {
+  display: none !important;
+}
+
+html[data-theme="dark"] body.phase4-view-module #gestor-paritaria #gestor-sesiones-paritaria .session-year-header {
+  background: #343b46 !important;
+  color: var(--rrll-text-main-dark) !important;
+  border: 1px solid var(--rrll-border-soft-dark) !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+}
+
+html[data-theme="dark"] body.phase4-view-module #gestor-paritaria #gestor-sesiones-paritaria .session-year-header:hover {
+  background: #303746 !important;
+  border-color: rgba(148, 163, 184, 0.32) !important;
+}
+
+html[data-theme="dark"] body.phase4-view-module #gestor-paritaria #gestor-sesiones-paritaria .session-year-title {
+  background: transparent !important;
+  color: var(--rrll-text-main-dark) !important;
+}
