@@ -4334,29 +4334,89 @@ body[data-active-module="gestor-criterios"] #gestor-criterios {
   border: 0;
 }
 
-.criteria-table th,
-.criteria-table td {
-  vertical-align: top;
+body.phase4-view-module #gestor-criterios .criteria-table {
+  width: 100% !important;
+  table-layout: fixed;
 }
 
-.criteria-table .criteria-excerpt-cell {
-  min-width: 280px;
-  max-width: 520px;
-  white-space: normal;
-  line-height: 1.35;
+body.phase4-view-module #gestor-criterios .criteria-table th,
+body.phase4-view-module #gestor-criterios .criteria-table td {
+  vertical-align: top;
+  min-width: 0;
 }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(1),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(1) { width: 13%; }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(2),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(2) { width: 16%; }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(3),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(3) { width: 34%; }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(4),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(4) { width: 15%; }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(5),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(5) { width: 10%; }
 
 body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(6),
 body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(6) {
-  width: 1%;
+  width: 12%;
   text-align: center;
   white-space: nowrap;
 }
 
+body.phase4-view-module #gestor-criterios .criteria-table td:not(:nth-child(3)) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .criteria-excerpt-cell {
+  min-width: 0;
+  max-width: none;
+  white-space: normal;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions {
-  display: table-cell;
-  text-align: center;
-  vertical-align: middle;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions .rrll-delete-icon-button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fecaca;
+  background: rgba(220, 38, 38, .16);
+  border-color: rgba(248, 113, 113, .36);
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions .rrll-delete-icon-button:hover {
+  color: #fff;
+  background: #dc2626;
+  border-color: #ef4444;
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .rrll-delete-icon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .criteria-row {
