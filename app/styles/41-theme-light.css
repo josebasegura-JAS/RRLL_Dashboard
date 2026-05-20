@@ -51,17 +51,22 @@ html[data-theme="light"] {
   --rrll-light-table-row: #ffffff;
   --rrll-light-table-row-alt: #f8fafc;
   --rrll-light-input-bg: #f8fafc;
-  --rrll-light-border-soft: #e5e7eb;
+  --rrll-light-border-weak: #e5e7eb;
   --rrll-light-border-input: #dbe2ea;
   --rrll-light-border-default: #dbe2ea;
-  --rrll-light-table-row-hover: #eef3f8;
-  --rrll-light-focus-border: #c5ced9;
+  --rrll-light-border-strong: #c5ced9;
+  --rrll-light-table-hover: #eef2f7;
   --rrll-light-focus-ring: rgba(167, 53, 53, .10);
-  --rrll-light-modal-overlay: rgba(15, 23, 42, .32);
-  --rrll-light-text-main: #1f2937;
+  --rrll-light-overlay: rgba(15, 23, 42, .32);
+  --rrll-light-text-primary: #1f2937;
   --rrll-light-text-secondary: #4b5563;
   --rrll-light-text-muted: #6b7280;
   --rrll-light-placeholder: #64748b;
+  --rrll-light-text-main: var(--rrll-light-text-primary);
+  --rrll-light-border-soft: var(--rrll-light-border-weak);
+  --rrll-light-focus-border: var(--rrll-light-border-strong);
+  --rrll-light-table-row-hover: var(--rrll-light-table-hover);
+  --rrll-light-modal-overlay: var(--rrll-light-overlay);
 }
 
 /* Normalización global del contenido principal en modo claro (sin sidebar). */
@@ -431,7 +436,7 @@ html[data-theme="light"] #gestor-plantilla :is(input, select, textarea) {
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-tool-button,
 html[data-theme="light"] #gestor-plantilla .plantilla-pagination .plantilla-pagination-btn {
-  background: #fbfbfc !important;
+  background: var(--rrll-light-surface-soft) !important;
   border-color: var(--rrll-light-border-default) !important;
   color: var(--rrll-light-text-main) !important;
 }
@@ -1563,23 +1568,23 @@ html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .c
    estructura, navegación, lógica, exportaciones ni cálculos.
    ═══════════════════════════════════════════════════════════════════════════ */
 html[data-theme="light"] {
-  --rrll-bg-app-light: #f4f6f8;
-  --rrll-bg-soft-light: #eef2f6;
-  --rrll-bg-card-light: #fbfbfc;
-  --rrll-bg-panel-light: #ffffff;
-  --rrll-bg-table-head-light: #eef2f5;
-  --rrll-bg-table-row-light: #fbfbfc;
-  --rrll-bg-table-row-alt-light: #f7f9fb;
-  --rrll-bg-table-hover-light: #edf3f7;
+  --rrll-bg-app-light: var(--rrll-light-app-bg);
+  --rrll-bg-soft-light: var(--rrll-light-surface-soft);
+  --rrll-bg-card-light: var(--rrll-light-surface-soft);
+  --rrll-bg-panel-light: var(--rrll-light-surface);
+  --rrll-bg-table-head-light: var(--rrll-light-table-head);
+  --rrll-bg-table-row-light: var(--rrll-light-table-row);
+  --rrll-bg-table-row-alt-light: var(--rrll-light-table-row-alt);
+  --rrll-bg-table-hover-light: var(--rrll-light-table-hover);
 
-  --rrll-text-main-light: #1f2937;
-  --rrll-text-secondary-light: #4b5563;
-  --rrll-text-muted-light: #6b7280;
-  --rrll-text-placeholder-light: #9aa4b2;
+  --rrll-text-main-light: var(--rrll-light-text-primary);
+  --rrll-text-secondary-light: var(--rrll-light-text-secondary);
+  --rrll-text-muted-light: var(--rrll-light-text-muted);
+  --rrll-text-placeholder-light: var(--rrll-light-placeholder);
 
-  --rrll-border-light: #e5e7eb;
+  --rrll-border-light: var(--rrll-light-border-weak);
   --rrll-border-soft-light: rgba(209, 213, 219, .72);
-  --rrll-separator-light: #d9dee7;
+  --rrll-separator-light: var(--rrll-light-border-default);
 
   --rrll-sidebar-light: #202733;
   --rrll-sidebar-hover-light: #2d3645;
@@ -1611,8 +1616,8 @@ html[data-theme="light"] {
   --rrll-surface-raised: var(--surface-elevated);
   --rrll-surface-header: var(--rrll-bg-table-head-light);
   --rrll-surface-hover: var(--rrll-bg-table-hover-light);
-  --rrll-field-bg: #f9fafb;
-  --rrll-field-bg-focus: #ffffff;
+  --rrll-field-bg: var(--rrll-light-input-bg);
+  --rrll-field-bg-focus: var(--rrll-light-surface);
   --rrll-border: var(--rrll-border-light);
   --rrll-border-strong: var(--rrll-separator-light);
   --rrll-text-main: var(--text-primary);
