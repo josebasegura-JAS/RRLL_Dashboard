@@ -203,7 +203,20 @@
       if (!form) return;
       const open = typeof forceOpen === "boolean" ? forceOpen : form.classList.contains("rrll-create-form-collapsed");
       form.classList.toggle("rrll-create-form-collapsed", !open);
-      if (open) setTimeout(() => document.getElementById("newAgendaTitle")?.focus(), 0);
+      if (open) {
+        refreshAgendaPetitionerOptions();
+        setTimeout(() => document.getElementById("newAgendaTitle")?.focus(), 0);
+      }
+    }
+
+    function refreshAgendaPetitionerOptions(currentValue) {
+      const datalist = document.getElementById("petitionOriginsDatalist");
+      if (!datalist) return;
+      const origins = typeof window.getPetitionOrigins === "function" ? window.getPetitionOrigins() : [];
+      const normalizedCurrent = String(currentValue || "").trim().toUpperCase();
+      const allValues = Array.isArray(origins) ? [...origins] : [];
+      if (normalizedCurrent && !allValues.includes(normalizedCurrent)) allValues.push(normalizedCurrent);
+      datalist.innerHTML = allValues.map(value => `<option value="${escapeHtml(value)}"></option>`).join("");
     }
 
     function toggleCommitteeSessionCreateForm(forceOpen) {
@@ -351,6 +364,7 @@
       const updateInput = document.getElementById("agendaUpdateModalText");
 
       if (titleInput) titleInput.value = item.title || "";
+      refreshAgendaPetitionerOptions(item.petitioner || "");
       if (petitionerInput) petitionerInput.value = item.petitioner || "";
       if (requestDateInput) requestDateInput.value = item.requestDate || "";
       if (statusInput) statusInput.value = item.status || "agenda-pending";
@@ -375,6 +389,7 @@
       if (statusInput) statusInput.value = "agenda-pending";
       const existing = document.getElementById("agendaExistingUpdates");
       if (existing) existing.innerHTML = "";
+      refreshAgendaPetitionerOptions();
     }
 
     function saveAgendaUpdateFromModal() {

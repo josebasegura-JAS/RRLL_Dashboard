@@ -512,7 +512,7 @@
             <div id="agendaCreateForm" class="rrll-pro-task-form rrll-pro-committee-form rrll-create-form-collapsed">
               <label class="rrll-pro-field">
                 <span>Peticionario</span>
-                <input id="newAgendaPetitioner" placeholder="Sindicato, Dirección, área..." />
+                <input id="newAgendaPetitioner" list="petitionOriginsDatalist" placeholder="Sindicato, Dirección, área..." />
               </label>
               <label class="rrll-pro-field rrll-pro-field-wide">
                 <span>Punto</span>
@@ -627,7 +627,7 @@
             <div id="paritariaCreateForm" class="rrll-pro-task-form rrll-pro-committee-form rrll-create-form-collapsed">
               <label class="rrll-pro-field">
                 <span>Peticionario</span>
-                <input id="newParitariaPetitioner" placeholder="Sindicato, Dirección, área..." />
+                <input id="newParitariaPetitioner" list="petitionOriginsDatalist" placeholder="Sindicato, Dirección, área..." />
               </label>
               <label class="rrll-pro-field rrll-pro-field-wide">
                 <span>Punto</span>
@@ -1721,7 +1721,7 @@
         </div>
         <div>
           <label for="agendaEditPetitioner">Peticionario</label>
-          <input id="agendaEditPetitioner" placeholder="Peticionario" />
+          <input id="agendaEditPetitioner" list="petitionOriginsDatalist" placeholder="Peticionario" />
         </div>
         <div>
           <label for="agendaEditRequestDate">Fecha solicitud</label>
@@ -1827,7 +1827,7 @@
         </div>
         <div>
           <label for="paritariaEditPetitioner">Peticionario</label>
-          <input id="paritariaEditPetitioner" placeholder="Peticionario" />
+          <input id="paritariaEditPetitioner" list="petitionOriginsDatalist" placeholder="Peticionario" />
         </div>
         <div>
           <label for="paritariaEditRequestDate">Fecha solicitud</label>
@@ -1866,6 +1866,8 @@
       </div>
     </div>
   </div>
+
+  <datalist id="petitionOriginsDatalist"></datalist>
 
   <div id="paritariaSessionSelectModal" class="modal-backdrop" onclick="closeAddParitariaToParitariaModal()">
     <div class="modal-box" onclick="event.stopPropagation()">
