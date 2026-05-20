@@ -2542,6 +2542,8 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 .ticket-summary-pill strong { font-size: 1.5rem; }
 .ticket-summary-pill small { color: var(--muted-color, #64748b); }
 .ticket-compute-notice { margin: -4px 0 14px; padding: 9px 11px; border: 1px solid rgba(245, 158, 11, .32); border-radius: 12px; background: rgba(245, 158, 11, .10); color: #fbbf24; font-size: .88rem; }
+
+#gestor-ticket-restaurante .ticket-compute-actions { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
 .ticket-row-warning td { background: rgba(245, 158, 11, .08); }
 .ticket-config-form label { display: grid; gap: 4px; font-size: .85rem; font-weight: 700; }
 @media (max-width: 1280px) { .ticket-calendar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

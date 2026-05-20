@@ -1313,8 +1313,10 @@
                 <div class="ticket-compute-toolbar">
                   <label class="rrll-pro-field"><span>Mes</span><select id="ticketRestaurantComputeMonth" onchange="renderTicketRestaurantComputePreview()"></select></label>
                   <label class="rrll-pro-field"><span>Año</span><input id="ticketRestaurantComputeYear" type="number" min="2000" max="2100" onchange="renderTicketRestaurantComputePreview()" oninput="renderTicketRestaurantComputePreview()" /></label>
-                  <button class="rrll-pro-tool-button excel rrll-icon-only" type="button" onclick="exportTicketRestaurantCompute()" title="Exportar cómputo filtrado a Excel" aria-label="Exportar cómputo a Excel">X</button>
-                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printTicketRestaurantComputeVisible()" title="Imprimir cómputo filtrado" aria-label="Imprimir cómputo">🖨️</button>
+                  <div class="ticket-compute-actions">
+                    <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printTicketRestaurantComputeVisible()" title="Imprimir cómputo filtrado" aria-label="Imprimir cómputo">🖨️</button>
+                    <button class="rrll-pro-tool-button excel rrll-icon-only" type="button" onclick="exportTicketRestaurantCompute()" title="Exportar cómputo filtrado a Excel" aria-label="Exportar cómputo a Excel">X</button>
+                  </div>
                 </div>
                 <div id="ticketRestaurantComputePeriod" class="ticket-compute-period" aria-live="polite"></div>
                 <div id="ticketRestaurantComputeSummary" class="ticket-compute-summary"></div>
