@@ -203,7 +203,6 @@ html[data-theme="light"] body :is(.modal-overlay, .rrll-pro-modal-overlay) {
   background: var(--rrll-light-modal-overlay);
 }
 
-/* Reglas de tema light migradas desde 80-light-foundation.css (refactor seguro). */
 /* Criterios RRLL en modo claro: alinear fondos/paneles con el resto de módulos claros. */
 html[data-theme="light"] body.phase4-view-module #gestor-criterios {
   background: var(--rrll-bg-app-light) !important;
@@ -248,49 +247,49 @@ html[data-theme="light"] body.phase4-view-module #gestor-criterios .criteria-pag
   border-color: var(--rrll-border-light) !important;
 }
 
-body.phase4-view-module #gestor-licencias .licencias-columns {
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-columns {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 16px !important;
 }
 
-body.phase4-view-module #gestor-licencias .licencias-column-active {
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-column-active {
   grid-column: 1 / -1 !important;
 }
 
-body.phase4-view-module #gestor-licencias .licencias-history-card {
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-history-card {
   display: block !important;
   margin-top: 16px !important;
   overflow: hidden !important;
 }
 
-body.phase4-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar {
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar {
   cursor: pointer !important;
   list-style: none !important;
 }
 
-body.phase4-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar::-webkit-details-marker {
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar::-webkit-details-marker {
   display: none !important;
 }
 
-body.phase4-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar h3::before {
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar h3::before {
   content: "▸";
   display: inline-block;
   margin-right: 8px;
   transition: transform .16s ease;
 }
 
-body.phase4-view-module #gestor-licencias .licencias-history-card[open] > summary.licencias-toolbar h3::before {
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-history-card[open] > summary.licencias-toolbar h3::before {
   transform: rotate(90deg);
 }
 
-body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #licHistoryList,
-body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #licHistoryEmpty {
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #licHistoryList,
+html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-history-card:not([open]) #licHistoryEmpty {
   display: none !important;
 }
 
 @media (max-width: 1250px) {
-  body.phase4-view-module #gestor-licencias .licencias-columns {
+  html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-columns {
     grid-template-columns: 1fr !important;
   }
 }
