@@ -53,6 +53,11 @@ html[data-theme="light"] {
   --rrll-light-input-bg: #f8fafc;
   --rrll-light-border-soft: #e5e7eb;
   --rrll-light-border-input: #dbe2ea;
+  --rrll-light-border-default: #dbe2ea;
+  --rrll-light-table-row-hover: #eef3f8;
+  --rrll-light-focus-border: #c5ced9;
+  --rrll-light-focus-ring: rgba(167, 53, 53, .10);
+  --rrll-light-modal-overlay: rgba(15, 23, 42, .32);
   --rrll-light-text-main: #1f2937;
   --rrll-light-text-secondary: #4b5563;
   --rrll-light-text-muted: #6b7280;
@@ -113,7 +118,7 @@ html[data-theme="light"] body :is(table, .rrll-pro-table) tbody tr:nth-child(eve
 }
 
 html[data-theme="light"] body :is(table, .rrll-pro-table) tbody tr:hover td {
-  background: #eef3f8;
+  background: var(--rrll-light-table-row-hover);
 }
 
 html[data-theme="light"] body :is(input, select, textarea) {
@@ -127,8 +132,8 @@ html[data-theme="light"] body :is(input, select, textarea)::placeholder {
 }
 
 html[data-theme="light"] body :is(input, select, textarea):focus {
-  border-color: #c5ced9;
-  box-shadow: 0 0 0 3px rgba(167, 53, 53, .10);
+  border-color: var(--rrll-light-focus-border);
+  box-shadow: 0 0 0 3px var(--rrll-light-focus-ring);
   outline: none;
 }
 
@@ -143,11 +148,11 @@ html[data-theme="light"] body :is(.rrll-pro-tool-button, .btn-secondary, .btn-gh
 }
 
 html[data-theme="light"] body :is(.rrll-pro-tool-button, .btn-secondary, .btn-ghost):hover {
-  background: #f1f5f9;
+  background: var(--rrll-light-table-head);
 }
 
 html[data-theme="light"] body :is(.modal-overlay, .rrll-pro-modal-overlay) {
-  background: rgba(15, 23, 42, .32);
+  background: var(--rrll-light-modal-overlay);
 }
 
 /* Reglas de tema light migradas desde 80-light-foundation.css (refactor seguro). */
@@ -180,9 +185,9 @@ html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.criteria
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .criteria-search input) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   color: var(--rrll-text-main-light) !important;
-  border-color: #dbe2ea !important;
+  border-color: var(--rrll-light-border-default) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.rrll-pro-field input::placeholder, .rrll-pro-field textarea::placeholder, .criteria-search input::placeholder) {
@@ -391,13 +396,13 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
 /* Plantilla (modo claro): neutraliza fondos grafito heredados sin tocar la tabla principal. */
 html[data-theme="light"] body[data-active-module="gestor-plantilla"] #gestor-plantilla,
 html[data-theme="light"] body.phase4-view-module #gestor-plantilla {
-  background: #f4f6f8 !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-app-bg) !important;
+  border-color: var(--rrll-light-border-soft) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-plantilla-shell {
   background: transparent !important;
-  color: #1f2937 !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-task-head,
@@ -407,34 +412,34 @@ html[data-theme="light"] #gestor-plantilla .rrll-pro-plantilla-form,
 html[data-theme="light"] #gestor-plantilla .plantilla-import-summary,
 html[data-theme="light"] #gestor-plantilla .rrll-pro-empty,
 html[data-theme="light"] #gestor-plantilla .rrll-pro-search-wrap {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-surface) !important;
+  color: var(--rrll-light-text-main) !important;
+  border-color: var(--rrll-light-border-soft) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-task-head p,
 html[data-theme="light"] #gestor-plantilla .rrll-pro-subtitle,
 html[data-theme="light"] #gestor-plantilla .plantilla-import-summary {
-  color: #4b5563 !important;
+  color: var(--rrll-light-text-secondary) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla :is(input, select, textarea) {
-  background: #f8fafc !important;
-  border-color: #dbe2ea !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-default) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-tool-button,
 html[data-theme="light"] #gestor-plantilla .plantilla-pagination .plantilla-pagination-btn {
   background: #fbfbfc !important;
-  border-color: #dbe2ea !important;
-  color: #1f2937 !important;
+  border-color: var(--rrll-light-border-default) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] #plantillaEditModal :is(.modal-box, .rrll-pro-modal-box, .rrll-pro-edit-modal) {
-  background: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-surface) !important;
+  border-color: var(--rrll-light-border-soft) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 /* Sesiones Comité: el orden del día necesita una fila estable para que el
@@ -1857,7 +1862,7 @@ html[data-theme="light"] :is(button.primary:hover, .primary:hover, .rrll-button-
 }
 
 html[data-theme="light"] :is(button.secondary, .secondary, .btn-secondary, .black, button.black, .icon-button, .summary-icon-button, .rrll-pro-tool-button, .quick-link-icon, .session-order-edit, .theme-choice) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border: 1px solid var(--border-soft) !important;
   color: var(--text-secondary) !important;
   box-shadow: none !important;
@@ -1936,7 +1941,7 @@ html[data-theme="light"] :is(.dropdown-menu, .select-menu, .context-menu, .toolt
 }
 
 html[data-theme="light"] :is(.phase5-calendar-day, .ticket-day, .ticket-days-grid .ticket-day) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border-color: var(--border-soft) !important;
   color: var(--text-secondary) !important;
 }
@@ -1957,37 +1962,37 @@ html[data-theme="light"] #gestor-ticket-restaurante :is(.ticket-day--no-ticket, 
    Corrige herencias oscuras sin tocar estructura, lógica ni dark mode. */
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante,
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante.rrll-pro-module {
-  background: #f4f6f8 !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-app-bg) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-shell, .ticket-restaurant-area, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section, .rrll-pro-list-card, .rrll-pro-table-wrap, .ticket-monthly-quote-panel) {
-  background: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-surface) !important;
+  border-color: var(--rrll-light-border-soft) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.rrll-pro-task-head, .rrll-pro-list-toolbar, .ticket-filter-row th, .ticket-table thead th, .rrll-pro-table thead th) {
   background: #f1f5f9 !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  border-color: var(--rrll-light-border-soft) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-tab, .ticket-month-navigator button, .ticket-year-nav button, .rrll-icon-only, .ticket-sort-button) {
-  background: #f8fafc !important;
-  border-color: #dbe2ea !important;
-  color: #4b5563 !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-default) !important;
+  color: var(--rrll-light-text-secondary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-tab:hover, .ticket-month-navigator button:hover, .ticket-year-nav button:hover, .rrll-icon-only:hover) {
   background: #eef2f7 !important;
-  color: #1f2937 !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .ticket-filter-row input, .rrll-pro-search-wrap input) {
-  background: #f8fafc !important;
-  border-color: #dbe2ea !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-default) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(input::placeholder, textarea::placeholder, .ticket-filter-row input::placeholder, .rrll-pro-search-wrap input::placeholder) {
@@ -1996,32 +2001,32 @@ html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-month-card, .ticket-summary-pill) {
   background: #fbfbfc !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  border-color: var(--rrll-light-border-soft) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-weekdays span, .ticket-compute-period, .ticket-import-summary, .ticket-summary-pill small, .ticket-calendar-legend, .muted) {
-  color: #4b5563 !important;
+  color: var(--rrll-light-text-secondary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-table tbody tr, .rrll-pro-table tbody tr) {
   background: #fbfbfc !important;
-  color: #1f2937 !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-table tbody tr:nth-child(even), .rrll-pro-table tbody tr:nth-child(even)) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.modal-box, .modal-card, .popup-box, .dialog-box, .rrll-pro-modal-box, .config-modal-box, .config-modal-card) {
-  background: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-surface) !important;
+  border-color: var(--rrll-light-border-soft) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.modal-actions, .form-actions, .rrll-pro-form-actions, .modal-footer) {
-  background: #f8fafc !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-soft) !important;
 }
 
 html[data-theme="light"] * {
@@ -2045,7 +2050,7 @@ html[data-theme="light"] *::-webkit-scrollbar-thumb:hover {
 /* Light mode fix — Gestor de Tareas: cabecera, acciones y estados (sin tocar dark mode). */
 html[data-theme="light"] #gestor-tareas.rrll-pro-module,
 html[data-theme="light"] #gestor-tareas.rrll-pro-module > summary {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border-color: var(--border-soft) !important;
   color: var(--text-primary) !important;
   box-shadow: 0 8px 24px rgba(15, 23, 42, .08) !important;
@@ -2056,14 +2061,14 @@ html[data-theme="light"] #gestor-tareas :is(.module-title, .rrll-pro-task-head h
 }
 
 html[data-theme="light"] #gestor-tareas .rrll-pro-task-head {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border: 1px solid var(--border-soft) !important;
   border-radius: 12px !important;
   padding: 12px 14px !important;
 }
 
 html[data-theme="light"] #gestor-tareas .rrll-pro-actions :is(button.small, .small) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border: 1px solid var(--border-soft) !important;
   color: var(--text-secondary) !important;
 }
@@ -2109,72 +2114,72 @@ html[data-theme="light"] #gestor-tareas .rrll-status-pill.progress {
 
 /* Comité y Paritaria: consolidación visual en modo claro (sin afectar modo oscuro). */
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) {
-  background: #f4f6f8 !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-app-bg) !important;
+  color: var(--rrll-light-text-main) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) > summary,
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) :is(.committee-subsection, .paritaria-subsection) > summary {
-  background: #f8fafc !important;
-  color: #1f2937 !important;
-  border: 1px solid #e5e7eb !important;
+  background: var(--rrll-light-input-bg) !important;
+  color: var(--rrll-light-text-main) !important;
+  border: 1px solid var(--rrll-light-border-soft) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) :is(.rrll-pro-committee-shell, .rrll-pro-paritaria-shell),
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-list-card, .session-panel, .session-year-block, .session-card, .session-item, .session-form, .session-close-list, .session-close-row) {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-surface) !important;
+  color: var(--rrll-light-text-main) !important;
+  border-color: var(--rrll-light-border-soft) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.column-header, .session-year-header, .rrll-pro-table th) {
   background: #f1f5f9 !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
+  color: var(--rrll-light-text-main) !important;
+  border-color: var(--rrll-light-border-soft) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-table td, .session-meta, .session-item-meta, .muted, small, .rrll-pro-subtitle, .rrll-pro-update, .rrll-pro-created) {
-  color: #4b5563 !important;
+  color: var(--rrll-light-text-secondary) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(input, select, textarea, .rrll-pro-search-wrap, .rrll-pro-search-wrap input) {
-  background: #f8fafc !important;
-  color: #1f2937 !important;
-  border-color: #dbe2ea !important;
+  background: var(--rrll-light-input-bg) !important;
+  color: var(--rrll-light-text-main) !important;
+  border-color: var(--rrll-light-border-default) !important;
 }
 
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button,
 body.phase4-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   color: #374151 !important;
-  border: 1px solid #dbe2ea !important;
+  border: 1px solid var(--rrll-light-border-default) !important;
 }
 
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button.active,
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button:hover,
 body.phase4-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary:hover {
   background: #eef2f7 !important;
-  color: #1f2937 !important;
+  color: var(--rrll-light-text-main) !important;
   border-color: #cfd8e3 !important;
 }
 
 body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) .modal-box,
 body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) :is(.session-order-list, .session-order-row, .existing-updates-box, .existing-update-row) {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-surface) !important;
+  color: var(--rrll-light-text-main) !important;
+  border-color: var(--rrll-light-border-soft) !important;
 }
 
 #paritariaSessionAddPointModal .paritaria-session-add-point-row {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border: 1px solid #e5e7eb !important;
+  background: var(--rrll-light-surface) !important;
+  color: var(--rrll-light-text-main) !important;
+  border: 1px solid var(--rrll-light-border-soft) !important;
   border-left: 4px solid var(--red) !important;
 }
 
 #paritariaSessionAddPointModal .paritaria-session-add-point-row:hover {
-  background: #f8fafc !important;
-  border-color: #dbe2ea !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-default) !important;
 }
 
 /* Scrollbar global modo light (equivalente al modo dark) */
