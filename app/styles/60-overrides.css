@@ -2777,9 +2777,25 @@ body.phase4-view-module #gestor-vinculograma .vinculograma-table .rrll-pro-actio
 }
 
 body.phase4-view-module #gestor-vinculograma .vinculograma-table .rrll-pro-actions .small.danger {
-  min-width: 78px !important;
-  padding: 7px 10px !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   white-space: nowrap !important;
+}
+
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .rrll-pro-actions .vinculograma-delete-icon {
+  width: 14px !important;
+  height: 14px !important;
+  display: block !important;
+  stroke: currentColor !important;
+  stroke-width: 1.9 !important;
+  fill: none !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
 }
 
 /* =========================================================
@@ -3328,6 +3344,7 @@ body.phase4-view-module :is(
 }
 
 body.phase4-view-module :is(
+  #gestor-tareas,
   #gestor-peticiones,
   #gestor-actas,
   #gestor-puntos-comite,
@@ -3354,6 +3371,98 @@ body.phase4-view-module :is(
   line-height: 1.1 !important;
   white-space: nowrap !important;
   max-width: 100% !important;
+}
+
+/* Tareas: mantener 6 columnas alineadas y reservar espacio suficiente para ACCIONES. */
+body.phase4-view-module #gestor-tareas .rrll-pro-table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+body.phase4-view-module #gestor-tareas .rrll-pro-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed !important;
+}
+
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(1),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(1) { width: 32% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(2),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(2) { width: 12% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(3),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(3) { width: 10% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(4),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(4) { width: 11% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(5),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(5) { width: 13% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(6),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(6) {
+  width: 22% !important;
+  min-width: 170px !important;
+  overflow: hidden !important;
+}
+
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(6) {
+  text-align: center !important;
+}
+
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(6) {
+  text-align: right !important;
+  white-space: normal !important;
+}
+
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-align: right !important;
+  box-sizing: border-box !important;
+}
+
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions button {
+  min-width: 82px !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+}
+
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions .rrll-delete-icon-button {
+  min-width: 32px !important;
+  width: 32px !important;
+  padding-inline: 0 !important;
+}
+
+@media (max-width: 720px) {
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(6),
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(6) {
+    width: 24% !important;
+    min-width: 130px !important;
+    text-align: right !important;
+  }
+
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions {
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+  }
+
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions button {
+    width: auto !important;
+    min-width: 82px !important;
+    margin: 0 !important;
+  }
+
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions .rrll-delete-icon-button {
+    min-width: 32px !important;
+    width: 32px !important;
+  }
 }
 
 /* Peticiones: conservar sus 6 columnas, con densidad equivalente a Tareas. */
@@ -4028,6 +4137,42 @@ body.phase4-view-module .committee-minute-prompt-modal .committee-minute-preview
   overflow-wrap: anywhere !important;
 }
 
+
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions {
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker {
+  min-width: 220px !important;
+  flex: 1 1 240px !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker select {
+  width: 100% !important;
+  min-height: 40px !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-add-campaign,
+body.phase4-view-module #gestor-teletrabajo .telework-new-request {
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-add-campaign {
+  flex: 0 0 auto !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-new-request {
+  flex: 0 0 auto !important;
+}
+
 /* Teletrabajo: histórico y tablas con scroll horizontal real sin comprimir columnas. */
 body.phase4-view-module #gestor-teletrabajo .history-table-wrapper,
 body.phase4-view-module #gestor-teletrabajo .telework-table-wrap {
@@ -4039,25 +4184,25 @@ body.phase4-view-module #gestor-teletrabajo .telework-table-wrap {
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table {
-  width: max-content !important;
-  min-width: 1040px !important;
-  table-layout: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table th,
 body.phase4-view-module #gestor-teletrabajo .telework-table td {
-  min-width: 120px !important;
+  min-width: 0 !important;
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table .telework-col-person {
-  min-width: 280px !important;
+  min-width: 0 !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table .telework-col-actions {
-  min-width: 260px !important;
+  min-width: 0 !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-actions-group,
@@ -4080,9 +4225,43 @@ body.phase4-view-module #gestor-teletrabajo .telework-history-table-wrapper .tel
   min-width: 760px !important;
 }
 
+/* Teletrabajo: histórico compacto sin columnas auxiliares ni scroll horizontal innecesario. */
+body.phase4-view-module #gestor-teletrabajo .telework-history-table-wrapper {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th,
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td {
+  min-width: 0 !important;
+  max-width: none !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(1),
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(1) {
+  width: 34% !important;
+  min-width: 0 !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(2),
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(2) { width: 22% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(3),
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(3) { width: 18% !important; }
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(4),
+body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(4) { width: 26% !important; }
+
 /* Teletrabajo: indicador visual de validación de puesto y tabla principal sin acciones. */
 body.phase4-view-module #gestor-teletrabajo .telework-table {
-  min-width: 900px !important;
+  min-width: 0 !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-person-with-indicator {
@@ -4248,29 +4427,89 @@ body[data-active-module="gestor-criterios"] #gestor-criterios {
   border: 0;
 }
 
-.criteria-table th,
-.criteria-table td {
-  vertical-align: top;
+body.phase4-view-module #gestor-criterios .criteria-table {
+  width: 100% !important;
+  table-layout: fixed;
 }
 
-.criteria-table .criteria-excerpt-cell {
-  min-width: 280px;
-  max-width: 520px;
-  white-space: normal;
-  line-height: 1.35;
+body.phase4-view-module #gestor-criterios .criteria-table th,
+body.phase4-view-module #gestor-criterios .criteria-table td {
+  vertical-align: top;
+  min-width: 0;
 }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(1),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(1) { width: 13%; }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(2),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(2) { width: 16%; }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(3),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(3) { width: 34%; }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(4),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(4) { width: 15%; }
+
+body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(5),
+body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(5) { width: 10%; }
 
 body.phase4-view-module #gestor-criterios .criteria-table th:nth-child(6),
 body.phase4-view-module #gestor-criterios .criteria-table td:nth-child(6) {
-  width: 1%;
+  width: 12%;
   text-align: center;
   white-space: nowrap;
 }
 
+body.phase4-view-module #gestor-criterios .criteria-table td:not(:nth-child(3)) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .criteria-excerpt-cell {
+  min-width: 0;
+  max-width: none;
+  white-space: normal;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions {
-  display: table-cell;
-  text-align: center;
-  vertical-align: middle;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions .rrll-delete-icon-button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fecaca;
+  background: rgba(220, 38, 38, .16);
+  border-color: rgba(248, 113, 113, .36);
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions .rrll-delete-icon-button:hover {
+  color: #fff;
+  background: #dc2626;
+  border-color: #ef4444;
+}
+
+body.phase4-view-module #gestor-criterios .criteria-table .rrll-delete-icon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .criteria-row {
@@ -4303,4 +4542,210 @@ body.phase4-view-module #gestor-criterios .criteria-table .rrll-pro-actions {
   .criteria-table .criteria-excerpt-cell {
     min-width: 220px;
   }
+}
+
+/* Origen en Peticiones/Tareas: badges compactos y columnas centradas. */
+body.phase4-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-origin-heading,
+body.phase4-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-origin-cell,
+body.phase4-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-pro-table th:nth-child(2),
+body.phase4-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-pro-table td:nth-child(2) {
+  text-align: center !important;
+}
+
+.petition-origin-badge,
+.task-origin-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 20px !important;
+  max-width: 100% !important;
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(148, 163, 184, .24) !important;
+  background: rgba(148, 163, 184, .12) !important;
+  color: rgba(226, 232, 240, .84) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  letter-spacing: .02em !important;
+  white-space: nowrap !important;
+}
+
+.petition-origin-badge.is-empty,
+.task-origin-badge.is-empty {
+  color: rgba(148, 163, 184, .78) !important;
+  font-weight: 700 !important;
+}
+
+.settings-petition-origins .petition-origins-config-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.settings-petition-origin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.rrll-legacy-source-checks {
+  display: none !important;
+}
+
+html[data-theme="light"] .petition-origin-badge,
+html[data-theme="light"] .task-origin-badge {
+  background: rgba(15, 23, 42, .06) !important;
+  border-color: rgba(15, 23, 42, .12) !important;
+  color: rgba(15, 23, 42, .78) !important;
+}
+
+/* Actas (solo modo claro): neutraliza superficies oscuras heredadas sin tocar dark mode. */
+html[data-theme="light"] body.phase4-view-module #gestor-actas.rrll-pro-module {
+  background: #f4f6f8 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas.rrll-pro-module > summary {
+  background: #fbfbfc !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .06) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-shell,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-task-head,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-form,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-list-card,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-list-toolbar,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-table-wrap {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-task-head p,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .summary-counts,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-subtitle,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-update {
+  color: #4b5563 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas input,
+html[data-theme="light"] body.phase4-view-module #gestor-actas select,
+html[data-theme="light"] body.phase4-view-module #gestor-actas textarea,
+html[data-theme="light"] body.phase4-view-module #gestor-actas #minuteInlineSearch {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border: 1px solid #dbe2ea !important;
+  box-shadow: inset 0 1px 1px rgba(15, 23, 42, .03) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas input::placeholder,
+html[data-theme="light"] body.phase4-view-module #gestor-actas textarea::placeholder,
+html[data-theme="light"] body.phase4-view-module #gestor-actas #minuteInlineSearch::placeholder {
+  color: #6b7280 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-table,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-table {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-table thead th,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-table thead th {
+  background: #f1f5f9 !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-table tbody tr,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-table tbody tr,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-minute-row {
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-table tbody tr:nth-child(even),
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-table tbody tr:nth-child(even) {
+  background: #fbfbfc !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-table tbody tr:hover,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-table th,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-table td,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-table th,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-minutes-table td {
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-actions button,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .rrll-pro-tool-button,
+html[data-theme="light"] body.phase4-view-module #gestor-actas .summary-icon-button {
+  background: #ffffff !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+html[data-theme="light"] body.phase4-view-module #gestor-actas :is(.rrll-status-pill, .rrll-due-pill, .priority-badge) {
+  border: 1px solid #dbe2ea !important;
+  box-shadow: none !important;
+}
+
+/* Tareas/Peticiones (solo light): cabeceras claras y legibles sin afectar dark mode. */
+html[data-theme="light"] body.phase4-view-module #gestor-tareas .rrll-pro-task-head,
+html[data-theme="light"] body.phase4-view-module #gestor-peticiones .rrll-pro-petition-head,
+html[data-theme="light"] body.phase4-view-module #gestor-peticiones .rrll-pro-task-head {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .05) !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-head, .rrll-pro-petition-head) :is(h2, h3, .rrll-pro-title, .module-title) {
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-head, .rrll-pro-petition-head) :is(p, .summary-counts) {
+  color: #4b5563 !important;
+}
+
+html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-peticiones) :is(.rrll-pro-task-head, .rrll-pro-petition-head) .summary-icon-button {
+  background: #ffffff !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+/* Sidebar submenu Comité/Paritaria en light: mantener superficie oscura de navegación. */
+html[data-theme="light"] .phase4-sidebar .phase4-nav-submenu,
+html[data-theme="light"] .sidebar .phase4-nav-submenu,
+html[data-theme="light"] .phase4-sidebar .nav-submenu,
+html[data-theme="light"] .sidebar .nav-submenu {
+  background: #2d3645 !important;
+  border-color: rgba(255, 255, 255, .10) !important;
+  color: #e5e7eb !important;
+}
+
+html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem),
+html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem) {
+  color: #e5e7eb !important;
+}
+
+html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem):hover,
+html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem):hover {
+  background: rgba(255, 255, 255, .08) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem).active,
+html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active {
+  background: rgba(227, 6, 19, .18) !important;
+  color: #ffffff !important;
 }

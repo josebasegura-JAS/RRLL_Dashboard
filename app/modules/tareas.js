@@ -76,6 +76,41 @@
         setTimeout(() => cancelButton?.focus(), 0);
       }
 
+
+      function taskOriginValue(task) {
+        if (typeof petitionOriginValue === "function") return petitionOriginValue(task);
+        return String((task && task.origin) || "").trim().toUpperCase();
+      }
+
+      function taskOriginOptionsHtml(selectedValue, includeEmpty) {
+        if (typeof petitionOriginOptionsHtml === "function") return petitionOriginOptionsHtml(selectedValue, includeEmpty);
+        const selected = taskOriginValue({ origin: selectedValue });
+        return `${includeEmpty ? `<option value="">Sin origen</option>` : ""}${selected ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}`;
+      }
+
+      function populateTaskOriginSelect(selectId, selectedValue, includeEmpty) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        select.innerHTML = taskOriginOptionsHtml(selectedValue, includeEmpty);
+        select.value = taskOriginValue({ origin: selectedValue }) || "";
+      }
+
+      function taskOriginBadgeHtml(value) {
+        if (typeof petitionOriginBadgeHtml === "function") return petitionOriginBadgeHtml(value, "task-origin-badge");
+        const origin = taskOriginValue({ origin: value });
+        return `<span class="task-origin-badge${origin ? "" : " is-empty"}">${escapeHtml(origin || "Sin origen")}</span>`;
+      }
+
+      function closeLinkedPetitionIfNeeded(task, status) {
+        if (status !== "closed" || !task || !task.petitionId || typeof getPetitions !== "function" || typeof setPetitions !== "function") return;
+        const now = new Date().toISOString();
+        const petitions = getPetitions().map(petition => petition.id === task.petitionId
+          ? { ...petition, status: "petition-closed", closedAt: petition.closedAt || now, updatedAt: now }
+          : petition);
+        setPetitions(petitions);
+        if (typeof renderPetitions === "function") renderPetitions();
+      }
+
       function getTasks() {
         return load("rrll_tasks", []);
       }
@@ -98,6 +133,7 @@
         const statusEl = document.getElementById("newTaskStatus");
         const dueDateEl = document.getElementById("newTaskDueDate");
         const priorityEl = document.getElementById("newTaskPriority");
+        const originEl = document.getElementById("newTaskOrigin");
 
         const title = titleEl.value.trim();
         if (!title) return;
@@ -111,6 +147,7 @@
 
         const now = new Date().toISOString();
         const status = statusEl.value;
+        const attachments = Array.isArray(window.__taskDraftAttachments) ? window.__taskDraftAttachments : [];
 
         const tasks = getTasks();
         tasks.unshift({
@@ -120,9 +157,12 @@
           status,
           dueDate,
           priority: priorityEl ? normalizePriority(priorityEl.value) : "normal",
+          origin: taskOriginValue({ origin: originEl ? originEl.value : "" }),
+          petitionId: null,
           createdAt: now,
           closedAt: status === "closed" ? now : null,
-          updates: []
+          updates: [],
+          attachments
         });
 
         setTasks(tasks);
@@ -131,6 +171,9 @@
         statusEl.value = "pending";
         if (dueDateEl) dueDateEl.value = "";
         if (priorityEl) priorityEl.value = "normal";
+        populateTaskOriginSelect("newTaskOrigin", "", true);
+        window.__taskDraftAttachments = [];
+        if (typeof renderTaskAttachments === "function") renderTaskAttachments("newTaskAttachmentsList", []);
         toggleTaskCreateForm(false);
         renderTasks();
       }
@@ -145,7 +188,9 @@
             closedAt: status === "closed" ? (task.closedAt || now) : null
           };
         });
+        const movedTask = tasks.find(task => task.id === id);
         setTasks(tasks);
+        closeLinkedPetitionIfNeeded(movedTask, status);
         renderTasks();
       }
 
@@ -257,6 +302,7 @@
         const priorityInput = document.getElementById("taskEditPriority");
         const statusInput = document.getElementById("taskEditStatus");
         const notesInput = document.getElementById("taskEditNotes");
+        const originInput = document.getElementById("taskEditOrigin");
         const updateInput = document.getElementById("taskUpdateModalText");
 
         if (titleEl) titleEl.textContent = task.title || "Tarea sin título";
@@ -265,8 +311,11 @@
         if (priorityInput) priorityInput.value = normalizePriority(task.priority);
         if (statusInput) statusInput.value = task.status || "pending";
         if (notesInput) notesInput.value = task.notes || "";
+        populateTaskOriginSelect("taskEditOrigin", taskOriginValue(task), true);
         if (updateInput) updateInput.value = "";
         renderEditableUpdates("taskExistingUpdates", task.updates || []);
+        window.__taskDraftAttachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
+        if (typeof renderTaskAttachments === "function") renderTaskAttachments("taskAttachmentsList", window.__taskDraftAttachments);
 
         document.getElementById("taskUpdateModal").classList.add("open");
         setTimeout(() => (updateInput || titleInput)?.focus(), 0);
@@ -276,7 +325,7 @@
         activeTaskUpdateId = null;
         const modal = document.getElementById("taskUpdateModal");
         if (modal) modal.classList.remove("open");
-        ["taskEditTitle", "taskEditDueDate", "taskEditNotes", "taskUpdateModalText"].forEach(id => {
+        ["taskEditTitle", "taskEditDueDate", "taskEditNotes", "taskUpdateModalText", "taskEditOrigin"].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = "";
         });
@@ -299,6 +348,7 @@
           return;
         }
         const priority = normalizePriority(document.getElementById("taskEditPriority")?.value || "normal");
+        const origin = taskOriginValue({ origin: document.getElementById("taskEditOrigin")?.value || "" });
         const notes = (document.getElementById("taskEditNotes")?.value || "").trim();
         const updateText = (document.getElementById("taskUpdateModalText")?.value || "").trim();
         const now = new Date().toISOString();
@@ -316,13 +366,17 @@
             status,
             dueDate,
             priority,
+            origin,
             closedAt: status === "closed" ? (task.closedAt || now) : null,
             updatedAt: now,
-            updates
+            updates,
+            attachments: Array.isArray(window.__taskDraftAttachments) ? window.__taskDraftAttachments : []
           };
         });
 
+        const updatedTask = updated.find(task => task.id === activeTaskUpdateId);
         setTasks(updated);
+        closeLinkedPetitionIfNeeded(updatedTask, status);
         closeTaskUpdateModal();
         renderTasks();
       }
@@ -482,7 +536,7 @@
       function taskMatchesQuery(task, query) {
         if (!query) return true;
         const updates = Array.isArray(task.updates) ? task.updates.map(update => update.text || "").join(" ") : "";
-        return itemSearchText([task.title, task.notes, task.dueDate, taskStatusLabel(task.status), priorityLabel(task.priority), updates]).includes(query);
+        return itemSearchText([task.title, task.notes, task.dueDate, taskStatusLabel(task.status), priorityLabel(task.priority), taskOriginValue(task), updates]).includes(query);
       }
 
       function toggleTaskRowDetails(event, id) {
@@ -516,6 +570,7 @@
         const dueDetail = task.dueDate ? due.text : "Sin fecha límite";
         const notes = task.notes || "Sin notas";
         const statusClass = taskStatusClass(task.status);
+        const originHtml = taskOriginBadgeHtml(taskOriginValue(task));
 
         return `
           <tr id="rrll-task-${task.id}" class="rrll-pro-row rrll-task-row status-${statusClass}" onclick="toggleTaskRowDetails(event, '${task.id}')" ondblclick="event.preventDefault(); event.stopPropagation(); openTaskUpdateModal('${task.id}')" title="Clic para desplegar detalle · Doble clic para editar">
@@ -523,9 +578,9 @@
               <div class="rrll-pro-title">${escapeHtml(task.title || "Sin título")}</div>
               <div class="rrll-pro-subtitle">${escapeHtml(notes)}</div>
               <div class="rrll-pro-created">Creada: ${escapeHtml(created)}${closed ? ` · Cerrada: ${escapeHtml(closed)}` : ""}</div>
-              <div class="rrll-pro-due-detail">${escapeHtml(dueDetail)}</div>
               <div class="rrll-pro-update">Última actualización: ${escapeHtml(lastTaskUpdate(task))}</div>
             </td>
+            <td class="rrll-origin-cell">${originHtml}</td>
             <td>${taskPriorityBadgeHtml(task.priority)}</td>
             <td><span class="rrll-status-pill ${statusClass}">${escapeHtml(taskStatusLabel(task.status))}</span></td>
             <td><span class="rrll-due-pill${due.className}" title="${escapeHtml(dueDetail)}">${escapeHtml(dueText)}</span></td>
@@ -545,6 +600,7 @@
         const statusOrder = { progress: 3, pending: 2, closed: 1 };
         switch (field) {
           case "title": return String(task.title || "").toLocaleLowerCase("es-ES");
+          case "origin": return taskOriginValue(task).toLocaleLowerCase("es-ES");
           case "priority": return priorityOrder[normalizePriority(task.priority)] || 0;
           case "status": return statusOrder[task.status] || 0;
           case "dueDate": return task.dueDate || "9999-12-31";
@@ -604,6 +660,7 @@
       }
 
       function renderTasks() {
+        populateTaskOriginSelect("newTaskOrigin", document.getElementById("newTaskOrigin")?.value || "", true);
         const tasks = getTasks();
         const tableBody = document.getElementById("tasksTableBody");
         const empty = document.getElementById("tasksTableEmpty");

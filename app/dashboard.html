@@ -7,9 +7,9 @@
   <link rel="icon" type="image/png" href="assets/icon.png" />
   <script>
     try {
-      document.documentElement.setAttribute("data-theme", localStorage.getItem("rrll_theme") || "light");
+      document.documentElement.setAttribute("data-theme", "dark");
     } catch (e) {
-      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.setAttribute("data-theme", "dark");
     }
   </script>
   <link rel="stylesheet" href="styles.css" />
@@ -27,6 +27,7 @@
         <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
         <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
         <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
+        <a href="#gestor-ticket-restaurante" class="phase4-nav-item">🍽 <span>Ticket Restaurante</span></a>
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="phase4-nav-chevron">▾</strong></button>
         <div class="phase4-nav-submenu" id="phase4-submenu-comite">
           <a href="#gestor-puntos-comite" class="phase4-nav-subitem">• <span>Puntos de Comité</span></a>
@@ -38,24 +39,26 @@
           <a href="#gestor-sesiones-paritaria" class="phase4-nav-subitem">• <span>Sesiones Paritaria</span></a>
         </div>
       </nav>
-      <div class="phase4-sidebar-section">Herramientas</div>
-      <nav class="phase4-nav phase4-nav-secondary">
-        <button type="button" class="phase4-nav-item phase4-nav-button" onclick="openTrashModal()">🗑 <span>Papelera</span> <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
-        <button type="button" class="phase4-nav-item phase4-nav-button" onclick="openConfigModal()">⚙ <span>Configuración</span></button>
+      <nav class="phase4-nav phase4-nav-secondary" aria-label="Accesos rápidos">
+        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-folder-link" onclick="openRRLLFolderShortcut()" title="Abrir carpeta Relaciones Laborales">📁 <span>Relaciones Laborales</span></button>
+        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-trash-icon" onclick="openTrashModal()" title="Papelera" aria-label="Papelera">🗑 <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
+        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙</button>
       </nav>
+      <div id="rrllFolderNotice" class="sidebar-folder-notice" aria-live="polite"></div>
       <div id="saveStatusWidget" class="save-status-widget synced phase5-sidebar-sync" aria-live="polite">
         <span class="save-status-dot"></span>
         <span class="save-status-text">
-          <b id="saveStatusLabel">Sincronizado</b>
-          <span id="saveStatusDetail">Esperando cambios</span>
+          <b id="saveStatusLabel">Sinc. OK</b>
+          <span id="saveStatusDetail">00:00:00</span>
         </span>
-        <button type="button" class="sync-now-button" onclick="reloadDatabaseFromDisk()">Sincronizar ahora</button>
+        <button type="button" class="sync-now-button" onclick="reloadDatabaseFromDisk()" title="Sincronizar ahora" aria-label="Sincronizar ahora">↻</button>
       </div>
     </aside>
     <div class="phase4-main">
   <div class="top-strip">
-    <div class="brand-mark" aria-hidden="true"></div>
-    <div class="brand-text">metro bilbao</div>
+    <div class="header-logo-wrapper">
+      <img class="header-logo" src="assets/icon.png" alt="Relaciones Laborales" />
+    </div>
     <div class="top-title">
       <h1>Cuadro de Mando de <span class="rrll-title">RRLL</span> <span class="version-label">1.0</span></h1>
       <p id="today"></p>
@@ -324,6 +327,12 @@
                 </select>
               </div>
               <div class="rrll-pro-field">
+                <label>Origen</label>
+                <select id="newTaskOrigin" class="petition-origin-select" title="Origen de la tarea">
+                  <option value="">Sin origen</option>
+                </select>
+              </div>
+              <div class="rrll-pro-field">
                 <label>Estado</label>
                 <select id="newTaskStatus">
                   <option value="pending">Pendiente</option>
@@ -334,6 +343,11 @@
               <div class="rrll-pro-field rrll-pro-field-full">
                 <label>Descripción / notas</label>
                 <textarea id="newTaskNotes" placeholder="Describe la tarea, objetivos, referencia, persona afectada o próximos pasos..."></textarea>
+              </div>
+              <div class="rrll-pro-field rrll-pro-field-full">
+                <label>Documentos Adjuntos</label>
+                <button type="button" class="secondary small" onclick="selectTaskAttachmentFiles()">Añadir documentos</button>
+                <div id="newTaskAttachmentsList" class="rrll-attachments-list"></div>
               </div>
               <div class="rrll-pro-form-actions">
                 <button class="rrll-pro-primary" onclick="addTask()">Guardar tarea</button>
@@ -360,6 +374,7 @@
                 <table class="rrll-pro-table rrll-pro-table-tasks">
                   <colgroup>
                     <col class="rrll-col-main" />
+                    <col class="rrll-col-source" />
                     <col class="rrll-col-priority" />
                     <col class="rrll-col-status" />
                     <col class="rrll-col-date" />
@@ -368,6 +383,7 @@
                   <thead>
                     <tr>
                       <th class="sortable" data-task-sort="title" onclick="setTaskSort('title')">Tarea</th>
+                      <th class="sortable rrll-origin-heading" data-task-sort="origin" onclick="setTaskSort('origin')">Origen</th>
                       <th class="sortable" data-task-sort="priority" onclick="setTaskSort('priority')">Prioridad</th>
                       <th class="sortable" data-task-sort="status" onclick="setTaskSort('status')">Estado</th>
                       <th class="sortable" data-task-sort="dueDate" onclick="setTaskSort('dueDate')">Fecha límite</th>
@@ -415,7 +431,8 @@
               </div>
               <div class="rrll-pro-field rrll-pro-source-field">
                 <label>Origen</label>
-                <div class="rrll-pro-checks">
+                <select id="newPetitionOrigin" class="petition-origin-select" title="Origen de la petición"></select>
+                <div class="rrll-pro-checks rrll-legacy-source-checks" aria-label="Clasificación anterior">
                   <label><input id="newPetitionUnion" type="checkbox" /> Sindicato</label>
                   <label><input id="newPetitionCompany" type="checkbox" /> Empresa</label>
                 </div>
@@ -423,6 +440,11 @@
               <div class="rrll-pro-field rrll-pro-field-full">
                 <label>Descripción / notas</label>
                 <textarea id="newPetitionNotes" placeholder="Notas iniciales de la petición, origen, referencia, persona o colectivo afectado..."></textarea>
+              </div>
+              <div class="rrll-pro-field rrll-pro-field-full">
+                <label>Documentos Adjuntos</label>
+                <button type="button" class="secondary small" onclick="selectPetitionAttachmentFiles()">Añadir documentos</button>
+                <div id="newPetitionAttachmentsList" class="rrll-attachments-list"></div>
               </div>
               <div class="rrll-pro-form-actions">
                 <button class="rrll-pro-primary" onclick="addPetition()">Guardar petición</button>
@@ -490,7 +512,7 @@
             <div id="agendaCreateForm" class="rrll-pro-task-form rrll-pro-committee-form rrll-create-form-collapsed">
               <label class="rrll-pro-field">
                 <span>Peticionario</span>
-                <input id="newAgendaPetitioner" placeholder="Sindicato, Dirección, área..." />
+                <input id="newAgendaPetitioner" list="petitionOriginsDatalist" placeholder="Sindicato, Dirección, área..." />
               </label>
               <label class="rrll-pro-field rrll-pro-field-wide">
                 <span>Punto</span>
@@ -605,7 +627,7 @@
             <div id="paritariaCreateForm" class="rrll-pro-task-form rrll-pro-committee-form rrll-create-form-collapsed">
               <label class="rrll-pro-field">
                 <span>Peticionario</span>
-                <input id="newParitariaPetitioner" placeholder="Sindicato, Dirección, área..." />
+                <input id="newParitariaPetitioner" list="petitionOriginsDatalist" placeholder="Sindicato, Dirección, área..." />
               </label>
               <label class="rrll-pro-field rrll-pro-field-wide">
                 <span>Punto</span>
@@ -781,8 +803,8 @@
                   <span>Campaña</span>
                   <select id="teleworkCampaignSelector" onchange="changeTeleworkCampaign(this.value)"></select>
                 </label>
-                <button class="rrll-pro-tool-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); addTeleworkCampaignOption()" title="Añadir o seleccionar una campaña futura/manual">+ Añadir</button>
-                <button type="button" class="rrll-pro-primary" onclick="event.preventDefault(); event.stopPropagation(); toggleTeleworkCreateForm(true)">+ Nueva solicitud</button>
+                <button class="rrll-pro-tool-button telework-add-campaign" type="button" onclick="event.preventDefault(); event.stopPropagation(); addTeleworkCampaignOption()" title="Crear una nueva campaña de teletrabajo">Añadir</button>
+                <button type="button" class="rrll-pro-primary telework-new-request" onclick="event.preventDefault(); event.stopPropagation(); toggleTeleworkCreateForm(true)">+ Nueva solicitud</button>
               </div>
             </div>
 
@@ -865,7 +887,7 @@
                   <button class="rrll-pro-tool-button rrll-icon-only rrll-new-request-icon" type="button" onclick="toggleTeleworkCreateForm(true)" title="Nueva solicitud" aria-label="Nueva solicitud">+</button>
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="openTeleworkImportModal()" title="Importar teletrabajo" aria-label="Importar teletrabajo">⇪</button>
                   <button class="rrll-pro-tool-button" type="button" onclick="openTeleworkJobCatalogModal()" title="Consultar y mantener catálogo de puestos" aria-label="Puestos teletrabajo">Puestos teletrabajo</button>
-                  <input id="teleworkImportFileInput" class="sr-only-file" type="file" accept=".xlsx,.csv,.txt,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" onchange="importTeleworkData(event)" />
+                  <input id="teleworkImportFileInput" class="sr-only-file" type="file" accept=".xlsx,.xls,.csv,.txt,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/plain" onchange="importTeleworkData(event)" />
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printModule('telework')" title="Imprimir el filtro seleccionado" aria-label="Imprimir el filtro seleccionado">🖨️</button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportModuleExcel('telework')" title="Exportar campaña/filtro seleccionado" aria-label="Exportar campaña/filtro seleccionado">X</button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportTeleworkHistoryExcel()" title="Exportar todas las campañas" aria-label="Exportar todas las campañas">H</button>
@@ -1220,9 +1242,129 @@
             </details>
           </div>
         </details>
+        <details class="card module-card rrll-pro-module ticket-restaurant-module" id="gestor-ticket-restaurante"><summary><span class="module-title"><span class="module-icon">🍽</span>Ticket Restaurante</span><span class="summary-counts">Calendarios · Personas · Ausencias · Cómputo</span></summary>
+          <div class="rrll-pro-task-shell ticket-restaurant-shell">
+            <div class="rrll-pro-task-head">
+              <div>
+                <h2>Ticket Restaurante</h2>
+                <p>Gestión mensual de calendarios, personas con derecho, ausencias y generación del Excel de cómputo.</p>
+              </div>
+            </div>
+
+            <div class="ticket-restaurant-tabs" role="tablist" aria-label="Áreas de Ticket Restaurante">
+              <button type="button" class="ticket-restaurant-tab active" data-ticket-area="compute" onclick="showTicketRestaurantArea('compute')">Generar Cómputo</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="monthly" onclick="showTicketRestaurantArea('monthly')">Cómputo Cotización Mensual</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="absences" onclick="showTicketRestaurantArea('absences')">Importar Ausencias</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="calendar" onclick="showTicketRestaurantArea('calendar')">Definir Calendarios</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="people" onclick="showTicketRestaurantArea('people')">Personas con Derecho</button>
+            </div>
+
+            <section class="ticket-restaurant-area" data-ticket-area="calendar" hidden>
+              <div class="rrll-pro-list-card">
+                <div class="ticket-calendar-toolbar">
+                  <label class="rrll-pro-field">
+                    <span>Calendario</span>
+                    <select id="ticketRestaurantCalendarSelect" onchange="setTicketRestaurantCalendar(this.value)"></select>
+                  </label>
+                  <div class="ticket-year-nav" aria-label="Navegación anual">
+                    <button type="button" class="secondary" onclick="moveTicketRestaurantCalendarYear(-1)">←</button>
+                    <strong id="ticketRestaurantCalendarYear"></strong>
+                    <button type="button" class="secondary" onclick="moveTicketRestaurantCalendarYear(1)">→</button>
+                  </div>
+                  <div class="ticket-calendar-legend"><span>Día normal</span><span class="weekend">Fin de semana</span><span class="no-ticket">Sin ticket</span></div>
+                </div>
+                <div id="ticketRestaurantCalendarGrid" class="ticket-calendar-grid"></div>
+              </div>
+            </section>
+
+            <section class="ticket-restaurant-area" data-ticket-area="people" hidden>
+              <div class="rrll-pro-list-card">
+                <div class="rrll-pro-list-toolbar">
+                  <div><h3>Personas con derecho a ticket</h3><p class="rrll-pro-subtitle" id="ticketRestaurantPeopleCount">0 personas</p></div>
+                  <div class="rrll-pro-list-actions">
+                    <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printTicketRestaurantPeopleVisible()" title="Imprimir personas filtradas" aria-label="Imprimir personas con derecho">🖨️</button>
+                    <button class="rrll-pro-tool-button excel rrll-icon-only" type="button" onclick="exportTicketRestaurantPeopleVisible()" title="Exportar personas filtradas a Excel" aria-label="Exportar personas con derecho a Excel">X</button>
+                    <button type="button" onclick="importTicketRestaurantPeople()">Cargar fichero</button>
+                    <button type="button" class="secondary" onclick="downloadTicketRestaurantPeopleTemplate()">Descargar modelo</button>
+                    <button type="button" class="rrll-pro-primary" onclick="openTicketRestaurantPersonForm()">Nueva persona</button>
+                  </div>
+                </div>
+                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre</th><th>Apellido1</th><th>Apellido2</th><th>DNI</th><th>Puesto</th><th>Calendario</th><th>Acciones</th></tr><tr class="ticket-filter-row"><th><input id="ticketPeopleFilterEmployee" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterName" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterSurname1" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterSurname2" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterDni" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterPosition" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th><input id="ticketPeopleFilterCalendar" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantPeople()" /></th><th></th></tr></thead><tbody id="ticketRestaurantPeopleBody"></tbody></table></div>
+                <div id="ticketRestaurantPeopleImportSummary" class="ticket-import-summary" aria-live="polite"></div>
+              </div>
+            </section>
+
+            <section class="ticket-restaurant-area" data-ticket-area="absences" hidden>
+              <div class="rrll-pro-list-card">
+                <div class="rrll-pro-list-toolbar">
+                  <div><h3>Importar ausencias</h3><p class="rrll-pro-subtitle" id="ticketRestaurantAbsencesCount">0 ausencias</p></div>
+                  <div class="rrll-pro-list-actions">
+                    <button type="button" onclick="importTicketRestaurantAbsences()">Cargar fichero</button>
+                    <button type="button" class="secondary" onclick="downloadTicketRestaurantAbsenceTemplate()">Descargar modelo</button>
+                  </div>
+                </div>
+                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Total días</th><th>Mes/Año</th><th>Acciones</th></tr></thead><tbody id="ticketRestaurantAbsencesBody"></tbody></table></div>
+                <div id="ticketRestaurantAbsenceImportSummary" class="ticket-import-summary" aria-live="polite"></div>
+              </div>
+            </section>
+
+            <section class="ticket-restaurant-area" data-ticket-area="compute">
+              <div class="rrll-pro-list-card">
+                <div class="ticket-compute-toolbar">
+                  <label class="rrll-pro-field"><span>Mes</span><select id="ticketRestaurantComputeMonth" onchange="renderTicketRestaurantComputePreview()"></select></label>
+                  <label class="rrll-pro-field"><span>Año</span><input id="ticketRestaurantComputeYear" type="number" min="2000" max="2100" onchange="renderTicketRestaurantComputePreview()" oninput="renderTicketRestaurantComputePreview()" /></label>
+                  <div class="ticket-compute-actions">
+                    <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printTicketRestaurantComputeVisible()" title="Imprimir cómputo filtrado" aria-label="Imprimir cómputo">🖨️</button>
+                    <button class="rrll-pro-tool-button excel rrll-icon-only" type="button" onclick="exportTicketRestaurantCompute()" title="Exportar cómputo filtrado a Excel" aria-label="Exportar cómputo a Excel">X</button>
+                  </div>
+                </div>
+                <div id="ticketRestaurantComputePeriod" class="ticket-compute-period" aria-live="polite"></div>
+                <div id="ticketRestaurantComputeSummary" class="ticket-compute-summary"></div>
+                <div id="ticketRestaurantComputeNotice" class="ticket-compute-notice" aria-live="polite" hidden></div>
+                <h3>Preview por persona</h3>
+                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th aria-sort="none"><button type="button" class="ticket-sort-button" data-ticket-compute-sort="employee" onclick="setTicketRestaurantComputeSort('employee')">Nº empleado<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th><th aria-sort="none"><button type="button" class="ticket-sort-button" data-ticket-compute-sort="name" onclick="setTicketRestaurantComputeSort('name')">Nombre completo<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th><th aria-sort="none"><button type="button" class="ticket-sort-button" data-ticket-compute-sort="calendar" onclick="setTicketRestaurantComputeSort('calendar')">Calendario<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th><th aria-sort="none"><button type="button" class="ticket-sort-button" data-ticket-compute-sort="theoretical" onclick="setTicketRestaurantComputeSort('theoretical')">Tickets teóricos<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th><th aria-sort="none"><button type="button" class="ticket-sort-button" data-ticket-compute-sort="absences" onclick="setTicketRestaurantComputeSort('absences')">Ausencias aplicadas<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th><th aria-sort="none"><button type="button" class="ticket-sort-button" data-ticket-compute-sort="final" onclick="setTicketRestaurantComputeSort('final')">Tickets finales<span class="ticket-sort-indicator" aria-hidden="true"></span></button></th></tr><tr class="ticket-filter-row"><th><input id="ticketComputeFilterEmployee" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterName" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterCalendar" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterTheoretical" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterAbsences" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th><th><input id="ticketComputeFilterFinal" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantComputePreview()" /></th></tr></thead><tbody id="ticketRestaurantComputeBody"></tbody></table></div>
+              </div>
+            </section>
+
+            <section class="ticket-restaurant-area" data-ticket-area="monthly" hidden>
+              <div class="rrll-pro-list-card">
+                <div id="ticketRestaurantMonthlyQuotePanel" class="ticket-monthly-quote-panel">
+                  <div class="rrll-pro-list-toolbar">
+                    <div><h3>Cómputo Cotización Mensual</h3><p class="rrll-pro-subtitle" id="ticketRestaurantMonthlyQuotePeriod" aria-live="polite"></p></div>
+                    <div class="rrll-pro-list-actions">
+                      <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printTicketRestaurantMonthlyQuote()" title="Imprimir cotización mensual filtrada" aria-label="Imprimir cotización mensual">🖨️</button>
+                      <button class="rrll-pro-tool-button excel rrll-icon-only" type="button" onclick="exportTicketRestaurantMonthlyQuote()" title="Exportar cotización mensual filtrada a Excel" aria-label="Exportar cotización mensual a Excel">X</button>
+                    </div>
+                  </div>
+                  <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nº empleado</th><th>Nombre y apellidos</th><th>Número de días con ticket</th><th>Importe ticket</th></tr><tr class="ticket-filter-row"><th><input id="ticketMonthlyQuoteFilterEmployee" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantMonthlyQuotePreview()" /></th><th><input id="ticketMonthlyQuoteFilterName" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantMonthlyQuotePreview()" /></th><th><input id="ticketMonthlyQuoteFilterDays" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantMonthlyQuotePreview()" /></th><th><input id="ticketMonthlyQuoteFilterAmount" type="search" placeholder="Filtrar" oninput="renderTicketRestaurantMonthlyQuotePreview()" /></th></tr></thead><tbody id="ticketRestaurantMonthlyQuoteBody"></tbody></table></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </details>
+
       </section>
     </div>
   </main>
+    </div>
+  </div>
+
+  <div id="ticketPersonModal" class="modal-backdrop" onclick="closeTicketRestaurantPersonForm()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <h3 id="ticketPersonModalTitle">Nueva persona</h3>
+      <div class="form-grid">
+        <label><span>Nº empleado *</span><input id="ticketPersonEmployee" /></label>
+        <label><span>Nombre *</span><input id="ticketPersonName" /></label>
+        <label><span>Apellido1</span><input id="ticketPersonSurname1" /></label>
+        <label><span>Apellido2</span><input id="ticketPersonSurname2" /></label>
+        <label><span>DNI</span><input id="ticketPersonDni" /></label>
+        <label><span>Puesto</span><input id="ticketPersonPosition" /></label>
+        <label class="full"><span>Calendario *</span><select id="ticketPersonCalendar"></select></label>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary" type="button" onclick="closeTicketRestaurantPersonForm()">Cancelar</button>
+        <button type="button" onclick="saveTicketRestaurantPersonForm()">Guardar</button>
+      </div>
     </div>
   </div>
 
@@ -1239,7 +1381,7 @@
         <section class="telework-import-card">
           <span class="telework-import-kicker">Opción 1</span>
           <h4>Cargar fichero</h4>
-          <p>Importa solicitudes o catálogo desde Excel, CSV, TXT o TSV. Se leerá la primera hoja si el archivo es .xlsx.</p>
+          <p>Importa solicitudes o catálogo desde Excel (.xlsx/.xls), CSV, TXT o TSV. Se leerá la primera hoja si el archivo es .xlsx.</p>
           <button class="rrll-pro-primary" type="button" onclick="teleworkImportChooseFile()">Cargar fichero</button>
         </section>
         <section class="telework-import-card">
@@ -1326,13 +1468,13 @@
   <div id="configModal" class="modal-backdrop" onclick="closeConfigModal()">
     <div class="modal-box config-modal-box" onclick="event.stopPropagation()">
       <h3>Configuración</h3>
-      <p class="muted">Base de datos, sincronización, apariencia y copias manuales JSON.</p>
+      <p class="muted">Base de datos, sincronización, apariencia, carpeta RRLL y copias manuales JSON.</p>
 
       <div class="config-section rrll-theme-config">
         <h4>Apariencia</h4>
-        <p class="muted">Elige el tema visual de la aplicación. La opción se guarda en este equipo.</p>
+        <p class="muted">El modo claro está desactivado temporalmente. La aplicación funciona en modo oscuro.</p>
         <div class="theme-choice-row" role="group" aria-label="Selector de tema">
-          <button type="button" class="theme-choice" data-theme-choice="light" onclick="setRRLLTheme('light')">
+          <button type="button" class="theme-choice" data-theme-choice="light" onclick="setRRLLTheme('light')" hidden disabled aria-disabled="true">
             <span class="theme-choice-preview theme-choice-preview-light"></span>
             <strong>Claro</strong>
             <small>Gris claro profesional</small>
@@ -1343,6 +1485,7 @@
             <small>Gris carbón</small>
           </button>
         </div>
+        <small id="themeDarkOnlyNotice" class="muted">Modo claro desactivado temporalmente.</small>
       </div>
 
       <div class="config-section">
@@ -1361,6 +1504,17 @@
         </div>
       </div>
 
+
+      <div class="config-section rrll-folder-config">
+        <h4>Carpeta Relaciones Laborales</h4>
+        <p class="muted">Configura la carpeta local o de red que abrirá el acceso directo del sidebar.</p>
+        <div class="dynamic-access-form rrll-folder-path-form">
+          <input id="rrllFolderPathInput" type="text" placeholder="G:\Capital Humano\Relaciones Laborales" autocomplete="off" />
+          <button type="button" onclick="saveRRLLFolderPath()">Guardar</button>
+        </div>
+        <p id="rrllFolderConfigMessage" class="muted rrll-folder-config-message" aria-live="polite"></p>
+      </div>
+
       <div class="config-section">
         <h4>Copias manuales JSON</h4>
         <p class="muted">Exporta una copia manual antes de cambios importantes o importa una copia JSON si necesitas recuperar datos.</p>
@@ -1369,6 +1523,26 @@
           <button type="button" class="secondary" onclick="document.getElementById('configBackupFileInput').click()">Importar JSON</button>
         </div>
         <input id="configBackupFileInput" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)" />
+      </div>
+
+      <div class="config-section ticket-restaurant-config-section">
+        <h4>Ticket Restaurante</h4>
+        <p class="muted">Configura los valores usados al generar el Excel mensual de cómputo.</p>
+        <div class="dynamic-access-form ticket-config-form">
+          <label>Pedido<input id="ticketRestaurantConfigPedido" placeholder="2404407" /></label>
+          <label>Importe ticket<input id="ticketRestaurantConfigImporte" placeholder="14,57" /></label>
+          <button type="button" onclick="saveTicketRestaurantConfigFromInputs()">Guardar</button>
+        </div>
+      </div>
+
+      <div class="config-section settings-petition-origins">
+        <h4>Orígenes de peticiones</h4>
+        <p class="muted">Gestiona los valores disponibles en el desplegable Origen de Peticiones y Tareas vinculadas.</p>
+        <div class="dynamic-access-form">
+          <input id="newPetitionOriginConfig" placeholder="Nuevo origen" />
+          <button type="button" onclick="addPetitionOrigin()">Añadir origen</button>
+        </div>
+        <div id="petitionOriginsConfigList" class="petition-origins-config-list"></div>
       </div>
 
       <div class="modal-actions">
@@ -1433,7 +1607,13 @@
             <option value="urgent">Urgente</option>
           </select>
         </div>
-        <div class="full">
+        <div>
+          <label for="taskEditOrigin">Origen</label>
+          <select id="taskEditOrigin" class="petition-origin-select">
+            <option value="">Sin origen</option>
+          </select>
+        </div>
+        <div>
           <label for="taskEditStatus">Estado</label>
           <select id="taskEditStatus">
             <option value="pending">Pendiente</option>
@@ -1452,6 +1632,11 @@
         <div class="full">
           <label for="taskUpdateModalText">Nueva actualización opcional</label>
           <textarea id="taskUpdateModalText" placeholder="Escribe aquí un avance si quieres añadirlo al historial..."></textarea>
+        </div>
+        <div class="full">
+          <label>Documentos Adjuntos</label>
+          <button type="button" class="secondary small" onclick="selectTaskAttachmentFiles()">Añadir documentos</button>
+          <div id="taskAttachmentsList" class="rrll-attachments-list"></div>
         </div>
       </div>
       <div class="modal-actions">
@@ -1491,8 +1676,11 @@
           </select>
         </div>
         <div>
-          <label>Origen</label>
-          <div class="checks">
+          <label for="petitionEditOrigin">Origen</label>
+          <select id="petitionEditOrigin" class="petition-origin-select">
+            <option value="">Sin origen</option>
+          </select>
+          <div class="checks rrll-legacy-source-checks">
             <label class="check-option"><input id="petitionEditUnion" type="checkbox" /> Sindicato</label>
             <label class="check-option"><input id="petitionEditCompany" type="checkbox" /> Empresa</label>
           </div>
@@ -1508,6 +1696,11 @@
         <div class="full">
           <label for="petitionUpdateModalText">Nueva actualización opcional</label>
           <textarea id="petitionUpdateModalText" placeholder="Escribe aquí una actualización si quieres añadirla al historial..."></textarea>
+        </div>
+        <div class="full">
+          <label>Documentos Adjuntos</label>
+          <button type="button" class="secondary small" onclick="selectPetitionAttachmentFiles()">Añadir documentos</button>
+          <div id="petitionAttachmentsList" class="rrll-attachments-list"></div>
         </div>
       </div>
       <div class="modal-actions">
@@ -1529,7 +1722,7 @@
         </div>
         <div>
           <label for="agendaEditPetitioner">Peticionario</label>
-          <input id="agendaEditPetitioner" placeholder="Peticionario" />
+          <input id="agendaEditPetitioner" list="petitionOriginsDatalist" placeholder="Peticionario" />
         </div>
         <div>
           <label for="agendaEditRequestDate">Fecha solicitud</label>
@@ -1635,7 +1828,7 @@
         </div>
         <div>
           <label for="paritariaEditPetitioner">Peticionario</label>
-          <input id="paritariaEditPetitioner" placeholder="Peticionario" />
+          <input id="paritariaEditPetitioner" list="petitionOriginsDatalist" placeholder="Peticionario" />
         </div>
         <div>
           <label for="paritariaEditRequestDate">Fecha solicitud</label>
@@ -1674,6 +1867,8 @@
       </div>
     </div>
   </div>
+
+  <datalist id="petitionOriginsDatalist"></datalist>
 
   <div id="paritariaSessionSelectModal" class="modal-backdrop" onclick="closeAddParitariaToParitariaModal()">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -1811,12 +2006,14 @@
   <script src="modules/vinculograma.js"></script>
   <script src="modules/licencias.js"></script>
   <script src="modules/criterios-rrll.js"></script>
+  <script src="modules/ticket-restaurante.js"></script>
   <script src="modules/links-config.js"></script>
   <script src="modules/trash.js"></script>
   <script src="modules/search.js"></script>
   <script src="modules/backup-import.js"></script>
   <script src="modules/home-dashboard.js"></script>
   <script src="modules/database-sync.js"></script>
+  <script src="modules/rrll-folder.js"></script>
   <script src="modules/navigation.js"></script>
   <script src="app.js"></script>
   <script src="modules/theme.js"></script>

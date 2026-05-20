@@ -144,6 +144,8 @@
         if (typeof renderVinculogramas === "function") renderVinculogramas();
         if (typeof renderLicencias === "function") renderLicencias();
         if (typeof renderPlantilla === "function") renderPlantilla();
+        if (typeof renderCriteria === "function") renderCriteria();
+        if (typeof renderTicketRestaurant === "function") renderTicketRestaurant();
         renderTrash();
         restoreAlertsPanelState();
         renderAlertsPanel();

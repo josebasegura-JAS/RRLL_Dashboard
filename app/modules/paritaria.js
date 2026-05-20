@@ -204,7 +204,20 @@
       if (!form) return;
       const open = typeof forceOpen === "boolean" ? forceOpen : form.classList.contains("rrll-create-form-collapsed");
       form.classList.toggle("rrll-create-form-collapsed", !open);
-      if (open) setTimeout(() => document.getElementById("newParitariaTitle")?.focus(), 0);
+      if (open) {
+        refreshParitariaPetitionerOptions();
+        setTimeout(() => document.getElementById("newParitariaTitle")?.focus(), 0);
+      }
+    }
+
+    function refreshParitariaPetitionerOptions(currentValue) {
+      const datalist = document.getElementById("petitionOriginsDatalist");
+      if (!datalist) return;
+      const origins = typeof window.getPetitionOrigins === "function" ? window.getPetitionOrigins() : [];
+      const normalizedCurrent = String(currentValue || "").trim().toUpperCase();
+      const allValues = Array.isArray(origins) ? [...origins] : [];
+      if (normalizedCurrent && !allValues.includes(normalizedCurrent)) allValues.push(normalizedCurrent);
+      datalist.innerHTML = allValues.map(value => `<option value="${escapeHtml(value)}"></option>`).join("");
     }
 
     function toggleParitariaSessionCreateForm(forceOpen) {
@@ -352,6 +365,7 @@
       const updateInput = document.getElementById("paritariaUpdateModalText");
 
       if (titleInput) titleInput.value = item.title || "";
+      refreshParitariaPetitionerOptions(item.petitioner || "");
       if (petitionerInput) petitionerInput.value = item.petitioner || "";
       if (requestDateInput) requestDateInput.value = item.requestDate || "";
       if (statusInput) statusInput.value = item.status || "paritaria-pending";
@@ -376,6 +390,7 @@
       if (statusInput) statusInput.value = "paritaria-pending";
       const existing = document.getElementById("paritariaExistingUpdates");
       if (existing) existing.innerHTML = "";
+      refreshParitariaPetitionerOptions();
     }
 
     function saveParitariaUpdateFromModal() {
@@ -1503,10 +1518,11 @@
       const tableBody = document.getElementById("paritariaTableBody");
       if (!tableBody) return;
       if (tableBody.dataset.clickBound !== "true") {
-        tableBody.dataset.clickBound = "true";
         tableBody.addEventListener("click", handleParitariaRowClick);
+        tableBody.dataset.clickBound = "true";
       }
       if (tableBody.dataset.dblclickBound !== "true") {
+        tableBody.addEventListener("dblclick", handleParitariaRowDoubleClick);
         tableBody.dataset.dblclickBound = "true";
       }
     }

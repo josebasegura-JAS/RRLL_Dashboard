@@ -9,10 +9,10 @@
 @import url("./styles/10-layout.css");
 @import url("./styles/20-components.css");
 @import url("./styles/30-modules.css");
-@import url("./styles/40-theme.css");
+@import url("./styles/40-theme-dark.css");
+@import url("./styles/41-theme-light.css");
 @import url("./styles/50-module-extras.css");
 @import url("./styles/60-overrides.css");
 @import url("./styles/65-normalize.css");
 @import url("./styles/70-components-final.css");
-
-@import url("./styles/80-light-foundation.css");
+@import url("./styles/90-print.css");

@@ -5,12 +5,107 @@
 
   // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
+    const DEFAULT_PETITION_ORIGINS = ["ELA", "CCOO", "SEMAF", "CIM", "EGIE", "USO", "LAB", "EMPRESA"];
+    const PETITION_ORIGINS_STORAGE_KEY = "rrll_petition_origins";
+
+    function normalizePetitionOrigin(value) {
+      return String(value || "").trim().toUpperCase();
+    }
+
+    function getPetitionOrigins() {
+      const stored = load(PETITION_ORIGINS_STORAGE_KEY, null);
+      if (!Array.isArray(stored)) {
+        setPetitionOrigins(DEFAULT_PETITION_ORIGINS);
+        return [...DEFAULT_PETITION_ORIGINS];
+      }
+      const normalized = [];
+      stored.forEach(origin => {
+        const value = normalizePetitionOrigin(origin);
+        if (value && !normalized.includes(value)) normalized.push(value);
+      });
+      return normalized;
+    }
+
+    function setPetitionOrigins(origins) {
+      const normalized = [];
+      (Array.isArray(origins) ? origins : []).forEach(origin => {
+        const value = normalizePetitionOrigin(origin);
+        if (value && !normalized.includes(value)) normalized.push(value);
+      });
+      save(PETITION_ORIGINS_STORAGE_KEY, normalized);
+    }
+
+    function petitionOriginValue(item) {
+      const origin = normalizePetitionOrigin(item && item.origin);
+      if (origin) return origin;
+      const sources = Array.isArray(item && item.sources) ? item.sources : [];
+      if (sources.length === 1 && String(sources[0]).toLowerCase() === "empresa") return "EMPRESA";
+      return "";
+    }
+
+    function petitionOriginLabel(value) {
+      return normalizePetitionOrigin(value) || "Sin origen";
+    }
+
+    function petitionOriginOptionsHtml(selectedValue, includeEmpty) {
+      const selected = normalizePetitionOrigin(selectedValue);
+      const origins = getPetitionOrigins();
+      if (selected && !origins.includes(selected)) origins.push(selected);
+      const emptyOption = includeEmpty ? `<option value="">Sin origen</option>` : "";
+      return `${emptyOption}${origins.map(origin => `<option value="${escapeHtml(origin)}"${origin === selected ? " selected" : ""}>${escapeHtml(origin)}</option>`).join("")}`;
+    }
+
+    function populatePetitionOriginSelect(selectId, selectedValue, includeEmpty) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      select.innerHTML = petitionOriginOptionsHtml(selectedValue, includeEmpty);
+      select.value = normalizePetitionOrigin(selectedValue) || (includeEmpty ? "" : (getPetitionOrigins()[0] || ""));
+    }
+
+    function petitionOriginBadgeHtml(value, className = "petition-origin-badge") {
+      const origin = normalizePetitionOrigin(value);
+      const label = origin || "Sin origen";
+      return `<span class="${className}${origin ? "" : " is-empty"}">${escapeHtml(label)}</span>`;
+    }
+
     function getPetitions() {
       return load("rrll_petitions", []);
     }
 
     function setPetitions(items) {
       save("rrll_petitions", items);
+    }
+
+    function getLinkedTasksForPetition(petition) {
+      if (!petition || typeof getTasks !== "function") return [];
+      const linkedIds = [petition.taskId, petition.linkedTaskId].filter(Boolean).map(String);
+      return getTasks().filter(task => {
+        if (!task) return false;
+        if (linkedIds.includes(String(task.id))) return true;
+        return task.petitionId && String(task.petitionId) === String(petition.id);
+      });
+    }
+
+    function closeLinkedTasksForPetition(petition, closedAt) {
+      const linkedTasks = getLinkedTasksForPetition(petition);
+      if (!linkedTasks.length || typeof getTasks !== "function" || typeof setTasks !== "function") return;
+      const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
+      const now = closedAt || new Date().toISOString();
+      setTasks(getTasks().map(task => linkedTaskIds.has(String(task.id))
+        ? { ...task, status: "closed", closedAt: task.closedAt || now, updatedAt: now }
+        : task));
+      if (typeof renderTasks === "function") renderTasks();
+    }
+
+    function deleteLinkedTasksForPetition(petition) {
+      const linkedTasks = getLinkedTasksForPetition(petition);
+      if (!linkedTasks.length || typeof getTasks !== "function" || typeof setTasks !== "function") return;
+      const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
+      if (typeof moveToTrash === "function") {
+        linkedTasks.forEach(task => moveToTrash("tasks", task));
+      }
+      setTasks(getTasks().filter(task => !linkedTaskIds.has(String(task.id))));
+      if (typeof renderTasks === "function") renderTasks();
     }
 
     function togglePetitionCreateForm(forceOpen) {
@@ -29,6 +124,7 @@
       const notesEl = document.getElementById("newPetitionNotes");
       const dueDateEl = document.getElementById("newPetitionDueDate");
       const priorityEl = document.getElementById("newPetitionPriority");
+      const originEl = document.getElementById("newPetitionOrigin");
 
       const title = titleEl.value.trim();
       if (!title) return;
@@ -45,18 +141,23 @@
       if (companyEl.checked) sources.push("Empresa");
 
       const now = new Date().toISOString();
+      const origin = normalizePetitionOrigin(originEl ? originEl.value : "") || getPetitionOrigins()[0] || "";
+      const attachments = Array.isArray(window.__petitionDraftAttachments) ? window.__petitionDraftAttachments : [];
+      populatePetitionOriginSelect("newPetitionOrigin", origin, false);
       const items = getPetitions();
       items.unshift({
         id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
         title,
         status: "petition-pending",
         sources,
+        origin,
         dueDate,
         priority: priorityEl ? normalizePriority(priorityEl.value) : "normal",
         notes: notesEl.value.trim(),
         updates: [],
         createdAt: now,
-        closedAt: null
+        closedAt: null,
+        attachments
       });
 
       setPetitions(items);
@@ -66,7 +167,10 @@
       companyEl.checked = false;
       if (dueDateEl) dueDateEl.value = "";
       if (priorityEl) priorityEl.value = "normal";
+      populatePetitionOriginSelect("newPetitionOrigin", getPetitionOrigins()[0] || "", false);
       notesEl.value = "";
+      window.__petitionDraftAttachments = [];
+      if (typeof renderPetitionAttachments === "function") renderPetitionAttachments("newPetitionAttachmentsList", []);
       togglePetitionCreateForm(false);
       renderPetitions();
     }
@@ -81,13 +185,25 @@
           closedAt: status === "petition-closed" ? (item.closedAt || now) : null
         };
       });
+      const movedPetition = items.find(item => item.id === id);
       setPetitions(items);
+      if (status === "petition-closed") closeLinkedTasksForPetition(movedPetition, now);
       renderPetitions();
     }
 
     function movePetition(id, status) {
       if (typeof confirmDangerAction !== "function") return;
       const item = getPetitions().find(i => i.id === id);
+      const linkedTasks = getLinkedTasksForPetition(item);
+      if (status === "petition-closed" && linkedTasks.length) {
+        confirmDangerAction({
+          title: "Cerrar petición con tarea vinculada",
+          message: "Esta petición tiene una tarea vinculada. Si cierras la petición, también se cerrará la tarea asociada. ¿Quieres continuar?",
+          confirmLabel: "Cerrar petición y tarea",
+          onConfirm: () => executeMovePetition(id, status)
+        });
+        return;
+      }
       const title = item && item.title ? `“${item.title}”` : "esta petición";
       const nextStatus = petitionStatusLabel(status).toLowerCase();
       confirmDangerAction({
@@ -101,7 +217,10 @@
     function executeDeletePetition(id) {
       const items = getPetitions();
       const item = items.find(i => i.id === id);
-      if (item) moveToTrash("petitions", item);
+      if (item) {
+        deleteLinkedTasksForPetition(item);
+        moveToTrash("petitions", item);
+      }
       setPetitions(items.filter(i => i.id !== id));
       renderPetitions();
       renderTrash();
@@ -112,6 +231,16 @@
     function deletePetition(id) {
       if (typeof confirmDangerAction !== "function") return;
       const item = getPetitions().find(i => i.id === id);
+      const linkedTasks = getLinkedTasksForPetition(item);
+      if (linkedTasks.length) {
+        confirmDangerAction({
+          title: "Eliminar petición con tarea vinculada",
+          message: "Esta petición tiene una tarea vinculada. Si eliminas la petición, también se eliminará la tarea asociada. ¿Quieres continuar?",
+          confirmLabel: "Eliminar petición y tarea",
+          onConfirm: () => executeDeletePetition(id)
+        });
+        return;
+      }
       const title = item && item.title ? `“${item.title}”` : "esta petición";
       confirmDangerAction({
         title: "Eliminar petición",
@@ -139,6 +268,7 @@
       const notesInput = document.getElementById("petitionEditNotes");
       const unionInput = document.getElementById("petitionEditUnion");
       const companyInput = document.getElementById("petitionEditCompany");
+      const originInput = document.getElementById("petitionEditOrigin");
       const updateInput = document.getElementById("petitionUpdateModalText");
 
       if (titleInput) titleInput.value = item.title || "";
@@ -148,8 +278,12 @@
       if (notesInput) notesInput.value = item.notes || "";
       if (unionInput) unionInput.checked = sources.includes("Sindicato");
       if (companyInput) companyInput.checked = sources.includes("Empresa");
+      if (originInput) originInput.innerHTML = petitionOriginOptionsHtml(petitionOriginValue(item), true);
+      if (originInput) originInput.value = petitionOriginValue(item);
       if (updateInput) updateInput.value = "";
       renderEditableUpdates("petitionExistingUpdates", item.updates || []);
+      window.__petitionDraftAttachments = Array.isArray(item.attachments) ? [...item.attachments] : [];
+      if (typeof renderPetitionAttachments === "function") renderPetitionAttachments("petitionAttachmentsList", window.__petitionDraftAttachments);
 
       document.getElementById("petitionUpdateModal").classList.add("open");
       setTimeout(() => (updateInput || titleInput)?.focus(), 0);
@@ -167,6 +301,7 @@
       const companyInput = document.getElementById("petitionEditCompany");
       if (unionInput) unionInput.checked = false;
       if (companyInput) companyInput.checked = false;
+      populatePetitionOriginSelect("petitionEditOrigin", "", true);
     }
 
     function savePetitionUpdateFromModal() {
@@ -183,6 +318,7 @@
       if (document.getElementById("petitionEditCompany")?.checked) sources.push("Empresa");
 
       const status = document.getElementById("petitionEditStatus")?.value || "petition-pending";
+      const origin = normalizePetitionOrigin(document.getElementById("petitionEditOrigin")?.value || "");
       const rawDueDate = document.getElementById("petitionEditDueDate")?.value || "";
       const dueDate = typeof normalizeDateInput === "function" ? normalizeDateInput(rawDueDate) : rawDueDate;
       if (dueDate === null) {
@@ -205,12 +341,14 @@
           title,
           status,
           sources,
+          origin,
           dueDate,
           priority,
           notes,
           closedAt: status === "petition-closed" ? (item.closedAt || now) : null,
           updatedAt: now,
-          updates
+          updates,
+          attachments: Array.isArray(window.__petitionDraftAttachments) ? window.__petitionDraftAttachments : []
         };
       });
 
@@ -258,7 +396,7 @@
       if (!query) return true;
       const updates = Array.isArray(item.updates) ? item.updates.map(update => update.text || "").join(" ") : "";
       const sources = Array.isArray(item.sources) ? item.sources.join(" ") : "";
-      return itemSearchText([item.title, item.notes, item.dueDate, petitionStatusLabel(item.status), priorityLabel(item.priority), sources, updates]).includes(query);
+      return itemSearchText([item.title, item.notes, item.dueDate, petitionStatusLabel(item.status), priorityLabel(item.priority), petitionOriginValue(item), sources, updates]).includes(query);
     }
 
     function togglePetitionRowDetails(event, id) {
@@ -292,9 +430,7 @@
       const dueDetail = item.dueDate ? due.text : "Sin fecha límite";
       const notes = item.notes || "Sin notas";
       const statusClass = petitionStatusClass(item.status);
-      const sourceHtml = (item.sources && item.sources.length)
-        ? item.sources.map(source => `<span class="petition-source rrll-pro-source">${escapeHtml(source)}</span>`).join("")
-        : `<span class="petition-source rrll-pro-source">Sin clasificar</span>`;
+      const originHtml = petitionOriginBadgeHtml(petitionOriginValue(item));
 
       return `
         <tr id="rrll-petition-${item.id}" class="rrll-pro-row rrll-petition-row status-${statusClass}" onclick="togglePetitionRowDetails(event, '${item.id}')" ondblclick="event.preventDefault(); event.stopPropagation(); openPetitionUpdateModal('${item.id}')" title="Clic para desplegar detalle · Doble clic para editar">
@@ -302,9 +438,8 @@
             <div class="rrll-pro-title">${escapeHtml(item.title || "Sin título")}</div>
             <div class="rrll-pro-subtitle">${escapeHtml(notes)}</div>
             <div class="rrll-pro-created">Creada: ${escapeHtml(created)}${closed ? ` · Cerrada: ${escapeHtml(closed)}` : ""}</div>
-            <div class="rrll-pro-due-detail">${escapeHtml(dueDetail)}</div>
           </td>
-          <td>${sourceHtml}</td>
+          <td class="rrll-origin-cell">${originHtml}</td>
           <td>${petitionPriorityBadgeHtml(item.priority)}</td>
           <td><span class="rrll-status-pill ${statusClass}">${escapeHtml(petitionStatusLabel(item.status))}</span></td>
           <td><span class="rrll-due-pill${due.className}" title="${escapeHtml(dueDetail)}">${escapeHtml(dueText)}</span></td>
@@ -312,6 +447,7 @@
             ${item.status !== "petition-pending" ? `<button class="small secondary" onclick="movePetition('${item.id}', 'petition-pending')">Pendiente</button>` : ""}
             ${item.status !== "petition-progress" ? `<button class="small black" onclick="movePetition('${item.id}', 'petition-progress')">En curso</button>` : ""}
             ${item.status !== "petition-closed" ? `<button class="small" onclick="movePetition('${item.id}', 'petition-closed')">Cerrar</button>` : ""}
+            <button class="small secondary" onclick="createTaskFromPetition('${item.id}')">Crear tarea</button>
             <button class="small danger rrll-delete-icon-button" onclick="deletePetition('${item.id}')" title="Eliminar petición" aria-label="Eliminar petición"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
@@ -320,7 +456,7 @@
 
     function petitionSourceText(item) {
       const sources = Array.isArray(item.sources) ? item.sources : [];
-      return sources.join(", ") || "Sin clasificar";
+      return petitionOriginLabel(petitionOriginValue(item));
     }
 
     function petitionSortValue(item, field) {
@@ -366,6 +502,29 @@
       renderPetitions();
     }
 
+    function createTaskFromPetition(id) {
+      const petition = getPetitions().find(item => item.id === id);
+      if (!petition || typeof getTasks !== "function" || typeof setTasks !== "function") return;
+      const now = new Date().toISOString();
+      const tasks = getTasks();
+      tasks.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        title: petition.title || "Petición sin título",
+        notes: petition.notes || "",
+        status: "pending",
+        dueDate: petition.dueDate || "",
+        priority: normalizePriority(petition.priority),
+        origin: petitionOriginValue(petition),
+        petitionId: petition.id,
+        createdAt: now,
+        closedAt: null,
+        updates: []
+      });
+      setTasks(tasks);
+      executeMovePetition(id, "petition-progress");
+      if (typeof renderTasks === "function") renderTasks();
+    }
+
     function updatePetitionSortHeaders() {
       document.querySelectorAll("#gestor-peticiones th[data-petition-sort]").forEach(th => {
         const field = th.getAttribute("data-petition-sort");
@@ -390,6 +549,7 @@
     }
 
     function renderPetitions() {
+      populatePetitionOriginSelect("newPetitionOrigin", document.getElementById("newPetitionOrigin")?.value || getPetitionOrigins()[0] || "", false);
       const items = getPetitions();
       const tableBody = document.getElementById("petitionsTableBody");
       const empty = document.getElementById("petitionsTableEmpty");
@@ -491,6 +651,7 @@
     const notesInput = document.getElementById("petitionEditNotes");
     const unionInput = document.getElementById("petitionEditUnion");
     const companyInput = document.getElementById("petitionEditCompany");
+    const originInput = document.getElementById("petitionEditOrigin");
     const updateInput = document.getElementById("petitionUpdateModalText");
 
     if (titleInput) titleInput.value = item.title || "";
@@ -500,6 +661,8 @@
     if (notesInput) notesInput.value = item.notes || "";
     if (unionInput) unionInput.checked = sources.includes("Sindicato");
     if (companyInput) companyInput.checked = sources.includes("Empresa");
+    populatePetitionOriginSelect("petitionEditOrigin", petitionOriginValue(item), true);
+    if (originInput) originInput.value = petitionOriginValue(item);
     if (updateInput) updateInput.value = "";
     renderPetitionEditableUpdates("petitionExistingUpdates", item.updates || []);
 
@@ -522,6 +685,7 @@
     if (document.getElementById("petitionEditCompany")?.checked) sources.push("Empresa");
 
     const status = document.getElementById("petitionEditStatus")?.value || "petition-pending";
+    const origin = normalizePetitionOrigin(document.getElementById("petitionEditOrigin")?.value || "");
     const rawDueDate = document.getElementById("petitionEditDueDate")?.value || "";
     const dueDate = typeof normalizeDateInput === "function" ? normalizeDateInput(rawDueDate) : rawDueDate;
     if (dueDate === null) {
@@ -531,32 +695,125 @@
     const priority = normalizePriority(document.getElementById("petitionEditPriority")?.value || "normal");
     const notes = (document.getElementById("petitionEditNotes")?.value || "").trim();
     const updateText = (document.getElementById("petitionUpdateModalText")?.value || "").trim();
-    const now = new Date().toISOString();
+    const currentItem = getPetitions().find(item => item.id === activePetitionUpdateId);
+    const shouldCloseLinkedTask = status === "petition-closed"
+      && currentItem
+      && currentItem.status !== "petition-closed"
+      && getLinkedTasksForPetition(currentItem).length;
 
-    const updatedItems = getPetitions().map(item => {
-      if (item.id !== activePetitionUpdateId) return item;
-      const editedUpdates = collectPetitionEditableUpdates("petitionExistingUpdates", item.updates || []);
-      const updates = updateText
-        ? [...editedUpdates, { text: updateText, createdAt: now }]
-        : editedUpdates;
-      return {
-        ...item,
-        title,
-        status,
-        sources,
-        dueDate,
-        priority,
-        notes,
-        closedAt: status === "petition-closed" ? (item.closedAt || now) : null,
-        updatedAt: now,
-        updates
-      };
-    });
+    const applySave = () => {
+      const now = new Date().toISOString();
+      let savedPetition = null;
+      const updatedItems = getPetitions().map(item => {
+        if (item.id !== activePetitionUpdateId) return item;
+        const editedUpdates = collectPetitionEditableUpdates("petitionExistingUpdates", item.updates || []);
+        const updates = updateText
+          ? [...editedUpdates, { text: updateText, createdAt: now }]
+          : editedUpdates;
+        savedPetition = {
+          ...item,
+          title,
+          status,
+          sources,
+          origin,
+          dueDate,
+          priority,
+          notes,
+          closedAt: status === "petition-closed" ? (item.closedAt || now) : null,
+          updatedAt: now,
+          updates
+        };
+        return savedPetition;
+      });
 
-    setPetitions(updatedItems);
-    closePetitionUpdateModal();
-    renderPetitions();
+      setPetitions(updatedItems);
+      if (status === "petition-closed") closeLinkedTasksForPetition(savedPetition, now);
+      closePetitionUpdateModal();
+      renderPetitions();
+    };
+
+    if (shouldCloseLinkedTask && typeof confirmDangerAction === "function") {
+      confirmDangerAction({
+        title: "Cerrar petición con tarea vinculada",
+        message: "Esta petición tiene una tarea vinculada. Si cierras la petición, también se cerrará la tarea asociada. ¿Quieres continuar?",
+        confirmLabel: "Cerrar petición y tarea",
+        onConfirm: applySave
+      });
+      return;
+    }
+
+    applySave();
   };
+
+  function renderPetitionOriginSettings() {
+    const container = document.getElementById("petitionOriginsConfigList");
+    if (!container) return;
+    const origins = getPetitionOrigins();
+    container.innerHTML = origins.length ? origins.map((origin, index) => `
+      <div class="settings-petition-origin-row">
+        <input id="petition-origin-config-${index}" value="${escapeHtml(origin)}" />
+        <button class="small secondary" type="button" onclick="savePetitionOriginEdit(${index})">Guardar</button>
+        <button class="small danger" type="button" onclick="deletePetitionOrigin(${index})">Eliminar</button>
+      </div>
+    `).join("") : `<p class="muted">No hay orígenes configurados.</p>`;
+    populatePetitionOriginSelect("newPetitionOrigin", document.getElementById("newPetitionOrigin")?.value || origins[0] || "", false);
+  }
+
+  function addPetitionOrigin() {
+    const input = document.getElementById("newPetitionOriginConfig");
+    const origin = normalizePetitionOrigin(input?.value || "");
+    if (!origin) return;
+    const origins = getPetitionOrigins();
+    if (origins.includes(origin)) {
+      alert("Ese origen ya existe.");
+      return;
+    }
+    origins.push(origin);
+    setPetitionOrigins(origins);
+    if (input) input.value = "";
+    renderPetitionOriginSettings();
+    renderPetitions();
+    if (typeof renderTasks === "function") renderTasks();
+  }
+
+  function savePetitionOriginEdit(index) {
+    const origins = getPetitionOrigins();
+    const input = document.getElementById(`petition-origin-config-${index}`);
+    const origin = normalizePetitionOrigin(input?.value || "");
+    if (!origin) {
+      alert("El origen no puede estar vacío.");
+      renderPetitionOriginSettings();
+      return;
+    }
+    if (origins.some((item, itemIndex) => itemIndex !== index && item === origin)) {
+      alert("Ese origen ya existe.");
+      renderPetitionOriginSettings();
+      return;
+    }
+    origins[index] = origin;
+    setPetitionOrigins(origins);
+    renderPetitionOriginSettings();
+    renderPetitions();
+    if (typeof renderTasks === "function") renderTasks();
+  }
+
+  function deletePetitionOrigin(index) {
+    const origins = getPetitionOrigins();
+    const origin = origins[index];
+    if (!origin || typeof confirmDangerAction !== "function") return;
+    confirmDangerAction({
+      title: "Eliminar origen de peticiones",
+      message: `¿Quieres eliminar el origen “${origin}”? Los registros existentes conservarán su valor.`,
+      confirmLabel: "Eliminar",
+      onConfirm: () => {
+        origins.splice(index, 1);
+        setPetitionOrigins(origins);
+        renderPetitionOriginSettings();
+        renderPetitions();
+        if (typeof renderTasks === "function") renderTasks();
+      }
+    });
+  }
 
   const api = {
     getPetitions,
@@ -569,10 +826,19 @@
     closePetitionUpdateModal,
     savePetitionUpdateFromModal,
     renderPetitions,
+    renderPetitionOriginSettings,
+    getPetitionOrigins,
+    petitionOriginOptionsHtml,
+    petitionOriginBadgeHtml,
+    petitionOriginValue,
     setPetitionViewFilter,
     togglePetitionRowDetails,
     setPetitionSort,
-    getVisiblePetitions
+    getVisiblePetitions,
+    createTaskFromPetition,
+    addPetitionOrigin,
+    savePetitionOriginEdit,
+    deletePetitionOrigin
   };
 
   window.PeticionesModule = api;
@@ -591,5 +857,14 @@
   window.setPetitionViewFilter = setPetitionViewFilter;
   window.togglePetitionRowDetails = togglePetitionRowDetails;
   window.setPetitionSort = setPetitionSort;
+  window.getPetitionOrigins = getPetitionOrigins;
+  window.petitionOriginOptionsHtml = petitionOriginOptionsHtml;
+  window.petitionOriginBadgeHtml = petitionOriginBadgeHtml;
+  window.petitionOriginValue = petitionOriginValue;
+  window.renderPetitionOriginSettings = renderPetitionOriginSettings;
+  window.addPetitionOrigin = addPetitionOrigin;
+  window.savePetitionOriginEdit = savePetitionOriginEdit;
+  window.deletePetitionOrigin = deletePetitionOrigin;
+  window.createTaskFromPetition = createTaskFromPetition;
   window.getVisiblePetitions = getVisiblePetitions;
 })();

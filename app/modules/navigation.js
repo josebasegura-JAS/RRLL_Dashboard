@@ -46,7 +46,7 @@ function toggleSidebarLeft() {
     }
 
 
-    const RRLL_MAIN_GESTOR_IDS = ["gestor-tareas", "gestor-peticiones", "gestor-comite", "gestor-paritaria", "gestor-actas", "gestor-teletrabajo", "gestor-vinculograma", "gestor-licencias", "gestor-plantilla", "gestor-criterios"];
+    const RRLL_MAIN_GESTOR_IDS = ["gestor-tareas", "gestor-peticiones", "gestor-comite", "gestor-paritaria", "gestor-actas", "gestor-teletrabajo", "gestor-vinculograma", "gestor-licencias", "gestor-plantilla", "gestor-criterios", "gestor-ticket-restaurante"];
     const RRLL_PHASE4_SUBVIEW_MAP = {
       "gestor-puntos-comite": { parent: "gestor-comite", section: "gestor-puntos-comite", menu: "comite" },
       "gestor-sesiones-comite": { parent: "gestor-comite", section: "gestor-sesiones-comite", menu: "comite" },
@@ -58,11 +58,36 @@ function toggleSidebarLeft() {
     let rrllPhase4CurrentView = null;
     let rrllPhase4ViewTimer = null;
     let rrllVisibilityGuardReady = false;
+    const RRLL_MODULE_ICONS = Object.freeze({
+      home: "⌂",
+      "gestor-tareas": "✓",
+      "gestor-peticiones": "✉",
+      "gestor-actas": "▣",
+      "gestor-teletrabajo": "▤",
+      "gestor-vinculograma": "◇",
+      "gestor-licencias": "◷",
+      "gestor-plantilla": "▦",
+      "gestor-criterios": "✦",
+      "gestor-ticket-restaurante": "🍽",
+      "gestor-comite": "👥",
+      "gestor-paritaria": "⚖",
+      configuracion: "⚙"
+    });
 
     function rrllGetMainModulePanels() {
       return RRLL_MAIN_GESTOR_IDS
         .map(id => document.getElementById(id))
         .filter(Boolean);
+    }
+
+    function rrllSyncModuleHeaderIcons() {
+      Object.entries(RRLL_MODULE_ICONS).forEach(([moduleId, icon]) => {
+        if (moduleId === "home" || moduleId === "configuracion") return;
+        const iconNode = document.querySelector(`#${moduleId} > summary .module-title .module-icon`);
+        if (!iconNode) return;
+        iconNode.textContent = icon;
+        iconNode.setAttribute("aria-hidden", "true");
+      });
     }
 
     function rrllNormalizeModulePanels() {
@@ -328,6 +353,7 @@ function toggleSidebarLeft() {
 
 
     function setupPhase4Navigation() {
+      rrllSyncModuleHeaderIcons();
       rrllNormalizeModulePanels();
       rrllSetupVisibilityGuard();
       if (rrllPhase4NavigationReady) return;
@@ -342,6 +368,7 @@ function toggleSidebarLeft() {
         "#gestor-licencias": "gestor-licencias",
         "#gestor-plantilla": "gestor-plantilla",
         "#gestor-criterios": "gestor-criterios",
+        "#gestor-ticket-restaurante": "gestor-ticket-restaurante",
         "#gestor-comite": "gestor-comite",
         "#gestor-paritaria": "gestor-paritaria",
         "#gestor-puntos-comite": "gestor-puntos-comite",
