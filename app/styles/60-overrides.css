@@ -2777,9 +2777,25 @@ body.phase4-view-module #gestor-vinculograma .vinculograma-table .rrll-pro-actio
 }
 
 body.phase4-view-module #gestor-vinculograma .vinculograma-table .rrll-pro-actions .small.danger {
-  min-width: 78px !important;
-  padding: 7px 10px !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   white-space: nowrap !important;
+}
+
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .rrll-pro-actions .vinculograma-delete-icon {
+  width: 14px !important;
+  height: 14px !important;
+  display: block !important;
+  stroke: currentColor !important;
+  stroke-width: 1.9 !important;
+  fill: none !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
 }
 
 /* =========================================================
