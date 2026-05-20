@@ -31,21 +31,26 @@ function getTodayKey() {
       widget.classList.add(status || "synced");
 
       const labels = {
-        saving: "Espera",
-        saved: "Con-OK",
-        synced: "Con-OK",
+        saving: "OK",
+        saved: "OK",
+        synced: "OK",
         offline: "Error",
         error: "Error"
       };
 
-      label.textContent = labels[status] || "Con-OK";
-      const fallbackDetail = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      detailEl.textContent = compactSidebarSyncDetail(detail || fallbackDetail);
+      const currentLabel = labels[status] || "OK";
+      label.textContent = currentLabel;
+      if (currentLabel === "Error") {
+        detailEl.textContent = "";
+      } else {
+        const fallbackDetail = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        detailEl.textContent = compactSidebarSyncDetail(detail || fallbackDetail);
+      }
     }
 
     function compactSidebarSyncDetail(detail) {
       const timeMatch = String(detail || "").match(/\b\d{1,2}:\d{2}:\d{2}\b/);
-      return timeMatch ? timeMatch[0] : new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      return timeMatch ? timeMatch[0] : "";
     }
 
     function markSaveStarted() {
