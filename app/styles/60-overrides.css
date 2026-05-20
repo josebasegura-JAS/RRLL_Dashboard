@@ -3386,29 +3386,33 @@ body.phase4-view-module #gestor-tareas .rrll-pro-table {
   table-layout: fixed !important;
 }
 
-body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(1),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(1) { width: 30% !important; }
-body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(2),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(2) { width: 12% !important; }
-body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(3),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(3) { width: 10% !important; }
-body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(4),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(4) { width: 11% !important; }
-body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(5),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(5) { width: 13% !important; }
-body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(6),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(6) {
-  width: 24% !important;
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(1),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(1) { width: 32% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(2),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(2) { width: 12% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(3),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(3) { width: 10% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(4),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(4) { width: 11% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(5),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(5) { width: 13% !important; }
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(6),
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(6) {
+  width: 22% !important;
   min-width: 170px !important;
-  text-align: right !important;
   overflow: hidden !important;
 }
 
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(6) {
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(6) {
+  text-align: center !important;
+}
+
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(6) {
+  text-align: right !important;
   white-space: normal !important;
 }
 
-body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-pro-actions {
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions {
   display: flex !important;
   justify-content: flex-end !important;
   align-items: center !important;
@@ -3421,41 +3425,41 @@ body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-pro-actions {
   box-sizing: border-box !important;
 }
 
-body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-pro-actions button {
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions button {
   min-width: 82px !important;
   box-sizing: border-box !important;
   white-space: nowrap !important;
   flex: 0 0 auto !important;
 }
 
-body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-pro-actions .rrll-delete-icon-button {
+body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions .rrll-delete-icon-button {
   min-width: 32px !important;
   width: 32px !important;
   padding-inline: 0 !important;
 }
 
 @media (max-width: 720px) {
-  body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(6),
-  body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(6) {
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) th:nth-child(6),
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) td:nth-child(6) {
     width: 24% !important;
     min-width: 130px !important;
     text-align: right !important;
   }
 
-  body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-pro-actions {
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions {
     flex-direction: column !important;
     align-items: flex-end !important;
     justify-content: flex-start !important;
     flex-wrap: nowrap !important;
   }
 
-  body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-pro-actions button {
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions button {
     width: auto !important;
     min-width: 82px !important;
     margin: 0 !important;
   }
 
-  body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-pro-actions .rrll-delete-icon-button {
+  body.phase4-view-module #gestor-tareas :is(.rrll-pro-table, .rrll-pro-table-tasks) .rrll-pro-actions .rrll-delete-icon-button {
     min-width: 32px !important;
     width: 32px !important;
   }
