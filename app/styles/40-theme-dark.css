@@ -1372,3 +1372,30 @@ html[data-theme="dark"] #gestor-peticiones :is(.toolbar-actions, .export-buttons
     margin-left: auto !important;
   }
 }
+
+/* =========================================================
+   Ajustes dark localizados — Comité > Sesiones
+   ========================================================= */
+html[data-theme="dark"] #gestor-sesiones-comite .rrll-session-panel-chevron {
+  display: none !important;
+}
+
+html[data-theme="dark"] #gestor-sesiones-comite .rrll-session-panel-title {
+  gap: 0 !important;
+}
+
+html[data-theme="dark"] #gestor-sesiones-comite .session-year-header {
+  background: var(--rrll-bg-soft-dark, #1f2937) !important;
+  color: var(--rrll-text-main-dark, #e2e8f0) !important;
+  border: 1px solid var(--rrll-border-soft-dark, rgba(148, 163, 184, 0.28)) !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+}
+
+html[data-theme="dark"] #gestor-sesiones-comite .session-year-header:hover {
+  background: var(--rrll-bg-card-dark, #111827) !important;
+}
+
+html[data-theme="dark"] #gestor-sesiones-comite .session-year-header :is(.session-year-title, .session-year-count) {
+  color: var(--rrll-text-main-dark, #e2e8f0) !important;
+}
