@@ -2424,13 +2424,20 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
   font-size: 12.5px !important;
 }
 .phase4-nav-settings-icon {
-  align-self: flex-start !important;
+  justify-content: center !important;
+}
+.phase4-nav-trash-icon,
+.phase4-nav-settings-icon {
+  align-self: stretch !important;
+  display: inline-flex !important;
+  align-items: center !important;
   justify-content: center !important;
   width: 34px !important;
   min-width: 34px !important;
-  min-height: 30px !important;
-  padding: 5px !important;
-  font-size: 15px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 16px !important;
   line-height: 1 !important;
 }
 .sidebar-folder-notice {

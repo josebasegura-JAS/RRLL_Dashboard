@@ -7,9 +7,9 @@
   <link rel="icon" type="image/png" href="assets/icon.png" />
   <script>
     try {
-      document.documentElement.setAttribute("data-theme", localStorage.getItem("rrll_theme") || "light");
+      document.documentElement.setAttribute("data-theme", "dark");
     } catch (e) {
-      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.setAttribute("data-theme", "dark");
     }
   </script>
   <link rel="stylesheet" href="styles.css" />
@@ -1472,9 +1472,9 @@
 
       <div class="config-section rrll-theme-config">
         <h4>Apariencia</h4>
-        <p class="muted">Elige el tema visual de la aplicación. La opción se guarda en este equipo.</p>
+        <p class="muted">El modo claro está desactivado temporalmente. La aplicación funciona en modo oscuro.</p>
         <div class="theme-choice-row" role="group" aria-label="Selector de tema">
-          <button type="button" class="theme-choice" data-theme-choice="light" onclick="setRRLLTheme('light')">
+          <button type="button" class="theme-choice" data-theme-choice="light" onclick="setRRLLTheme('light')" hidden disabled aria-disabled="true">
             <span class="theme-choice-preview theme-choice-preview-light"></span>
             <strong>Claro</strong>
             <small>Gris claro profesional</small>
@@ -1485,6 +1485,7 @@
             <small>Gris carbón</small>
           </button>
         </div>
+        <small id="themeDarkOnlyNotice" class="muted">Modo claro desactivado temporalmente.</small>
       </div>
 
       <div class="config-section">
