@@ -2413,6 +2413,9 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 }
 .phase4-nav-secondary {
   margin-top: auto !important;
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) 34px !important;
+  align-items: center !important;
   gap: 4px !important;
   padding: 4px 2px 0 !important;
   border-top: 1px solid rgba(148,163,184,.14) !important;
@@ -2425,6 +2428,7 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 }
 .phase4-nav-settings-icon {
   justify-content: center !important;
+  justify-self: end !important;
 }
 .phase4-nav-trash-icon,
 .phase4-nav-settings-icon {
@@ -2439,6 +2443,16 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
   margin: 0 !important;
   font-size: 16px !important;
   line-height: 1 !important;
+}
+.phase4-nav-secondary .phase4-nav-folder-link {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+}
+.phase4-nav-secondary .phase4-nav-trash-icon {
+  grid-column: 1 !important;
+}
+.phase4-nav-secondary .phase4-nav-settings-icon {
+  grid-column: 3 !important;
 }
 .sidebar-folder-notice {
   display: none;
@@ -2472,11 +2486,14 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 }
 .phase5-sidebar-sync .save-status-text {
   grid-column: 2 !important;
-  gap: 1px !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 4px !important;
   min-width: 0 !important;
 }
 .phase5-sidebar-sync .save-status-text b {
-  display: none !important;
+  display: inline !important;
+  font-size: 11px !important;
 }
 .phase5-sidebar-sync .save-status-text span {
   overflow: hidden !important;
