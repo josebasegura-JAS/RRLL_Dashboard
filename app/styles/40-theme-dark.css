@@ -485,7 +485,7 @@ html[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
   background: rgba(170,179,194,.58) !important;
 }
 
-/* Última excepción controlada: salida física a papel */
+/* Print en dark: uso intencional de tokens/light values para salida en papel blanco; no implica contaminación entre temas. */
 @media print {
   html[data-theme="dark"] body,
 html[data-theme="dark"] .print-preview-content,
@@ -501,7 +501,6 @@ html[data-theme="dark"] .print-preview-content * {
   }
 }
 
-/* Migrado progresivamente desde 40-theme.css: bloques claramente dark (dashboard + revisión global). */
 html[data-theme="dark"] .phase4-home-dashboard .expired {
   color: #fecaca !important;
 }
@@ -1100,7 +1099,7 @@ html[data-theme="dark"] .print-preview-content td {
   vertical-align: top !important;
 }
 
-/* Scrollbar global modo dark (migrado desde 40-theme.css) */
+/* Scrollbar global modo dark */
 html[data-theme="dark"] * {
   scrollbar-color: rgba(148,163,184,.42) rgba(36,42,54,.72) !important;
 }
