@@ -16,7 +16,7 @@ html[data-theme="light"] {
   --soft-red: rgba(167, 53, 53, .10);
   --warning: rgba(217, 119, 6, .14);
   --expired: rgba(185, 28, 28, .12);
-  --chart-gray: #6b7280;
+  --chart-gray: var(--rrll-light-text-muted);
   --shadow: var(--rrll-shadow-panel-light);
 
   --rrll-bg-app: var(--rrll-bg-app-light);
@@ -48,12 +48,17 @@ html[data-theme="light"] {
   --rrll-light-surface: #ffffff;
   --rrll-light-surface-soft: #fbfbfc;
   --rrll-light-table-head: #f1f5f9;
-  --rrll-light-table-row: #ffffff;
+  --rrll-light-table-row: var(--rrll-light-surface);
   --rrll-light-table-row-alt: #f8fafc;
+  --rrll-light-table-hover: #eef2f7;
   --rrll-light-input-bg: #f8fafc;
-  --rrll-light-border-soft: #e5e7eb;
-  --rrll-light-border-input: #dbe2ea;
-  --rrll-light-text-main: #1f2937;
+  --rrll-light-border-weak: #e5e7eb;
+  --rrll-light-border-default: #dbe2ea;
+  --rrll-light-border-strong: #c5ced9;
+  --rrll-light-input-focus: #c5ced9;
+  --rrll-light-overlay: rgba(15, 23, 42, .32);
+  --rrll-light-focus-ring: rgba(167, 53, 53, .10);
+  --rrll-light-text-primary: #1f2937;
   --rrll-light-text-secondary: #4b5563;
   --rrll-light-text-muted: #6b7280;
   --rrll-light-placeholder: #64748b;
@@ -62,7 +67,7 @@ html[data-theme="light"] {
 /* Normalización global del contenido principal en modo claro (sin sidebar). */
 html[data-theme="light"] body {
   background: var(--rrll-light-app-bg);
-  color: var(--rrll-light-text-main);
+  color: var(--rrll-light-text-primary);
 }
 
 html[data-theme="light"] body :is(
@@ -81,31 +86,31 @@ html[data-theme="light"] body :is(
   #gestor-configuracion
 ) {
   background: var(--rrll-light-app-bg);
-  color: var(--rrll-light-text-main);
+  color: var(--rrll-light-text-primary);
 }
 
 html[data-theme="light"] body :is(.rrll-pro-task-head, .module-header, .rrll-module-header, .rrll-pro-toolbar, .rrll-pro-search-wrap, .rrll-pro-list-card, .rrll-pro-task-shell, .rrll-pro-panel, .rrll-pro-card, .modal-box, .rrll-pro-modal-box) {
   background: var(--rrll-light-surface);
-  color: var(--rrll-light-text-main);
-  border-color: var(--rrll-light-border-soft);
+  color: var(--rrll-light-text-primary);
+  border-color: var(--rrll-light-border-weak);
   box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
 }
 
 html[data-theme="light"] body :is(table, .rrll-pro-table) {
-  color: var(--rrll-light-text-main);
-  border-color: var(--rrll-light-border-soft);
+  color: var(--rrll-light-text-primary);
+  border-color: var(--rrll-light-border-weak);
 }
 
 html[data-theme="light"] body :is(table, .rrll-pro-table) thead th {
   background: var(--rrll-light-table-head);
-  color: var(--rrll-light-text-main);
-  border-color: var(--rrll-light-border-soft);
+  color: var(--rrll-light-text-primary);
+  border-color: var(--rrll-light-border-weak);
 }
 
 html[data-theme="light"] body :is(table, .rrll-pro-table) tbody td {
   background: var(--rrll-light-table-row);
-  color: var(--rrll-light-text-main);
-  border-color: var(--rrll-light-border-soft);
+  color: var(--rrll-light-text-primary);
+  border-color: var(--rrll-light-border-weak);
 }
 
 html[data-theme="light"] body :is(table, .rrll-pro-table) tbody tr:nth-child(even) td {
@@ -113,13 +118,13 @@ html[data-theme="light"] body :is(table, .rrll-pro-table) tbody tr:nth-child(eve
 }
 
 html[data-theme="light"] body :is(table, .rrll-pro-table) tbody tr:hover td {
-  background: #eef3f8;
+  background: var(--rrll-light-table-hover);
 }
 
 html[data-theme="light"] body :is(input, select, textarea) {
   background: var(--rrll-light-input-bg);
-  color: var(--rrll-light-text-main);
-  border-color: var(--rrll-light-border-input);
+  color: var(--rrll-light-text-primary);
+  border-color: var(--rrll-light-border-default);
 }
 
 html[data-theme="light"] body :is(input, select, textarea)::placeholder {
@@ -127,8 +132,8 @@ html[data-theme="light"] body :is(input, select, textarea)::placeholder {
 }
 
 html[data-theme="light"] body :is(input, select, textarea):focus {
-  border-color: #c5ced9;
-  box-shadow: 0 0 0 3px rgba(167, 53, 53, .10);
+  border-color: var(--rrll-light-input-focus);
+  box-shadow: 0 0 0 3px var(--rrll-light-focus-ring);
   outline: none;
 }
 
@@ -138,16 +143,16 @@ html[data-theme="light"] body :is(.rrll-pro-subtitle, .rrll-pro-meta, .rrll-pro-
 
 html[data-theme="light"] body :is(.rrll-pro-tool-button, .btn-secondary, .btn-ghost) {
   background: var(--rrll-light-surface-soft);
-  color: var(--rrll-light-text-main);
-  border-color: var(--rrll-light-border-input);
+  color: var(--rrll-light-text-primary);
+  border-color: var(--rrll-light-border-default);
 }
 
 html[data-theme="light"] body :is(.rrll-pro-tool-button, .btn-secondary, .btn-ghost):hover {
-  background: #f1f5f9;
+  background: var(--rrll-light-table-head);
 }
 
 html[data-theme="light"] body :is(.modal-overlay, .rrll-pro-modal-overlay) {
-  background: rgba(15, 23, 42, .32);
+  background: var(--rrll-light-overlay);
 }
 
 /* Reglas de tema light migradas desde 80-light-foundation.css (refactor seguro). */
@@ -180,9 +185,9 @@ html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.criteria
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .criteria-search input) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   color: var(--rrll-text-main-light) !important;
-  border-color: #dbe2ea !important;
+  border-color: var(--rrll-light-border-default) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-criterios :is(.rrll-pro-field input::placeholder, .rrll-pro-field textarea::placeholder, .criteria-search input::placeholder) {
@@ -391,13 +396,13 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
 /* Plantilla (modo claro): neutraliza fondos grafito heredados sin tocar la tabla principal. */
 html[data-theme="light"] body[data-active-module="gestor-plantilla"] #gestor-plantilla,
 html[data-theme="light"] body.phase4-view-module #gestor-plantilla {
-  background: #f4f6f8 !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-app-bg) !important;
+  border-color: var(--rrll-light-border-weak) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-plantilla-shell {
   background: transparent !important;
-  color: #1f2937 !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-task-head,
@@ -407,34 +412,34 @@ html[data-theme="light"] #gestor-plantilla .rrll-pro-plantilla-form,
 html[data-theme="light"] #gestor-plantilla .plantilla-import-summary,
 html[data-theme="light"] #gestor-plantilla .rrll-pro-empty,
 html[data-theme="light"] #gestor-plantilla .rrll-pro-search-wrap {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-surface) !important;
+  color: var(--rrll-light-text-primary) !important;
+  border-color: var(--rrll-light-border-weak) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-task-head p,
 html[data-theme="light"] #gestor-plantilla .rrll-pro-subtitle,
 html[data-theme="light"] #gestor-plantilla .plantilla-import-summary {
-  color: #4b5563 !important;
+  color: var(--rrll-light-text-secondary) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla :is(input, select, textarea) {
-  background: #f8fafc !important;
-  border-color: #dbe2ea !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-default) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] #gestor-plantilla .rrll-pro-tool-button,
 html[data-theme="light"] #gestor-plantilla .plantilla-pagination .plantilla-pagination-btn {
   background: #fbfbfc !important;
-  border-color: #dbe2ea !important;
-  color: #1f2937 !important;
+  border-color: var(--rrll-light-border-default) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] #plantillaEditModal :is(.modal-box, .rrll-pro-modal-box, .rrll-pro-edit-modal) {
-  background: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-surface) !important;
+  border-color: var(--rrll-light-border-weak) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 /* Sesiones Comité: el orden del día necesita una fila estable para que el
@@ -548,7 +553,7 @@ html[data-theme="light"] #committeeSessionAddPointModal .committee-session-add-p
   border-left: 4px solid var(--red);
   border-radius: 6px;
   background: var(--rrll-light-surface-soft);
-  color: var(--rrll-light-text-main);
+  color: var(--rrll-light-text-primary);
   padding: 10px;
   cursor: pointer;
   overflow-x: hidden;
@@ -693,7 +698,7 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
   border-left: 4px solid var(--red);
   border-radius: 6px;
   background: var(--rrll-light-surface-soft);
-  color: var(--rrll-light-text-main);
+  color: var(--rrll-light-text-primary);
   padding: 10px;
   cursor: pointer;
   overflow-x: hidden;
@@ -1558,21 +1563,21 @@ html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .c
    estructura, navegación, lógica, exportaciones ni cálculos.
    ═══════════════════════════════════════════════════════════════════════════ */
 html[data-theme="light"] {
-  --rrll-bg-app-light: #f4f6f8;
-  --rrll-bg-soft-light: #eef2f6;
+  --rrll-bg-app-light: var(--rrll-light-app-bg);
+  --rrll-bg-soft-light: var(--rrll-light-table-hover);
   --rrll-bg-card-light: #fbfbfc;
-  --rrll-bg-panel-light: #ffffff;
-  --rrll-bg-table-head-light: #eef2f5;
+  --rrll-bg-panel-light: var(--rrll-light-surface);
+  --rrll-bg-table-head-light: var(--rrll-light-table-head);
   --rrll-bg-table-row-light: #fbfbfc;
   --rrll-bg-table-row-alt-light: #f7f9fb;
   --rrll-bg-table-hover-light: #edf3f7;
 
-  --rrll-text-main-light: #1f2937;
-  --rrll-text-secondary-light: #4b5563;
-  --rrll-text-muted-light: #6b7280;
+  --rrll-text-main-light: var(--rrll-light-text-primary);
+  --rrll-text-secondary-light: var(--rrll-light-text-secondary);
+  --rrll-text-muted-light: var(--rrll-light-text-muted);
   --rrll-text-placeholder-light: #9aa4b2;
 
-  --rrll-border-light: #e5e7eb;
+  --rrll-border-light: var(--rrll-light-border-weak);
   --rrll-border-soft-light: rgba(209, 213, 219, .72);
   --rrll-separator-light: #d9dee7;
 
@@ -1607,7 +1612,7 @@ html[data-theme="light"] {
   --rrll-surface-header: var(--rrll-bg-table-head-light);
   --rrll-surface-hover: var(--rrll-bg-table-hover-light);
   --rrll-field-bg: #f9fafb;
-  --rrll-field-bg-focus: #ffffff;
+  --rrll-field-bg-focus: var(--rrll-light-surface);
   --rrll-border: var(--rrll-border-light);
   --rrll-border-strong: var(--rrll-separator-light);
   --rrll-text-main: var(--text-primary);
@@ -1620,7 +1625,7 @@ html[data-theme="light"] {
   --phase4-sidebar-bg-2: #334155;
   --phase4-sidebar-hover: #475569;
   --phase4-sidebar-active: #c24141;
-  --phase4-sidebar-text: #f8fafc;
+  --phase4-sidebar-text: var(--rrll-light-input-bg);
   --phase4-sidebar-muted: #cbd5e1;
   --phase4-sidebar-icon: #e2e8f0;
 
@@ -1646,7 +1651,7 @@ html[data-theme="light"] body {
 }
 
 html[data-theme="light"] :is(body.phase4-view-home, body.phase4-view-module, .phase4-shell, .phase4-main, main, .content-right, .dashboard-layout, .main-content, .dashboard-home) {
-  background: linear-gradient(180deg, #f7f8fa 0%, var(--bg-primary) 34%, #eef2f6 100%) !important;
+  background: linear-gradient(180deg, #f7f8fa 0%, var(--bg-primary) 34%, var(--rrll-light-table-hover) 100%) !important;
   color: var(--text-primary) !important;
 }
 
@@ -1692,13 +1697,13 @@ html[data-theme="light"] :is(.phase4-nav-item, .nav-item, .phase4-nav-subitem, .
 
 html[data-theme="light"] :is(.phase4-nav-item:hover, .nav-item:hover, .phase4-nav-subitem:hover, .phase4-nav-button:hover) {
   background: var(--phase4-sidebar-hover) !important;
-  color: #f8fafc !important;
+  color: var(--rrll-light-input-bg) !important;
   transform: translateX(1px);
 }
 
 html[data-theme="light"] :is(.phase4-nav-item.active, .nav-item.active, .phase4-nav-subitem.active, .phase4-nav-parent.active, .phase4-nav-item.is-active) {
   background: linear-gradient(90deg, var(--phase4-sidebar-active) 0%, #b73a3a 100%) !important;
-  color: #ffffff !important;
+  color: var(--rrll-light-surface) !important;
   border-color: rgba(255, 255, 255, .12) !important;
   box-shadow: inset 3px 0 0 #fee2e2 !important;
 }
@@ -1727,7 +1732,7 @@ html[data-theme="light"] :is(.phase4-nav-item i, .phase4-nav-subitem i, .phase4-
 }
 
 html[data-theme="light"] :is(.phase4-nav-item:hover, .phase4-nav-subitem:hover, .phase4-nav-item.active, .phase4-nav-subitem.active) :is(i, svg, .phase4-nav-chevron) {
-  color: #ffffff !important;
+  color: var(--rrll-light-surface) !important;
 }
 
 html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-pill, .badge) {
@@ -1738,7 +1743,7 @@ html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-pill, .badge) {
 
 html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-item.active .phase4-nav-pill, .phase4-nav-subitem.active .phase4-nav-pill, .phase4-nav-item.active .badge, .phase4-nav-subitem.active .badge) {
   background: rgba(255, 255, 255, .24) !important;
-  color: #ffffff !important;
+  color: var(--rrll-light-surface) !important;
 }
 
 html[data-theme="light"] .sidebar-collapse-toggle {
@@ -1846,7 +1851,7 @@ html[data-theme="light"] :is(button, .btn, .primary, .secondary, .danger, .excel
 html[data-theme="light"] :is(button.primary, .primary, .rrll-button-primary, .rrll-pro-primary) {
   background: var(--accent-primary) !important;
   border-color: var(--accent-primary) !important;
-  color: #ffffff !important;
+  color: var(--rrll-light-surface) !important;
   box-shadow: 0 1px 2px rgba(167, 53, 53, .18) !important;
 }
 
@@ -1857,7 +1862,7 @@ html[data-theme="light"] :is(button.primary:hover, .primary:hover, .rrll-button-
 }
 
 html[data-theme="light"] :is(button.secondary, .secondary, .btn-secondary, .black, button.black, .icon-button, .summary-icon-button, .rrll-pro-tool-button, .quick-link-icon, .session-order-edit, .theme-choice) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border: 1px solid var(--border-soft) !important;
   color: var(--text-secondary) !important;
   box-shadow: none !important;
@@ -1872,7 +1877,7 @@ html[data-theme="light"] :is(button.secondary:hover, .secondary:hover, .btn-seco
 html[data-theme="light"] :is(button.danger, .danger, .rrll-button-danger) {
   background: var(--danger) !important;
   border-color: var(--danger) !important;
-  color: #ffffff !important;
+  color: var(--rrll-light-surface) !important;
 }
 
 html[data-theme="light"] :is(.excel, button.excel, .rrll-pro-tool-button.excel) {
@@ -1936,7 +1941,7 @@ html[data-theme="light"] :is(.dropdown-menu, .select-menu, .context-menu, .toolt
 }
 
 html[data-theme="light"] :is(.phase5-calendar-day, .ticket-day, .ticket-days-grid .ticket-day) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border-color: var(--border-soft) !important;
   color: var(--text-secondary) !important;
 }
@@ -1957,37 +1962,37 @@ html[data-theme="light"] #gestor-ticket-restaurante :is(.ticket-day--no-ticket, 
    Corrige herencias oscuras sin tocar estructura, lógica ni dark mode. */
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante,
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante.rrll-pro-module {
-  background: #f4f6f8 !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-app-bg) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-shell, .ticket-restaurant-area, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section, .rrll-pro-list-card, .rrll-pro-table-wrap, .ticket-monthly-quote-panel) {
-  background: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-surface) !important;
+  border-color: var(--rrll-light-border-weak) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.rrll-pro-task-head, .rrll-pro-list-toolbar, .ticket-filter-row th, .ticket-table thead th, .rrll-pro-table thead th) {
   background: #f1f5f9 !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  border-color: var(--rrll-light-border-weak) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-tab, .ticket-month-navigator button, .ticket-year-nav button, .rrll-icon-only, .ticket-sort-button) {
-  background: #f8fafc !important;
-  border-color: #dbe2ea !important;
-  color: #4b5563 !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-default) !important;
+  color: var(--rrll-light-text-secondary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-tab:hover, .ticket-month-navigator button:hover, .ticket-year-nav button:hover, .rrll-icon-only:hover) {
   background: #eef2f7 !important;
-  color: #1f2937 !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .ticket-filter-row input, .rrll-pro-search-wrap input) {
-  background: #f8fafc !important;
-  border-color: #dbe2ea !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-default) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(input::placeholder, textarea::placeholder, .ticket-filter-row input::placeholder, .rrll-pro-search-wrap input::placeholder) {
@@ -1996,45 +2001,45 @@ html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-month-card, .ticket-summary-pill) {
   background: #fbfbfc !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  border-color: var(--rrll-light-border-weak) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-weekdays span, .ticket-compute-period, .ticket-import-summary, .ticket-summary-pill small, .ticket-calendar-legend, .muted) {
-  color: #4b5563 !important;
+  color: var(--rrll-light-text-secondary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-table tbody tr, .rrll-pro-table tbody tr) {
   background: #fbfbfc !important;
-  color: #1f2937 !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.ticket-table tbody tr:nth-child(even), .rrll-pro-table tbody tr:nth-child(even)) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.modal-box, .modal-card, .popup-box, .dialog-box, .rrll-pro-modal-box, .config-modal-box, .config-modal-card) {
-  background: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-surface) !important;
+  border-color: var(--rrll-light-border-weak) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 html[data-theme="light"] body.phase4-view-module #gestor-ticket-restaurante :is(.modal-actions, .form-actions, .rrll-pro-form-actions, .modal-footer) {
-  background: #f8fafc !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-weak) !important;
 }
 
 html[data-theme="light"] * {
-  scrollbar-color: #cbd5e1 #eef2f6;
+  scrollbar-color: #cbd5e1 var(--rrll-light-table-hover);
 }
 
 html[data-theme="light"] *::-webkit-scrollbar-track {
-  background: #eef2f6;
+  background: var(--rrll-light-table-hover);
 }
 
 html[data-theme="light"] *::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border: 2px solid #eef2f6;
+  border: 2px solid var(--rrll-light-table-hover);
   border-radius: 999px;
 }
 
@@ -2045,7 +2050,7 @@ html[data-theme="light"] *::-webkit-scrollbar-thumb:hover {
 /* Light mode fix — Gestor de Tareas: cabecera, acciones y estados (sin tocar dark mode). */
 html[data-theme="light"] #gestor-tareas.rrll-pro-module,
 html[data-theme="light"] #gestor-tareas.rrll-pro-module > summary {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border-color: var(--border-soft) !important;
   color: var(--text-primary) !important;
   box-shadow: 0 8px 24px rgba(15, 23, 42, .08) !important;
@@ -2056,14 +2061,14 @@ html[data-theme="light"] #gestor-tareas :is(.module-title, .rrll-pro-task-head h
 }
 
 html[data-theme="light"] #gestor-tareas .rrll-pro-task-head {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border: 1px solid var(--border-soft) !important;
   border-radius: 12px !important;
   padding: 12px 14px !important;
 }
 
 html[data-theme="light"] #gestor-tareas .rrll-pro-actions :is(button.small, .small) {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   border: 1px solid var(--border-soft) !important;
   color: var(--text-secondary) !important;
 }
@@ -2109,72 +2114,72 @@ html[data-theme="light"] #gestor-tareas .rrll-status-pill.progress {
 
 /* Comité y Paritaria: consolidación visual en modo claro (sin afectar modo oscuro). */
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) {
-  background: #f4f6f8 !important;
-  color: #1f2937 !important;
+  background: var(--rrll-light-app-bg) !important;
+  color: var(--rrll-light-text-primary) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) > summary,
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) :is(.committee-subsection, .paritaria-subsection) > summary {
-  background: #f8fafc !important;
-  color: #1f2937 !important;
-  border: 1px solid #e5e7eb !important;
+  background: var(--rrll-light-input-bg) !important;
+  color: var(--rrll-light-text-primary) !important;
+  border: 1px solid var(--rrll-light-border-weak) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria) :is(.rrll-pro-committee-shell, .rrll-pro-paritaria-shell),
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-list-card, .session-panel, .session-year-block, .session-card, .session-item, .session-form, .session-close-list, .session-close-row) {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-surface) !important;
+  color: var(--rrll-light-text-primary) !important;
+  border-color: var(--rrll-light-border-weak) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.column-header, .session-year-header, .rrll-pro-table th) {
   background: #f1f5f9 !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
+  color: var(--rrll-light-text-primary) !important;
+  border-color: var(--rrll-light-border-weak) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-table td, .session-meta, .session-item-meta, .muted, small, .rrll-pro-subtitle, .rrll-pro-update, .rrll-pro-created) {
-  color: #4b5563 !important;
+  color: var(--rrll-light-text-secondary) !important;
 }
 
 body.phase4-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(input, select, textarea, .rrll-pro-search-wrap, .rrll-pro-search-wrap input) {
-  background: #f8fafc !important;
-  color: #1f2937 !important;
-  border-color: #dbe2ea !important;
+  background: var(--rrll-light-input-bg) !important;
+  color: var(--rrll-light-text-primary) !important;
+  border-color: var(--rrll-light-border-default) !important;
 }
 
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button,
 body.phase4-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary {
-  background: #f8fafc !important;
+  background: var(--rrll-light-input-bg) !important;
   color: #374151 !important;
-  border: 1px solid #dbe2ea !important;
+  border: 1px solid var(--rrll-light-border-default) !important;
 }
 
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button.active,
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button:hover,
 body.phase4-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary:hover {
   background: #eef2f7 !important;
-  color: #1f2937 !important;
+  color: var(--rrll-light-text-primary) !important;
   border-color: #cfd8e3 !important;
 }
 
 body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) .modal-box,
 body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) :is(.session-order-list, .session-order-row, .existing-updates-box, .existing-update-row) {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
+  background: var(--rrll-light-surface) !important;
+  color: var(--rrll-light-text-primary) !important;
+  border-color: var(--rrll-light-border-weak) !important;
 }
 
 #paritariaSessionAddPointModal .paritaria-session-add-point-row {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border: 1px solid #e5e7eb !important;
+  background: var(--rrll-light-surface) !important;
+  color: var(--rrll-light-text-primary) !important;
+  border: 1px solid var(--rrll-light-border-weak) !important;
   border-left: 4px solid var(--red) !important;
 }
 
 #paritariaSessionAddPointModal .paritaria-session-add-point-row:hover {
-  background: #f8fafc !important;
-  border-color: #dbe2ea !important;
+  background: var(--rrll-light-input-bg) !important;
+  border-color: var(--rrll-light-border-default) !important;
 }
 
 /* Scrollbar global modo light (equivalente al modo dark) */
