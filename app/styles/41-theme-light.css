@@ -42,8 +42,113 @@ html[data-theme="light"] {
   --phase4-sidebar-bg: var(--rrll-sidebar-stable);
   --phase4-sidebar-bg-2: var(--rrll-sidebar-stable-2);
   --phase4-sidebar-hover: var(--rrll-sidebar-stable-hover);
+
+  /* Paleta canónica light 2026 */
+  --rrll-light-app-bg: #f4f6f8;
+  --rrll-light-surface: #ffffff;
+  --rrll-light-surface-soft: #fbfbfc;
+  --rrll-light-table-head: #f1f5f9;
+  --rrll-light-table-row: #ffffff;
+  --rrll-light-table-row-alt: #f8fafc;
+  --rrll-light-input-bg: #f8fafc;
+  --rrll-light-border-soft: #e5e7eb;
+  --rrll-light-border-input: #dbe2ea;
+  --rrll-light-text-main: #1f2937;
+  --rrll-light-text-secondary: #4b5563;
+  --rrll-light-text-muted: #6b7280;
+  --rrll-light-placeholder: #64748b;
 }
 
+/* Normalización global del contenido principal en modo claro (sin sidebar). */
+html[data-theme="light"] body {
+  background: var(--rrll-light-app-bg);
+  color: var(--rrll-light-text-main);
+}
+
+html[data-theme="light"] body :is(
+  #rrll-dashboard,
+  #gestor-tareas,
+  #gestor-peticiones,
+  #gestor-actas,
+  #gestor-teletrabajo,
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-ticket-restaurante,
+  #gestor-vinculograma,
+  #gestor-licencias,
+  #gestor-plantilla,
+  #gestor-criterios,
+  #gestor-configuracion
+) {
+  background: var(--rrll-light-app-bg);
+  color: var(--rrll-light-text-main);
+}
+
+html[data-theme="light"] body :is(.rrll-pro-task-head, .module-header, .rrll-module-header, .rrll-pro-toolbar, .rrll-pro-search-wrap, .rrll-pro-list-card, .rrll-pro-task-shell, .rrll-pro-panel, .rrll-pro-card, .modal-box, .rrll-pro-modal-box) {
+  background: var(--rrll-light-surface);
+  color: var(--rrll-light-text-main);
+  border-color: var(--rrll-light-border-soft);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+}
+
+html[data-theme="light"] body :is(table, .rrll-pro-table) {
+  color: var(--rrll-light-text-main);
+  border-color: var(--rrll-light-border-soft);
+}
+
+html[data-theme="light"] body :is(table, .rrll-pro-table) thead th {
+  background: var(--rrll-light-table-head);
+  color: var(--rrll-light-text-main);
+  border-color: var(--rrll-light-border-soft);
+}
+
+html[data-theme="light"] body :is(table, .rrll-pro-table) tbody td {
+  background: var(--rrll-light-table-row);
+  color: var(--rrll-light-text-main);
+  border-color: var(--rrll-light-border-soft);
+}
+
+html[data-theme="light"] body :is(table, .rrll-pro-table) tbody tr:nth-child(even) td {
+  background: var(--rrll-light-table-row-alt);
+}
+
+html[data-theme="light"] body :is(table, .rrll-pro-table) tbody tr:hover td {
+  background: #eef3f8;
+}
+
+html[data-theme="light"] body :is(input, select, textarea) {
+  background: var(--rrll-light-input-bg);
+  color: var(--rrll-light-text-main);
+  border-color: var(--rrll-light-border-input);
+}
+
+html[data-theme="light"] body :is(input, select, textarea)::placeholder {
+  color: var(--rrll-light-placeholder);
+}
+
+html[data-theme="light"] body :is(input, select, textarea):focus {
+  border-color: #c5ced9;
+  box-shadow: 0 0 0 3px rgba(167, 53, 53, .10);
+  outline: none;
+}
+
+html[data-theme="light"] body :is(.rrll-pro-subtitle, .rrll-pro-meta, .rrll-pro-empty, .rrll-muted, small) {
+  color: var(--rrll-light-text-secondary);
+}
+
+html[data-theme="light"] body :is(.rrll-pro-tool-button, .btn-secondary, .btn-ghost) {
+  background: var(--rrll-light-surface-soft);
+  color: var(--rrll-light-text-main);
+  border-color: var(--rrll-light-border-input);
+}
+
+html[data-theme="light"] body :is(.rrll-pro-tool-button, .btn-secondary, .btn-ghost):hover {
+  background: #f1f5f9;
+}
+
+html[data-theme="light"] body :is(.modal-overlay, .rrll-pro-modal-overlay) {
+  background: rgba(15, 23, 42, .32);
+}
 
 /* Reglas de tema light migradas desde 80-light-foundation.css (refactor seguro). */
 /* Criterios RRLL en modo claro: alinear fondos/paneles con el resto de módulos claros. */
@@ -431,7 +536,7 @@ html[data-theme="light"] #plantillaEditModal :is(.modal-box, .rrll-pro-modal-box
   padding-right: 4px;
 }
 
-#committeeSessionAddPointModal .committee-session-add-point-row {
+html[data-theme="light"] #committeeSessionAddPointModal .committee-session-add-point-row {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);
   align-items: start;
@@ -442,16 +547,16 @@ html[data-theme="light"] #plantillaEditModal :is(.modal-box, .rrll-pro-modal-box
   border: 1px solid var(--border);
   border-left: 4px solid var(--red);
   border-radius: 6px;
-  background: rgba(15, 23, 42, .72);
-  color: var(--text);
+  background: var(--rrll-light-surface-soft);
+  color: var(--rrll-light-text-main);
   padding: 10px;
   cursor: pointer;
   overflow-x: hidden;
 }
 
-#committeeSessionAddPointModal .committee-session-add-point-row:hover {
+html[data-theme="light"] #committeeSessionAddPointModal .committee-session-add-point-row:hover {
   border-color: var(--red);
-  background: rgba(127, 29, 29, .18);
+  background: #fef2f2;
 }
 
 #committeeSessionAddPointModal .committee-session-add-point-row input {
@@ -576,7 +681,7 @@ html[data-theme="light"] #plantillaEditModal :is(.modal-box, .rrll-pro-modal-box
   padding-right: 4px;
 }
 
-#paritariaSessionAddPointModal .paritaria-session-add-point-row {
+html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-point-row {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);
   align-items: start;
@@ -587,16 +692,16 @@ html[data-theme="light"] #plantillaEditModal :is(.modal-box, .rrll-pro-modal-box
   border: 1px solid var(--border);
   border-left: 4px solid var(--red);
   border-radius: 6px;
-  background: rgba(15, 23, 42, .72);
-  color: var(--text);
+  background: var(--rrll-light-surface-soft);
+  color: var(--rrll-light-text-main);
   padding: 10px;
   cursor: pointer;
   overflow-x: hidden;
 }
 
-#paritariaSessionAddPointModal .paritaria-session-add-point-row:hover {
+html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-point-row:hover {
   border-color: var(--red);
-  background: rgba(127, 29, 29, .18);
+  background: #fef2f2;
 }
 
 #paritariaSessionAddPointModal .paritaria-session-add-point-row input {
@@ -2083,4 +2188,3 @@ html[data-theme="light"] *::-webkit-scrollbar-thumb {
   background: rgba(100,116,139,.45) !important;
   border-color: rgba(203,213,225,.95) !important;
 }
-
