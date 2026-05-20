@@ -2146,6 +2146,20 @@ body.phase4-view-module #gestor-puntos-comite .rrll-pro-tabs button:hover {
   color: var(--rrll-light-text-main) !important;
   border-color: rgba(239, 43, 45, 0.35) !important;
 }
+
+/* Ajuste visual localizado: filtros de estado en Puntos Paritaria (alineado con Actas). */
+body.phase4-view-module #gestor-puntos-paritaria .rrll-pro-tabs button {
+  background: var(--rrll-light-input-bg) !important;
+  color: #374151 !important;
+  border: 1px solid var(--rrll-light-border-default) !important;
+}
+
+body.phase4-view-module #gestor-puntos-paritaria .rrll-pro-tabs button.active,
+body.phase4-view-module #gestor-puntos-paritaria .rrll-pro-tabs button:hover {
+  background: rgba(239, 43, 45, 0.12) !important;
+  color: var(--rrll-light-text-main) !important;
+  border-color: rgba(239, 43, 45, 0.35) !important;
+}
 body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) .modal-box,
 body.phase4-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) :is(.session-order-list, .session-order-row, .existing-updates-box, .existing-update-row) {
   background: var(--rrll-light-surface) !important;
