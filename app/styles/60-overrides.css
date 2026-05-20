@@ -4028,6 +4028,42 @@ body.phase4-view-module .committee-minute-prompt-modal .committee-minute-preview
   overflow-wrap: anywhere !important;
 }
 
+
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions {
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker {
+  min-width: 220px !important;
+  flex: 1 1 240px !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker select {
+  width: 100% !important;
+  min-height: 40px !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-add-campaign,
+body.phase4-view-module #gestor-teletrabajo .telework-new-request {
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-add-campaign {
+  flex: 0 0 auto !important;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-new-request {
+  flex: 0 0 auto !important;
+}
+
 /* Teletrabajo: histórico y tablas con scroll horizontal real sin comprimir columnas. */
 body.phase4-view-module #gestor-teletrabajo .history-table-wrapper,
 body.phase4-view-module #gestor-teletrabajo .telework-table-wrap {
@@ -4039,25 +4075,25 @@ body.phase4-view-module #gestor-teletrabajo .telework-table-wrap {
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table {
-  width: max-content !important;
-  min-width: 1040px !important;
-  table-layout: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table th,
 body.phase4-view-module #gestor-teletrabajo .telework-table td {
-  min-width: 120px !important;
+  min-width: 0 !important;
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table .telework-col-person {
-  min-width: 280px !important;
+  min-width: 0 !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table .telework-col-actions {
-  min-width: 260px !important;
+  min-width: 0 !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-actions-group,
@@ -4104,7 +4140,7 @@ body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-tab
 body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(1),
 body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table td:nth-child(1) {
   width: 34% !important;
-  min-width: 280px !important;
+  min-width: 0 !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-table th:nth-child(2),
@@ -4116,7 +4152,7 @@ body.phase4-view-module #gestor-teletrabajo .telework-table.telework-history-tab
 
 /* Teletrabajo: indicador visual de validación de puesto y tabla principal sin acciones. */
 body.phase4-view-module #gestor-teletrabajo .telework-table {
-  min-width: 900px !important;
+  min-width: 0 !important;
 }
 
 body.phase4-view-module #gestor-teletrabajo .telework-person-with-indicator {

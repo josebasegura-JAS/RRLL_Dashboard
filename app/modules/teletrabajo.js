@@ -981,9 +981,21 @@
   }
 
   function addTeleworkCampaignOption() {
-    const period = normalizeTeleworkPeriod(getTeleworkCampaignInfo().suggested);
-    if (!period || period === TELEWORK_NO_PERIOD) return;
-    changeTeleworkCampaign(period);
+    const suggested = normalizeTeleworkPeriod(getTeleworkCampaignInfo().suggested);
+    const entered = prompt("Nueva campaña de teletrabajo\n\nCampaña (ej. 2027-2028):", suggested === TELEWORK_NO_PERIOD ? "" : suggested);
+    if (entered === null) return;
+    const raw = String(entered || "").trim();
+    if (!raw) {
+      alert("La campaña es obligatoria.");
+      return;
+    }
+    const normalized = normalizeTeleworkPeriod(raw);
+    const exists = getTeleworkCampaigns().some(period => normalizeTeleworkPeriod(period).toLowerCase() === normalized.toLowerCase());
+    if (exists) {
+      alert(`La campaña ${normalized} ya existe.`);
+      return;
+    }
+    changeTeleworkCampaign(normalized);
   }
 
   function getTeleworkVisibleItems(items = getTeleworkItems()) {
