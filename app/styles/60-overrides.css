@@ -4749,3 +4749,28 @@ html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active 
   background: rgba(227, 6, 19, .18) !important;
   color: #ffffff !important;
 }
+
+/* Teletrabajo: forzar alineación estricta entre cabeceras y columnas de tablas del módulo. */
+#gestor-teletrabajo .telework-table {
+  table-layout: fixed !important;
+  border-collapse: collapse !important;
+}
+
+#gestor-teletrabajo .telework-table thead,
+#gestor-teletrabajo .telework-table tbody {
+  display: table-header-group;
+}
+
+#gestor-teletrabajo .telework-table tbody {
+  display: table-row-group;
+}
+
+#gestor-teletrabajo .telework-table tr {
+  display: table-row;
+}
+
+#gestor-teletrabajo .telework-table th,
+#gestor-teletrabajo .telework-table td {
+  display: table-cell;
+  vertical-align: top;
+}
