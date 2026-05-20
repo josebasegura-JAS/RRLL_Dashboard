@@ -1182,3 +1182,122 @@ html[data-theme="dark"] body.phase4-view-module :is(
   color: #f8fafc !important;
 }
 
+
+/* =========================================================
+   Ajustes compactos dark exclusivos — Gestor de Tareas
+   ========================================================= */
+html[data-theme="dark"] #gestor-tareas .rrll-pro-task-head {
+  padding-block: 10px !important;
+}
+
+html[data-theme="dark"] #gestor-tareas .rrll-pro-task-head p {
+  margin-block: 2px 0 !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-toolbar, .tasks-toolbar, .rrll-pro-list-toolbar) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+  padding: 8px 12px !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-filters, .rrll-pro-tabs) {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-right: auto !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  flex-wrap: nowrap !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-search, .rrll-pro-search-wrap) {
+  flex: 0 1 280px !important;
+  min-width: 190px !important;
+  margin-left: auto !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-search, .rrll-pro-search-wrap) input {
+  width: 100% !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.actions, .rrll-pro-list-actions) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  flex: 0 0 auto !important;
+  margin-left: 0 !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) {
+  width: 100% !important;
+  table-layout: fixed !important;
+}
+
+html[data-theme="dark"] #gestor-tareas .rrll-pro-table-wrap {
+  overflow-x: auto !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) :is(th, td) {
+  min-width: 0 !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) th:nth-child(1),
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) td:nth-child(1),
+html[data-theme="dark"] #gestor-tareas .rrll-col-main {
+  width: 38% !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) th:nth-child(2),
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) td:nth-child(2),
+html[data-theme="dark"] #gestor-tareas .rrll-col-source,
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) th:nth-child(3),
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) td:nth-child(3),
+html[data-theme="dark"] #gestor-tareas .rrll-col-priority,
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) th:nth-child(4),
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) td:nth-child(4),
+html[data-theme="dark"] #gestor-tareas .rrll-col-status,
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) th:nth-child(5),
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) td:nth-child(5),
+html[data-theme="dark"] #gestor-tareas .rrll-col-date {
+  width: 12% !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) th:nth-child(6),
+html[data-theme="dark"] #gestor-tareas :is(.task-table, .tasks-table, .rrll-pro-table-tasks) td:nth-child(6),
+html[data-theme="dark"] #gestor-tareas .rrll-col-actions {
+  width: 14% !important;
+}
+
+html[data-theme="dark"] #gestor-tareas :is(.actions, .action-buttons, .rrll-pro-actions) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+}
+
+@media (max-width: 1200px) {
+  html[data-theme="dark"] #gestor-tareas :is(.task-toolbar, .tasks-toolbar, .rrll-pro-list-toolbar) {
+    flex-wrap: wrap !important;
+  }
+
+  html[data-theme="dark"] #gestor-tareas :is(.task-filters, .rrll-pro-tabs) {
+    flex: 1 1 100% !important;
+    order: 1;
+    flex-wrap: wrap !important;
+  }
+
+  html[data-theme="dark"] #gestor-tareas :is(.task-search, .rrll-pro-search-wrap) {
+    order: 2;
+    margin-left: 0 !important;
+  }
+
+  html[data-theme="dark"] #gestor-tareas :is(.actions, .rrll-pro-list-actions) {
+    order: 3;
+    margin-left: auto !important;
+  }
+}
