@@ -3375,8 +3375,9 @@ body.phase4-view-module :is(
 
 /* Tareas: mantener 6 columnas alineadas y reservar espacio suficiente para ACCIONES. */
 body.phase4-view-module #gestor-tareas .rrll-pro-table-wrap {
-  overflow-x: visible !important;
   width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
 }
 
 body.phase4-view-module #gestor-tareas .rrll-pro-table {
@@ -3386,17 +3387,27 @@ body.phase4-view-module #gestor-tareas .rrll-pro-table {
 }
 
 body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(1),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(1) { width: 34% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(1) { width: 30% !important; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(2),
 body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(2) { width: 12% !important; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(3),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(3) { width: 11% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(3) { width: 10% !important; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(4),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(4) { width: 12% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(4) { width: 11% !important; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(5),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(5) { width: 11% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(5) { width: 13% !important; }
 body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(6),
-body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(6) { width: 20% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(6) { width: 24% !important; min-width: 240px !important; }
+
+body.phase4-view-module #gestor-tareas .rrll-pro-table .rrll-pro-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 5px !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
 
 /* Peticiones: conservar sus 6 columnas, con densidad equivalente a Tareas. */
 body.phase4-view-module #gestor-peticiones .rrll-pro-table th:nth-child(1),
