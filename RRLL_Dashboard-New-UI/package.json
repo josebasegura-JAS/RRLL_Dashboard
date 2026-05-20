@@ -1,0 +1,43 @@
+{
+  "name": "cuadro-mando-rrll-db",
+  "version": "1.0.0",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable",
+    "dist:win": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^30.5.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.rrll.cuadromandodb",
+    "productName": "Cuadro de Mando RRLL",
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Cuadro-de-Mando-RRLL-1.0.exe",
+      "icon": "app/assets/icon.ico"
+    },
+    "artifactName": "Cuadro-de-Mando-RRLL-1.0.exe"
+  },
+  "dependencies": {
+    "sql.js": "^1.10.3",
+    "adm-zip": "^0.5.16"
+  },
+  "description": "Cuadro de Mando RRLL - versión 1.0 estabilizada",
+  "author": "Relaciones Laborales"
+}

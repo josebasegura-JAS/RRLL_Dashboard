@@ -1,0 +1,2582 @@
+/* Calendario, vinculograma, licencias, vistas compactas y homogeneidad final de gestores. */
+
+/* =========================================================
+   Fase 5.5 — Dashboard útil + sincronización integrada
+   ========================================================= */
+.phase4-sidebar-footer { display: none !important; }
+
+.phase5-sidebar-sync.save-status-widget {
+  position: static !important;
+  z-index: auto !important;
+  display: grid !important;
+  grid-template-columns: 12px 1fr !important;
+  gap: 8px 10px !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: auto 12px 14px !important;
+  padding: 12px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  border-left: 0 !important;
+  background: linear-gradient(180deg, rgba(48,55,70,.94), rgba(43,49,61,.98)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 12px 28px rgba(17,24,39,.20) !important;
+  color: #e5e7eb !important;
+}
+.phase5-sidebar-sync .save-status-dot {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: 9px !important;
+  height: 9px !important;
+  margin-top: 4px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 0 4px rgba(148,163,184,.08) !important;
+}
+.phase5-sidebar-sync .save-status-text {
+  grid-column: 2 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+.phase5-sidebar-sync .save-status-text b {
+  color: #f8fafc !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+.phase5-sidebar-sync .save-status-text span {
+  color: #aab3c2 !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+.phase5-sidebar-sync .sync-now-button {
+  grid-column: 1 / -1 !important;
+  margin-top: 6px !important;
+  padding: 8px 10px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  background: rgba(52,59,70,.78) !important;
+  color: #e5e7eb !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+.phase5-sidebar-sync .sync-now-button:hover { background: rgba(59,130,246,.16) !important; border-color: rgba(59,130,246,.34) !important; }
+.phase5-sidebar-sync.synced .save-status-dot,
+.phase5-sidebar-sync.saved .save-status-dot { background: #22c55e !important; box-shadow: 0 0 0 4px rgba(34,197,94,.13) !important; }
+.phase5-sidebar-sync.saving .save-status-dot { background: #f59e0b !important; box-shadow: 0 0 0 4px rgba(245,158,11,.14) !important; animation: savePulse 0.8s ease-in-out infinite alternate; }
+.phase5-sidebar-sync.offline .save-status-dot { background: #94a3b8 !important; box-shadow: 0 0 0 4px rgba(148,163,184,.14) !important; }
+.phase5-sidebar-sync.error .save-status-dot { background: #ef4444 !important; box-shadow: 0 0 0 4px rgba(239,68,68,.14) !important; }
+.phase5-sidebar-sync.error { border-color: rgba(239,68,68,.24) !important; background: linear-gradient(180deg, rgba(54,38,44,.95), rgba(43,49,61,.98)) !important; }
+
+.phase5-useful-dashboard {
+  --dash-surface: #2b313d;
+  --dash-surface-2: #303746;
+  --dash-border: rgba(148,163,184,.18);
+}
+.phase5-useful-dashboard .phase5-metric-grid {
+  grid-template-columns: repeat(6, minmax(150px, 1fr)) !important;
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+}
+.phase5-useful-dashboard .phase5-metric-card {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0,1fr) 42px !important;
+  grid-template-areas:
+    "icon label donut"
+    "icon value donut"
+    "icon sub donut"
+    "legend legend legend" !important;
+  align-items: center !important;
+  min-height: 126px !important;
+  padding: 12px 13px !important;
+  border-radius: 15px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(59,130,246,.10), transparent 34%),
+    linear-gradient(180deg, rgba(48,55,70,.92), rgba(43,49,61,.98)) !important;
+  border-color: var(--dash-border) !important;
+  box-shadow: 0 14px 30px rgba(17,24,39,.18) !important;
+}
+.phase5-useful-dashboard .phase5-metric-card .phase4-metric-icon { grid-area: icon !important; width: 32px !important; height: 32px !important; border-radius: 10px !important; }
+.phase5-useful-dashboard .phase5-metric-card span:not(.phase4-metric-icon) { grid-area: label !important; font-size: 10px !important; color: rgba(203,213,225,.72) !important; }
+.phase5-useful-dashboard .phase5-metric-card strong { grid-area: value !important; font-size: 22px !important; color: #f8fafc !important; }
+.phase5-useful-dashboard .phase5-metric-card small { grid-area: sub !important; min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; color: #aab3c2 !important; font-size: 11px !important; }
+.phase5-mini-donut {
+  grid-area: donut !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  place-self: center end !important;
+  background: conic-gradient(rgba(148,163,184,.26) 0 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 0 0 1px rgba(148,163,184,.12) !important;
+  position: relative !important;
+}
+.phase5-mini-donut::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  background: #2b313d;
+  box-shadow: inset 0 0 0 1px rgba(148,163,184,.08);
+}
+.phase5-metric-legend {
+  grid-area: legend !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px 8px !important;
+  margin-top: 10px !important;
+  padding-top: 9px !important;
+  border-top: 1px solid rgba(148,163,184,.10) !important;
+}
+.phase5-metric-legend-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  color: #cbd5e1 !important;
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+}
+.phase5-metric-legend-item i { width: 7px !important; height: 7px !important; border-radius: 99px !important; flex: 0 0 auto !important; }
+.phase5-metric-legend-item b { color: #f8fafc !important; font-size: 10px !important; font-weight: 850 !important; }
+.phase5-empty-legend { color: #94a3b8 !important; font-size: 11px !important; font-weight: 700 !important; }
+
+.phase5-useful-dashboard .phase5-dashboard-grid {
+  display: grid !important;
+  grid-template-columns: minmax(580px, 1.45fr) minmax(280px, .72fr) minmax(300px, .83fr) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+.phase5-useful-dashboard .phase5-dashboard-card {
+  min-height: 0 !important;
+  padding: 15px !important;
+  border-radius: 17px !important;
+  background: linear-gradient(180deg, rgba(48,55,70,.90), rgba(43,49,61,.98)) !important;
+  border-color: var(--dash-border) !important;
+  box-shadow: 0 16px 34px rgba(17,24,39,.18), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+.phase5-useful-dashboard .phase5-due-card { grid-column: span 1 !important; }
+.phase5-useful-dashboard .phase4-card-head { margin-bottom: 10px !important; padding-bottom: 10px !important; }
+.phase5-useful-dashboard .phase4-card-head h3 { font-size: 15px !important; }
+.phase5-useful-dashboard .phase4-card-head span { font-size: 11px !important; }
+.phase5-due-layout {
+  display: grid !important;
+  grid-template-columns: minmax(250px, 1fr) 255px !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+.phase5-useful-dashboard .phase4-list { max-height: 360px !important; overflow: auto !important; padding-right: 2px !important; }
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+  display: grid !important;
+  grid-template-columns: 72px 1fr auto !important;
+  gap: 3px 10px !important;
+  min-height: 48px !important;
+  padding: 8px 6px !important;
+  border-radius: 10px !important;
+  border-bottom: 1px solid rgba(148,163,184,.10) !important;
+  background: transparent !important;
+}
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row:hover { background: rgba(52,59,70,.56) !important; }
+.phase5-useful-dashboard .phase4-list-row span { color: #60a5fa !important; font-size: 11px !important; font-weight: 850 !important; }
+.phase5-useful-dashboard .phase4-list-row b { color: #e5e7eb !important; font-size: 12px !important; font-weight: 750 !important; }
+.phase5-useful-dashboard .phase4-list-row small { color: #aab3c2 !important; font-size: 11px !important; }
+.phase5-useful-dashboard .phase4-list-row em { color: #cbd5e1 !important; font-size: 11px !important; font-style: normal !important; font-weight: 750 !important; }
+.phase5-useful-dashboard .phase4-list-row.danger small { color: #f87171 !important; }
+.phase5-useful-dashboard .phase4-list-row.warning small { color: #fbbf24 !important; }
+.phase5-useful-dashboard .phase4-list-row.committee span { color: #60a5fa !important; }
+.phase5-useful-dashboard .phase4-list-row.paritaria span { color: #a78bfa !important; }
+
+.phase5-calendar-card {
+  padding: 12px !important;
+  border: 1px solid rgba(148,163,184,.15) !important;
+  border-radius: 15px !important;
+  background: rgba(36,42,54,.72) !important;
+}
+.phase5-calendar-head { display: flex !important; justify-content: space-between !important; gap: 10px !important; align-items: start !important; margin-bottom: 10px !important; }
+.phase5-calendar-head strong { color: #f8fafc !important; font-size: 13px !important; text-transform: capitalize !important; }
+.phase5-calendar-head small { color: #aab3c2 !important; font-size: 10px !important; text-align: right !important; }
+.phase5-calendar-weekdays,
+.phase5-calendar-grid { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 5px !important; }
+.phase5-calendar-weekdays { margin-bottom: 5px !important; }
+.phase5-calendar-weekdays span { color: rgba(203,213,225,.58) !important; font-size: 10px !important; font-weight: 800 !important; text-align: center !important; }
+.phase5-calendar-day {
+  min-width: 0 !important;
+  height: 31px !important;
+  padding: 3px !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(148,163,184,.10) !important;
+  background: rgba(48,55,70,.48) !important;
+  color: #dbe3ee !important;
+  display: grid !important;
+  grid-template-rows: 1fr 7px !important;
+  align-items: center !important;
+  justify-items: center !important;
+}
+.phase5-calendar-day.empty { visibility: hidden !important; }
+.phase5-calendar-day.today { border-color: rgba(59,130,246,.48) !important; box-shadow: inset 0 0 0 1px rgba(59,130,246,.18) !important; }
+.phase5-calendar-day.has-event { background: rgba(52,59,70,.82) !important; }
+.phase5-calendar-day b { font-size: 11px !important; font-weight: 750 !important; }
+.phase5-calendar-day span { display: flex !important; gap: 2px !important; align-items: center !important; justify-content: center !important; min-height: 5px !important; }
+.phase5-calendar-day i,
+.phase5-calendar-legend i { width: 5px !important; height: 5px !important; border-radius: 50% !important; display: inline-block !important; }
+.phase5-calendar-day i.cal-due, .phase5-calendar-legend i.cal-due { background: #f59e0b !important; }
+.phase5-calendar-day i.cal-committee, .phase5-calendar-legend i.cal-committee { background: #3b82f6 !important; }
+.phase5-calendar-day i.cal-paritaria, .phase5-calendar-legend i.cal-paritaria { background: #8b5cf6 !important; }
+.phase5-calendar-day i.cal-expired, .phase5-calendar-legend i.cal-expired { background: #ef4444 !important; }
+.phase5-calendar-legend { display: flex !important; flex-wrap: wrap !important; gap: 6px 10px !important; margin-top: 10px !important; color: #aab3c2 !important; font-size: 10px !important; }
+.phase5-calendar-legend span { display: inline-flex !important; align-items: center !important; gap: 4px !important; }
+
+.db-sync-notice {
+  background: rgba(48,55,70,.88) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  border-left: 3px solid #3b82f6 !important;
+  border-radius: 12px !important;
+}
+
+@media (max-width: 1400px) {
+  .phase5-useful-dashboard .phase5-metric-grid { grid-template-columns: repeat(3, minmax(170px, 1fr)) !important; }
+  .phase5-useful-dashboard .phase5-dashboard-grid { grid-template-columns: 1fr 1fr !important; }
+  .phase5-useful-dashboard .phase5-due-card { grid-column: 1 / -1 !important; }
+}
+@media (max-width: 900px) {
+  .phase5-useful-dashboard .phase5-dashboard-grid,
+  .phase5-due-layout { grid-template-columns: 1fr !important; }
+  .phase5-useful-dashboard .phase5-metric-grid { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* Fase 5.6: acciones de impresión/exportación junto al listado y no en cabecera */
+.rrll-pro-list-toolbar {
+  gap: 12px !important;
+  align-items: center !important;
+}
+
+.rrll-pro-list-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.rrll-pro-tool-button {
+  height: 34px;
+  padding: 0 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  background: linear-gradient(180deg, rgba(52,59,70,.92), rgba(43,49,61,.96)) !important;
+  color: var(--rrll-text) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  white-space: nowrap;
+}
+
+.rrll-pro-tool-button:hover {
+  background: linear-gradient(180deg, rgba(59,70,86,.96), rgba(48,55,70,.98)) !important;
+  border-color: rgba(148,163,184,.30) !important;
+  transform: translateY(-1px);
+}
+
+.rrll-pro-tool-button.excel {
+  color: #bbf7d0 !important;
+  border-color: rgba(34,197,94,.22) !important;
+}
+
+#gestor-tareas > summary .summary-actions,
+#gestor-peticiones > summary .summary-actions,
+#gestor-actas > summary .summary-actions {
+  opacity: .86;
+}
+
+@media (max-width: 980px) {
+  .rrll-pro-list-actions {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+}
+
+/* Fase 5.7 — Calendario: marcadores consistentes y popup de asuntos */
+.phase5-calendar-day i,
+.phase5-calendar-legend i {
+  width: 5px !important;
+  height: 5px !important;
+  min-width: 5px !important;
+  max-width: 5px !important;
+  min-height: 5px !important;
+  max-height: 5px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-radius: 999px !important;
+  display: inline-block !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+.phase5-calendar-day i.cal-due,
+.phase5-calendar-legend i.cal-due { background: #f59e0b !important; }
+.phase5-calendar-day i.cal-committee,
+.phase5-calendar-legend i.cal-committee { background: #3b82f6 !important; }
+.phase5-calendar-day i.cal-paritaria,
+.phase5-calendar-legend i.cal-paritaria { background: #8b5cf6 !important; }
+.phase5-calendar-day i.cal-expired,
+.phase5-calendar-legend i.cal-expired { background: #ef4444 !important; }
+.phase5-calendar-day.has-event { cursor: pointer !important; }
+.phase5-calendar-day.has-event:hover {
+  background: #343b46 !important;
+  border-color: rgba(148,163,184,.26) !important;
+  transform: translateY(-1px);
+}
+
+.phase5-calendar-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 22px !important;
+  background: rgba(15,23,42,.44) !important;
+  backdrop-filter: blur(8px) !important;
+  z-index: 9999 !important;
+}
+.phase5-calendar-modal.open { display: flex !important; }
+.phase5-calendar-modal-panel {
+  width: min(520px, 92vw) !important;
+  max-height: min(640px, 82vh) !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(148,163,184,.22) !important;
+  background: linear-gradient(180deg, #2b313d 0%, #242b36 100%) !important;
+  box-shadow: 0 28px 70px rgba(0,0,0,.32) !important;
+  color: #e5e7eb !important;
+}
+.phase5-calendar-modal-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+  padding: 17px 18px 14px !important;
+  border-bottom: 1px solid rgba(148,163,184,.14) !important;
+  background: rgba(52,59,70,.45) !important;
+}
+.phase5-calendar-modal-head strong {
+  display: block !important;
+  color: #f8fafc !important;
+  font-size: 16px !important;
+  font-weight: 750 !important;
+  margin-bottom: 4px !important;
+}
+.phase5-calendar-modal-head small {
+  color: #aab3c2 !important;
+  font-size: 12px !important;
+  text-transform: capitalize !important;
+}
+.phase5-calendar-modal-head button {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  background: rgba(36,42,54,.85) !important;
+  color: #cbd5e1 !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+}
+.phase5-calendar-modal-head button:hover {
+  background: rgba(239,68,68,.18) !important;
+  color: #fff !important;
+  border-color: rgba(239,68,68,.32) !important;
+}
+.phase5-calendar-modal-list {
+  padding: 12px !important;
+  display: grid !important;
+  gap: 8px !important;
+  max-height: calc(min(640px, 82vh) - 76px) !important;
+  overflow: auto !important;
+}
+.phase5-calendar-modal-item {
+  width: 100% !important;
+  text-align: left !important;
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  grid-template-areas:
+    "type title"
+    "type meta" !important;
+  gap: 2px 12px !important;
+  padding: 12px !important;
+  border-radius: 13px !important;
+  border: 1px solid rgba(148,163,184,.13) !important;
+  background: rgba(48,55,70,.62) !important;
+  color: #e5e7eb !important;
+  cursor: pointer !important;
+}
+.phase5-calendar-modal-item:hover {
+  background: #343b46 !important;
+  border-color: rgba(148,163,184,.25) !important;
+  transform: translateY(-1px);
+}
+.phase5-calendar-modal-item span {
+  grid-area: type !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 96px !important;
+  color: #aab3c2 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+}
+.phase5-calendar-modal-item span i {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+}
+.phase5-calendar-modal-item strong {
+  grid-area: title !important;
+  color: #f8fafc !important;
+  font-size: 13px !important;
+  font-weight: 760 !important;
+}
+.phase5-calendar-modal-item small {
+  grid-area: meta !important;
+  color: #aab3c2 !important;
+  font-size: 11px !important;
+}
+.phase5-calendar-modal-item.cal-due span i { background: #f59e0b !important; }
+.phase5-calendar-modal-item.cal-committee span i { background: #3b82f6 !important; }
+.phase5-calendar-modal-item.cal-paritaria span i { background: #8b5cf6 !important; }
+.phase5-calendar-modal-item.cal-expired span i { background: #ef4444 !important; }
+.phase5-calendar-modal-item.cal-expired small { color: #f87171 !important; }
+
+/* Fase 5.8 - Vinculograma */
+.module-vinculograma .rrll-pro-task-shell {
+  gap: 18px;
+}
+.rrll-pro-vinculograma-form {
+  grid-template-columns: minmax(150px, .8fr) minmax(220px, 1.4fr) minmax(160px, .9fr) minmax(160px, .9fr) auto;
+  align-items: end;
+}
+.rrll-pro-vinculograma-form .rrll-pro-form-actions {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  min-height: 62px;
+}
+.rrll-pro-vinculograma-form .rrll-pro-primary {
+  min-height: 40px;
+  padding-inline: 22px;
+  white-space: nowrap;
+}
+.vinculograma-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+}
+.vinculograma-column {
+  min-width: 0;
+}
+.vinculograma-toolbar {
+  align-items: center;
+}
+.vinculograma-toolbar h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--text-main, #e5e7eb);
+}
+.vinculograma-table th,
+.vinculograma-table td {
+  white-space: nowrap;
+}
+.vinculograma-table .rrll-pro-main-cell,
+.vinculograma-table .rrll-pro-title {
+  white-space: normal;
+}
+.vinculograma-row.status-danger td:first-child {
+  border-left: 3px solid var(--danger, #ef4444);
+}
+.vinculograma-row.status-closed td:first-child {
+  border-left: 3px solid var(--success, #22c55e);
+}
+@media (max-width: 1350px) {
+  .rrll-pro-vinculograma-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rrll-pro-vinculograma-form .rrll-pro-form-actions {
+    justify-content: stretch;
+  }
+  .rrll-pro-vinculograma-form .rrll-pro-primary {
+    width: 100%;
+  }
+  .vinculograma-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fase 5.9 - Licencias sin sueldo y excedencias */
+.module-licencias .rrll-pro-task-shell {
+  gap: 18px;
+}
+.rrll-pro-licencias-form {
+  grid-template-columns: minmax(120px, .7fr) minmax(190px, 1.2fr) minmax(140px, .8fr) minmax(170px, 1fr) minmax(140px, .8fr) minmax(140px, .8fr) auto;
+  align-items: end;
+}
+.rrll-pro-licencias-form .rrll-pro-form-actions {
+  min-height: 62px;
+  align-items: end;
+}
+.rrll-pro-licencias-form .rrll-pro-primary {
+  min-height: 40px;
+  padding-inline: 20px;
+  white-space: nowrap;
+}
+.licencias-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.licencias-column,
+.licencias-history-card {
+  min-width: 0;
+}
+.licencias-toolbar {
+  align-items: center;
+}
+.licencias-toolbar h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--text-main, #e5e7eb);
+}
+.licencias-table th,
+.licencias-table td {
+  vertical-align: top;
+}
+.licencias-table th:first-child,
+.licencias-table td:first-child {
+  width: 72px;
+  white-space: nowrap;
+}
+.licencias-table .rrll-pro-main-cell,
+.licencias-table .rrll-pro-title {
+  white-space: normal;
+}
+.licencias-row {
+  cursor: pointer;
+}
+.licencias-row:hover td {
+  background: rgba(59,130,246,.08) !important;
+}
+.licencias-row td:first-child {
+  border-left: 3px solid rgba(59,130,246,.65);
+}
+.licencias-history-card {
+  margin-top: 2px;
+}
+.licencias-history-list {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+.licencias-year {
+  border: 1px solid rgba(148,163,184,.16);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(43,49,61,.58);
+}
+.licencias-year summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 13px;
+  background: rgba(52,59,70,.65);
+  color: var(--text-main, #e5e7eb);
+  font-weight: 800;
+}
+.licencias-year summary span {
+  color: var(--text-secondary, #aab3c2);
+  font-size: 12px;
+  font-weight: 700;
+}
+#licenseUpdateModal .modal-actions {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+#licenseUpdateModal .existing-updates-box {
+  max-height: 180px;
+  overflow: auto;
+}
+@media (max-width: 1500px) {
+  .rrll-pro-licencias-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .rrll-pro-licencias-form .rrll-pro-form-actions {
+    justify-content: stretch;
+  }
+  .rrll-pro-licencias-form .rrll-pro-primary {
+    width: 100%;
+  }
+}
+@media (max-width: 1250px) {
+  .licencias-columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 900px) {
+  .rrll-pro-licencias-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fase 5.10 - pulido: cabeceras nuevas, listas compactas y modal de licencias editable */
+#gestor-vinculograma > summary,
+#gestor-licencias > summary {
+  background: linear-gradient(135deg, #2b313d 0%, #303746 100%) !important;
+  color: var(--text-main, #e5e7eb) !important;
+  border: 1px solid rgba(148, 163, 184, .18) !important;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, .22) !important;
+}
+#gestor-vinculograma > summary .module-title,
+#gestor-licencias > summary .module-title,
+#gestor-vinculograma > summary .summary-counts,
+#gestor-licencias > summary .summary-counts {
+  color: var(--text-main, #e5e7eb) !important;
+  opacity: 1 !important;
+}
+#gestor-vinculograma > summary .summary-counts,
+#gestor-licencias > summary .summary-counts {
+  color: var(--text-secondary, #aab3c2) !important;
+}
+#gestor-vinculograma > summary .summary-icon-button,
+#gestor-licencias > summary .summary-icon-button {
+  background: #343b46 !important;
+  border-color: rgba(148, 163, 184, .20) !important;
+}
+
+.license-edit-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.license-edit-grid label span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary, #aab3c2);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+.license-edit-grid .full {
+  grid-column: 1 / -1;
+}
+.modal-actions .danger {
+  background: rgba(239, 68, 68, .14) !important;
+  color: #fecaca !important;
+  border: 1px solid rgba(239, 68, 68, .35) !important;
+  box-shadow: none !important;
+}
+.modal-actions .danger:hover {
+  background: rgba(239, 68, 68, .22) !important;
+}
+
+
+/* Licencias (solo modo claro): eliminar herencia oscura sin tocar listado principal */
+html[data-theme="light"] #gestor-licencias {
+  background: #f4f6f8 !important;
+}
+html[data-theme="light"] #gestor-licencias > summary {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .08) !important;
+}
+html[data-theme="light"] #gestor-licencias > summary :is(.module-title, .summary-counts) {
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias > summary .summary-icon-button {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #dbe2ea !important;
+}
+html[data-theme="light"] #gestor-licencias :is(.rrll-pro-task-shell, .licencias-column, .licencias-history-card, .rrll-pro-task-head, .rrll-pro-list, .rrll-pro-list-card, .rrll-pro-form-shell, .rrll-pro-licencias-form, .rrll-pro-empty-state) {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-toolbar h3 {
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias :is(.rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update, .rrll-pro-muted, .summary-counts) {
+  color: #4b5563 !important;
+}
+html[data-theme="light"] #gestor-licencias :is(input, select, textarea) {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-color: #dbe2ea !important;
+}
+html[data-theme="light"] #gestor-licencias :is(input, select, textarea)::placeholder {
+  color: #6b7280 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year {
+  background: #fbfbfc !important;
+  border-color: #e5e7eb !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year > summary {
+  background: #f1f5f9 !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year > summary span {
+  color: #4b5563 !important;
+}
+html[data-theme="light"] #licenseUpdateModal :is(.modal-header, .rrll-modal-header) {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+html[data-theme="light"] #licenseUpdateModal :is(.modal-body, .rrll-modal-body) {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #licenseUpdateModal .existing-updates-box {
+  background: #f8fafc !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Tareas y peticiones: vista inicial compacta. Clic despliega detalle; doble clic edita. */
+.rrll-task-row,
+.rrll-petition-row {
+  cursor: pointer;
+}
+.rrll-task-row:not(.expanded) .rrll-pro-subtitle,
+.rrll-task-row:not(.expanded) .rrll-pro-created,
+.rrll-task-row:not(.expanded) .rrll-pro-update,
+.rrll-task-row:not(.expanded) .rrll-pro-actions,
+.rrll-petition-row:not(.expanded) .rrll-pro-subtitle,
+.rrll-petition-row:not(.expanded) .rrll-pro-created,
+.rrll-petition-row:not(.expanded) .rrll-pro-update,
+.rrll-petition-row:not(.expanded) .rrll-pro-actions {
+  display: none !important;
+}
+.rrll-task-row:not(.expanded) td,
+.rrll-petition-row:not(.expanded) td {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+.rrll-task-row:not(.expanded) .rrll-pro-title,
+.rrll-petition-row:not(.expanded) .rrll-pro-title {
+  font-size: 13px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rrll-task-row.expanded,
+.rrll-petition-row.expanded {
+  background: rgba(48, 55, 70, .92) !important;
+  box-shadow: inset 3px 0 0 rgba(59, 130, 246, .85);
+}
+.rrll-task-row.expanded .rrll-pro-subtitle,
+.rrll-petition-row.expanded .rrll-pro-subtitle {
+  margin-top: 5px;
+}
+.rrll-task-row.expanded .rrll-pro-created,
+.rrll-petition-row.expanded .rrll-pro-created {
+  margin-top: 4px;
+}
+
+/* Fase 5.11 - homogeneidad de vistas y listas compactas finales */
+.rrll-create-form-collapsed {
+  display: none !important;
+}
+
+/* Cabeceras de gestores: patrón gris-carbón homogéneo como Vinculograma */
+.content-right > details.module-card > summary,
+.content-right details.committee-subsection > summary,
+.content-right details.paritaria-subsection > summary {
+  background: linear-gradient(135deg, rgba(48,55,70,.96), rgba(43,49,61,.94)) !important;
+  border: 1px solid rgba(148,163,184,.16) !important;
+  box-shadow: 0 14px 34px rgba(15,23,42,.18) !important;
+  border-radius: 18px !important;
+  color: #e5e7eb !important;
+}
+
+.content-right > details.module-card > summary .module-title,
+.content-right details.committee-subsection > summary .module-title,
+.content-right details.paritaria-subsection > summary .module-title {
+  color: #e5e7eb !important;
+}
+
+.content-right > details.module-card > summary .summary-counts,
+.content-right details.committee-subsection > summary .summary-counts,
+.content-right details.paritaria-subsection > summary .summary-counts {
+  color: #aab3c2 !important;
+}
+
+.rrll-pro-module,
+.committee-main,
+.paritaria-main,
+.committee-subsection,
+.paritaria-subsection {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.rrll-pro-task-shell,
+.rrll-pro-vinc-shell,
+.rrll-pro-license-shell,
+.rrll-pro-petition-shell,
+.rrll-pro-minutes-shell,
+.rrll-pro-telework-shell,
+.rrll-pro-committee-shell,
+.rrll-pro-paritaria-shell {
+  background: var(--rrll-bg-app-dark) !important;
+  border-radius: 20px !important;
+}
+
+.rrll-pro-task-form,
+.rrll-pro-list-card,
+.rrll-pro-vinc-form,
+.rrll-pro-license-form,
+.rrll-pro-vinc-column,
+.rrll-pro-license-column,
+.session-panel,
+.session-form {
+  background: linear-gradient(135deg, rgba(43,49,61,.98), rgba(48,55,70,.92)) !important;
+  border: 1px solid rgba(148,163,184,.16) !important;
+  box-shadow: 0 12px 30px rgba(15,23,42,.16) !important;
+}
+
+/* Comité y Paritaria: clic despliega detalle; doble clic edita */
+.rrll-agenda-row,
+.rrll-paritaria-row {
+  cursor: pointer;
+}
+.rrll-agenda-row:not(.expanded) .rrll-pro-subtitle,
+.rrll-agenda-row:not(.expanded) .rrll-pro-created,
+.rrll-agenda-row:not(.expanded) .rrll-pro-update,
+.rrll-agenda-row:not(.expanded) .rrll-pro-actions,
+.rrll-paritaria-row:not(.expanded) .rrll-pro-subtitle,
+.rrll-paritaria-row:not(.expanded) .rrll-pro-created,
+.rrll-paritaria-row:not(.expanded) .rrll-pro-update,
+.rrll-paritaria-row:not(.expanded) .rrll-pro-actions {
+  display: none !important;
+}
+.rrll-agenda-row:not(.expanded) td,
+.rrll-paritaria-row:not(.expanded) td {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+.rrll-agenda-row:not(.expanded) .rrll-pro-title,
+.rrll-paritaria-row:not(.expanded) .rrll-pro-title {
+  font-size: 13px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rrll-agenda-row.expanded,
+.rrll-paritaria-row.expanded {
+  background: rgba(48, 55, 70, .92) !important;
+  box-shadow: inset 3px 0 0 rgba(59, 130, 246, .85);
+}
+.rrll-agenda-row.expanded .rrll-pro-subtitle,
+.rrll-paritaria-row.expanded .rrll-pro-subtitle {
+  margin-top: 5px;
+}
+.rrll-agenda-row.expanded .rrll-pro-created,
+.rrll-paritaria-row.expanded .rrll-pro-created {
+  margin-top: 4px;
+}
+
+/* Formularios de alta: aparecen solo al pulsar Nueva tarea / Nueva petición */
+.rrll-pro-task-head .rrll-pro-primary {
+  min-width: 150px;
+}
+
+/* Mayor coherencia de contraste en inputs de todas las vistas */
+.rrll-pro-field input,
+.rrll-pro-field textarea,
+.rrll-pro-field select,
+.session-form input,
+.session-form select,
+.session-form textarea,
+textarea[id^="newCommitteeSession"],
+textarea[id^="newParitariaSession"] {
+  background: #2b313d !important;
+  border-color: rgba(148,163,184,.18) !important;
+  color: #e5e7eb !important;
+}
+
+.rrll-pro-field input:focus,
+.rrll-pro-field textarea:focus,
+.rrll-pro-field select:focus,
+.session-form input:focus,
+.session-form textarea:focus {
+  border-color: rgba(59,130,246,.55) !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12) !important;
+}
+
+
+/* Fase 5.15 - homogeneidad final gris-carbón y sidebar sin logo */
+
+.phase4-sidebar {
+  padding-top: 14px !important;
+}
+.phase4-sidebar-brand {
+  display: none !important;
+}
+.phase4-nav:first-of-type {
+  margin-top: 0 !important;
+}
+
+/* Todas las vistas de gestor deben seguir el patrón Vinculograma/Licencias: gris-carbón, sin negro profundo. */
+body.phase4-view-module .content-right {
+  background: linear-gradient(135deg, var(--rrll-bg-app-dark) 0%, #242b36 56%, var(--rrll-bg-app-dark) 100%) !important;
+}
+body.phase4-view-module .content-right > details.module-card.phase4-active-module,
+body.phase4-view-module .module-card.phase4-active-module,
+body.phase4-view-module .rrll-pro-module.phase4-active-module,
+body.phase4-view-module #gestor-tareas.phase4-active-module,
+body.phase4-view-module #gestor-peticiones.phase4-active-module,
+body.phase4-view-module #gestor-actas.phase4-active-module,
+body.phase4-view-module #gestor-teletrabajo.phase4-active-module,
+body.phase4-view-module #gestor-comite.phase4-active-module,
+body.phase4-view-module #gestor-paritaria.phase4-active-module {
+  background: linear-gradient(180deg, rgba(36,42,54,.98), rgba(34,41,54,.98)) !important;
+  border: 1px solid var(--rrll-border-soft) !important;
+  box-shadow: 0 18px 46px rgba(15,23,42,.22) !important;
+}
+
+body.phase4-view-module .content-right > details.module-card.phase4-active-module > summary,
+body.phase4-view-module .module-card.phase4-active-module > summary,
+body.phase4-view-module details.committee-subsection > summary,
+body.phase4-view-module details.paritaria-subsection > summary,
+.module-header,
+.professional-header {
+  background: linear-gradient(135deg, rgba(52,59,70,.98), rgba(48,55,70,.96)) !important;
+  border: 1px solid rgba(148,163,184,.17) !important;
+  color: var(--rrll-text) !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.18) !important;
+}
+
+/* Concha interior de módulos antiguos: mismo fondo que Vinculograma. */
+.rrll-pro-task-shell,
+.rrll-pro-petition-shell,
+.rrll-pro-minutes-shell,
+.rrll-pro-telework-shell,
+.rrll-pro-committee-shell,
+.rrll-pro-paritaria-shell,
+.committee-main,
+.paritaria-main,
+.committee-subsection,
+.paritaria-subsection,
+.session-shell,
+.session-main,
+.module-body,
+.professional-body {
+  background: linear-gradient(180deg, rgba(36,42,54,.98), rgba(34,41,54,.96)) !important;
+  color: var(--rrll-text) !important;
+  border-color: rgba(148,163,184,.14) !important;
+}
+
+/* Formularios, filtros y paneles: gris elevado, no negro. */
+.rrll-pro-task-form,
+.rrll-pro-petition-form,
+.rrll-pro-minutes-form,
+.rrll-pro-telework-form,
+.rrll-pro-list-card,
+.rrll-pro-vinc-form,
+.rrll-pro-license-form,
+.rrll-pro-vinc-column,
+.rrll-pro-license-column,
+.enhanced-task-form,
+.enhanced-petition-form,
+.agenda-form-v18,
+.paritaria-form-v18,
+.session-form,
+.session-panel,
+.workflow-column,
+.minutes-column,
+.telework-column,
+.session-column,
+.professional-panel,
+.professional-form,
+.professional-table-wrap,
+.data-panel,
+.card-panel {
+  background: linear-gradient(135deg, rgba(43,49,61,.99), rgba(48,55,70,.94)) !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  box-shadow: 0 12px 28px rgba(15,23,42,.16) !important;
+  color: var(--rrll-text) !important;
+}
+
+/* Barras de filtros/listados: mismo patrón gris medio. */
+.rrll-pro-list-toolbar,
+.rrll-pro-table-wrap,
+.professional-list-toolbar,
+.list-toolbar,
+.filter-toolbar,
+.table-toolbar {
+  background: rgba(48,55,70,.92) !important;
+  border-color: rgba(148,163,184,.16) !important;
+  color: var(--rrll-text) !important;
+}
+
+/* Tablas: cabecera más clara, filas carbón. */
+.rrll-pro-table,
+.professional-table,
+.data-table {
+  background: rgba(43,49,61,.90) !important;
+  color: var(--rrll-text) !important;
+}
+.rrll-pro-table thead th,
+.professional-table thead th,
+.data-table thead th,
+table:not(.print-frame table) thead th {
+  background: rgba(52,59,70,.96) !important;
+  color: rgba(229,231,235,.92) !important;
+  border-color: rgba(148,163,184,.15) !important;
+}
+.rrll-pro-table tbody tr,
+.professional-table tbody tr,
+.data-table tbody tr {
+  background: rgba(43,49,61,.72) !important;
+}
+.rrll-pro-table tbody tr:nth-child(even),
+.professional-table tbody tr:nth-child(even),
+.data-table tbody tr:nth-child(even) {
+  background: rgba(48,55,70,.52) !important;
+}
+.rrll-pro-table tbody tr:hover,
+.professional-table tbody tr:hover,
+.data-table tbody tr:hover {
+  background: rgba(57,65,80,.82) !important;
+}
+.rrll-pro-table td,
+.professional-table td,
+.data-table td,
+table:not(.print-frame table) td {
+  color: rgba(229,231,235,.88) !important;
+  border-color: rgba(148,163,184,.12) !important;
+}
+
+/* Inputs: no negro profundo; mismo tono elevado en todos los módulos. */
+input,
+select,
+textarea,
+.rrll-pro-field input,
+.rrll-pro-field select,
+.rrll-pro-field textarea,
+.rrll-pro-search-wrap input,
+.session-form input,
+.session-form select,
+.session-form textarea,
+.professional-form input,
+.professional-form select,
+.professional-form textarea,
+.modal-box input,
+.modal-box select,
+.modal-box textarea,
+.modal-card input,
+.modal-card select,
+.modal-card textarea {
+  background: #303746 !important;
+  color: var(--rrll-text) !important;
+  border-color: rgba(170,179,194,.24) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+input:focus,
+select:focus,
+textarea:focus,
+.rrll-pro-field input:focus,
+.rrll-pro-field select:focus,
+.rrll-pro-field textarea:focus,
+.rrll-pro-search-wrap input:focus {
+  background: #343b46 !important;
+  border-color: rgba(59,130,246,.55) !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.13) !important;
+}
+input::placeholder,
+textarea::placeholder,
+.rrll-pro-search-wrap input::placeholder {
+  color: rgba(203,213,225,.56) !important;
+}
+select option {
+  background: #303746 !important;
+  color: var(--rrll-text) !important;
+}
+
+/* Estados vacíos, actualizaciones, históricos y cajas auxiliares: quitar blancos/negros sueltos. */
+.empty-state,
+.empty,
+.empty-list,
+.existing-updates-box,
+.allegations-list,
+#taskExistingUpdates,
+#petitionExistingUpdates,
+#agendaExistingUpdates,
+#paritariaExistingUpdates,
+#minuteExistingUpdates,
+#moduleSearchResults,
+#importPreviewSummary,
+#trashList,
+#trashListModern,
+.config-row,
+.access-config-item,
+.session-year-block,
+.session-year-content,
+.year-block,
+.year-content,
+.committee-session-year,
+.paritaria-session-year,
+.closed-column,
+.closed-list,
+.history-panel,
+.history-list {
+  background: rgba(48,55,70,.82) !important;
+  color: rgba(229,231,235,.88) !important;
+  border-color: rgba(148,163,184,.16) !important;
+}
+
+/* Modales y popups coherentes con la paleta. */
+.modal-box,
+.modal-card,
+.config-modal-box,
+.config-modal-card,
+.module-search-box,
+.print-preview-box {
+  background: linear-gradient(180deg, rgba(43,49,61,.98), rgba(36,42,54,.98)) !important;
+  color: var(--rrll-text) !important;
+  border-color: rgba(148,163,184,.18) !important;
+}
+.modal-actions,
+.form-actions,
+.rrll-pro-form-actions,
+.professional-actions,
+.footer-actions {
+  background: rgba(48,55,70,.82) !important;
+  border-color: rgba(148,163,184,.14) !important;
+}
+
+/* Preservar la impresión real en blanco, pero no contaminar la UI. */
+@media screen {
+  .print-preview-content,
+  .print-preview-content * {
+    color: var(--rrll-text-main-light) !important;
+  }
+}
+@media print {
+  body,
+  .print-preview-content {
+    background: #fff !important;
+    color: var(--rrll-text-main-light) !important;
+  }
+}
+
+/* Menos salto visual entre cabecera superior y gestores sin tocar layout base. */
+body.phase4-view-module .phase4-main main {
+  padding-top: 22px !important;
+}
+
+/* Scrollbar en gris carbón, no negro. */
+*::-webkit-scrollbar-track {
+  background: #242b36 !important;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(170,179,194,.32) !important;
+  border-color: #242b36 !important;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(170,179,194,.48) !important;
+}
+
+/* Fase 5.18 - unificación definitiva gris-carbón: sin negros residuales en gestores */
+.phase5-calendar-legend b {
+  color: #f8fafc !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+}
+
+/* Fase 2 Teletrabajo: campañas, histórico, importación y exportación */
+.rrll-pro-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.telework-campaign-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted, #64748b);
+}
+
+.telework-campaign-picker select {
+  min-width: 132px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, .35);
+  background: var(--panel, #ffffff);
+  color: var(--text, var(--rrll-text-main-light));
+  padding: 8px 10px;
+}
+
+.telework-campaign-hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted, #64748b);
+}
+
+.telework-campaign-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.telework-campaign-summary span,
+.telework-campaign-summary b {
+  display: block;
+}
+
+.telework-campaign-summary span:nth-child(odd) {
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  padding: 9px 10px 2px;
+  color: var(--muted, #64748b);
+  font-size: 11px;
+  background: rgba(148, 163, 184, .08);
+}
+
+.telework-campaign-summary b:nth-child(even) {
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  padding: 0 10px 9px;
+  font-size: 20px;
+  background: rgba(148, 163, 184, .08);
+}
+
+.sr-only-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.telework-history-section {
+  margin-top: 16px;
+}
+
+.rrll-pro-task-head.compact {
+  margin-bottom: 8px;
+}
+
+.telework-history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.telework-history-campaign {
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 14px;
+  background: rgba(148, 163, 184, .07);
+  overflow: hidden;
+}
+
+.telework-history-campaign summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  list-style: none;
+}
+
+.telework-history-campaign summary::-webkit-details-marker {
+  display: none;
+}
+
+.telework-history-campaign summary::after {
+  content: "▾";
+  transition: transform .16s ease;
+}
+
+.telework-history-campaign:not([open]) summary::after {
+  transform: rotate(-90deg);
+}
+
+.telework-history-campaign summary span {
+  color: var(--muted, #64748b);
+  font-size: 12px;
+}
+
+.telework-historical-row {
+  opacity: .88;
+}
+
+.telework-history-warning {
+  margin: 0 18px 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, .35);
+  background: rgba(245, 158, 11, .12);
+  color: #92400e;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .telework-campaign-summary {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+}
+
+.telework-campaign-metric {
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 12px;
+  padding: 9px 10px;
+  background: rgba(148, 163, 184, .08);
+}
+
+.telework-campaign-metric span {
+  color: var(--muted, #64748b);
+  font-size: 11px;
+}
+
+.telework-campaign-metric b {
+  display: block;
+  margin-top: 2px;
+  font-size: 20px;
+}
+
+.telework-campaign-summary .telework-campaign-metric span,
+.telework-campaign-summary .telework-campaign-metric b {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Teletrabajo profesional: formulario por bloques y listado compacto en tarjetas. */
+.telework-professional-form {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px !important;
+  align-items: start;
+}
+
+.telework-form-section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, .10);
+}
+
+.telework-form-section legend {
+  padding: 0 8px;
+  color: var(--rrll-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.telework-observations-section,
+.telework-professional-form > .telework-sticky-actions {
+  grid-column: 1 / -1;
+}
+
+.telework-observations-section textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.telework-sticky-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: 4px;
+  backdrop-filter: blur(14px);
+}
+
+.telework-request-list {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.telework-request-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px !important;
+  border-radius: 18px;
+  cursor: default;
+}
+
+.telework-card-main,
+.telework-card-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.telework-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.telework-card-grid > div {
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, .08);
+}
+
+.telework-card-grid span,
+.telework-validation-chip,
+.telework-observations-preview {
+  color: var(--rrll-text-muted);
+  font-size: 12px;
+}
+
+.telework-card-grid strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--rrll-text);
+}
+
+.telework-validation-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.telework-validation-chip {
+  padding: 5px 8px;
+  border: 1px solid rgba(148, 163, 184, .16);
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .10);
+}
+
+.telework-validation-chip.validation-si,
+.telework-validation-chip.validation-aprobada {
+  border-color: rgba(34, 197, 94, .28);
+  background: rgba(34, 197, 94, .12);
+  color: #86efac;
+}
+
+.telework-validation-chip.validation-no,
+.telework-validation-chip.validation-denegada {
+  border-color: rgba(239, 68, 68, .28);
+  background: rgba(239, 68, 68, .12);
+  color: #fca5a5;
+}
+
+.telework-observations-preview {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.45;
+}
+
+.telework-modal-box {
+  max-height: min(92vh, 860px);
+  overflow: auto;
+}
+
+.telework-observation-history {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, .08);
+}
+
+.telework-history-entry {
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, .12);
+}
+
+.telework-history-entry span {
+  color: var(--rrll-text-muted);
+  font-size: 11px;
+}
+
+.telework-history-entry p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+
+.rrll-status-pill.direction {
+  background: rgba(59, 130, 246, .14);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, .28);
+}
+
+html[data-theme="light"] .telework-form-section,
+html[data-theme="light"] .telework-card-grid > div,
+html[data-theme="light"] .telework-observation-history {
+  background: rgba(241, 245, 249, .86);
+  border-color: rgba(100, 116, 139, .22);
+}
+
+html[data-theme="light"] .telework-validation-chip.validation-si,
+html[data-theme="light"] .telework-validation-chip.validation-aprobada {
+  color: #15803d;
+}
+
+html[data-theme="light"] .telework-validation-chip.validation-no,
+html[data-theme="light"] .telework-validation-chip.validation-denegada {
+  color: #b91c1c;
+}
+
+html[data-theme="light"] .rrll-status-pill.direction {
+  color: #1d4ed8;
+}
+
+@media (max-width: 900px) {
+  .telework-professional-form,
+  .telework-form-section,
+  .telework-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.telework-eligibility-warning {
+  display: none;
+  grid-column: 1 / -1;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(245, 158, 11, .34);
+  border-radius: 12px;
+  background: rgba(245, 158, 11, .12);
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.telework-eligibility-warning.visible {
+  display: grid;
+}
+
+html[data-theme="light"] .telework-eligibility-warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, .14);
+  border-color: rgba(217, 119, 6, .28);
+}
+
+
+/* Teletrabajo: alta inicial simplificada.
+   La creación registra persona + solicitud. El resto se completa por doble clic. */
+.telework-intake-form {
+  grid-template-columns: minmax(280px, .8fr) minmax(0, 1.2fr) !important;
+  gap: 14px !important;
+}
+
+.telework-intake-note,
+.telework-intake-form > .telework-observations-section,
+.telework-intake-form > .telework-sticky-actions {
+  grid-column: 1 / -1 !important;
+}
+
+.telework-intake-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(59, 130, 246, .22);
+  border-radius: 14px;
+  background: rgba(59, 130, 246, .08);
+  color: var(--rrll-text);
+}
+
+.telework-intake-note strong {
+  font-size: .86rem;
+  font-weight: 850;
+}
+
+.telework-intake-note span {
+  color: var(--rrll-muted);
+  font-size: .82rem;
+  line-height: 1.35;
+}
+
+.telework-intake-form .telework-person-section,
+.telework-intake-form .telework-request-section {
+  align-content: start;
+}
+
+.telework-intake-form .telework-observations-section textarea {
+  min-height: 82px;
+}
+
+html[data-theme="light"] .telework-intake-note {
+  background: rgba(239, 246, 255, .92);
+  border-color: rgba(37, 99, 235, .20);
+}
+
+@media (max-width: 980px) {
+  .telework-intake-form {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.telework-import-modal .telework-import-box {
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.telework-import-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.telework-import-head h3,
+.telework-import-card h4 {
+  margin: 0;
+}
+
+.telework-import-head .muted,
+.telework-import-card p {
+  margin: 6px 0 0;
+  color: var(--rrll-text-muted, var(--muted));
+}
+
+.telework-import-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, .25);
+  background: rgba(148, 163, 184, .12);
+  color: var(--rrll-text-main, inherit);
+  cursor: pointer;
+}
+
+.telework-import-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.telework-import-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 16px;
+  background: rgba(148, 163, 184, .08);
+}
+
+.telework-import-kicker {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(167, 53, 53, .14);
+  color: var(--rrll-red-ui, var(--red));
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.telework-template-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+}
+
+@media (max-width: 720px) {
+  .telework-import-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Teletrabajo: mantenimiento del catálogo de puestos importados. */
+.telework-catalog-modal .telework-catalog-box {
+  width: min(1180px, calc(100vw - 28px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.telework-catalog-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.telework-catalog-search {
+  flex: 1 1 520px;
+  margin: 0;
+}
+
+.telework-catalog-count {
+  flex: 0 0 auto;
+  color: var(--rrll-text-muted, var(--muted));
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.telework-catalog-table-wrap {
+  min-height: 220px;
+  max-height: min(58vh, 620px);
+  overflow: auto;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, .12);
+}
+
+.telework-catalog-table {
+  min-width: 980px;
+}
+
+.telework-catalog-table th,
+.telework-catalog-table td {
+  vertical-align: middle;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.telework-catalog-table input,
+.telework-catalog-table select {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  background: rgba(15, 23, 42, .26);
+  color: var(--rrll-text-main, #f8fafc);
+  padding: 8px 10px;
+}
+
+.telework-catalog-table th:nth-child(1),
+.telework-catalog-table td:nth-child(1) { min-width: 230px; }
+.telework-catalog-table th:nth-child(2),
+.telework-catalog-table td:nth-child(2) { min-width: 170px; }
+.telework-catalog-table th:nth-child(3),
+.telework-catalog-table td:nth-child(3) { min-width: 180px; }
+.telework-catalog-table th:nth-child(4),
+.telework-catalog-table td:nth-child(4),
+.telework-catalog-table th:nth-child(5),
+.telework-catalog-table td:nth-child(5),
+.telework-catalog-table th:nth-child(6),
+.telework-catalog-table td:nth-child(6) { min-width: 120px; }
+
+.telework-catalog-empty {
+  padding: 24px !important;
+  text-align: center;
+  color: var(--rrll-text-muted, var(--muted));
+}
+
+.telework-catalog-delete {
+  white-space: nowrap;
+}
+
+.telework-catalog-actions {
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+html[data-theme="light"] .telework-catalog-table-wrap {
+  background: rgba(241, 245, 249, .86);
+}
+
+html[data-theme="light"] .telework-catalog-table input,
+html[data-theme="light"] .telework-catalog-table select {
+  background: rgba(255, 255, 255, .92);
+  color: var(--rrll-text-main-light, #111827);
+}
+
+@media (max-width: 760px) {
+  .telework-catalog-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .telework-catalog-search {
+    flex-basis: auto;
+  }
+
+  .telework-catalog-modal .telework-catalog-box {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    padding: 14px;
+  }
+}
+
+/* Fase 1 Lupa global: buscador acotado a Comité y Paritaria en Dashboard */
+.dashboard-search-card {
+  margin: 16px 0 0 !important;
+  min-height: 0 !important;
+}
+
+.dashboard-search-collapsible {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.dashboard-search-header {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: auto auto minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 14px 16px !important;
+  border: 0 !important;
+  background: linear-gradient(135deg, rgba(15,23,42,.72), rgba(30,41,59,.52)) !important;
+  color: #f8fafc !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.dashboard-search-header:hover {
+  background: linear-gradient(135deg, rgba(30,41,59,.82), rgba(51,65,85,.56)) !important;
+}
+
+.dashboard-search-header-icon {
+  width: 30px !important;
+  height: 30px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 10px !important;
+  color: #93c5fd !important;
+  background: rgba(59,130,246,.12) !important;
+  border: 1px solid rgba(96,165,250,.18) !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.dashboard-search-header span:not(.dashboard-search-header-icon):not(.dashboard-search-toggle) {
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  letter-spacing: .01em !important;
+}
+
+.dashboard-search-header small {
+  justify-self: start !important;
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+
+.dashboard-search-toggle {
+  color: #cbd5e1 !important;
+  font-size: 14px !important;
+  transition: transform .16s ease !important;
+}
+
+.dashboard-search-collapsible:not(.is-collapsed) .dashboard-search-toggle {
+  transform: rotate(180deg) !important;
+}
+
+.dashboard-search-body {
+  padding: 0 16px 16px !important;
+}
+
+.dashboard-search-body[hidden] {
+  display: none !important;
+}
+
+.dashboard-search-box {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto auto !important;
+  gap: 10px !important;
+  margin-top: 12px !important;
+  align-items: center !important;
+  padding: 10px !important;
+  border: 1px solid rgba(148,163,184,.16) !important;
+  border-radius: 16px !important;
+  background: rgba(17,24,39,.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+.dashboard-search-icon {
+  width: 36px !important;
+  height: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  color: #93c5fd !important;
+  background: rgba(59,130,246,.12) !important;
+  border: 1px solid rgba(96,165,250,.18) !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+}
+
+.dashboard-search-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 42px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 12px !important;
+  background: rgba(15,23,42,.46) !important;
+  color: #f8fafc !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
+}
+
+.dashboard-search-input::placeholder {
+  color: rgba(203,213,225,.58) !important;
+}
+
+.dashboard-search-button {
+  height: 42px !important;
+  border-radius: 12px !important;
+  padding: 0 16px !important;
+  background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+  border: 1px solid rgba(191,219,254,.18) !important;
+  color: #fff !important;
+  font-weight: 850 !important;
+  box-shadow: 0 10px 22px rgba(37,99,235,.18) !important;
+}
+
+.dashboard-search-clear {
+  height: 42px !important;
+  border-radius: 12px !important;
+  padding: 0 14px !important;
+  background: rgba(15,23,42,.48) !important;
+  border: 1px solid rgba(148,163,184,.20) !important;
+  color: #dbeafe !important;
+  font-weight: 850 !important;
+}
+
+.dashboard-search-clear:hover {
+  border-color: rgba(147,197,253,.30) !important;
+  background: rgba(30,41,59,.72) !important;
+}
+
+.dashboard-search-results {
+  display: grid !important;
+  gap: 9px !important;
+  margin-top: 12px !important;
+  max-height: 330px !important;
+  overflow: auto !important;
+  padding-right: 2px !important;
+}
+
+.dashboard-search-empty {
+  padding: 12px 14px !important;
+  border-radius: 13px !important;
+  color: #aab3c2 !important;
+  background: rgba(15,23,42,.24) !important;
+  border: 1px dashed rgba(148,163,184,.16) !important;
+  font-size: 13px !important;
+}
+
+.dashboard-search-result {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 86px minmax(0, 1fr) minmax(120px, auto) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  text-align: left !important;
+  padding: 10px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  background: rgba(31,41,55,.50) !important;
+  color: #e5e7eb !important;
+}
+
+.dashboard-search-result:hover {
+  transform: translateY(-1px) !important;
+  border-color: rgba(147,197,253,.28) !important;
+  background: rgba(51,65,85,.62) !important;
+}
+
+.dashboard-search-badge {
+  justify-self: start !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 76px !important;
+  padding: 6px 8px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-search-badge--committee {
+  color: #bfdbfe !important;
+  background: rgba(37,99,235,.18) !important;
+  border: 1px solid rgba(96,165,250,.28) !important;
+}
+
+.dashboard-search-badge--paritaria {
+  color: #ddd6fe !important;
+  background: rgba(124,58,237,.18) !important;
+  border: 1px solid rgba(167,139,250,.28) !important;
+}
+
+.dashboard-search-main {
+  display: grid !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+.dashboard-search-main strong {
+  color: #f8fafc !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.dashboard-search-main small {
+  color: #aab3c2 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.dashboard-search-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+}
+
+.dashboard-search-meta em {
+  font-style: normal !important;
+  color: #cbd5e1 !important;
+  background: rgba(15,23,42,.40) !important;
+  border: 1px solid rgba(148,163,184,.10) !important;
+  border-radius: 999px !important;
+  padding: 4px 7px !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-search-box,
+  .dashboard-search-result {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-search-icon { display: none !important; }
+  .dashboard-search-button,
+  .dashboard-search-clear { width: 100% !important; }
+  .dashboard-search-meta { justify-content: flex-start !important; }
+}
+
+/* Fase 2 Lupa global: timeline cronológico por asunto en Dashboard */
+.dashboard-timeline-card {
+  margin-top: 14px !important;
+  padding-top: 14px !important;
+  border-top: 1px solid rgba(148,163,184,.14) !important;
+}
+
+.dashboard-timeline-card .phase4-card-head {
+  margin-bottom: 10px !important;
+}
+
+.dashboard-timeline {
+  position: relative !important;
+  display: grid !important;
+  gap: 16px !important;
+  padding: 2px 0 2px 8px !important;
+}
+
+.dashboard-timeline::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 8px !important;
+  bottom: 8px !important;
+  left: 18px !important;
+  width: 1px !important;
+  background: linear-gradient(180deg, rgba(96,165,250,.08), rgba(148,163,184,.28), rgba(167,139,250,.08)) !important;
+}
+
+.dashboard-timeline-year {
+  position: relative !important;
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.dashboard-timeline-year h4 {
+  position: relative !important;
+  z-index: 1 !important;
+  width: fit-content !important;
+  margin: 0 0 2px 26px !important;
+  padding: 4px 9px !important;
+  border-radius: 999px !important;
+  color: #dbeafe !important;
+  background: rgba(15,23,42,.88) !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-timeline-item {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  text-align: left !important;
+}
+
+.dashboard-timeline-item:hover .dashboard-timeline-content {
+  transform: translateY(-1px) !important;
+  border-color: rgba(147,197,253,.28) !important;
+  background: rgba(51,65,85,.58) !important;
+}
+
+.dashboard-timeline-node {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 11px !important;
+  height: 11px !important;
+  margin: 17px auto 0 !important;
+  border-radius: 999px !important;
+  background: #93c5fd !important;
+  border: 2px solid #101827 !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.16) !important;
+}
+
+.dashboard-timeline-content {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  padding: 11px 12px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  background: rgba(31,41,55,.46) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease !important;
+}
+
+.dashboard-timeline-content strong {
+  color: #f8fafc !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  line-height: 1.25 !important;
+}
+
+.dashboard-timeline-content small {
+  color: #aab3c2 !important;
+  font-size: 12px !important;
+  line-height: 1.38 !important;
+}
+
+.dashboard-timeline-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.dashboard-timeline-meta em {
+  font-style: normal !important;
+  color: #cbd5e1 !important;
+  background: rgba(15,23,42,.42) !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  border-radius: 999px !important;
+  padding: 4px 7px !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+.dashboard-timeline-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 76px !important;
+  padding: 5px 8px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-timeline-badge--committee {
+  color: #bfdbfe !important;
+  background: rgba(37,99,235,.18) !important;
+  border: 1px solid rgba(96,165,250,.28) !important;
+}
+
+.dashboard-timeline-badge--paritaria {
+  color: #ddd6fe !important;
+  background: rgba(124,58,237,.18) !important;
+  border: 1px solid rgba(167,139,250,.28) !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-timeline {
+    padding-left: 0 !important;
+  }
+
+  .dashboard-timeline::before {
+    left: 10px !important;
+  }
+
+  .dashboard-timeline-year h4 {
+    margin-left: 22px !important;
+  }
+
+  .dashboard-timeline-item {
+    grid-template-columns: 20px minmax(0, 1fr) !important;
+  }
+}
+
+/* Teletrabajo: cabecera superior homogénea y selector de campaña limpio */
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions button,
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions select {
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  white-space: nowrap;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-height: 44px;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker span {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker select {
+  margin: 0;
+  height: 44px;
+  padding-block: 0;
+}
+
+@media (max-width: 760px) {
+  body.phase4-view-module #gestor-teletrabajo .telework-header-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  body.phase4-view-module #gestor-teletrabajo .telework-header-actions button,
+  body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker {
+    flex: 1 1 auto;
+  }
+
+  body.phase4-view-module #gestor-teletrabajo .telework-campaign-picker select {
+    flex: 1 1 140px;
+  }
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-future-heading {
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  margin: 4px 2px -2px;
+  text-transform: uppercase;
+}
+
+body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
+  border-style: dashed;
+  background: rgba(59, 130, 246, .08);
+}
+
+/* Dashboard: contención de alertas y timeline sin scroll horizontal */
+.phase5-useful-dashboard,
+.phase5-useful-dashboard .phase5-dashboard-grid,
+.phase5-useful-dashboard .phase5-dashboard-card,
+.phase5-useful-dashboard .phase4-list,
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row,
+.phase5-useful-dashboard .phase5-alert-list,
+.phase5-useful-dashboard .phase5-alert-row,
+.dashboard-search-card,
+.dashboard-search-body,
+.dashboard-timeline-card,
+.dashboard-timeline,
+.dashboard-timeline-item,
+.dashboard-timeline-content {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.phase5-useful-dashboard .phase5-dashboard-card *,
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row *,
+.dashboard-search-card *,
+.dashboard-timeline-card * {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+
+.phase5-useful-dashboard .phase5-dashboard-grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, .72fr) minmax(0, .83fr) !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+  grid-template-columns: minmax(0, 72px) minmax(0, 1fr) auto !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row b,
+.dashboard-timeline-content strong,
+.dashboard-timeline-content small {
+  white-space: normal !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row em {
+  justify-self: end !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1400px) {
+  .phase5-useful-dashboard .phase5-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .phase5-useful-dashboard .phase5-dashboard-grid,
+  .phase5-due-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+    grid-template-columns: minmax(0, 64px) minmax(0, 1fr) auto !important;
+  }
+}
+
+/* Accesos inferiores compactos del sidebar + carpeta RRLL */
+.phase4-sidebar {
+  padding: 12px 10px !important;
+  gap: 8px !important;
+  overflow-x: hidden !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(148,163,184,.34) transparent !important;
+}
+.phase4-sidebar::-webkit-scrollbar { width: 5px !important; height: 0 !important; }
+.phase4-sidebar::-webkit-scrollbar-track { background: transparent !important; }
+.phase4-sidebar::-webkit-scrollbar-thumb { background: rgba(148,163,184,.28) !important; border-radius: 999px !important; }
+.phase4-nav { gap: 4px !important; }
+.phase4-nav-item {
+  min-height: 34px !important;
+  padding: 7px 9px !important;
+  gap: 9px !important;
+}
+.phase4-nav-subitem {
+  min-height: 30px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+.phase4-nav-secondary {
+  margin-top: auto !important;
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) 34px !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 4px 2px 0 !important;
+  border-top: 1px solid rgba(148,163,184,.14) !important;
+}
+.phase4-nav-secondary .phase4-nav-item {
+  width: 100% !important;
+  min-height: 32px !important;
+  padding: 6px 8px !important;
+  font-size: 12.5px !important;
+}
+.phase4-nav-settings-icon {
+  justify-content: center !important;
+  justify-self: end !important;
+}
+.phase4-nav-trash-icon,
+.phase4-nav-settings-icon {
+  align-self: stretch !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+.phase4-nav-secondary .phase4-nav-folder-link {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+}
+.phase4-nav-secondary .phase4-nav-trash-icon {
+  grid-column: 1 !important;
+}
+.phase4-nav-secondary .phase4-nav-settings-icon {
+  grid-column: 3 !important;
+}
+.sidebar-folder-notice {
+  display: none;
+  margin: 0 4px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(239,68,68,.28);
+  background: rgba(127,29,29,.18);
+  color: #fecaca;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.sidebar-folder-notice.visible { display: block; }
+.sidebar-folder-notice.success {
+  border-color: rgba(34,197,94,.25);
+  background: rgba(20,83,45,.18);
+  color: #bbf7d0;
+}
+.phase5-sidebar-sync.save-status-widget {
+  grid-template-columns: 9px minmax(0, 1fr) 30px !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 4px 2px 6px !important;
+  padding: 7px 8px !important;
+  border-radius: 12px !important;
+}
+.phase5-sidebar-sync .save-status-dot {
+  width: 8px !important;
+  height: 8px !important;
+  margin-top: 0 !important;
+}
+.phase5-sidebar-sync .save-status-text {
+  grid-column: 2 !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+.phase5-sidebar-sync .save-status-text b {
+  display: inline !important;
+  font-size: 11px !important;
+}
+.phase5-sidebar-sync .save-status-text span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 11px !important;
+}
+.phase5-sidebar-sync .sync-now-button {
+  grid-column: 3 !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+.phase5-sidebar-sync.offline .save-status-dot,
+.phase5-sidebar-sync.error .save-status-dot {
+  background: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239,68,68,.13) !important;
+}
+.rrll-folder-path-form {
+  grid-template-columns: minmax(220px, 1fr) auto !important;
+  align-items: center !important;
+}
+.rrll-folder-path-form input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+}
+.rrll-folder-config-message {
+  min-height: 16px;
+  margin-top: 8px !important;
+}
+.rrll-folder-config-message.success { color: #86efac !important; }
+.rrll-folder-config-message.error { color: #fecaca !important; }
+
+/* Ticket Restaurante */
+.ticket-restaurant-shell { gap: 16px; }
+.ticket-restaurant-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.ticket-restaurant-tab { border: 1px solid var(--border-color, rgba(148, 163, 184, .28)); background: var(--card-bg, rgba(255,255,255,.08)); color: inherit; border-radius: 999px; padding: 9px 14px; font-weight: 700; cursor: pointer; }
+.ticket-restaurant-tab.active { background: var(--accent, #2563eb); color: #fff; border-color: transparent; }
+.ticket-calendar-toolbar, .ticket-compute-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.ticket-year-nav { display: inline-flex; align-items: center; gap: 12px; }
+.ticket-year-nav strong { min-width: 70px; text-align: center; font-size: 1.2rem; }
+.ticket-calendar-legend { display: flex; gap: 8px; flex-wrap: wrap; font-size: .82rem; color: var(--muted-color, #64748b); }
+.ticket-calendar-legend span { border-radius: 999px; padding: 5px 9px; border: 1px solid rgba(148, 163, 184, .28); background: rgba(148, 163, 184, .12); }
+.ticket-calendar-legend .weekend { background: rgba(96, 165, 250, .16); border-color: rgba(96, 165, 250, .28); color: var(--muted-color, #64748b); }
+.ticket-calendar-legend .no-ticket { background: #7f1d1d; border-color: #991b1b; color: #fff; }
+.ticket-calendar-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ticket-month-card { border: 1px solid var(--border-color, rgba(148, 163, 184, .22)); border-radius: 16px; padding: 10px; background: rgba(148, 163, 184, .06); }
+.ticket-month-card h4 { margin: 0 0 8px; text-transform: capitalize; font-size: .95rem; }
+.ticket-weekdays, .ticket-days-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.ticket-weekdays span { text-align: center; font-size: .72rem; color: var(--muted-color, #64748b); font-weight: 800; }
+.ticket-day { width: 100%; min-width: 0; min-height: 28px; padding: 0; border: 1px solid rgba(148, 163, 184, .22); border-radius: 8px; background: rgba(148, 163, 184, .10); color: inherit; font-size: .78rem; cursor: pointer; pointer-events: auto; transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .15s ease; }
+.ticket-day:hover { transform: translateY(-1px); border-color: rgba(148, 163, 184, .42); }
+.ticket-day--weekend { background: rgba(96, 165, 250, .16); border-color: rgba(96, 165, 250, .28); color: var(--muted-color, #64748b); }
+.ticket-day--today { border-color: rgba(37, 99, 235, .55); box-shadow: inset 0 0 0 1px rgba(37, 99, 235, .25); }
+.ticket-day--no-ticket { background: #7f1d1d; border-color: #991b1b; color: #fff; font-weight: 800; }
+.ticket-day-empty { min-height: 28px; pointer-events: none; cursor: default; }
+.ticket-person-autofill-notice { margin-top: 4px; padding: 8px 10px; border: 1px solid rgba(148, 163, 184, .28); border-radius: 10px; background: rgba(148, 163, 184, .10); color: var(--muted-color, #64748b); font-size: .86rem; }
+.ticket-person-autofill-notice[data-type="success"] { border-color: rgba(34, 197, 94, .30); background: rgba(34, 197, 94, .10); color: #86efac; }
+.ticket-person-autofill-notice[data-type="warning"] { border-color: rgba(245, 158, 11, .32); background: rgba(245, 158, 11, .10); color: #fbbf24; }
+.ticket-table th, .ticket-table td { white-space: nowrap; }
+.ticket-table .table-actions { display: flex; gap: 6px; }
+.ticket-import-summary { margin-top: 10px; font-size: .9rem; color: var(--muted-color, #64748b); }
+.ticket-compute-period { margin: 0 0 10px; color: var(--muted-color, #64748b); font-weight: 700; }
+.ticket-compute-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 10px 0 16px; }
+.ticket-summary-pill { border: 1px solid rgba(148, 163, 184, .24); border-radius: 14px; padding: 12px; background: rgba(148, 163, 184, .08); display: grid; gap: 4px; }
+.ticket-summary-pill strong { font-size: 1.5rem; }
+.ticket-summary-pill small { color: var(--muted-color, #64748b); }
+.ticket-compute-notice { margin: -4px 0 14px; padding: 9px 11px; border: 1px solid rgba(245, 158, 11, .32); border-radius: 12px; background: rgba(245, 158, 11, .10); color: #fbbf24; font-size: .88rem; }
+
+#gestor-ticket-restaurante .ticket-compute-actions { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+.ticket-row-warning td { background: rgba(245, 158, 11, .08); }
+.ticket-config-form label { display: grid; gap: 4px; font-size: .85rem; font-weight: 700; }
+@media (max-width: 1280px) { .ticket-calendar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .ticket-calendar-grid, .ticket-compute-summary { grid-template-columns: 1fr; } }
+#gestor-ticket-restaurante .rrll-icon-only { min-width: 34px; width: 34px; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; }
+#gestor-ticket-restaurante .ticket-sort-button { width: 100%; min-width: 0; border: 0; background: transparent; color: inherit; padding: 0; display: inline-flex; align-items: center; justify-content: flex-start; gap: 4px; font: inherit; font-weight: inherit; text-align: left; cursor: pointer; }
+#gestor-ticket-restaurante .ticket-sort-button:hover { color: var(--accent, #2563eb); }
+#gestor-ticket-restaurante .ticket-sort-indicator { display: inline-block; min-width: .75em; font-size: .78em; line-height: 1; opacity: .82; }
+#gestor-ticket-restaurante .ticket-filter-row th { padding: 5px 6px; background: rgba(15, 23, 42, .22); }
+#gestor-ticket-restaurante .ticket-filter-row input { width: 100%; min-width: 72px; height: 28px; border: 1px solid rgba(148, 163, 184, .24); border-radius: 8px; background: rgba(15, 23, 42, .34); color: inherit; padding: 4px 7px; font-size: .78rem; }
+#gestor-ticket-restaurante .ticket-filter-row input::placeholder { color: var(--muted-color, #64748b); }
+#gestor-ticket-restaurante .ticket-monthly-quote-panel { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(148, 163, 184, .24); }

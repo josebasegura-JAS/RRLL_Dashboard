@@ -1,0 +1,14 @@
+/* Excepción de impresión física: documentos en blanco al imprimir */
+@media print {
+  body,
+  .print-preview-content,
+  .print-preview-content * {
+    background: #ffffff !important;
+    color: var(--rrll-text-main-light) !important;
+  }
+
+  .print-preview-content th {
+    background: var(--rrll-text-main-light) !important;
+    color: #ffffff !important;
+  }
+}

@@ -1,0 +1,618 @@
+/* Componentes base: cards, formularios, botones, columnas, dashboard y modales. */
+
+/* =========================================================
+   Fase 4.1 - Base visual oscura homogénea
+   Objetivo: una capa visual global coherente sin tocar JS.
+   ========================================================= */
+
+html, body {
+  background: radial-gradient(circle at 20% 0%, rgba(239,43,45,.08), transparent 32%), #070b10 !important;
+  color: var(--text) !important;
+}
+
+body {
+  font-family: Inter, Segoe UI, Arial, Helvetica, sans-serif !important;
+}
+
+/* Shell principal */
+.phase4-shell {
+  background: transparent !important;
+}
+
+.phase4-main {
+  background: linear-gradient(180deg, #090e14 0%, #070b10 100%) !important;
+}
+
+.phase4-main main {
+  max-width: none !important;
+  padding: 18px 24px 28px !important;
+}
+
+.top-strip {
+  background: rgba(8,12,18,.94) !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: 0 14px 28px rgba(0,0,0,.22) !important;
+  min-height: 56px !important;
+  padding: 8px 22px !important;
+}
+
+.brand-mark {
+  width: 58px !important;
+  height: 40px !important;
+  border-color: var(--red) !important;
+  opacity: .95;
+}
+
+.brand-mark::before,
+.brand-mark::after {
+  width: 58px !important;
+  height: 40px !important;
+  border-color: var(--red) !important;
+}
+
+.brand-mark::before { left: -13px !important; }
+.brand-mark::after { left: 13px !important; }
+
+.brand-text,
+.top-title h1 {
+  color: var(--text) !important;
+  letter-spacing: -.02em;
+}
+
+.brand-text {
+  font-size: 25px !important;
+}
+
+.top-title h1 {
+  font-size: 24px !important;
+}
+
+.top-title p,
+.version-label {
+  color: var(--muted) !important;
+}
+
+.rrll-title {
+  color: var(--red) !important;
+}
+
+/* Sidebar */
+.phase4-sidebar {
+  background: linear-gradient(180deg, #0f141b 0%, #080d13 100%) !important;
+  border-right: 1px solid var(--border) !important;
+  box-shadow: 18px 0 38px rgba(0,0,0,.32) !important;
+}
+
+.phase4-sidebar-brand {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.phase4-sidebar-brand strong,
+.phase4-sidebar-brand span,
+.phase4-sidebar-footer,
+.phase4-sidebar-section {
+  color: var(--text) !important;
+}
+
+.phase4-sidebar-brand span,
+.phase4-sidebar-footer,
+.phase4-sidebar-section {
+  color: var(--muted) !important;
+}
+
+.phase4-sidebar-logo {
+  background: linear-gradient(135deg, #ef2b2d, #9f171b) !important;
+  color: #fff !important;
+  box-shadow: 0 16px 30px rgba(239,43,45,.24) !important;
+}
+
+.phase4-nav-item,
+.phase4-nav-subitem,
+.phase4-nav-button {
+  color: #d7dee8 !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+}
+
+.phase4-nav-item:hover,
+.phase4-nav-subitem:hover,
+.phase4-nav-button:hover {
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(255,255,255,.08) !important;
+  color: #fff !important;
+}
+
+.phase4-nav-item.active,
+.phase4-nav-subitem.active,
+.phase4-nav-parent.active {
+  background: linear-gradient(90deg, rgba(239,43,45,.78), rgba(134,24,28,.70)) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.10) !important;
+  box-shadow: 0 10px 24px rgba(239,43,45,.18) !important;
+}
+
+.phase4-nav-pill,
+.badge {
+  background: rgba(239,43,45,.92) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
+
+/* Tarjetas generales */
+.card,
+.module-card,
+.phase4-dashboard-card,
+.phase4-metric-card,
+.column,
+.modal-box,
+.module-search-card,
+.workflow-closed-details,
+.alerts-card,
+.trash-item,
+.search-result,
+.access-config-item,
+.quick-card,
+.alert-item,
+.print-preview-box {
+  background: linear-gradient(180deg, rgba(21,29,38,.96), rgba(13,19,26,.96)) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow-soft) !important;
+  border-radius: var(--radius-xl) !important;
+  border-top-color: var(--border) !important;
+}
+
+.module-tasks,
+.module-agenda,
+.module-paritaria,
+.module-minutes,
+.module-petitions,
+.module-telework,
+.module-trash {
+  background: linear-gradient(180deg, rgba(18,25,34,.98), rgba(9,14,20,.98)) !important;
+}
+
+body.phase4-view-module .content-right > .module-card.phase4-active-module {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+body.phase4-view-module .module-card > summary,
+body.phase4-view-module .committee-subsection > summary,
+body.phase4-view-module .paritaria-subsection > summary {
+  background: linear-gradient(180deg, rgba(16,22,30,.98), rgba(11,16,22,.98)) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-soft) !important;
+  min-height: 62px !important;
+}
+
+.module-icon,
+.phase4-metric-icon {
+  background: rgba(239,43,45,.13) !important;
+  border: 1px solid rgba(239,43,45,.26) !important;
+  color: #ff6b6d !important;
+}
+
+.module-title,
+.task-title,
+.minute-title,
+.agenda-title,
+.paritaria-title,
+.petition-title,
+.telework-title,
+h1, h2, h3, h4, strong, b,
+.phase4-card-head h3,
+.phase4-metric-card strong,
+.phase4-metric-card span {
+  color: var(--text) !important;
+}
+
+.summary-counts,
+.muted,
+.task-meta,
+.minute-meta,
+.agenda-meta,
+.paritaria-meta,
+.petition-meta,
+.telework-meta,
+.search-result-meta,
+.trash-meta,
+.alert-meta,
+.phase4-metric-card small,
+.phase4-card-head span,
+.phase4-list small,
+.phase4-status-list small {
+  color: var(--muted) !important;
+}
+
+/* Formularios e inputs */
+input,
+textarea,
+select,
+.dynamic-access-form input,
+.config-row input,
+.enhanced-task-form input,
+.enhanced-task-form select,
+.enhanced-petition-form input,
+.enhanced-petition-form select,
+.agenda-form-v18 input,
+.agenda-form-v18 select,
+.paritaria-form-v18 input,
+.paritaria-form-v18 select,
+.session-form input,
+.session-form select,
+.telework-form input,
+.telework-form select,
+.telework-days-row input,
+.petition-type-row input,
+.petition-type-row select,
+.module-search-form input,
+#moduleSearchInput,
+#newAccessName,
+#newAccessUrl {
+  background: rgba(8,13,19,.92) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #738093 !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: rgba(239,43,45,.64) !important;
+  box-shadow: 0 0 0 3px rgba(239,43,45,.14) !important;
+}
+
+.enhanced-task-form,
+.enhanced-petition-form,
+.agenda-form-v18,
+.paritaria-form-v18,
+.session-form,
+.telework-form,
+.form-inline,
+.form-actas,
+.petition-type-row,
+.telework-days-row,
+.dynamic-access-form {
+  background: linear-gradient(180deg, rgba(18,25,34,.98), rgba(12,18,25,.98)) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  padding: 14px !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+body.phase4-view-module .module-card.phase4-active-module > textarea,
+body.phase4-view-module .committee-subsection > textarea,
+body.phase4-view-module .paritaria-subsection > textarea {
+  background: rgba(8,13,19,.92) !important;
+  min-height: 86px !important;
+}
+
+/* Botones */
+button,
+.launch-button {
+  background: linear-gradient(135deg, var(--red), var(--red-dark)) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 22px rgba(239,43,45,.18) !important;
+}
+
+button:hover,
+.launch-button:hover {
+  filter: brightness(1.08);
+}
+
+button.secondary,
+.summary-icon-button,
+.closed-toggle,
+.session-toggle {
+  background: rgba(255,255,255,.06) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  box-shadow: none !important;
+}
+
+button.secondary:hover,
+.summary-icon-button:hover {
+  background: rgba(239,43,45,.14) !important;
+  border-color: rgba(239,43,45,.34) !important;
+}
+
+button.danger {
+  background: linear-gradient(135deg, #e11d2e, #7f151b) !important;
+}
+
+.summary-icon-button {
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 13px !important;
+}
+
+.excel-icon {
+  color: #9ef0b2 !important;
+}
+
+/* Columnas y tarjetas de ítems */
+.columns,
+.workflow-columns,
+.minutes-columns,
+.telework-columns,
+.session-columns {
+  gap: 14px !important;
+}
+
+.column {
+  background: linear-gradient(180deg, rgba(17,24,32,.96), rgba(12,18,25,.96)) !important;
+  border-radius: 18px !important;
+  padding: 12px !important;
+}
+
+.column-header {
+  background: rgba(255,255,255,.035) !important;
+  border: 1px solid rgba(255,255,255,.06) !important;
+  border-radius: 14px !important;
+  padding: 11px 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.column-header h3 {
+  margin: 0 !important;
+  font-size: 15px !important;
+  letter-spacing: .01em !important;
+}
+
+.task,
+.minute,
+.agenda,
+.paritaria,
+.petition,
+.telework,
+.session-card,
+.item-card,
+.task-card,
+.petition-card,
+.agenda-card,
+.minute-card,
+.telework-card {
+  background: rgba(255,255,255,.045) !important;
+  border: 1px solid rgba(255,255,255,.075) !important;
+  border-left: 3px solid rgba(239,43,45,.80) !important;
+  color: var(--text) !important;
+  border-radius: 13px !important;
+  box-shadow: none !important;
+}
+
+.task:hover,
+.minute:hover,
+.agenda:hover,
+.paritaria:hover,
+.petition:hover,
+.telework:hover,
+.session-card:hover,
+.item-card:hover {
+  background: rgba(255,255,255,.07) !important;
+  border-color: rgba(255,255,255,.13) !important;
+}
+
+.task.due-soon,
+.petition.due-soon {
+  background: rgba(245,158,11,.12) !important;
+  border-left-color: #f59e0b !important;
+}
+
+.task.expired,
+.petition.expired {
+  background: rgba(239,68,68,.16) !important;
+  border-left-color: #ef4444 !important;
+}
+
+.priority-badge,
+.status-badge,
+.source-badge,
+.tag-badge {
+  background: rgba(255,255,255,.08) !important;
+  color: #e7edf6 !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 999px !important;
+}
+
+.priority-high {
+  background: rgba(245,158,11,.18) !important;
+  border-color: rgba(245,158,11,.42) !important;
+  color: #ffd08a !important;
+}
+
+.priority-critical {
+  background: rgba(239,43,45,.18) !important;
+  border-color: rgba(239,43,45,.46) !important;
+  color: #ff989a !important;
+}
+
+/* Cerradas plegadas: oscuras y compactas */
+.workflow-closed-details {
+  background: linear-gradient(180deg, rgba(17,24,32,.96), rgba(12,18,25,.96)) !important;
+  overflow: hidden !important;
+}
+
+.workflow-closed-details > summary {
+  background: rgba(255,255,255,.035) !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid transparent !important;
+  padding: 12px 14px !important;
+}
+
+.workflow-closed-details[open] > summary {
+  border-bottom-color: rgba(255,255,255,.08) !important;
+}
+
+.workflow-closed-details > summary::before {
+  color: var(--red) !important;
+}
+
+.workflow-closed-details .closed-content {
+  padding: 12px !important;
+}
+
+/* Dashboard */
+.phase4-metric-grid {
+  gap: 14px !important;
+}
+
+.phase4-metric-card,
+.phase4-dashboard-card {
+  min-height: 0 !important;
+  padding: 16px !important;
+}
+
+.phase4-metric-card {
+  text-align: left !important;
+}
+
+.phase4-list-item,
+.phase4-workload-row,
+.phase4-status-row,
+.phase4-list > div {
+  background: rgba(255,255,255,.045) !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  color: var(--text) !important;
+  border-radius: 12px !important;
+}
+
+.phase4-donut {
+  background: conic-gradient(var(--red) 0 var(--done, 0%), #f59e0b var(--done, 0%) var(--progress, 0%), rgba(255,255,255,.10) var(--progress, 0%) 100%) !important;
+}
+
+.phase4-donut::after {
+  background: #10161d !important;
+}
+
+/* Modales, búsqueda, configuración y papelera */
+.modal,
+.module-search-modal,
+.print-preview-modal {
+  background: rgba(0,0,0,.62) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.modal-box,
+.module-search-card,
+.print-preview-box {
+  background: linear-gradient(180deg, #151d26, #0c1118) !important;
+}
+
+.search-result,
+.trash-item,
+.access-config-item,
+.alert-item {
+  background: rgba(255,255,255,.045) !important;
+  border-left-color: var(--red) !important;
+}
+
+.import-summary-grid,
+.db-info-grid,
+.db-sync-notice {
+  background: rgba(255,255,255,.045) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  color: var(--text) !important;
+}
+
+/* Tablas/listados heredados */
+table,
+thead,
+tbody,
+tr,
+td,
+th {
+  color: var(--text);
+}
+
+th {
+  background: rgba(255,255,255,.06) !important;
+}
+
+td,
+th {
+  border-color: rgba(255,255,255,.08) !important;
+}
+
+/* Mantener previsualización de impresión en blanco para imprimir */
+.print-preview-content {
+  background: #fff !important;
+  color: var(--rrll-text-main-light) !important;
+}
+
+.print-preview-content * {
+  color: var(--rrll-text-main-light) !important;
+}
+
+.print-preview-content th {
+  background: var(--rrll-text-main-light) !important;
+  color: #fff !important;
+}
+
+/* Densidad visual: menos tarjetas gigantes */
+body.phase4-view-module .enhanced-task-form,
+body.phase4-view-module .enhanced-petition-form,
+body.phase4-view-module .agenda-form-v18,
+body.phase4-view-module .paritaria-form-v18,
+body.phase4-view-module .session-form,
+body.phase4-view-module .telework-form,
+body.phase4-view-module #gestor-actas.phase4-active-module > .form-inline {
+  padding: 14px !important;
+  gap: 10px !important;
+}
+
+body.phase4-view-module .content-right {
+  padding: 14px 22px 28px !important;
+}
+
+body.phase4-view-module .workflow-columns,
+body.phase4-view-module .minutes-columns,
+body.phase4-view-module .telework-columns,
+body.phase4-view-module .session-columns {
+  margin-top: 14px !important;
+}
+
+/* Scrollbar discreta */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #080d13;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.18);
+  border-radius: 999px;
+  border: 2px solid #080d13;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(239,43,45,.45);
+}
+
+@media (max-width: 1100px) {
+  .phase4-main main {
+    padding: 12px !important;
+  }
+
+  .top-title h1 {
+    font-size: 20px !important;
+  }
+}
+
