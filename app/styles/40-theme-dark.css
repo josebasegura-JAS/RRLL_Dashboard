@@ -1447,3 +1447,23 @@ html[data-theme="dark"] body.phase4-view-module #gestor-paritaria #gestor-sesion
   background: transparent !important;
   color: var(--rrll-text-main-dark) !important;
 }
+
+/* Ajuste visual localizado (dark): unificar borde de cabeceras con el acabado de Vinculograma. */
+html[data-theme="dark"] body.phase4-view-module :is(
+  #gestor-tareas,
+  #gestor-peticiones,
+  #gestor-actas,
+  #gestor-teletrabajo
+) :is(
+  .rrll-pro-task-head,
+  .rrll-pro-petition-head,
+  .minutes-header,
+  .telework-header,
+  .module-header,
+  .professional-header,
+  .phase4-module-header
+) {
+  border-color: var(--rrll-border) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
