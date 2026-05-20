@@ -3344,6 +3344,7 @@ body.phase4-view-module :is(
 }
 
 body.phase4-view-module :is(
+  #gestor-tareas,
   #gestor-peticiones,
   #gestor-actas,
   #gestor-puntos-comite,
@@ -3371,6 +3372,31 @@ body.phase4-view-module :is(
   white-space: nowrap !important;
   max-width: 100% !important;
 }
+
+/* Tareas: mantener 6 columnas alineadas y reservar espacio suficiente para ACCIONES. */
+body.phase4-view-module #gestor-tareas .rrll-pro-table-wrap {
+  overflow-x: visible !important;
+  width: 100% !important;
+}
+
+body.phase4-view-module #gestor-tareas .rrll-pro-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed !important;
+}
+
+body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(1),
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(1) { width: 34% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(2),
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(2) { width: 12% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(3),
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(3) { width: 11% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(4),
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(4) { width: 12% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(5),
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(5) { width: 11% !important; }
+body.phase4-view-module #gestor-tareas .rrll-pro-table th:nth-child(6),
+body.phase4-view-module #gestor-tareas .rrll-pro-table td:nth-child(6) { width: 20% !important; }
 
 /* Peticiones: conservar sus 6 columnas, con densidad equivalente a Tareas. */
 body.phase4-view-module #gestor-peticiones .rrll-pro-table th:nth-child(1),
