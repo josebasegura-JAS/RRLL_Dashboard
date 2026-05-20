@@ -2,46 +2,93 @@
 html[data-theme="light"] {
   color-scheme: light;
 
-  --dash-surface: var(--rrll-bg-card-light);
-  --dash-surface-2: var(--rrll-bg-soft-light);
-  --dash-border: var(--rrll-border-light);
+  --rrll-bg-app-light: var(--rrll-light-app-bg);
+  --rrll-bg-soft-light: var(--rrll-light-table-hover);
+  --rrll-bg-card-light: #fbfbfc;
+  --rrll-bg-panel-light: var(--rrll-light-surface);
+  --rrll-bg-table-head-light: var(--rrll-light-table-head);
+  --rrll-bg-table-row-light: #fbfbfc;
+  --rrll-bg-table-row-alt-light: #f7f9fb;
+  --rrll-bg-table-hover-light: #edf3f7;
 
-  --bg: var(--rrll-bg-app-light);
-  --panel: var(--rrll-bg-panel-light);
-  --text: var(--rrll-text-main-light);
-  --muted: var(--rrll-text-muted-light);
-  --border: var(--rrll-border-light);
-  --black: var(--rrll-text-main-light);
-  --red: var(--rrll-red-ui);
-  --soft-red: rgba(167, 53, 53, .10);
-  --warning: rgba(217, 119, 6, .14);
-  --expired: rgba(185, 28, 28, .12);
-  --chart-gray: var(--rrll-light-text-muted);
-  --shadow: var(--rrll-shadow-panel-light);
+  --rrll-text-main-light: var(--rrll-light-text-primary);
+  --rrll-text-secondary-light: var(--rrll-light-text-secondary);
+  --rrll-text-muted-light: var(--rrll-light-text-muted);
+  --rrll-text-placeholder-light: #9aa4b2;
 
-  --rrll-bg-app: var(--rrll-bg-app-light);
-  --rrll-surface-base: var(--rrll-bg-soft-light);
-  --rrll-surface-card: var(--rrll-bg-card-light);
-  --rrll-surface-raised: var(--rrll-bg-panel-light);
+  --rrll-border-light: var(--rrll-light-border-weak);
+  --rrll-border-soft-light: rgba(209, 213, 219, .72);
+  --rrll-separator-light: #d9dee7;
+
+  --rrll-sidebar-light: #202733;
+  --rrll-sidebar-hover-light: #2d3645;
+  --rrll-sidebar-active-light: #3a4658;
+  --rrll-sidebar-accent-light: #b23838;
+
+  --rrll-success-light: #138a52;
+  --rrll-warning-light: #b7791f;
+  --rrll-error-light: #b4232a;
+  --rrll-info-light: #2f6fbb;
+
+  --bg-primary: var(--rrll-bg-app-light);
+  --bg-secondary: var(--rrll-bg-soft-light);
+  --surface: var(--rrll-bg-card-light);
+  --surface-elevated: var(--rrll-bg-panel-light);
+  --text-primary: var(--rrll-text-main-light);
+  --text-secondary: var(--rrll-text-secondary-light);
+  --text-muted: var(--rrll-text-muted-light);
+  --border-soft: var(--rrll-border-soft-light);
+  --accent-primary: var(--rrll-red-ui);
+  --success: var(--rrll-success-light);
+  --warning-color: var(--rrll-warning-light);
+  --danger: var(--rrll-error-light);
+  --info: var(--rrll-info-light);
+
+  --rrll-bg-app: var(--bg-primary);
+  --rrll-surface-base: var(--bg-secondary);
+  --rrll-surface-card: var(--surface);
+  --rrll-surface-raised: var(--surface-elevated);
   --rrll-surface-header: var(--rrll-bg-table-head-light);
   --rrll-surface-hover: var(--rrll-bg-table-hover-light);
-  --rrll-field-bg: var(--rrll-bg-panel-light);
-  --rrll-field-bg-focus: var(--rrll-bg-soft-light);
+  --rrll-field-bg: #f9fafb;
+  --rrll-field-bg-focus: var(--rrll-light-surface);
   --rrll-border: var(--rrll-border-light);
   --rrll-border-strong: var(--rrll-separator-light);
-  --rrll-text-main: var(--rrll-text-main-light);
-  --rrll-text-soft: var(--rrll-text-secondary-light);
-  --rrll-text-muted: var(--rrll-text-muted-light);
-  --rrll-shadow-soft: var(--rrll-shadow-light);
-  --rrll-shadow-panel: var(--rrll-shadow-panel-light);
+  --rrll-text-main: var(--text-primary);
+  --rrll-text-soft: var(--text-secondary);
+  --rrll-text-muted: var(--text-muted);
+  --rrll-shadow-soft: 0 1px 2px rgba(15, 23, 42, .035), 0 8px 22px rgba(15, 23, 42, .055);
+  --rrll-shadow-panel: 0 1px 2px rgba(15, 23, 42, .04), 0 14px 34px rgba(15, 23, 42, .07);
+  --rrll-shadow-focus: 0 0 0 3px rgba(167, 53, 53, .13);
   --rrll-component-bg: var(--rrll-surface-card);
   --rrll-component-bg-soft: var(--rrll-surface-base);
   --rrll-component-border: var(--rrll-border);
   --rrll-component-text: var(--rrll-text-main);
   --rrll-component-muted: var(--rrll-text-muted);
-  --phase4-sidebar-bg: var(--rrll-sidebar-stable);
-  --phase4-sidebar-bg-2: var(--rrll-sidebar-stable-2);
-  --phase4-sidebar-hover: var(--rrll-sidebar-stable-hover);
+  --phase4-sidebar-bg: #3b4556;
+  --phase4-sidebar-bg-2: #334155;
+  --phase4-sidebar-hover: #475569;
+  --phase4-sidebar-active: #c24141;
+  --phase4-sidebar-text: var(--rrll-light-input-bg);
+  --phase4-sidebar-muted: #cbd5e1;
+  --phase4-sidebar-icon: #e2e8f0;
+
+  --dash-surface: var(--rrll-bg-card-light);
+  --dash-surface-2: var(--rrll-bg-soft-light);
+  --dash-border: var(--rrll-border-light);
+
+  --bg: var(--bg-primary);
+  --panel: var(--surface);
+  --text: var(--text-primary);
+  --muted: var(--text-muted);
+  --border: var(--border-soft);
+  --black: var(--rrll-text-main-light);
+  --red: var(--accent-primary);
+  --soft-red: rgba(167, 53, 53, .09);
+  --warning: rgba(183, 121, 31, .13);
+  --expired: rgba(180, 35, 42, .11);
+  --chart-gray: var(--rrll-light-text-muted);
+  --shadow: var(--rrll-shadow-panel);
 
   /* Paleta canónica light 2026 */
   --rrll-light-app-bg: #f4f6f8;
@@ -1563,84 +1610,6 @@ html[data-theme="light"] body.phase4-view-module #petitionUpdateModal .checks .c
    Scope estricto: solo html[data-theme="light"]. No modifica modo oscuro,
    estructura, navegación, lógica, exportaciones ni cálculos.
    ═══════════════════════════════════════════════════════════════════════════ */
-html[data-theme="light"] {
-  --rrll-bg-app-light: var(--rrll-light-app-bg);
-  --rrll-bg-soft-light: var(--rrll-light-table-hover);
-  --rrll-bg-card-light: #fbfbfc;
-  --rrll-bg-panel-light: var(--rrll-light-surface);
-  --rrll-bg-table-head-light: var(--rrll-light-table-head);
-  --rrll-bg-table-row-light: #fbfbfc;
-  --rrll-bg-table-row-alt-light: #f7f9fb;
-  --rrll-bg-table-hover-light: #edf3f7;
-
-  --rrll-text-main-light: var(--rrll-light-text-primary);
-  --rrll-text-secondary-light: var(--rrll-light-text-secondary);
-  --rrll-text-muted-light: var(--rrll-light-text-muted);
-  --rrll-text-placeholder-light: #9aa4b2;
-
-  --rrll-border-light: var(--rrll-light-border-weak);
-  --rrll-border-soft-light: rgba(209, 213, 219, .72);
-  --rrll-separator-light: #d9dee7;
-
-  --rrll-sidebar-light: #202733;
-  --rrll-sidebar-hover-light: #2d3645;
-  --rrll-sidebar-active-light: #3a4658;
-  --rrll-sidebar-accent-light: #b23838;
-
-  --rrll-success-light: #138a52;
-  --rrll-warning-light: #b7791f;
-  --rrll-error-light: #b4232a;
-  --rrll-info-light: #2f6fbb;
-
-  --bg-primary: var(--rrll-bg-app-light);
-  --bg-secondary: var(--rrll-bg-soft-light);
-  --surface: var(--rrll-bg-card-light);
-  --surface-elevated: var(--rrll-bg-panel-light);
-  --text-primary: var(--rrll-text-main-light);
-  --text-secondary: var(--rrll-text-secondary-light);
-  --text-muted: var(--rrll-text-muted-light);
-  --border-soft: var(--rrll-border-soft-light);
-  --accent-primary: var(--rrll-red-ui);
-  --success: var(--rrll-success-light);
-  --warning-color: var(--rrll-warning-light);
-  --danger: var(--rrll-error-light);
-  --info: var(--rrll-info-light);
-
-  --rrll-bg-app: var(--bg-primary);
-  --rrll-surface-base: var(--bg-secondary);
-  --rrll-surface-card: var(--surface);
-  --rrll-surface-raised: var(--surface-elevated);
-  --rrll-surface-header: var(--rrll-bg-table-head-light);
-  --rrll-surface-hover: var(--rrll-bg-table-hover-light);
-  --rrll-field-bg: #f9fafb;
-  --rrll-field-bg-focus: var(--rrll-light-surface);
-  --rrll-border: var(--rrll-border-light);
-  --rrll-border-strong: var(--rrll-separator-light);
-  --rrll-text-main: var(--text-primary);
-  --rrll-text-soft: var(--text-secondary);
-  --rrll-text-muted: var(--text-muted);
-  --rrll-shadow-soft: 0 1px 2px rgba(15, 23, 42, .035), 0 8px 22px rgba(15, 23, 42, .055);
-  --rrll-shadow-panel: 0 1px 2px rgba(15, 23, 42, .04), 0 14px 34px rgba(15, 23, 42, .07);
-  --rrll-shadow-focus: 0 0 0 3px rgba(167, 53, 53, .13);
-  --phase4-sidebar-bg: #3b4556;
-  --phase4-sidebar-bg-2: #334155;
-  --phase4-sidebar-hover: #475569;
-  --phase4-sidebar-active: #c24141;
-  --phase4-sidebar-text: var(--rrll-light-input-bg);
-  --phase4-sidebar-muted: #cbd5e1;
-  --phase4-sidebar-icon: #e2e8f0;
-
-  --bg: var(--bg-primary);
-  --panel: var(--surface);
-  --text: var(--text-primary);
-  --muted: var(--text-muted);
-  --border: var(--border-soft);
-  --red: var(--accent-primary);
-  --soft-red: rgba(167, 53, 53, .09);
-  --warning: rgba(183, 121, 31, .13);
-  --expired: rgba(180, 35, 42, .11);
-  --shadow: var(--rrll-shadow-panel);
-}
 
 html[data-theme="light"],
 html[data-theme="light"] body {
