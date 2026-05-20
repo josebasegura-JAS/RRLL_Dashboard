@@ -32,13 +32,13 @@ function getTodayKey() {
 
       const labels = {
         saving: "Espera",
-        saved: "Sinc. OK",
-        synced: "Sinc. OK",
-        offline: "Sinc. ERR",
-        error: "Sinc. ERR"
+        saved: "Con-OK",
+        synced: "Con-OK",
+        offline: "Error",
+        error: "Error"
       };
 
-      label.textContent = labels[status] || "Sinc. OK";
+      label.textContent = labels[status] || "Con-OK";
       const fallbackDetail = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
       detailEl.textContent = compactSidebarSyncDetail(detail || fallbackDetail);
     }
