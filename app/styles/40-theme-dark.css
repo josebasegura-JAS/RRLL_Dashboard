@@ -1372,3 +1372,18 @@ html[data-theme="dark"] #gestor-peticiones :is(.toolbar-actions, .export-buttons
     margin-left: auto !important;
   }
 }
+
+
+/* Ajuste visual localizado: filtros de estado en Puntos Comité (alineado con Actas). */
+html[data-theme="dark"] body.phase4-view-module #gestor-puntos-comite .rrll-pro-tabs button {
+  background: rgba(52, 59, 70, 0.72) !important;
+  color: var(--rrll-text-main-dark) !important;
+  border: 1px solid var(--rrll-border-soft-dark) !important;
+}
+
+html[data-theme="dark"] body.phase4-view-module #gestor-puntos-comite .rrll-pro-tabs button.active,
+html[data-theme="dark"] body.phase4-view-module #gestor-puntos-comite .rrll-pro-tabs button:hover {
+  background: rgba(239, 43, 45, 0.16) !important;
+  color: #ffffff !important;
+  border-color: rgba(239, 43, 45, 0.4) !important;
+}
