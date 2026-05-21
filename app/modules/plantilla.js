@@ -14,13 +14,32 @@
   let electoralSelectedSindicato = 'Todos';
   let electoralSelectedRecorrido = 'Todos';
   let plantillaSchemaEnsured = false;
+  let plantillaLoadDiagnosticsShown = false;
   const RRLL_IMPORT_KEY = 'rrll_recorridos_mesa';
   const MESAS_KEY = 'rrll_mesas_electorales';
 
 
+  function resolvePlantillaItems(raw) {
+    if (Array.isArray(raw)) return { items: raw, source: 'array', usedLegacyFallback: false };
+    if (raw && typeof raw === 'object') {
+      if (Array.isArray(raw.items)) return { items: raw.items, source: 'items', usedLegacyFallback: true };
+      if (Array.isArray(raw.data)) return { items: raw.data, source: 'data', usedLegacyFallback: true };
+      if (Array.isArray(raw.plantilla)) return { items: raw.plantilla, source: 'plantilla', usedLegacyFallback: true };
+    }
+    return { items: [], source: 'empty', usedLegacyFallback: false };
+  }
+
   function getPlantilla() {
-    const items = load(KEY, []);
-    return Array.isArray(items) ? items : [];
+    const raw = load(KEY, null);
+    const resolved = resolvePlantillaItems(raw);
+    if (!plantillaLoadDiagnosticsShown) {
+      console.info('[Plantilla][diagnóstico] load(rrll_plantilla) valor bruto:', raw);
+      console.info('[Plantilla][diagnóstico] es array:', Array.isArray(raw));
+      console.info('[Plantilla][diagnóstico] registros detectados:', resolved.items.length);
+      console.info('[Plantilla][diagnóstico] fallback legacy aplicado:', resolved.usedLegacyFallback, 'origen:', resolved.source);
+      plantillaLoadDiagnosticsShown = true;
+    }
+    return resolved.items;
   }
 
   function setPlantilla(items) {
@@ -173,7 +192,7 @@
       return normalizedItem;
     });
 
-    if (hasChanges) setPlantilla(normalizedItems);
+    if (hasChanges && normalizedItems.length) setPlantilla(normalizedItems);
 
     if (!Array.isArray(load(MESAS_KEY, null))) save(MESAS_KEY, ELECTORAL_MESAS.map((nombre, idx) => ({ id: idx + 1, nombre_mesa: nombre, colegio_electoral: '' })));
     if (!Array.isArray(load(RRLL_IMPORT_KEY, null))) save(RRLL_IMPORT_KEY, []);
@@ -442,6 +461,7 @@
 
   function renderPlantilla(options = {}) {
     ensurePlantillaSchema();
+    if (!options.preserveView) togglePlantillaElectoralView(false);
     fillSindicatoSelect('newPlantSindicato', document.getElementById('newPlantSindicato')?.value || "Sin asignar");
     const rows = sortedPlantilla();
     if (options.resetPage) plantillaCurrentPage = 1;
