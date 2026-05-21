@@ -6,6 +6,7 @@ const TICKET_RESTAURANT_EXPORT_HEADERS = ["Nombre", "Apellido1", "Apellido2", "D
 const TICKET_RESTAURANT_DEFAULT_CONFIG = { pedido: "2404407", importe: "14,57" };
 
 const TICKET_RESTAURANT_DEBT_START_YEAR = 2026;
+const TICKET_RESTAURANT_MIN_ABSENCE_DATE = "2026-03-01";
 
 const TICKET_RESTAURANT_PEOPLE_FILTERS = [
   ["ticketPeopleFilterEmployee", item => item.employeeNumber],
@@ -256,6 +257,27 @@ function buildTicketRestaurantAbsenceDailyKeys(row) {
   return dates.map(date => ticketRestaurantAbsenceUniqueKey(row, date)).filter(Boolean);
 }
 
+function isTicketRestaurantAbsenceDateComputable(date) {
+  const iso = parseTicketDate(date);
+  return Boolean(iso && iso >= TICKET_RESTAURANT_MIN_ABSENCE_DATE);
+}
+
+function isTicketRestaurantAbsenceComputable(absence) {
+  if (!absence || absence.computable === false) return false;
+  const from = parseTicketDate(absence.from);
+  const to = parseTicketDate(absence.to || absence.from);
+  if (!from && !to) return false;
+  return isTicketRestaurantAbsenceDateComputable(from || to) && isTicketRestaurantAbsenceDateComputable(to || from);
+}
+
+function normalizeTicketRestaurantAbsence(row = {}) {
+  const from = parseTicketDate(row.from);
+  const to = parseTicketDate(row.to || row.from) || from;
+  const computedDefault = isTicketRestaurantAbsenceDateComputable(from);
+  const computable = row.computable === false ? false : (row.computable === true ? true : computedDefault);
+  return { ...row, from, to, computable };
+}
+
 function getTicketRestaurantAbsenceStats() {
   const stored = load("rrll_ticket_restaurant_absences", []);
   const rawRows = Array.isArray(stored) ? stored : [];
@@ -281,7 +303,7 @@ function getTicketRestaurantAbsences() {
 }
 
 function saveTicketRestaurantAbsences(items) {
-  save("rrll_ticket_restaurant_absences", Array.isArray(items) ? items : []);
+  save("rrll_ticket_restaurant_absences", (Array.isArray(items) ? items : []).map(item => normalizeTicketRestaurantAbsence(item)));
 }
 
 function getTicketRestaurantPendingDiscountLedger() {
@@ -323,6 +345,7 @@ function normalizeTicketRestaurantPendingItem(key, item) {
 function ticketRestaurantAbsenceGeneratesDiscount(absence, employee = null, date = "") {
   const isoDate = parseTicketDate(date || (absence && absence.from));
   if (!isoDate) return false;
+  if (!isTicketRestaurantAbsenceComputable(absence) || !isTicketRestaurantAbsenceDateComputable(isoDate)) return false;
   const [yearStr = ""] = isoDate.split("-");
   const year = Number(yearStr);
   if (!Number.isFinite(year) || year < TICKET_RESTAURANT_DEBT_START_YEAR) return false;
@@ -354,38 +377,11 @@ function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
     if (nameKey && !peopleByName.has(nameKey)) peopleByName.set(nameKey, person);
   });
 
-  const ledger = getTicketRestaurantPendingDiscountLedger();
-  let dirty = false;
-  Object.entries(ledger).forEach(([identity, entry]) => {
-    if (!entry || typeof entry !== "object") {
-      ledger[identity] = { pendingDebt: 0, importedDailyKeys: {}, pendingItems: {} };
-      dirty = true;
-      return;
-    }
-    if (!entry.importedDailyKeys || typeof entry.importedDailyKeys !== "object") { entry.importedDailyKeys = {}; dirty = true; }
-    if (!entry.pendingItems || typeof entry.pendingItems !== "object") { entry.pendingItems = {}; dirty = true; }
-    Object.entries(entry.pendingItems).forEach(([key, item]) => {
-      const normalized = normalizeTicketRestaurantPendingItem(key, item);
-      const identityPerson = identity.startsWith("emp:")
-        ? peopleByEmployee.get(normalizeTicketEmployeeLookup(identity.slice(4)))
-        : (identity.startsWith("name:") ? peopleByName.get(normalizeTicketText(identity.slice(5)).replace(/\s+/g, " ").trim()) : null);
-      const generates = ticketRestaurantAbsenceGeneratesDiscount({ employeeNumber: identityPerson && identityPerson.employeeNumber }, identityPerson, normalized.date);
-      if (!generates) {
-        delete entry.pendingItems[key];
-        delete entry.importedDailyKeys[key];
-        dirty = true;
-        return;
-      }
-      if (JSON.stringify(normalized) !== JSON.stringify(item || {})) {
-        entry.pendingItems[key] = normalized;
-        dirty = true;
-      }
-    });
-    const computedDebt = Object.values(entry.pendingItems).reduce((sum, item) => sum + parseTicketNumber(item && item.remainingDebt), 0);
-    if (parseTicketNumber(entry.pendingDebt) !== computedDebt) { entry.pendingDebt = computedDebt; dirty = true; }
-  });
+  const previousLedger = getTicketRestaurantPendingDiscountLedger();
+  const ledger = {};
 
   absences.forEach(absence => {
+    if (!isTicketRestaurantAbsenceComputable(absence)) return;
     let identity = buildTicketRestaurantPendingDiscountIdentity(absence);
     if (!identity) {
       const employeeKey = normalizeTicketEmployeeLookup(absence && absence.employeeNumber);
@@ -397,35 +393,35 @@ function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
     if (!identity) return;
     const dailyKeys = buildTicketRestaurantAbsenceDailyKeys(absence);
     if (!dailyKeys.length) return;
-    if (!ledger[identity] || typeof ledger[identity] !== "object") {
-      ledger[identity] = { pendingDebt: 0, importedDailyKeys: {}, pendingItems: {} };
-      dirty = true;
-    }
+    if (!ledger[identity] || typeof ledger[identity] !== "object") ledger[identity] = { pendingDebt: 0, importedDailyKeys: {}, pendingItems: {} };
     const entry = ledger[identity];
-    if (!entry.importedDailyKeys || typeof entry.importedDailyKeys !== "object") { entry.importedDailyKeys = {}; dirty = true; }
-    if (!entry.pendingItems || typeof entry.pendingItems !== "object") { entry.pendingItems = {}; dirty = true; }
+    const previousEntry = previousLedger[identity] && typeof previousLedger[identity] === "object" ? previousLedger[identity] : {};
+    const previousItems = previousEntry.pendingItems && typeof previousEntry.pendingItems === "object" ? previousEntry.pendingItems : {};
 
     dailyKeys.forEach(key => {
       const [, dayIso = "", reason = ""] = key.split("|");
       if (!dayIso) return;
       if (!ticketRestaurantAbsenceGeneratesDiscount(absence, peopleByEmployee.get(normalizeTicketEmployeeLookup(absence && absence.employeeNumber)), dayIso)) return;
-      if (!entry.importedDailyKeys[key]) { entry.importedDailyKeys[key] = 1; dirty = true; }
+      entry.importedDailyKeys[key] = 1;
       if (!entry.pendingItems[key]) {
-        entry.pendingItems[key] = normalizeTicketRestaurantPendingItem(key, { key, date: dayIso, reason, remainingDebt: 1, consumedByMonth: {} });
-        dirty = true;
+        const previousItem = previousItems[key];
+        const consumedByMonth = previousItem && previousItem.consumedByMonth && typeof previousItem.consumedByMonth === "object" ? previousItem.consumedByMonth : {};
+        const consumedTotal = Object.values(consumedByMonth).reduce((sum, value) => sum + parseTicketNumber(value), 0);
+        entry.pendingItems[key] = normalizeTicketRestaurantPendingItem(key, { key, date: dayIso, reason, remainingDebt: Math.max(0, 1 - consumedTotal), consumedByMonth });
       }
     });
     const computedDebt = Object.values(entry.pendingItems).reduce((sum, item) => sum + parseTicketNumber(item && item.remainingDebt), 0);
-    if (parseTicketNumber(entry.pendingDebt) !== computedDebt) { entry.pendingDebt = computedDebt; dirty = true; }
+    entry.pendingDebt = computedDebt;
   });
 
-  if (dirty) saveTicketRestaurantPendingDiscountLedger(ledger);
+  saveTicketRestaurantPendingDiscountLedger(ledger);
   return ledger;
 }
 
 function registerTicketRestaurantPendingDiscounts(absenceRows) {
   const ledger = getTicketRestaurantPendingDiscountLedger();
   (Array.isArray(absenceRows) ? absenceRows : []).forEach(absence => {
+    if (!isTicketRestaurantAbsenceComputable(absence)) return;
     const identity = buildTicketRestaurantPendingDiscountIdentity(absence);
     if (!identity) return;
     const dailyKeys = buildTicketRestaurantAbsenceDailyKeys(absence);
@@ -1389,7 +1385,8 @@ function saveTicketRestaurantAbsencePreviewRows() {
       employeeName: String(row.employeeName || "").replace(/\s+/g, " ").trim(),
       from,
       to,
-      reason: String(row.reason || "").trim()
+      reason: String(row.reason || "").trim(),
+      computable: isTicketRestaurantAbsenceDateComputable(from)
     };
     const dailyKeys = buildTicketRestaurantAbsenceDailyKeys(previewRecord);
     const duplicated = dailyKeys.length && dailyKeys.some(key => existingKeys.has(key) || importSeenKeys.has(key));
@@ -1406,6 +1403,7 @@ function saveTicketRestaurantAbsencePreviewRows() {
       from,
       to,
       reason: previewRecord.reason,
+      computable: previewRecord.computable,
       totalDays: parseTicketNumber(row.totalDays),
       month: period.month,
       year: period.year,
@@ -1497,6 +1495,7 @@ function renderTicketAbsenceMonthSelector() {
 function filterTicketAbsencesByVisibleMonth(absences) {
   const visible = getTicketAbsenceVisibleMonth();
   return (Array.isArray(absences) ? absences : []).filter(item => {
+    if (!isTicketRestaurantAbsenceComputable(item)) return false;
     if (ticketRestaurantAbsenceIntersectsVisibleMonth(item, visible)) return true;
     const period = ticketRestaurantMonthYearFromDate(item && item.from);
     const month = period.month || Number(item && item.month);
@@ -1552,6 +1551,77 @@ function updateTicketRestaurantAbsenceSortIndicators() {
 function deleteTicketRestaurantAbsence(id) {
   if (!id || !confirm("¿Eliminar esta ausencia importada?")) return;
   saveTicketRestaurantAbsences(getTicketRestaurantAbsences().filter(item => item.id !== id));
+  ensureTicketRestaurantPendingDiscountLedgerFromAbsences();
+  renderTicketRestaurantAbsences();
+  renderTicketRestaurantComputePreview();
+}
+
+function openTicketRestaurantAbsenceEditModal(id) {
+  const absences = getTicketRestaurantAbsences();
+  const current = absences.find(item => item.id === id);
+  if (!current) return;
+  let modal = document.getElementById("ticketRestaurantAbsenceEditModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "ticketRestaurantAbsenceEditModal";
+    modal.className = "modal-backdrop";
+    modal.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" onclick="event.stopPropagation()" style="width:min(720px,96vw);">
+      <h3>Editar ausencia Ticket Restaurant</h3>
+      <input type="hidden" id="ticketRestaurantAbsenceEditId">
+      <div class="rrll-pro-grid cols-2">
+        <label>Nº empleado<input id="ticketRestaurantAbsenceEditEmployee" type="text"></label>
+        <label>Persona<input id="ticketRestaurantAbsenceEditName" type="text"></label>
+        <label>Fecha ausencia<input id="ticketRestaurantAbsenceEditFrom" type="date"></label>
+        <label>Hasta<input id="ticketRestaurantAbsenceEditTo" type="date"></label>
+        <label>Motivo<input id="ticketRestaurantAbsenceEditReason" type="text"></label>
+        <label>Afecta ticket<select id="ticketRestaurantAbsenceEditAffects"><option value="1">Sí</option><option value="0">No</option></select></label>
+        <label>Estado<select id="ticketRestaurantAbsenceEditComputable"><option value="1">Computa</option><option value="0">No computa</option></select></label>
+        <label>Observaciones<input id="ticketRestaurantAbsenceEditNotes" type="text"></label>
+      </div>
+      <div class="modal-actions"><button class="secondary" type="button" onclick="closeTicketRestaurantAbsenceEditModal()">Cancelar</button><button type="button" onclick="saveTicketRestaurantAbsenceEdit()">Guardar</button></div>
+    </div>`;
+    modal.addEventListener("click", event => { if (event.target === modal) closeTicketRestaurantAbsenceEditModal(); });
+    document.body.appendChild(modal);
+  }
+  document.getElementById("ticketRestaurantAbsenceEditId").value = current.id || "";
+  document.getElementById("ticketRestaurantAbsenceEditEmployee").value = current.employeeNumber || "";
+  document.getElementById("ticketRestaurantAbsenceEditName").value = current.employeeName || "";
+  document.getElementById("ticketRestaurantAbsenceEditFrom").value = parseTicketDate(current.from) || "";
+  document.getElementById("ticketRestaurantAbsenceEditTo").value = parseTicketDate(current.to || current.from) || "";
+  document.getElementById("ticketRestaurantAbsenceEditReason").value = current.reason || "";
+  document.getElementById("ticketRestaurantAbsenceEditAffects").value = current.affectsTicket === false ? "0" : "1";
+  document.getElementById("ticketRestaurantAbsenceEditComputable").value = current.computable === false ? "0" : "1";
+  document.getElementById("ticketRestaurantAbsenceEditNotes").value = current.notes || "";
+  modal.classList.add("open");
+}
+
+function closeTicketRestaurantAbsenceEditModal() {
+  const modal = document.getElementById("ticketRestaurantAbsenceEditModal");
+  if (modal) modal.classList.remove("open");
+}
+
+function saveTicketRestaurantAbsenceEdit() {
+  const id = document.getElementById("ticketRestaurantAbsenceEditId").value;
+  const absences = getTicketRestaurantAbsences();
+  const index = absences.findIndex(item => item.id === id);
+  if (index < 0) return;
+  const from = parseTicketDate(document.getElementById("ticketRestaurantAbsenceEditFrom").value);
+  const to = parseTicketDate(document.getElementById("ticketRestaurantAbsenceEditTo").value) || from;
+  const desiredComputable = document.getElementById("ticketRestaurantAbsenceEditComputable").value === "1";
+  absences[index] = normalizeTicketRestaurantAbsence({
+    ...absences[index],
+    employeeNumber: normalizeTicketEmployee(document.getElementById("ticketRestaurantAbsenceEditEmployee").value),
+    employeeName: String(document.getElementById("ticketRestaurantAbsenceEditName").value || "").trim(),
+    from,
+    to,
+    reason: String(document.getElementById("ticketRestaurantAbsenceEditReason").value || "").trim(),
+    affectsTicket: document.getElementById("ticketRestaurantAbsenceEditAffects").value === "1",
+    notes: String(document.getElementById("ticketRestaurantAbsenceEditNotes").value || "").trim(),
+    computable: desiredComputable && isTicketRestaurantAbsenceDateComputable(from)
+  });
+  saveTicketRestaurantAbsences(absences);
+  ensureTicketRestaurantPendingDiscountLedgerFromAbsences();
+  closeTicketRestaurantAbsenceEditModal();
   renderTicketRestaurantAbsences();
   renderTicketRestaurantComputePreview();
 }
@@ -1569,7 +1639,7 @@ function renderTicketRestaurantAbsences() {
     const duplicatedHint = absenceStats.hiddenDuplicates ? ` · ${absenceStats.hiddenDuplicates} duplicados ocultos` : "";
     count.textContent = `${absences.length} de ${allAbsences.length} ausencias · ${String(visible.month).padStart(2, "0")}/${visible.year}${duplicatedHint}`;
   }
-  body.innerHTML = absences.length ? absences.map(item => `<tr>
+  body.innerHTML = absences.length ? absences.map(item => `<tr ondblclick="openTicketRestaurantAbsenceEditModal('${escapeHtml(item.id)}')" title="Doble clic para editar ausencia">
     <td>${escapeHtml(item.employeeNumber)}</td><td>${escapeHtml(item.employeeName || "")}</td><td>${formatTicketDate(item.from)}</td><td>${formatTicketDate(item.to)}</td><td>${escapeHtml(item.reason)}</td><td>${escapeHtml(item.totalDays)}</td>
     <td class="table-actions"><button class="danger small" type="button" onclick="deleteTicketRestaurantAbsence('${escapeHtml(item.id)}')">Eliminar</button></td>
   </tr>`).join("") : `<tr><td colspan="7" class="muted">No hay ausencias para este mes</td></tr>`;
