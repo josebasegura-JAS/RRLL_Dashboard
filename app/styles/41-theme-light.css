@@ -298,7 +298,7 @@ html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-hi
 #gestor-plantilla .plantilla-table {
   table-layout: fixed;
   width: 100%;
-  min-width: 0;
+  min-width: 920px;
 }
 
 #gestor-plantilla .plantilla-table th,
@@ -308,30 +308,30 @@ html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-hi
 
 #gestor-plantilla .plantilla-table th:nth-child(1),
 #gestor-plantilla .plantilla-table td:nth-child(1) {
-  width: 7%;
+  width: 9%;
   text-align: center;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(2),
 #gestor-plantilla .plantilla-table td:nth-child(2) {
-  width: 36%;
+  width: 39%;
   text-align: left;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(3),
 #gestor-plantilla .plantilla-table td:nth-child(3) {
-  width: 6%;
-  text-align: center;
+  width: 24%;
+  text-align: left;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(4),
 #gestor-plantilla .plantilla-table td:nth-child(4) {
-  width: 25%;
+  width: 8%;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(5),
 #gestor-plantilla .plantilla-table td:nth-child(5) {
-  width: 11%;
+  width: 12%;
   text-align: center;
   white-space: nowrap;
 }
@@ -342,11 +342,6 @@ html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-hi
   text-align: center;
 }
 
-#gestor-plantilla .plantilla-table th:nth-child(7),
-#gestor-plantilla .plantilla-table td:nth-child(7) {
-  width: 7%;
-  text-align: center;
-}
 
 #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions {
   display: flex;
@@ -355,7 +350,7 @@ html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-hi
   gap: 10px;
   flex-wrap: wrap;
   row-gap: 10px;
-  min-width: 0;
+  min-width: 920px;
   margin-left: auto;
 }
 
@@ -649,14 +644,14 @@ html[data-theme="light"] #committeeSessionAddPointModal .committee-session-add-p
 #committeeSessionAddPointModal .committee-session-add-point-content {
   display: grid;
   gap: 6px;
-  min-width: 0;
+  min-width: 920px;
   max-width: 100%;
 }
 
 #committeeSessionAddPointModal .committee-session-add-point-content strong,
 #committeeSessionAddPointModal .committee-session-add-point-content small,
 #committeeSessionAddPointModal .committee-session-add-point-content span {
-  min-width: 0;
+  min-width: 920px;
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -794,14 +789,14 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
 #paritariaSessionAddPointModal .paritaria-session-add-point-content {
   display: grid;
   gap: 6px;
-  min-width: 0;
+  min-width: 920px;
   max-width: 100%;
 }
 
 #paritariaSessionAddPointModal .paritaria-session-add-point-content strong,
 #paritariaSessionAddPointModal .paritaria-session-add-point-content small,
 #paritariaSessionAddPointModal .paritaria-session-add-point-content span {
-  min-width: 0;
+  min-width: 920px;
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -1016,7 +1011,7 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
   max-width: 252px;
   aspect-ratio: 850 / 272;
   height: auto;
-  min-width: 0;
+  min-width: 920px;
   margin: 0;
   overflow: hidden;
   flex: 0 0 auto;

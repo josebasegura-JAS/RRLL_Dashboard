@@ -348,6 +348,16 @@
     }
   }
 
+
+  function teleworkPersonFullName(person) {
+    if (!person || typeof person !== "object") return "";
+    const nombreCompleto = String(person.nombreCompleto || person.fullName || "").trim();
+    if (nombreCompleto) return nombreCompleto;
+    const legacyName = String(person.name || "").trim();
+    const legacyLastName = String(person.lastName || "").trim();
+    return `${legacyName} ${legacyLastName}`.trim() || legacyName;
+  }
+
   function normalizeTeleworkLookup(value) {
     return String(value || "")
       .toLowerCase()
@@ -370,7 +380,7 @@
     const nameEl = document.getElementById(`${prefix}TeleworkName`);
     const jobEl = document.getElementById(`${prefix}TeleworkJob`);
     if (employeeEl) employeeEl.value = person.employeeNumber || "";
-    if (nameEl) nameEl.value = person.name || "";
+    if (nameEl) nameEl.value = teleworkPersonFullName(person) || "";
     if (jobEl) jobEl.value = person.job || "";
     renderTeleworkEligibilityWarning(prefix);
     hideTeleworkSuggestions(prefix);
@@ -405,12 +415,12 @@
     }
     const results = getPlantillaForTelework()
       .filter(person => {
-        const name = normalizeTeleworkLookup(person.name);
+        const name = normalizeTeleworkLookup(teleworkPersonFullName(person));
         const employee = normalizeTeleworkLookup(person.employeeNumber);
         const job = normalizeTeleworkLookup(person.job);
         return name.includes(query) || employee.includes(query) || job.includes(query);
       })
-      .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "es", { sensitivity: "base" }))
+      .sort((a, b) => String(teleworkPersonFullName(a) || "").localeCompare(String(teleworkPersonFullName(b) || ""), "es", { sensitivity: "base" }))
       .slice(0, 8);
 
     if (!results.length) {
@@ -421,7 +431,7 @@
 
     box.innerHTML = results.map(person => `
       <button type="button" class="rrll-autocomplete-option" onmousedown="event.preventDefault(); selectTeleworkPerson('${escapeJs(String(person.id || ""))}', '${prefix}')">
-        <strong>${escapeHtml(person.name || "Sin nombre")}</strong>
+        <strong>${escapeHtml(teleworkPersonFullName(person) || "Sin nombre")}</strong>
         <span>Nº ${escapeHtml(person.employeeNumber || "")} · ${escapeHtml(person.job || "Sin puesto")}</span>
       </button>
     `).join("");
@@ -449,7 +459,7 @@
     const nameEl = document.getElementById(`${prefix}TeleworkName`);
     const matchedPerson = findPlantillaByEmployeeNumber(employeeNumber);
     if (matchedPerson) {
-      if (!String(nameEl?.value || "").trim()) nameEl.value = matchedPerson.name || "";
+      if (!String(nameEl?.value || "").trim()) nameEl.value = teleworkPersonFullName(matchedPerson) || "";
       const jobEl = document.getElementById(`${prefix}TeleworkJob`);
       if (jobEl && !jobEl.value.trim()) jobEl.value = matchedPerson.job || "";
     }

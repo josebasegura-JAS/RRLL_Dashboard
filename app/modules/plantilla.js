@@ -19,15 +19,10 @@
   const MESAS_KEY = 'rrll_mesas_electorales';
   const PLANTILLA_MODEL_COLUMNS = [
     { key: 'employeeNumber', label: 'Nº empleado' },
-    { key: 'name', label: 'Nombre' },
-    { key: 'lastName', label: 'Apellidos' },
-    { key: 'fullName', label: 'Nombre completo' },
+    { key: 'nombreCompleto', label: 'Nombre completo' },
     { key: 'job', label: 'Puesto' },
-    { key: 'area', label: 'Área' },
-    { key: 'department', label: 'Departamento' },
-    { key: 'unit', label: 'Unidad' },
+    { key: 'sexo', label: 'Sexo' },
     { key: 'level', label: 'Nivel' },
-    { key: 'positionSeniority', label: 'Antigüedad en puesto' },
     { key: 'colegioElectoral', label: 'Colegio electoral' },
     { key: 'mesaElectoral', label: 'Mesa electoral' },
     { key: 'sindicato', label: 'Sindicato' },
@@ -223,6 +218,19 @@
     return '';
   }
 
+
+  function resolveNombreCompleto(item) {
+    const fromCanonical = normalizeText(getField(item, 'nombreCompleto'));
+    const fromFullName = normalizeText(getField(item, 'fullName'));
+    const fromLegacyName = normalizeText(getField(item, 'name'));
+    const fromLegacyLastName = normalizeText(getField(item, 'lastName'));
+    return fromCanonical || fromFullName || normalizeText([fromLegacyName, fromLegacyLastName].filter(Boolean).join(' ')) || fromLegacyName;
+  }
+
+  function resolveSexo(item) {
+    return normalizeText(getField(item, 'sexo', 'unit', 'unidad'));
+  }
+
   function normalizeSindicato(value) {
     return normalizeText(value) || 'Sin asignar';
   }
@@ -257,8 +265,15 @@
       const recorrido = !!getField(item, 'recorridoActivo', 'recorrido_activo');
       const estacionBase = normalizeText(getField(item, 'estacionBase', 'estacion_base'));
       const observaciones = normalizeText(getField(item, 'observacionesRecorrido', 'observaciones_recorrido'));
+      const nombreCompleto = resolveNombreCompleto(item);
+      const sexo = resolveSexo(item);
       const normalizedItem = {
         ...item,
+        nombreCompleto,
+        fullName: normalizeText(getField(item, 'fullName')) || nombreCompleto,
+        name: normalizeText(getField(item, 'name')) || nombreCompleto,
+        sexo,
+        unit: normalizeText(getField(item, 'unit')) || sexo,
         ...(Object.prototype.hasOwnProperty.call(item, 'colegioElectoral') ? {} : { colegioElectoral: colegio }),
         ...(Object.prototype.hasOwnProperty.call(item, 'colegio_electoral') ? {} : { colegio_electoral: colegio }),
         ...(Object.prototype.hasOwnProperty.call(item, 'mesaElectoral') ? {} : { mesaElectoral: mesa }),
@@ -298,7 +313,7 @@
     if (aDigits && bDigits && Number.isFinite(aNum) && Number.isFinite(bNum) && aNum !== bNum) return aNum - bNum;
     const byRaw = aRaw.localeCompare(bRaw, 'es', { numeric: true, sensitivity: 'base' });
     if (byRaw !== 0) return byRaw;
-    return String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
+    return String(resolveNombreCompleto(a) || '').localeCompare(String(resolveNombreCompleto(b) || ''), 'es', { sensitivity: 'base' });
   }
 
   function sortedPlantilla() {
@@ -315,7 +330,7 @@
 
   function addPlantilla() {
     const employeeEl = document.getElementById('newPlantEmployeeNumber');
-    const nameEl = document.getElementById('newPlantName');
+    const nameEl = document.getElementById('newPlantNombreCompleto');
     const jobEl = document.getElementById('newPlantJob');
     const ageEl = document.getElementById('newPlantPositionSeniority');
     const levelEl = document.getElementById('newPlantLevel');
@@ -335,14 +350,14 @@
     const observacionesRecorrido = normalizeText(document.getElementById('newPlantObservacionesRecorrido')?.value);
 
     if (!employeeNumber || !name || !job) {
-      alert('Introduce Nº empleado, nombre y apellidos, y puesto de trabajo.');
+      alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
       return;
     }
 
     const now = new Date().toISOString();
     const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `plant-${Date.now()}`;
     const items = getPlantilla();
-    items.push({ id, employeeNumber, name, colegioElectoral, colegio_electoral: colegioElectoral, mesaElectoral, mesa_electoral: mesaElectoral, sindicato, participacionEstimada, participacion_estimada: participacionEstimada, recorridoActivo, recorrido_activo: recorridoActivo, estacionBase, estacion_base: estacionBase, observacionesRecorrido, observaciones_recorrido: observacionesRecorrido, job, positionSeniority, level, createdAt: now, updatedAt: now });
+    items.push({ id, employeeNumber, nombreCompleto: name, fullName: name, name, colegioElectoral, colegio_electoral: colegioElectoral, mesaElectoral, mesa_electoral: mesaElectoral, sindicato, participacionEstimada, participacion_estimada: participacionEstimada, recorridoActivo, recorrido_activo: recorridoActivo, estacionBase, estacion_base: estacionBase, observacionesRecorrido, observaciones_recorrido: observacionesRecorrido, job, positionSeniority, level, createdAt: now, updatedAt: now });
     setPlantilla(items);
 
     employeeEl.value = '';
@@ -391,8 +406,8 @@
             <input id="editPlantEmployeeNumber" placeholder="Ej. 12345" />
           </label>
           <label class="rrll-pro-field">
-            <span>Nombre y apellidos</span>
-            <input id="editPlantName" placeholder="Nombre y apellidos" />
+            <span>Nombre completo</span>
+            <input id="editPlantNombreCompleto" placeholder="Nombre completo" />
           </label>
           <label class="rrll-pro-field"><span>Colegio electoral</span><input id="editPlantColegioElectoral" list="plantillaColegioElectoralOptions" /></label>
           <label class="rrll-pro-field"><span>Mesa electoral</span><select id="editPlantMesaElectoral">${ELECTORAL_MESAS.map(m => `<option value="${m}">${m}</option>`).join('')}</select></label>
@@ -436,7 +451,7 @@
     const modal = ensurePlantillaEditModal();
     fillSindicatoSelect('editPlantSindicato', getField(item, 'sindicato'));
     document.getElementById('editPlantEmployeeNumber').value = item.employeeNumber || '';
-    document.getElementById('editPlantName').value = item.name || '';
+    document.getElementById('editPlantNombreCompleto').value = resolveNombreCompleto(item) || '';
     document.getElementById('editPlantColegioElectoral').value = getField(item, 'colegioElectoral', 'colegio_electoral') || '';
     document.getElementById('editPlantMesaElectoral').value = getField(item, 'mesaElectoral', 'mesa_electoral') || '';
     document.getElementById('editPlantSindicato').value = getField(item, 'sindicato') || '';
@@ -460,7 +475,7 @@
   function saveEditingPlantilla() {
     if (!editingPlantillaId) return;
     const employeeNumber = normalizeEmployeeNumber(document.getElementById('editPlantEmployeeNumber')?.value);
-    const name = normalizeText(document.getElementById('editPlantName')?.value);
+    const name = normalizeText(document.getElementById('editPlantNombreCompleto')?.value);
     const job = normalizeText(document.getElementById('editPlantJob')?.value);
     const positionSeniorityInput = normalizeText(document.getElementById('editPlantPositionSeniority')?.value);
     const previousItem = getPlantilla().find(item => item.id === editingPlantillaId);
@@ -477,12 +492,14 @@
     const estacionBase = normalizeText(document.getElementById('editPlantEstacionBase')?.value);
     const observacionesRecorrido = normalizeText(document.getElementById('editPlantObservacionesRecorrido')?.value);
     if (!employeeNumber || !name || !job) {
-      alert('Introduce Nº empleado, nombre y apellidos, y puesto de trabajo.');
+      alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
       return;
     }
     setPlantilla(getPlantilla().map(item => item.id === editingPlantillaId ? {
       ...item,
       employeeNumber,
+      nombreCompleto: name,
+      fullName: name,
       name,
       colegioElectoral, colegio_electoral: colegioElectoral, mesaElectoral, mesa_electoral: mesaElectoral, sindicato, participacionEstimada, participacion_estimada: participacionEstimada, recorridoActivo, recorrido_activo: recorridoActivo, estacionBase, estacion_base: estacionBase, observacionesRecorrido, observaciones_recorrido: observacionesRecorrido,
       job,
@@ -504,29 +521,14 @@
   }
 
   function rowHtml(item) {
-    const defaults = plantillaDisplayDefaults(item);
-    const name = normalizeText(item.name);
-    const lastName = normalizeText(item.lastName);
-    const fullName = normalizeText(item.fullName) || normalizeText([name, lastName].filter(Boolean).join(' ')) || name;
+    const nombreCompleto = resolveNombreCompleto(item);
     return `
       <tr id="rrll-plant-${item.id}" class="rrll-pro-row plantilla-row" ondblclick="event.preventDefault(); event.stopPropagation(); openPlantillaEditModal('${item.id}')" title="Doble clic para editar">
         <td><strong>${escapeHtml(item.employeeNumber || '')}</strong></td>
-        <td>${escapeHtml(name || '—')}</td>
-        <td>${escapeHtml(lastName || '—')}</td>
-        <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(fullName || 'Sin nombre')}</div></td>
+        <td class="plantilla-col-nombre-completo rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(nombreCompleto || 'Sin nombre')}</div></td>
         <td>${escapeHtml(item.job || '—')}</td>
-        <td>${escapeHtml(normalizeText(item.area) || '—')}</td>
-        <td>${escapeHtml(normalizeText(item.department) || '—')}</td>
-        <td>${escapeHtml(normalizeText(item.unit) || '—')}</td>
-        <td class="plantilla-col-date">${escapeHtml(formatPlantillaDate(item.positionSeniority) || '—')}</td>
+        <td>${escapeHtml(resolveSexo(item) || '—')}</td>
         <td><span class="rrll-status-pill progress">${escapeHtml(item.level || '—')}</span></td>
-        <td>${escapeHtml(defaults.colegio)}</td>
-        <td>${escapeHtml(defaults.mesa)}</td>
-        <td>${escapeHtml(defaults.sindicato)}</td>
-        <td>${escapeHtml(defaults.participacion)}</td>
-        <td>${defaults.recorridoActivo ? 'Sí' : 'No'}</td>
-        <td>${escapeHtml(defaults.estacionBase)}</td>
-        <td>${escapeHtml(defaults.observaciones)}</td>
         <td class="rrll-pro-actions plantilla-actions-cell"><button class="small danger rrll-delete-icon-button" type="button" onclick="event.stopPropagation(); deletePlantilla('${item.id}')" title="Eliminar persona" aria-label="Eliminar persona"><span aria-hidden="true">🗑️</span></button></td>
       </tr>
     `;
@@ -575,7 +577,7 @@
     const count = document.getElementById('count-plantilla-total');
     const summary = document.getElementById('summary-count-plantilla');
     const head = body?.closest('table')?.querySelector('thead');
-    if (head) head.innerHTML = '<tr><th>Nº empleado</th><th>Nombre</th><th>Apellidos</th><th>Nombre completo</th><th>Puesto</th><th>Área</th><th>Departamento</th><th>Unidad</th><th>Antigüedad en puesto</th><th>Nivel</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Participación estimada</th><th>Recorrido activo</th><th>Estación base</th><th>Observaciones recorrido</th><th>Acciones</th></tr>';
+    if (head) head.innerHTML = '<tr><th>Nº empleado</th><th>Nombre completo</th><th>Puesto</th><th>Sexo</th><th>Nivel</th><th>Acciones</th></tr>';
     if (body) body.innerHTML = visibleRows.map(rowHtml).join('');
     if (empty) empty.style.display = rows.length ? 'none' : 'block';
     if (count) count.textContent = rows.length;
@@ -625,7 +627,7 @@
     const sindicatos = ['Todos', ...new Set(all.map(item => plantillaDisplayDefaults(item).sindicato))];
     if (!colegios.includes(electoralSelectedColegio)) electoralSelectedColegio = 'Todos';
     if (!sindicatos.includes(electoralSelectedSindicato)) electoralSelectedSindicato = 'Todos';
-    const visibleRows = getElectoralVisibleRows().sort((a, b) => normalizeSindicato(getField(a, 'sindicato')).localeCompare(normalizeSindicato(getField(b, 'sindicato')), 'es') || normalizeText(a.name).localeCompare(normalizeText(b.name), 'es'));
+    const visibleRows = getElectoralVisibleRows().sort((a, b) => normalizeSindicato(getField(a, 'sindicato')).localeCompare(normalizeSindicato(getField(b, 'sindicato')), 'es') || normalizeText(resolveNombreCompleto(a)).localeCompare(normalizeText(resolveNombreCompleto(b)), 'es'));
     const bySind = new Map();
     visibleRows.forEach(item => {
       const k = normalizeSindicato(getField(item, 'sindicato'));
@@ -663,7 +665,7 @@
     const tableBody = document.getElementById('electoralTableBody');
     if (tableBody) tableBody.innerHTML = visibleRows.map(item => {
       const defaults = plantillaDisplayDefaults(item);
-      return `<tr><td>${escapeHtml(item.name || '—')}</td><td>${escapeHtml(defaults.colegio)}</td><td>${escapeHtml(defaults.mesa)}</td><td>${escapeHtml(defaults.sindicato)}</td><td>${escapeHtml(defaults.participacion)}</td><td>${defaults.recorridoActivo ? 'Sí' : 'No'}</td><td>${escapeHtml(defaults.estacionBase)}</td><td>${escapeHtml(defaults.observaciones)}</td></tr>`;
+      return `<tr><td>${escapeHtml(resolveNombreCompleto(item) || '—')}</td><td>${escapeHtml(defaults.colegio)}</td><td>${escapeHtml(defaults.mesa)}</td><td>${escapeHtml(defaults.sindicato)}</td><td>${escapeHtml(defaults.participacion)}</td><td>${defaults.recorridoActivo ? 'Sí' : 'No'}</td><td>${escapeHtml(defaults.estacionBase)}</td><td>${escapeHtml(defaults.observaciones)}</td></tr>`;
     }).join('');
     const summaryBody = document.getElementById('electoralSummaryBody');
     if (summaryBody) summaryBody.innerHTML = [...bySind.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es')).map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${v}</td><td>${visibleRows.length ? ((v / visibleRows.length) * 100).toFixed(1) : '0.0'}%</td></tr>`).join('');
@@ -674,11 +676,9 @@
       employeeNumber: ['no empleado', 'n empleado', 'numero empleado', 'num empleado', 'numero de empleado', 'no', 'n', 'numero', 'num'],
       name: ['nombre'],
       lastName: ['apellidos'],
-      fullName: ['nombre completo', 'nombre y apellidos', 'apellidos y nombre', 'persona', 'empleado'],
+      nombreCompleto: ['nombre completo', 'nombre y apellidos', 'apellidos y nombre', 'persona', 'empleado'],
       job: ['puesto', 'puesto de trabajo', 'cargo'],
-      area: ['area'],
-      department: ['departamento'],
-      unit: ['unidad'],
+      sexo: ['sexo', 'unidad'],
       positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antig puesto', 'fecha antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
       level: ['nivel', 'nivel retributivo', 'grupo'],
       colegioElectoral: ['colegio electoral'],
@@ -865,7 +865,7 @@
       const employeeNumber = map.employeeNumber == null ? '' : normalizeEmployeeNumber(row[map.employeeNumber]);
       const name = map.name == null ? '' : normalizeText(row[map.name]);
       const lastName = map.lastName == null ? '' : normalizeText(row[map.lastName]);
-      const fullNameInput = map.fullName == null ? '' : normalizeText(row[map.fullName]);
+      const fullNameInput = map.nombreCompleto == null ? '' : normalizeText(row[map.nombreCompleto]);
       const fullName = fullNameInput || normalizeText([name, lastName].filter(Boolean).join(' '));
       if (!employeeNumber && !fullName) {
         summary.skipped++;
@@ -875,11 +875,10 @@
         employeeNumber,
         name,
         lastName,
+        nombreCompleto: fullName,
         fullName,
         job: map.job == null ? '' : normalizeText(row[map.job]),
-        area: map.area == null ? '' : normalizeText(row[map.area]),
-        department: map.department == null ? '' : normalizeText(row[map.department]),
-        unit: map.unit == null ? '' : normalizeText(row[map.unit]),
+                sexo: map.sexo == null ? '' : normalizeText(row[map.sexo]),
         positionSeniority: map.positionSeniority == null ? '' : normalizePlantillaDateOrText(row[map.positionSeniority]),
         level: map.level == null ? '' : normalizeText(row[map.level]).toUpperCase()
         ,colegioElectoral: map.colegioElectoral == null ? '' : normalizeText(row[map.colegioElectoral])
@@ -897,13 +896,15 @@
         const merged = {
           ...current,
           employeeNumber: imported.employeeNumber || current.employeeNumber || '',
-          name: imported.name || current.name || '',
-          lastName: imported.lastName || current.lastName || '',
-          fullName: imported.fullName || current.fullName || '',
+          name: imported.nombreCompleto || imported.name || resolveNombreCompleto(current) || current.name || '',
+          lastName: current.lastName || '',
+          nombreCompleto: imported.nombreCompleto || current.nombreCompleto || current.fullName || '',
+          fullName: imported.nombreCompleto || current.fullName || '',
           job: imported.job || current.job || '',
           area: imported.area || current.area || '',
           department: imported.department || current.department || '',
-          unit: imported.unit || current.unit || '',
+          sexo: imported.sexo || resolveSexo(current) || '',
+          unit: imported.sexo || current.unit || '',
           positionSeniority: map.positionSeniority == null || !imported.positionSeniority ? (current.positionSeniority || '') : imported.positionSeniority,
           level: imported.level ? normalizeLevel(imported.level) : (current.level || ''),
           colegioElectoral: imported.colegioElectoral || normalizeText(getField(current, 'colegioElectoral', 'colegio_electoral')),
@@ -928,13 +929,15 @@
         items.push({
           id,
           employeeNumber: imported.employeeNumber,
-          name: imported.name,
+          nombreCompleto: imported.nombreCompleto,
+          name: imported.nombreCompleto || imported.name,
           lastName: imported.lastName,
-          fullName: imported.fullName,
+          fullName: imported.nombreCompleto,
           job: imported.job,
           area: imported.area,
           department: imported.department,
-          unit: imported.unit,
+          sexo: imported.sexo,
+          unit: imported.sexo,
           positionSeniority: imported.positionSeniority,
           level: imported.level ? normalizeLevel(imported.level) : '',
           colegioElectoral: imported.colegioElectoral,
@@ -1008,14 +1011,14 @@
         <tr>
           <td>${idx + 1}</td>
           <td>${htmlEscapeForPrint(item.employeeNumber || '')}</td>
-          <td>${htmlEscapeForPrint(item.name || '')}</td>
+          <td>${htmlEscapeForPrint(resolveNombreCompleto(item) || '')}</td>
           <td>${htmlEscapeForPrint(item.job || '')}</td>
           <td>${htmlEscapeForPrint(formatPlantillaDate(item.positionSeniority))}</td>
           <td>${htmlEscapeForPrint(item.level || '')}</td>
         </tr>
       `).join('')
       : `<tr><td colspan="6">Sin registros.</td></tr>`;
-    const html = `<h1>Plantilla</h1><div class="date">Generado: ${new Date().toLocaleString('es-ES')}</div><table><thead><tr><th>#</th><th>Nº empleado</th><th>Nombre y apellidos</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel retributivo</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+    const html = `<h1>Plantilla</h1><div class="date">Generado: ${new Date().toLocaleString('es-ES')}</div><table><thead><tr><th>#</th><th>Nº empleado</th><th>Nombre completo</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel retributivo</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
     if (typeof openPrintPreviewWithHtml === 'function') openPrintPreviewWithHtml(html);
   }
 
@@ -1024,8 +1027,8 @@
     const excelData = {
       title: 'Plantilla',
       filename: 'plantilla',
-      headers: ['Nº empleado', 'Nombre y apellidos', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Puesto de trabajo', 'Antig. Puesto', 'Nivel retributivo'],
-      rows: rows.map(item => [item.employeeNumber || '', item.name || '', getField(item, 'colegioElectoral', 'colegio_electoral') || '', getField(item, 'mesaElectoral', 'mesa_electoral') || '', getField(item, 'sindicato') || '', item.job || '', formatPlantillaDate(item.positionSeniority), item.level || ''])
+      headers: ['Nº empleado', 'Nombre completo', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Puesto de trabajo', 'Antig. Puesto', 'Nivel retributivo'],
+      rows: rows.map(item => [item.employeeNumber || '', resolveNombreCompleto(item) || '', item.job || '', resolveSexo(item) || '', item.level || '', getField(item, 'colegioElectoral', 'colegio_electoral') || '', getField(item, 'mesaElectoral', 'mesa_electoral') || '', getField(item, 'sindicato') || '', item.job || '', formatPlantillaDate(item.positionSeniority), item.level || ''])
     };
     if (typeof exportExcelData === 'function') exportExcelData(excelData);
   }
