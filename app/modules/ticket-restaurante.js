@@ -5,6 +5,8 @@ const TICKET_RESTAURANT_ABSENCE_HEADERS = ["Nº empleado", "Nombre y apellidos",
 const TICKET_RESTAURANT_EXPORT_HEADERS = ["Nombre", "Apellido1", "Apellido2", "DNI", "Pedido", "Nº Emp", "Numero Tickets", "Importe", "Total", "Fec Inicio", "Fec Cad", "Hoja Gastos", "Ausencias"];
 const TICKET_RESTAURANT_DEFAULT_CONFIG = { pedido: "2404407", importe: "14,57" };
 
+const TICKET_RESTAURANT_DEBT_START_YEAR = 2026;
+
 const TICKET_RESTAURANT_PEOPLE_FILTERS = [
   ["ticketPeopleFilterEmployee", item => item.employeeNumber],
   ["ticketPeopleFilterName", item => item.name],
@@ -317,6 +319,29 @@ function normalizeTicketRestaurantPendingItem(key, item) {
   };
 }
 
+
+function ticketRestaurantAbsenceGeneratesDiscount(absence, employee = null, date = "") {
+  const isoDate = parseTicketDate(date || (absence && absence.from));
+  if (!isoDate) return false;
+  const [yearStr = ""] = isoDate.split("-");
+  const year = Number(yearStr);
+  if (!Number.isFinite(year) || year < TICKET_RESTAURANT_DEBT_START_YEAR) return false;
+
+  const person = employee || findTicketRestaurantPersonByEmployee(absence && absence.employeeNumber);
+  if (!person || !normalizeTicketEmployeeLookup(person.employeeNumber)) return false;
+
+  const normalizedCalendar = normalizeTicketCalendar(person.calendar);
+  if (!isKnownTicketCalendar(normalizedCalendar)) return false;
+  if (!employeeHasTicketRightOnDate(person.employeeNumber, isoDate, normalizedCalendar)) return false;
+
+  const monthInfo = ticketRestaurantMonthYearFromDate(isoDate);
+  if (!monthInfo || !monthInfo.month || !monthInfo.year) return false;
+  const monthTheoretical = ticketRestaurantWorkingDays(monthInfo.month, monthInfo.year, normalizedCalendar);
+  if (monthTheoretical <= 0) return false;
+
+  return true;
+}
+
 function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
   const absences = getTicketRestaurantAbsences();
   const people = getTicketRestaurantPeople();
@@ -341,6 +366,16 @@ function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
     if (!entry.pendingItems || typeof entry.pendingItems !== "object") { entry.pendingItems = {}; dirty = true; }
     Object.entries(entry.pendingItems).forEach(([key, item]) => {
       const normalized = normalizeTicketRestaurantPendingItem(key, item);
+      const identityPerson = identity.startsWith("emp:")
+        ? peopleByEmployee.get(normalizeTicketEmployeeLookup(identity.slice(4)))
+        : (identity.startsWith("name:") ? peopleByName.get(normalizeTicketText(identity.slice(5)).replace(/\s+/g, " ").trim()) : null);
+      const generates = ticketRestaurantAbsenceGeneratesDiscount({ employeeNumber: identityPerson && identityPerson.employeeNumber }, identityPerson, normalized.date);
+      if (!generates) {
+        delete entry.pendingItems[key];
+        delete entry.importedDailyKeys[key];
+        dirty = true;
+        return;
+      }
       if (JSON.stringify(normalized) !== JSON.stringify(item || {})) {
         entry.pendingItems[key] = normalized;
         dirty = true;
@@ -373,6 +408,7 @@ function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
     dailyKeys.forEach(key => {
       const [, dayIso = "", reason = ""] = key.split("|");
       if (!dayIso) return;
+      if (!ticketRestaurantAbsenceGeneratesDiscount(absence, peopleByEmployee.get(normalizeTicketEmployeeLookup(absence && absence.employeeNumber)), dayIso)) return;
       if (!entry.importedDailyKeys[key]) { entry.importedDailyKeys[key] = 1; dirty = true; }
       if (!entry.pendingItems[key]) {
         entry.pendingItems[key] = normalizeTicketRestaurantPendingItem(key, { key, date: dayIso, reason, remainingDebt: 1, consumedByMonth: {} });
@@ -399,9 +435,11 @@ function registerTicketRestaurantPendingDiscounts(absenceRows) {
       : { pendingDebt: 0, importedDailyKeys: {}, pendingItems: {} };
     if (!entry.importedDailyKeys || typeof entry.importedDailyKeys !== "object") entry.importedDailyKeys = {};
     if (!entry.pendingItems || typeof entry.pendingItems !== "object") entry.pendingItems = {};
+    const person = findTicketRestaurantPersonByEmployee(absence && absence.employeeNumber);
     dailyKeys.forEach(key => {
       const [, dayIso = "", reason = ""] = key.split("|");
       if (!dayIso) return;
+      if (!ticketRestaurantAbsenceGeneratesDiscount(absence, person, dayIso)) return;
       if (entry.importedDailyKeys[key]) return;
       entry.importedDailyKeys[key] = 1;
       entry.pendingItems[key] = {
@@ -1838,7 +1876,7 @@ function calculateTicketRestaurantCompute(period = null) {
       if (!sameEmployee) return sum;
       return sum + buildTicketRestaurantAbsenceDailyKeys(absence).filter(key => {
         const [, dayIso = ""] = key.split("|");
-        return dayIso && dayIso < targetMonthStart;
+        return dayIso && dayIso < targetMonthStart && ticketRestaurantAbsenceGeneratesDiscount(absence, person, dayIso);
       }).length;
     }, 0);
     const ledgerEntry = identity ? pendingLedger[identity] : null;
@@ -1852,7 +1890,14 @@ function calculateTicketRestaurantCompute(period = null) {
       if (pendingItems[key]) return;
       const [, dayIso = "", reason = ""] = key.split("|");
       if (!dayIso) return;
+      if (!ticketRestaurantAbsenceGeneratesDiscount({ employeeNumber: person.employeeNumber }, person, dayIso)) return;
       pendingItems[key] = { key, date: dayIso, reason, remainingDebt: 1, consumedByMonth: {} };
+    });
+    Object.keys(pendingItems).forEach(key => {
+      const item = pendingItems[key];
+      if (!ticketRestaurantAbsenceGeneratesDiscount({ employeeNumber: person.employeeNumber }, person, item && item.date)) {
+        delete pendingItems[key];
+      }
     });
     const alreadyApplied = Object.values(pendingItems).reduce((sum, item) => (
       sum + parseTicketNumber(item && item.consumedByMonth && item.consumedByMonth[targetMonthKey])
