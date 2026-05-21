@@ -1728,9 +1728,9 @@ function calculateTicketRestaurantCompute(period = null) {
     const employeeLabel = person.employeeNumber || "sin nº";
     if (!hasCalendar) warnings.push(`Empleado sin calendario asignado: ${employeeLabel}.`);
     const theoretical = hasCalendar ? (calendarTheoretical.get(normalizedCalendar) || 0) : 0;
-    const absenceDetails = filterAbsencesAffectingTicket(person.employeeNumber, absences, visibleMonth, normalizedCalendar, true);
-    const absenceDays = hasCalendar ? calculateTicketAffectingAbsenceDays(person.employeeNumber, absences, visibleMonth, normalizedCalendar) : 0;
-    if (!hasCalendar && absenceDetails.length) warnings.push(`Empleado sin calendario asignado: ${employeeLabel}. No se descuentan sus ausencias porque no se puede verificar el derecho a ticket.`);
+    const currentMonthAbsenceDetails = filterAbsencesAffectingTicket(person.employeeNumber, absences, visibleMonth, normalizedCalendar, true);
+    const currentMonthAbsenceDays = hasCalendar ? calculateTicketAffectingAbsenceDays(person.employeeNumber, absences, visibleMonth, normalizedCalendar) : 0;
+    if (!hasCalendar && currentMonthAbsenceDetails.length) warnings.push(`Empleado sin calendario asignado: ${employeeLabel}. No se descuentan sus ausencias porque no se puede verificar el derecho a ticket.`);
     const monthlyTickets = Math.max(0, theoretical);
     const identity = buildTicketRestaurantPendingDiscountIdentity(person);
     const ledgerEntry = identity ? pendingLedger[identity] : null;
@@ -1744,7 +1744,7 @@ function calculateTicketRestaurantCompute(period = null) {
       needsSync = true;
     });
     const alreadyApplied = Object.values(pendingItems).reduce((sum, item) => sum + parseTicketNumber(item && item.consumedByMonth && item.consumedByMonth[targetMonthKey]), 0);
-    let appliedDebt = alreadyApplied;
+    let appliedAbsenceDays = alreadyApplied;
     let remainingCapacity = Math.max(0, monthlyTickets - alreadyApplied);
     if (remainingCapacity > 0 && !alreadyApplied) {
       Object.values(pendingItems)
@@ -1759,13 +1759,25 @@ function calculateTicketRestaurantCompute(period = null) {
           item.remainingDebt = remaining - consume;
           item.consumedByMonth = item.consumedByMonth && typeof item.consumedByMonth === "object" ? item.consumedByMonth : {};
           item.consumedByMonth[targetMonthKey] = parseTicketNumber(item.consumedByMonth[targetMonthKey]) + consume;
-          appliedDebt += consume;
+          appliedAbsenceDays += consume;
           remainingCapacity -= consume;
           needsSync = true;
         });
     }
+    const appliedAbsenceItems = Object.values(pendingItems)
+      .filter(item => item && parseTicketDate(item.date) && isTicketMonthBefore(ticketRestaurantMonthYearFromDate(item.date), targetMonth) && parseTicketNumber(item && item.consumedByMonth && item.consumedByMonth[targetMonthKey]) > 0)
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const appliedAbsenceDetails = appliedAbsenceItems.map(item => {
+      const consumed = parseTicketNumber(item && item.consumedByMonth && item.consumedByMonth[targetMonthKey]);
+      return {
+        absence: { from: item.date, to: item.date, reason: item.reason || "ausencia" },
+        naturalDays: consumed,
+        ticketDays: consumed,
+        hasCalendar
+      };
+    });
     const pendingDebt = Object.values(pendingItems).reduce((sum, item) => sum + parseTicketNumber(item && item.remainingDebt), 0);
-    const finalTickets = Math.max(0, monthlyTickets - appliedDebt);
+    const finalTickets = Math.max(0, monthlyTickets - appliedAbsenceDays);
     const remainingDebt = pendingDebt;
     if (identity && (needsSync || pendingDebt !== parseTicketNumber(ledgerEntry && ledgerEntry.pendingDebt))) {
       ledgerChanged.set(identity, {
@@ -1778,11 +1790,14 @@ function calculateTicketRestaurantCompute(period = null) {
     return {
       person: { ...person, calendar: hasCalendar ? normalizedCalendar : (person.calendar || "Sin calendario") },
       theoretical,
-      absenceDays,
+      absenceDays: appliedAbsenceDays,
+      appliedAbsenceDays,
+      currentMonthAbsenceDays,
       pendingDebt,
       remainingDebt,
-      absenceImpactDetails: absenceDetails,
-      absenceDetails: absenceDetails.map(formatTicketRestaurantAbsenceImpactDetail).join("; "),
+      absenceImpactDetails: appliedAbsenceDetails,
+      absenceDetails: appliedAbsenceDetails.map(formatTicketRestaurantAbsenceImpactDetail).join("; "),
+      currentMonthAbsenceImpactDetails: currentMonthAbsenceDetails,
       finalTickets,
       calendarWarning: !hasCalendar
     };
