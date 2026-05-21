@@ -1007,15 +1007,15 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
   display: flex;
   align-items: center;
   align-self: center;
-  width: clamp(162px, 25.2vw, 252px);
-  max-width: 252px;
+  width: clamp(146px, 22.7vw, 227px);
+  max-width: 227px;
   aspect-ratio: 850 / 272;
   height: auto;
-  min-width: 920px;
+  min-width: 0;
   margin: 0;
   overflow: hidden;
   flex: 0 0 auto;
-  padding: 4px 8px;
+  padding: 3px 7px;
 }
 
 .header-logo {
@@ -1038,15 +1038,15 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
 
 @media (max-width: 980px) {
   .header-logo-wrapper {
-    width: clamp(153px, 32.4vw, 225px);
-    max-width: 225px;
+    width: clamp(146px, 30vw, 210px);
+    max-width: 210px;
   }
 }
 
 @media (max-width: 520px) {
   .header-logo-wrapper {
-    width: min(100%, 198px);
-    max-width: 198px;
+    width: min(100%, 190px);
+    max-width: 190px;
   }
 }
 
