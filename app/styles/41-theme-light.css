@@ -352,8 +352,9 @@ html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-hi
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: nowrap;
+  gap: 10px;
+  flex-wrap: wrap;
+  row-gap: 10px;
   min-width: 0;
   margin-left: auto;
 }
@@ -382,6 +383,24 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
   width: 100%;
   line-height: 1;
   pointer-events: none;
+}
+
+body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button.plantilla-text-action,
+body.phase4-view-module #gestor-plantilla .rrll-pro-task-head .rrll-pro-list-actions .rrll-pro-new-button {
+  width: auto;
+  min-width: max-content;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 14px;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex: 0 1 auto;
+}
+
+@media (max-width: 1440px) {
+  #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions {
+    justify-content: flex-start;
+  }
 }
 
 #gestor-plantilla .plantilla-table .rrll-pro-actions {

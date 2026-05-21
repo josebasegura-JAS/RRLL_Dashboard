@@ -425,6 +425,11 @@
     if (empty) empty.style.display = rows.length ? 'none' : 'block';
     if (count) count.textContent = rows.length;
     if (summary) summary.textContent = `${rows.length} personas`;
+    document.querySelectorAll('#gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button').forEach(button => {
+      const label = normalizeText(button.textContent);
+      const isTextAction = ['Elecciones sindicales', 'Importar RRLL', '+ Crear plantilla', 'Crear plantilla'].includes(label);
+      button.classList.toggle('plantilla-text-action', isTextAction);
+    });
     renderPlantillaPagination(rows.length);
     renderPlantillaElectoral();
   }
