@@ -17,6 +17,25 @@
   let plantillaLoadDiagnosticsShown = false;
   const RRLL_IMPORT_KEY = 'rrll_recorridos_mesa';
   const MESAS_KEY = 'rrll_mesas_electorales';
+  const PLANTILLA_MODEL_COLUMNS = [
+    { key: 'employeeNumber', label: 'Nº empleado' },
+    { key: 'name', label: 'Nombre' },
+    { key: 'lastName', label: 'Apellidos' },
+    { key: 'fullName', label: 'Nombre completo' },
+    { key: 'job', label: 'Puesto' },
+    { key: 'area', label: 'Área' },
+    { key: 'department', label: 'Departamento' },
+    { key: 'unit', label: 'Unidad' },
+    { key: 'level', label: 'Nivel' },
+    { key: 'positionSeniority', label: 'Antigüedad en puesto' },
+    { key: 'colegioElectoral', label: 'Colegio electoral' },
+    { key: 'mesaElectoral', label: 'Mesa electoral' },
+    { key: 'sindicato', label: 'Sindicato' },
+    { key: 'participacionEstimada', label: 'Participación estimada' },
+    { key: 'recorridoActivo', label: 'Recorrido activo' },
+    { key: 'estacionBase', label: 'Estación base' },
+    { key: 'observacionesRecorrido', label: 'Observaciones recorrido' }
+  ];
 
 
   function resolvePlantillaItems(raw) {
@@ -181,6 +200,20 @@
 
   function normalizeLevel(value) {
     return LEVELS.includes(value) ? value : 'A';
+  }
+  function normalizeBoolean(value) {
+    const text = normalizeHeader(value);
+    if (!text) return false;
+    if (['si', 'sí', 's', 'true', '1', 'yes'].includes(text)) return true;
+    if (['no', 'false', '0'].includes(text)) return false;
+    return false;
+  }
+  function normalizeMesaElectoral(value) {
+    const text = normalizeText(value);
+    if (!text) return '';
+    const match = normalizeHeader(text).match(/(?:mesa )?([1-5])$/);
+    if (!match) return text;
+    return `Mesa ${match[1]}`;
   }
 
   function getField(item, ...keys) {
@@ -472,11 +505,19 @@
 
   function rowHtml(item) {
     const defaults = plantillaDisplayDefaults(item);
+    const name = normalizeText(item.name);
+    const lastName = normalizeText(item.lastName);
+    const fullName = normalizeText(item.fullName) || normalizeText([name, lastName].filter(Boolean).join(' ')) || name;
     return `
       <tr id="rrll-plant-${item.id}" class="rrll-pro-row plantilla-row" ondblclick="event.preventDefault(); event.stopPropagation(); openPlantillaEditModal('${item.id}')" title="Doble clic para editar">
         <td><strong>${escapeHtml(item.employeeNumber || '')}</strong></td>
-        <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.name || 'Sin nombre')}</div></td>
+        <td>${escapeHtml(name || '—')}</td>
+        <td>${escapeHtml(lastName || '—')}</td>
+        <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(fullName || 'Sin nombre')}</div></td>
         <td>${escapeHtml(item.job || '—')}</td>
+        <td>${escapeHtml(normalizeText(item.area) || '—')}</td>
+        <td>${escapeHtml(normalizeText(item.department) || '—')}</td>
+        <td>${escapeHtml(normalizeText(item.unit) || '—')}</td>
         <td class="plantilla-col-date">${escapeHtml(formatPlantillaDate(item.positionSeniority) || '—')}</td>
         <td><span class="rrll-status-pill progress">${escapeHtml(item.level || '—')}</span></td>
         <td>${escapeHtml(defaults.colegio)}</td>
@@ -533,6 +574,8 @@
     const empty = document.getElementById('plantillaTableEmpty');
     const count = document.getElementById('count-plantilla-total');
     const summary = document.getElementById('summary-count-plantilla');
+    const head = body?.closest('table')?.querySelector('thead');
+    if (head) head.innerHTML = '<tr><th>Nº empleado</th><th>Nombre</th><th>Apellidos</th><th>Nombre completo</th><th>Puesto</th><th>Área</th><th>Departamento</th><th>Unidad</th><th>Antigüedad en puesto</th><th>Nivel</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Participación estimada</th><th>Recorrido activo</th><th>Estación base</th><th>Observaciones recorrido</th><th>Acciones</th></tr>';
     if (body) body.innerHTML = visibleRows.map(rowHtml).join('');
     if (empty) empty.style.display = rows.length ? 'none' : 'block';
     if (count) count.textContent = rows.length;
@@ -544,8 +587,14 @@
     });
     const tableContainer = document.querySelector('#plantillaMainListView .rrll-pro-table-wrap');
     if (tableContainer) tableContainer.style.overflowX = 'auto';
+    ensurePlantillaModelDownloadButton();
     renderPlantillaPagination(rows.length);
     renderPlantillaElectoral();
+  }
+  function ensurePlantillaModelDownloadButton() {
+    const toolbar = document.querySelector('#gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions');
+    if (!toolbar || toolbar.querySelector('[data-plantilla-model-download="1"]')) return;
+    toolbar.insertAdjacentHTML('beforeend', '<button type="button" class="rrll-pro-tool-button" data-plantilla-model-download="1" onclick="downloadPlantillaModelExcel()">Descargar modelo</button>');
   }
 
   function getElectoralVisibleRows() {
@@ -623,10 +672,22 @@
   function getPlantillaFieldAliases() {
     return {
       employeeNumber: ['no empleado', 'n empleado', 'numero empleado', 'num empleado', 'numero de empleado', 'no', 'n', 'numero', 'num'],
-      name: ['nombre', 'nombre y apellidos', 'apellidos y nombre', 'persona', 'empleado'],
+      name: ['nombre'],
+      lastName: ['apellidos'],
+      fullName: ['nombre completo', 'nombre y apellidos', 'apellidos y nombre', 'persona', 'empleado'],
       job: ['puesto', 'puesto de trabajo', 'cargo'],
+      area: ['area'],
+      department: ['departamento'],
+      unit: ['unidad'],
       positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antig puesto', 'fecha antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
-      level: ['nivel', 'nivel retributivo', 'grupo']
+      level: ['nivel', 'nivel retributivo', 'grupo'],
+      colegioElectoral: ['colegio electoral'],
+      mesaElectoral: ['mesa electoral'],
+      sindicato: ['sindicato'],
+      participacionEstimada: ['participacion estimada'],
+      recorridoActivo: ['recorrido activo'],
+      estacionBase: ['estacion base'],
+      observacionesRecorrido: ['observaciones recorrido']
     };
   }
 
@@ -784,58 +845,121 @@
   }
 
   function applyPlantillaImport(rows) {
-    const summary = { read: 0, created: 0, updated: 0, unchanged: 0, skipped: 0, manualPreserved: 0 };
+    const summary = { read: 0, created: 0, updated: 0, unchanged: 0, skipped: 0, errors: 0, total: 0 };
     if (!rows.length) return summary;
     const headers = rows[0];
     const map = buildPlantillaColumnMap(headers);
-    if (map.employeeNumber == null) throw new Error('No se encontró cabecera de Nº empleado.');
     const now = new Date().toISOString();
     const items = getPlantilla();
     const byEmployee = new Map(items.map((item, index) => [normalizeEmployeeKey(item.employeeNumber), index]));
+    const byFullName = new Map(items.map((item, index) => {
+      const fullName = normalizeHeader(getField(item, 'fullName') || [getField(item, 'name'), getField(item, 'lastName')].filter(Boolean).join(' '));
+      return [fullName, index];
+    }).filter(([k]) => k));
     rows.slice(1).forEach(row => {
-      if (!row.some(Boolean)) return;
+      if (!row.some(Boolean)) {
+        summary.skipped++;
+        return;
+      }
       summary.read++;
-      const employeeNumber = normalizeEmployeeNumber(row[map.employeeNumber]);
-      if (!employeeNumber) {
+      const employeeNumber = map.employeeNumber == null ? '' : normalizeEmployeeNumber(row[map.employeeNumber]);
+      const name = map.name == null ? '' : normalizeText(row[map.name]);
+      const lastName = map.lastName == null ? '' : normalizeText(row[map.lastName]);
+      const fullNameInput = map.fullName == null ? '' : normalizeText(row[map.fullName]);
+      const fullName = fullNameInput || normalizeText([name, lastName].filter(Boolean).join(' '));
+      if (!employeeNumber && !fullName) {
         summary.skipped++;
         return;
       }
       const imported = {
         employeeNumber,
-        name: map.name == null ? '' : normalizeText(row[map.name]),
+        name,
+        lastName,
+        fullName,
         job: map.job == null ? '' : normalizeText(row[map.job]),
+        area: map.area == null ? '' : normalizeText(row[map.area]),
+        department: map.department == null ? '' : normalizeText(row[map.department]),
+        unit: map.unit == null ? '' : normalizeText(row[map.unit]),
         positionSeniority: map.positionSeniority == null ? '' : normalizePlantillaDateOrText(row[map.positionSeniority]),
         level: map.level == null ? '' : normalizeText(row[map.level]).toUpperCase()
+        ,colegioElectoral: map.colegioElectoral == null ? '' : normalizeText(row[map.colegioElectoral])
+        ,mesaElectoral: map.mesaElectoral == null ? '' : normalizeMesaElectoral(row[map.mesaElectoral])
+        ,sindicato: map.sindicato == null ? '' : normalizeText(row[map.sindicato])
+        ,participacionEstimada: map.participacionEstimada == null ? '' : normalizeText(row[map.participacionEstimada])
+        ,recorridoActivo: map.recorridoActivo == null ? false : normalizeBoolean(row[map.recorridoActivo])
+        ,estacionBase: map.estacionBase == null ? '' : normalizeText(row[map.estacionBase])
+        ,observacionesRecorrido: map.observacionesRecorrido == null ? '' : normalizeText(row[map.observacionesRecorrido])
       };
       const key = normalizeEmployeeKey(employeeNumber);
-      const existingIndex = byEmployee.get(key);
+      const existingIndex = byEmployee.get(key) ?? byFullName.get(normalizeHeader(fullName));
       if (existingIndex != null) {
         const current = items[existingIndex];
-        items[existingIndex] = {
+        const merged = {
           ...current,
           employeeNumber: imported.employeeNumber || current.employeeNumber || '',
-          name: map.name == null ? (current.name || '') : imported.name,
-          job: map.job == null ? (current.job || '') : imported.job,
+          name: imported.name || current.name || '',
+          lastName: imported.lastName || current.lastName || '',
+          fullName: imported.fullName || current.fullName || '',
+          job: imported.job || current.job || '',
+          area: imported.area || current.area || '',
+          department: imported.department || current.department || '',
+          unit: imported.unit || current.unit || '',
           positionSeniority: map.positionSeniority == null || !imported.positionSeniority ? (current.positionSeniority || '') : imported.positionSeniority,
-          level: map.level == null ? (current.level || '') : (imported.level ? normalizeLevel(imported.level) : ''),
+          level: imported.level ? normalizeLevel(imported.level) : (current.level || ''),
+          colegioElectoral: imported.colegioElectoral || normalizeText(getField(current, 'colegioElectoral', 'colegio_electoral')),
+          colegio_electoral: imported.colegioElectoral || normalizeText(getField(current, 'colegioElectoral', 'colegio_electoral')),
+          mesaElectoral: imported.mesaElectoral || normalizeText(getField(current, 'mesaElectoral', 'mesa_electoral')),
+          mesa_electoral: imported.mesaElectoral || normalizeText(getField(current, 'mesaElectoral', 'mesa_electoral')),
+          sindicato: imported.sindicato || normalizeText(getField(current, 'sindicato')),
+          participacionEstimada: imported.participacionEstimada || normalizeText(getField(current, 'participacionEstimada', 'participacion_estimada')),
+          participacion_estimada: imported.participacionEstimada || normalizeText(getField(current, 'participacionEstimada', 'participacion_estimada')),
+          recorridoActivo: map.recorridoActivo == null ? !!getField(current, 'recorridoActivo', 'recorrido_activo') : imported.recorridoActivo,
+          recorrido_activo: map.recorridoActivo == null ? !!getField(current, 'recorridoActivo', 'recorrido_activo') : imported.recorridoActivo,
+          estacionBase: imported.estacionBase || normalizeText(getField(current, 'estacionBase', 'estacion_base')),
+          estacion_base: imported.estacionBase || normalizeText(getField(current, 'estacionBase', 'estacion_base')),
+          observacionesRecorrido: imported.observacionesRecorrido || normalizeText(getField(current, 'observacionesRecorrido', 'observaciones_recorrido')),
+          observaciones_recorrido: imported.observacionesRecorrido || normalizeText(getField(current, 'observacionesRecorrido', 'observaciones_recorrido')),
           updatedAt: now
         };
+        items[existingIndex] = merged;
+        summary.updated++;
       } else {
-        const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `plant-${Date.now()}-${summary.saved}`;
+        const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `plant-${Date.now()}-${summary.read}`;
         items.push({
           id,
           employeeNumber: imported.employeeNumber,
           name: imported.name,
+          lastName: imported.lastName,
+          fullName: imported.fullName,
           job: imported.job,
+          area: imported.area,
+          department: imported.department,
+          unit: imported.unit,
           positionSeniority: imported.positionSeniority,
           level: imported.level ? normalizeLevel(imported.level) : '',
+          colegioElectoral: imported.colegioElectoral,
+          colegio_electoral: imported.colegioElectoral,
+          mesaElectoral: imported.mesaElectoral,
+          mesa_electoral: imported.mesaElectoral,
+          sindicato: imported.sindicato,
+          participacionEstimada: imported.participacionEstimada,
+          participacion_estimada: imported.participacionEstimada,
+          recorridoActivo: imported.recorridoActivo,
+          recorrido_activo: imported.recorridoActivo,
+          estacionBase: imported.estacionBase,
+          estacion_base: imported.estacionBase,
+          observacionesRecorrido: imported.observacionesRecorrido,
+          observaciones_recorrido: imported.observacionesRecorrido,
           createdAt: now,
           updatedAt: now
         });
-        byEmployee.set(key, items.length - 1);
+        if (key) byEmployee.set(key, items.length - 1);
+        if (normalizeHeader(fullName)) byFullName.set(normalizeHeader(fullName), items.length - 1);
+        summary.created++;
       }
-          });
-    setPlantilla(items);
+    });
+    if (items.length) setPlantilla(items);
+    summary.total = items.length;
     return summary;
   }
 
@@ -850,7 +974,7 @@
       renderPlantilla({ resetPage: true });
       if (typeof updateQuickCounts === 'function') updateQuickCounts();
       if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
-      const message = `Importación completada: ${summary.read} registros leídos · ${summary.created || 0} nuevas · ${summary.updated || 0} actualizadas · ${summary.unchanged || 0} sin cambios · ${summary.manualPreserved || 0} campos manuales preservados · ${summary.skipped || 0} omitidos.`;
+      const message = `Importación completada. Creadas: ${summary.created}. Actualizadas: ${summary.updated}. Sin cambios: ${summary.unchanged}. Filas ignoradas: ${summary.skipped}. Errores: ${summary.errors}. Total final guardado: ${summary.total}.`;
       if (summaryEl) summaryEl.textContent = message;
       alert(message);
     } catch (error) {
@@ -905,6 +1029,15 @@
     };
     if (typeof exportExcelData === 'function') exportExcelData(excelData);
   }
+  function downloadPlantillaModelExcel() {
+    if (typeof exportExcelData !== 'function') return;
+    exportExcelData({
+      title: 'Modelo Plantilla RRLL',
+      filename: 'modelo_plantilla_rrll',
+      headers: PLANTILLA_MODEL_COLUMNS.map(column => column.label),
+      rows: []
+    });
+  }
 
   function setElectoralColegio(value) { electoralSelectedColegio = value || 'Todos'; renderPlantillaElectoral(); }
   function setElectoralMesa(value) { electoralSelectedMesa = value || 'Todos'; renderPlantillaElectoral(); }
@@ -934,7 +1067,7 @@
     });
   }
 
-  window.PlantillaModule = { getPlantilla, setPlantilla, togglePlantillaCreateForm, addPlantilla, deletePlantilla, openPlantillaEditModal, closePlantillaEditModal, saveEditingPlantilla, deleteEditingPlantilla, renderPlantilla, plantillaPreviousPage, plantillaNextPage, importPlantillaExcelFromInput, importPlantillaRrllFromInput, printPlantilla, exportPlantillaExcel, togglePlantillaElectoralView, setElectoralColegio, setElectoralMesa, setElectoralSindicato, setElectoralRecorrido, exportPlantillaElectoralExcel };
+  window.PlantillaModule = { getPlantilla, setPlantilla, togglePlantillaCreateForm, addPlantilla, deletePlantilla, openPlantillaEditModal, closePlantillaEditModal, saveEditingPlantilla, deleteEditingPlantilla, renderPlantilla, plantillaPreviousPage, plantillaNextPage, importPlantillaExcelFromInput, importPlantillaRrllFromInput, printPlantilla, exportPlantillaExcel, downloadPlantillaModelExcel, togglePlantillaElectoralView, setElectoralColegio, setElectoralMesa, setElectoralSindicato, setElectoralRecorrido, exportPlantillaElectoralExcel };
   window.getPlantilla = getPlantilla;
   window.setPlantilla = setPlantilla;
   window.togglePlantillaCreateForm = togglePlantillaCreateForm;
@@ -951,6 +1084,7 @@
   window.importPlantillaRrllFromInput = importPlantillaRrllFromInput;
   window.printPlantilla = printPlantilla;
   window.exportPlantillaExcel = exportPlantillaExcel;
+  window.downloadPlantillaModelExcel = downloadPlantillaModelExcel;
   window.togglePlantillaElectoralView = togglePlantillaElectoralView;
   window.setElectoralColegio = setElectoralColegio;
   window.setElectoralMesa = setElectoralMesa;
