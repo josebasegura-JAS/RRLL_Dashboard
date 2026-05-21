@@ -365,6 +365,24 @@ function ticketRestaurantAbsenceGeneratesDiscount(absence, employee = null, date
   return true;
 }
 
+function ticketRestaurantDateGeneratesDiscountForPerson(employee, date = "") {
+  const isoDate = parseTicketDate(date);
+  if (!isoDate || !isTicketRestaurantAbsenceDateComputable(isoDate)) return false;
+  const person = employee || null;
+  if (!person || !normalizeTicketEmployeeLookup(person.employeeNumber)) return false;
+
+  const normalizedCalendar = normalizeTicketCalendar(person.calendar);
+  if (!isKnownTicketCalendar(normalizedCalendar)) return false;
+  if (!employeeHasTicketRightOnDate(person.employeeNumber, isoDate, normalizedCalendar)) return false;
+
+  const monthInfo = ticketRestaurantMonthYearFromDate(isoDate);
+  if (!monthInfo || !monthInfo.month || !monthInfo.year) return false;
+  const monthTheoretical = ticketRestaurantWorkingDays(monthInfo.month, monthInfo.year, normalizedCalendar);
+  if (monthTheoretical <= 0) return false;
+
+  return true;
+}
+
 function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
   const absences = getTicketRestaurantAbsences();
   const people = getTicketRestaurantPeople();
@@ -1960,12 +1978,12 @@ function calculateTicketRestaurantCompute(period = null) {
       if (pendingItems[key]) return;
       const [, dayIso = "", reason = ""] = key.split("|");
       if (!dayIso) return;
-      if (!ticketRestaurantAbsenceGeneratesDiscount({ employeeNumber: person.employeeNumber }, person, dayIso)) return;
+      if (!ticketRestaurantDateGeneratesDiscountForPerson(person, dayIso)) return;
       pendingItems[key] = { key, date: dayIso, reason, remainingDebt: 1, consumedByMonth: {} };
     });
     Object.keys(pendingItems).forEach(key => {
       const item = pendingItems[key];
-      if (!ticketRestaurantAbsenceGeneratesDiscount({ employeeNumber: person.employeeNumber }, person, item && item.date)) {
+      if (!ticketRestaurantDateGeneratesDiscountForPerson(person, item && item.date)) {
         delete pendingItems[key];
       }
     });
