@@ -20,26 +20,80 @@
 
 
   function resolvePlantillaItems(raw) {
-    if (Array.isArray(raw)) return { items: raw, source: 'array', usedLegacyFallback: false };
+    if (Array.isArray(raw)) return { items: raw, source: 'array' };
     if (raw && typeof raw === 'object') {
-      if (Array.isArray(raw.items)) return { items: raw.items, source: 'items', usedLegacyFallback: true };
-      if (Array.isArray(raw.data)) return { items: raw.data, source: 'data', usedLegacyFallback: true };
-      if (Array.isArray(raw.plantilla)) return { items: raw.plantilla, source: 'plantilla', usedLegacyFallback: true };
+      if (Array.isArray(raw.items)) return { items: raw.items, source: 'items' };
+      if (Array.isArray(raw.data)) return { items: raw.data, source: 'data' };
+      if (Array.isArray(raw.plantilla)) return { items: raw.plantilla, source: 'plantilla' };
     }
-    return { items: [], source: 'empty', usedLegacyFallback: false };
+    return { items: [], source: 'empty' };
+  }
+
+  function collectPlantillaLikeKeysFromObject(source) {
+    if (!source || typeof source !== 'object') return [];
+    return Object.keys(source).filter(key => /plantilla|plant|employee|personal/i.test(String(key || '')));
+  }
+
+  function showPlantillaLoadDiagnostics(raw, resolved) {
+    if (plantillaLoadDiagnosticsShown) return;
+    const firstRecord = Array.isArray(resolved.items) && resolved.items[0] && typeof resolved.items[0] === 'object' ? resolved.items[0] : null;
+    const cacheKeys = collectPlantillaLikeKeysFromObject(window.rrllDatabaseCache || (typeof rrllDatabaseCache !== 'undefined' ? rrllDatabaseCache : null));
+    const localStorageKeys = [];
+    try {
+      for (let idx = 0; idx < window.localStorage.length; idx++) {
+        const key = window.localStorage.key(idx);
+        if (key && /plantilla|plant|employee|personal/i.test(key)) localStorageKeys.push(key);
+      }
+    } catch (error) {
+      console.warn('[Plantilla][diagnóstico] No se pudo leer localStorage:', error);
+    }
+    console.groupCollapsed('[Plantilla][diagnóstico de carga]');
+    console.info("load('rrll_plantilla', null) bruto:", raw);
+    console.info('tipo de dato:', raw === null ? 'null' : typeof raw);
+    console.info('es array:', Array.isArray(raw));
+    console.info('registros detectados:', resolved.items.length);
+    console.info('claves primer registro:', firstRecord ? Object.keys(firstRecord) : []);
+    console.info('fuente usada:', resolved.source);
+    console.info('rrllDatabaseCache existe:', !!(window.rrllDatabaseCache || (typeof rrllDatabaseCache !== 'undefined' ? rrllDatabaseCache : null)));
+    console.info('claves cache relacionadas:', cacheKeys);
+    console.info('claves localStorage relacionadas:', localStorageKeys);
+    console.groupEnd();
+    plantillaLoadDiagnosticsShown = true;
+  }
+
+  function findPlantillaFallbackRaw() {
+    const sources = [];
+    const cache = window.rrllDatabaseCache || (typeof rrllDatabaseCache !== 'undefined' ? rrllDatabaseCache : null);
+    if (cache && typeof cache === 'object') sources.push({ sourceName: 'rrllDatabaseCache', source: cache });
+    if (window.localStorage) {
+      const localMap = {};
+      for (let idx = 0; idx < window.localStorage.length; idx++) {
+        const key = window.localStorage.key(idx);
+        if (!key || !/plantilla|plant|employee|personal/i.test(key)) continue;
+        localMap[key] = load(key, null);
+      }
+      sources.push({ sourceName: 'localStorage/load()', source: localMap });
+    }
+    for (const { sourceName, source } of sources) {
+      const keys = collectPlantillaLikeKeysFromObject(source);
+      for (const key of keys) {
+        const candidate = source[key];
+        const resolved = resolvePlantillaItems(candidate);
+        if (resolved.items.length) return { items: resolved.items, source: `${sourceName}:${key}:${resolved.source}` };
+      }
+    }
+    return { items: [], source: 'none' };
   }
 
   function getPlantilla() {
     const raw = load(KEY, null);
-    const resolved = resolvePlantillaItems(raw);
-    if (!plantillaLoadDiagnosticsShown) {
-      console.info('[Plantilla][diagnóstico] load(rrll_plantilla) valor bruto:', raw);
-      console.info('[Plantilla][diagnóstico] es array:', Array.isArray(raw));
-      console.info('[Plantilla][diagnóstico] registros detectados:', resolved.items.length);
-      console.info('[Plantilla][diagnóstico] fallback legacy aplicado:', resolved.usedLegacyFallback, 'origen:', resolved.source);
-      plantillaLoadDiagnosticsShown = true;
+    let resolved = resolvePlantillaItems(raw);
+    if (!resolved.items.length) {
+      const fallback = findPlantillaFallbackRaw();
+      if (fallback.items.length) resolved = fallback;
     }
-    return resolved.items;
+    showPlantillaLoadDiagnostics(raw, resolved);
+    return Array.isArray(resolved.items) ? resolved.items : [];
   }
 
   function setPlantilla(items) {
@@ -172,18 +226,19 @@
       const observaciones = normalizeText(getField(item, 'observacionesRecorrido', 'observaciones_recorrido'));
       const normalizedItem = {
         ...item,
-        colegioElectoral: colegio,
-        colegio_electoral: colegio,
-        mesaElectoral: mesa,
-        mesa_electoral: mesa,
-        participacionEstimada: participacion,
-        participacion_estimada: participacion,
-        recorridoActivo: recorrido,
-        recorrido_activo: recorrido,
-        estacionBase,
-        estacion_base: estacionBase,
-        observacionesRecorrido: observaciones,
-        observaciones_recorrido: observaciones
+        ...(Object.prototype.hasOwnProperty.call(item, 'colegioElectoral') ? {} : { colegioElectoral: colegio }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'colegio_electoral') ? {} : { colegio_electoral: colegio }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'mesaElectoral') ? {} : { mesaElectoral: mesa }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'mesa_electoral') ? {} : { mesa_electoral: mesa }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'sindicato') ? {} : { sindicato: normalizeText(getField(item, 'sindicato')) }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'participacionEstimada') ? {} : { participacionEstimada: participacion }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'participacion_estimada') ? {} : { participacion_estimada: participacion }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'recorridoActivo') ? {} : { recorridoActivo: recorrido }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'recorrido_activo') ? {} : { recorrido_activo: recorrido }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'estacionBase') ? {} : { estacionBase }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'estacion_base') ? {} : { estacion_base: estacionBase }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'observacionesRecorrido') ? {} : { observacionesRecorrido: observaciones }),
+        ...(Object.prototype.hasOwnProperty.call(item, 'observaciones_recorrido') ? {} : { observaciones_recorrido: observaciones })
       };
       if (!hasChanges) {
         hasChanges = ['colegioElectoral', 'colegio_electoral', 'mesaElectoral', 'mesa_electoral', 'participacionEstimada', 'participacion_estimada', 'recorridoActivo', 'recorrido_activo', 'estacionBase', 'estacion_base', 'observacionesRecorrido', 'observaciones_recorrido']
@@ -421,12 +476,16 @@
       <tr id="rrll-plant-${item.id}" class="rrll-pro-row plantilla-row" ondblclick="event.preventDefault(); event.stopPropagation(); openPlantillaEditModal('${item.id}')" title="Doble clic para editar">
         <td><strong>${escapeHtml(item.employeeNumber || '')}</strong></td>
         <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.name || 'Sin nombre')}</div></td>
+        <td>${escapeHtml(item.job || '—')}</td>
+        <td class="plantilla-col-date">${escapeHtml(formatPlantillaDate(item.positionSeniority) || '—')}</td>
+        <td><span class="rrll-status-pill progress">${escapeHtml(item.level || '—')}</span></td>
         <td>${escapeHtml(defaults.colegio)}</td>
         <td>${escapeHtml(defaults.mesa)}</td>
         <td>${escapeHtml(defaults.sindicato)}</td>
-        <td>${escapeHtml(item.job || '')}</td>
-        <td class="plantilla-col-date">${escapeHtml(formatPlantillaDate(item.positionSeniority))}</td>
-        <td><span class="rrll-status-pill progress">${escapeHtml(item.level || '')}</span></td>
+        <td>${escapeHtml(defaults.participacion)}</td>
+        <td>${defaults.recorridoActivo ? 'Sí' : 'No'}</td>
+        <td>${escapeHtml(defaults.estacionBase)}</td>
+        <td>${escapeHtml(defaults.observaciones)}</td>
         <td class="rrll-pro-actions plantilla-actions-cell"><button class="small danger rrll-delete-icon-button" type="button" onclick="event.stopPropagation(); deletePlantilla('${item.id}')" title="Eliminar persona" aria-label="Eliminar persona"><span aria-hidden="true">🗑️</span></button></td>
       </tr>
     `;
@@ -483,6 +542,8 @@
       const isTextAction = ['Elecciones sindicales', 'Importar RRLL', '+ Crear plantilla', 'Crear plantilla'].includes(label);
       button.classList.toggle('plantilla-text-action', isTextAction);
     });
+    const tableContainer = document.querySelector('#plantillaMainListView .rrll-pro-table-wrap');
+    if (tableContainer) tableContainer.style.overflowX = 'auto';
     renderPlantillaPagination(rows.length);
     renderPlantillaElectoral();
   }
