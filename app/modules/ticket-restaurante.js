@@ -290,13 +290,7 @@ function buildTicketRestaurantPendingDiscountIdentity(row) {
   return nameKey ? `name:${nameKey}` : "";
 }
 
-function ticketRestaurantPendingDiscountImportCutoffIso() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-}
-
 function registerTicketRestaurantPendingDiscounts(absenceRows) {
-  const cutoffIso = ticketRestaurantPendingDiscountImportCutoffIso();
   const ledger = getTicketRestaurantPendingDiscountLedger();
   (Array.isArray(absenceRows) ? absenceRows : []).forEach(absence => {
     const identity = buildTicketRestaurantPendingDiscountIdentity(absence);
@@ -309,7 +303,7 @@ function registerTicketRestaurantPendingDiscounts(absenceRows) {
     if (!entry.importedDailyKeys || typeof entry.importedDailyKeys !== "object") entry.importedDailyKeys = {};
     dailyKeys.forEach(key => {
       const dayIso = key.split("|")[1] || "";
-      if (!dayIso || dayIso >= cutoffIso) return;
+      if (!dayIso) return;
       if (entry.importedDailyKeys[key]) return;
       entry.importedDailyKeys[key] = 1;
       entry.pendingDebt = parseTicketNumber(entry.pendingDebt) + 1;
@@ -1719,7 +1713,7 @@ function calculateTicketRestaurantCompute(period = null) {
     const absenceDetails = filterAbsencesAffectingTicket(person.employeeNumber, absences, visibleMonth, normalizedCalendar, true);
     const absenceDays = hasCalendar ? calculateTicketAffectingAbsenceDays(person.employeeNumber, absences, visibleMonth, normalizedCalendar) : 0;
     if (!hasCalendar && absenceDetails.length) warnings.push(`Empleado sin calendario asignado: ${employeeLabel}. No se descuentan sus ausencias porque no se puede verificar el derecho a ticket.`);
-    const monthlyTickets = Math.max(0, theoretical - absenceDays);
+    const monthlyTickets = Math.max(0, theoretical);
     const identity = buildTicketRestaurantPendingDiscountIdentity(person);
     const ledgerEntry = identity ? pendingLedger[identity] : null;
     const pendingDebt = parseTicketNumber(ledgerEntry && ledgerEntry.pendingDebt);
