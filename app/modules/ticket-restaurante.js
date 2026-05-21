@@ -1719,7 +1719,6 @@ function calculateTicketRestaurantCompute(period = null) {
   const absences = getTicketRestaurantAbsences();
   const warnings = [];
   const pendingLedger = getTicketRestaurantPendingDiscountLedger();
-  const ledgerChanged = new Map();
   const targetMonth = { month, year };
   const targetMonthKey = ticketMonthKey(targetMonth);
   const rows = getTicketRestaurantPeople().map(person => {
@@ -1734,19 +1733,25 @@ function calculateTicketRestaurantCompute(period = null) {
     const monthlyTickets = Math.max(0, theoretical);
     const identity = buildTicketRestaurantPendingDiscountIdentity(person);
     const ledgerEntry = identity ? pendingLedger[identity] : null;
-    const pendingItems = ledgerEntry && ledgerEntry.pendingItems && typeof ledgerEntry.pendingItems === "object" ? { ...ledgerEntry.pendingItems } : {};
-    let needsSync = false;
+    const pendingItems = ledgerEntry && ledgerEntry.pendingItems && typeof ledgerEntry.pendingItems === "object"
+      ? Object.fromEntries(Object.entries(ledgerEntry.pendingItems).map(([key, item]) => [key, {
+        ...(item || {}),
+        consumedByMonth: item && item.consumedByMonth && typeof item.consumedByMonth === "object" ? { ...item.consumedByMonth } : {}
+      }]))
+      : {};
     Object.entries((ledgerEntry && ledgerEntry.importedDailyKeys) || {}).forEach(([key]) => {
       if (pendingItems[key]) return;
       const [, dayIso = "", reason = ""] = key.split("|");
       if (!dayIso) return;
       pendingItems[key] = { key, date: dayIso, reason, remainingDebt: 1, consumedByMonth: {} };
-      needsSync = true;
     });
-    const alreadyApplied = Object.values(pendingItems).reduce((sum, item) => sum + parseTicketNumber(item && item.consumedByMonth && item.consumedByMonth[targetMonthKey]), 0);
-    let appliedAbsenceDays = alreadyApplied;
-    let remainingCapacity = Math.max(0, monthlyTickets - alreadyApplied);
-    if (remainingCapacity > 0 && !alreadyApplied) {
+    const alreadyApplied = Object.values(pendingItems).reduce((sum, item) => (
+      sum + parseTicketNumber(item && item.consumedByMonth && item.consumedByMonth[targetMonthKey])
+    ), 0);
+    const canApplyAbsences = monthlyTickets > 0;
+    let appliedAbsenceDays = canApplyAbsences ? alreadyApplied : 0;
+    let remainingCapacity = canApplyAbsences ? Math.max(0, monthlyTickets - alreadyApplied) : 0;
+    if (remainingCapacity > 0) {
       Object.values(pendingItems)
         .filter(item => item && parseTicketDate(item.date) && isTicketMonthBefore(ticketRestaurantMonthYearFromDate(item.date), targetMonth) && parseTicketNumber(item.remainingDebt) > 0)
         .sort((a, b) => String(a.date).localeCompare(String(b.date)))
@@ -1761,7 +1766,6 @@ function calculateTicketRestaurantCompute(period = null) {
           item.consumedByMonth[targetMonthKey] = parseTicketNumber(item.consumedByMonth[targetMonthKey]) + consume;
           appliedAbsenceDays += consume;
           remainingCapacity -= consume;
-          needsSync = true;
         });
     }
     const appliedAbsenceItems = Object.values(pendingItems)
@@ -1779,14 +1783,6 @@ function calculateTicketRestaurantCompute(period = null) {
     const pendingDebt = Object.values(pendingItems).reduce((sum, item) => sum + parseTicketNumber(item && item.remainingDebt), 0);
     const finalTickets = Math.max(0, monthlyTickets - appliedAbsenceDays);
     const remainingDebt = pendingDebt;
-    if (identity && (needsSync || pendingDebt !== parseTicketNumber(ledgerEntry && ledgerEntry.pendingDebt))) {
-      ledgerChanged.set(identity, {
-        ...(ledgerEntry && typeof ledgerEntry === "object" ? ledgerEntry : {}),
-        importedDailyKeys: (ledgerEntry && ledgerEntry.importedDailyKeys) || {},
-        pendingItems,
-        pendingDebt
-      });
-    }
     return {
       person: { ...person, calendar: hasCalendar ? normalizedCalendar : (person.calendar || "Sin calendario") },
       theoretical,
@@ -1802,10 +1798,6 @@ function calculateTicketRestaurantCompute(period = null) {
       calendarWarning: !hasCalendar
     };
   });
-  if (ledgerChanged.size) {
-    ledgerChanged.forEach((value, key) => { pendingLedger[key] = value; });
-    saveTicketRestaurantPendingDiscountLedger(pendingLedger);
-  }
   const summary = TICKET_RESTAURANT_CALENDARS.map(calendar => {
     const calendarRows = rows.filter(row => row.person.calendar === calendar);
     const theoretical = calendarTheoretical.get(calendar) || 0;
