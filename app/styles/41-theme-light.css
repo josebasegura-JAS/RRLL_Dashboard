@@ -387,14 +387,26 @@ body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-butt
 
 body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button.plantilla-text-action,
 body.phase4-view-module #gestor-plantilla .rrll-pro-task-head .rrll-pro-list-actions .rrll-pro-new-button {
-  width: auto;
-  min-width: max-content;
-  height: 38px;
-  min-height: 38px;
-  padding: 0 14px;
+  width: auto !important;
+  max-width: 100%;
+  min-width: max-content !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: nowrap !important;
   flex: 0 1 auto;
+  overflow: visible;
+}
+
+body.phase4-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button:not(.plantilla-text-action):not(.rrll-pro-new-button) {
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  flex: 0 0 38px !important;
 }
 
 @media (max-width: 1440px) {
