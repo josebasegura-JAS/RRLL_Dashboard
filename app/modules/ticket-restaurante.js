@@ -274,6 +274,51 @@ function saveTicketRestaurantAbsences(items) {
   save("rrll_ticket_restaurant_absences", Array.isArray(items) ? items : []);
 }
 
+function getTicketRestaurantPendingDiscountLedger() {
+  const stored = load("rrll_ticket_restaurant_pending_discounts", {});
+  return stored && typeof stored === "object" ? stored : {};
+}
+
+function saveTicketRestaurantPendingDiscountLedger(ledger) {
+  save("rrll_ticket_restaurant_pending_discounts", ledger && typeof ledger === "object" ? ledger : {});
+}
+
+function buildTicketRestaurantPendingDiscountIdentity(row) {
+  const employeeKey = normalizeTicketEmployeeLookup(row && row.employeeNumber);
+  if (employeeKey) return `emp:${employeeKey}`;
+  const nameKey = normalizeTicketText(row && row.employeeName).replace(/\s+/g, " ").trim();
+  return nameKey ? `name:${nameKey}` : "";
+}
+
+function ticketRestaurantPendingDiscountImportCutoffIso() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function registerTicketRestaurantPendingDiscounts(absenceRows) {
+  const cutoffIso = ticketRestaurantPendingDiscountImportCutoffIso();
+  const ledger = getTicketRestaurantPendingDiscountLedger();
+  (Array.isArray(absenceRows) ? absenceRows : []).forEach(absence => {
+    const identity = buildTicketRestaurantPendingDiscountIdentity(absence);
+    if (!identity) return;
+    const dailyKeys = buildTicketRestaurantAbsenceDailyKeys(absence);
+    if (!dailyKeys.length) return;
+    const entry = ledger[identity] && typeof ledger[identity] === "object"
+      ? ledger[identity]
+      : { pendingDebt: 0, importedDailyKeys: {} };
+    if (!entry.importedDailyKeys || typeof entry.importedDailyKeys !== "object") entry.importedDailyKeys = {};
+    dailyKeys.forEach(key => {
+      const dayIso = key.split("|")[1] || "";
+      if (!dayIso || dayIso >= cutoffIso) return;
+      if (entry.importedDailyKeys[key]) return;
+      entry.importedDailyKeys[key] = 1;
+      entry.pendingDebt = parseTicketNumber(entry.pendingDebt) + 1;
+    });
+    ledger[identity] = entry;
+  });
+  saveTicketRestaurantPendingDiscountLedger(ledger);
+}
+
 function getTicketRestaurantConfig() {
   const cfg = load("rrll_ticket_restaurant_config", TICKET_RESTAURANT_DEFAULT_CONFIG) || {};
   return { ...TICKET_RESTAURANT_DEFAULT_CONFIG, ...cfg };
@@ -1231,6 +1276,7 @@ function saveTicketRestaurantAbsencePreviewRows() {
     });
   });
   saveTicketRestaurantAbsences([...getTicketRestaurantAbsences(), ...records]);
+  registerTicketRestaurantPendingDiscounts(records);
   closeTicketRestaurantAbsencePreviewModal();
   renderTicketRestaurantAbsences();
   renderTicketRestaurantComputePreview();
@@ -1662,6 +1708,8 @@ function calculateTicketRestaurantCompute(period = null) {
   const calendarNoTicketWeekdays = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantNoTicketWeekdays(month, year, calendar)]));
   const absences = getTicketRestaurantAbsences();
   const warnings = [];
+  const pendingLedger = getTicketRestaurantPendingDiscountLedger();
+  const ledgerChanged = new Map();
   const rows = getTicketRestaurantPeople().map(person => {
     const normalizedCalendar = normalizeTicketCalendar(person.calendar);
     const hasCalendar = isKnownTicketCalendar(normalizedCalendar);
@@ -1671,17 +1719,30 @@ function calculateTicketRestaurantCompute(period = null) {
     const absenceDetails = filterAbsencesAffectingTicket(person.employeeNumber, absences, visibleMonth, normalizedCalendar, true);
     const absenceDays = hasCalendar ? calculateTicketAffectingAbsenceDays(person.employeeNumber, absences, visibleMonth, normalizedCalendar) : 0;
     if (!hasCalendar && absenceDetails.length) warnings.push(`Empleado sin calendario asignado: ${employeeLabel}. No se descuentan sus ausencias porque no se puede verificar el derecho a ticket.`);
-    const finalTickets = Math.max(0, theoretical - absenceDays);
+    const monthlyTickets = Math.max(0, theoretical - absenceDays);
+    const identity = buildTicketRestaurantPendingDiscountIdentity(person);
+    const ledgerEntry = identity ? pendingLedger[identity] : null;
+    const pendingDebt = parseTicketNumber(ledgerEntry && ledgerEntry.pendingDebt);
+    // Arrastre de deuda: nunca generar pedido negativo; el saldo se consume solo cuando hay tickets positivos.
+    const finalTickets = monthlyTickets > pendingDebt ? (monthlyTickets - pendingDebt) : 0;
+    const remainingDebt = monthlyTickets > pendingDebt ? 0 : (pendingDebt - monthlyTickets);
+    if (identity && remainingDebt !== pendingDebt) ledgerChanged.set(identity, { ...ledgerEntry, pendingDebt: remainingDebt });
     return {
       person: { ...person, calendar: hasCalendar ? normalizedCalendar : (person.calendar || "Sin calendario") },
       theoretical,
       absenceDays,
+      pendingDebt,
+      remainingDebt,
       absenceImpactDetails: absenceDetails,
       absenceDetails: absenceDetails.map(formatTicketRestaurantAbsenceImpactDetail).join("; "),
       finalTickets,
       calendarWarning: !hasCalendar
     };
   });
+  if (ledgerChanged.size) {
+    ledgerChanged.forEach((value, key) => { pendingLedger[key] = value; });
+    saveTicketRestaurantPendingDiscountLedger(pendingLedger);
+  }
   const summary = TICKET_RESTAURANT_CALENDARS.map(calendar => {
     const calendarRows = rows.filter(row => row.person.calendar === calendar);
     const theoretical = calendarTheoretical.get(calendar) || 0;
