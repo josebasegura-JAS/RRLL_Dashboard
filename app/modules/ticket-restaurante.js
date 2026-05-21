@@ -2119,15 +2119,21 @@ function closeTicketRestaurantAbsenceImpactModal() {
 
 function openTicketRestaurantAbsenceImpactDetail(employeeNumber, source = "compute") {
   const visibleMonth = source === "monthly" ? getTicketContributionVisibleMonth() : getTicketComputeVisibleMonth();
-  const calc = calculateTicketRestaurantCompute(visibleMonth);
+  const calc = source === "monthly"
+    ? calculateTicketRestaurantMonthlyQuote(visibleMonth)
+    : calculateTicketRestaurantCompute(visibleMonth);
   const key = normalizeTicketEmployeeLookup(employeeNumber);
-  const row = (calc.rows || []).find(item => normalizeTicketEmployeeLookup(item && item.person && item.person.employeeNumber) === key);
+  const row = source === "monthly"
+    ? (calc.rows || []).find(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === key)
+    : (calc.rows || []).find(item => normalizeTicketEmployeeLookup(item && item.person && item.person.employeeNumber) === key);
   const modal = ensureTicketRestaurantAbsenceImpactModal();
   const subtitle = modal.querySelector("#ticketRestaurantAbsenceImpactSubtitle");
   const body = modal.querySelector("#ticketRestaurantAbsenceImpactBody");
   const details = (row && row.absenceImpactDetails) || [];
   if (subtitle) {
-    const fullName = row ? ticketRestaurantFullName(row.person) : employeeNumber;
+    const fullName = row
+      ? (source === "monthly" ? row.fullName : ticketRestaurantFullName(row.person))
+      : employeeNumber;
     subtitle.textContent = `${fullName || employeeNumber} · ${formatTicketMonthLabel(visibleMonth)} · Ausencias aplicadas: ${row ? row.absenceDays : 0}`;
   }
   if (body) {
@@ -2241,19 +2247,29 @@ function renderTicketContributionMonthSelector() {
   if (selector) selector.innerHTML = renderTicketMonthNavigator({ visibleMonth: getTicketContributionVisibleMonth(), onPrev: "changeTicketContributionMonth(-1)", onNext: "changeTicketContributionMonth(1)" });
 }
 
-function calculateTicketRestaurantMonthlyQuote() {
-  const calc = calculateTicketRestaurantCompute(getTicketContributionVisibleMonth());
+function calculateTicketRestaurantMonthlyQuote(period = null) {
+  const { month, year } = period ? normalizeTicketMonth(period) : normalizeTicketMonth(getTicketContributionVisibleMonth());
+  const visibleMonth = { month, year };
+  const absences = getTicketRestaurantAbsences();
   const cfg = getTicketRestaurantConfig();
-  const rows = calc.rows.map(row => ({
-    employeeNumber: row.person.employeeNumber || "",
-    fullName: ticketRestaurantFullName(row.person),
-    ticketDays: row.finalTickets,
-    ticketAmount: cfg.importe,
-    absenceDays: row.absenceDays,
-    absenceImpactDetails: row.absenceImpactDetails || [],
-    calendarWarning: row.calendarWarning
-  }));
-  return { month: calc.month, year: calc.year, rows };
+  const calendarTheoretical = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
+  const rows = getTicketRestaurantPeople().map(person => {
+    const normalizedCalendar = normalizeTicketCalendar(person.calendar);
+    const hasCalendar = isKnownTicketCalendar(normalizedCalendar);
+    const theoretical = hasCalendar ? (calendarTheoretical.get(normalizedCalendar) || 0) : 0;
+    const monthlyAbsenceDetails = filterAbsencesAffectingTicket(person.employeeNumber, absences, visibleMonth, normalizedCalendar, true);
+    const monthlyAbsenceDays = hasCalendar ? calculateTicketAffectingAbsenceDays(person.employeeNumber, absences, visibleMonth, normalizedCalendar) : 0;
+    return {
+      employeeNumber: person.employeeNumber || "",
+      fullName: ticketRestaurantFullName(person),
+      ticketDays: Math.max(0, theoretical - monthlyAbsenceDays),
+      ticketAmount: cfg.importe,
+      absenceDays: monthlyAbsenceDays,
+      absenceImpactDetails: monthlyAbsenceDetails,
+      calendarWarning: !hasCalendar
+    };
+  });
+  return { month, year, rows };
 }
 
 function renderTicketRestaurantMonthlyQuotePreview() {
