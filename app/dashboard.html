@@ -1107,35 +1107,20 @@
             </section>
             <section id="plantillaElectoralView" class="rrll-pro-list-card plantilla-electoral-view hidden">
               <div class="rrll-pro-list-toolbar plantilla-toolbar">
-                <h3>Vista electoral</h3>
+                <h3>Elecciones sindicales</h3>
                 <div class="rrll-pro-list-actions">
                   <button type="button" class="rrll-pro-tool-button" onclick="togglePlantillaElectoralView(false)">Volver a Plantilla</button>
-                  <button type="button" class="rrll-pro-tool-button rrll-icon-only excel" onclick="exportPlantillaElectoralExcel()">X</button>
                 </div>
               </div>
-              <div id="electoralCards"></div>
               <div class="rrll-pro-task-form">
                 <label class="rrll-pro-field"><span>Colegio electoral</span><select id="electoralColegio" onchange="setElectoralColegio(this.value)"></select></label>
-                <label class="rrll-pro-field"><span>Mesa electoral</span><select id="electoralMesa" onchange="setElectoralMesa(this.value)"><option value="Mesa 1">Mesa 1</option><option value="Mesa 2">Mesa 2</option><option value="Mesa 3">Mesa 3</option><option value="Mesa 4">Mesa 4</option><option value="Mesa 5">Mesa 5</option></select></label>
-                <label class="rrll-pro-field"><span>Sindicato</span><select id="electoralSindicato" onchange="setElectoralSindicato(this.value)"></select></label>
-                
-                <label class="rrll-pro-field"><span>Recorrido activo</span><select id="electoralRecorrido" onchange="setElectoralRecorrido(this.value)"><option value="Todos">Todos</option><option value="true">Sí</option><option value="false">No</option></select></label>
               </div>
               <div class="rrll-pro-list-actions">
                 <button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 1')">Mesa 1</button><button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 2')">Mesa 2</button><button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 3')">Mesa 3</button><button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 4')">Mesa 4</button><button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 5')">Mesa 5</button>
               </div>
               <h3 id="electoralMesaTitle">Mesa 1 — Total personas: 0</h3>
-              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Persona</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Participación estimada</th><th>Recorrido activo</th></tr></thead><tbody id="electoralTableBody"></tbody></table></div>
-              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Sindicato</th><th>Personas</th><th>%</th></tr></thead><tbody id="electoralSummaryBody"></tbody></table></div>
-              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Colegio</th><th>Mesa</th><th>Personas</th></tr></thead><tbody id="electoralMesaColegioBody"></tbody></table></div>
-              <div class="electoral-chart-wrap">
-                <h4>Gráfica por sindicato</h4>
-                <div id="electoralBarChart" class="electoral-bars"></div>
-              </div>
-              <div class="electoral-chart-wrap">
-                <h4>Distribución porcentual (donut)</h4>
-                <div id="electoralDonutChart" class="electoral-donut"></div>
-              </div>
+              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Persona</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th></tr></thead><tbody id="electoralTableBody"></tbody></table></div>
+              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Sindicato</th><th>Personas</th></tr></thead><tbody id="electoralSummaryBody"></tbody></table></div>
             </section>
           </div>
         </details>
