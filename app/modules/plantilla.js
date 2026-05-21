@@ -13,6 +13,7 @@
   let electoralSelectedMesa = 'Todos';
   let electoralSelectedSindicato = 'Todos';
   let electoralSelectedRecorrido = 'Todos';
+  let plantillaSchemaEnsured = false;
   const RRLL_IMPORT_KEY = 'rrll_recorridos_mesa';
   const MESAS_KEY = 'rrll_mesas_electorales';
 
@@ -134,7 +135,15 @@
     return (Array.isArray(unions) ? unions : []).map(normalizeText).filter(Boolean);
   }
   function ensurePlantillaSchema() {
+    if (plantillaSchemaEnsured) return;
+
     const items = getPlantilla();
+    if (!items.length) {
+      plantillaSchemaEnsured = true;
+      return;
+    }
+
+    let hasChanges = false;
     const normalizedItems = items.map(item => {
       const colegio = normalizeText(getField(item, 'colegioElectoral', 'colegio_electoral'));
       const mesa = normalizeText(getField(item, 'mesaElectoral', 'mesa_electoral'));
@@ -142,11 +151,34 @@
       const recorrido = !!getField(item, 'recorridoActivo', 'recorrido_activo');
       const estacionBase = normalizeText(getField(item, 'estacionBase', 'estacion_base'));
       const observaciones = normalizeText(getField(item, 'observacionesRecorrido', 'observaciones_recorrido'));
-      return { ...item, colegioElectoral: colegio, colegio_electoral: colegio, mesaElectoral: mesa, mesa_electoral: mesa, participacionEstimada: participacion, participacion_estimada: participacion, recorridoActivo: recorrido, recorrido_activo: recorrido, estacionBase, estacion_base: estacionBase, observacionesRecorrido: observaciones, observaciones_recorrido: observaciones };
+      const normalizedItem = {
+        ...item,
+        colegioElectoral: colegio,
+        colegio_electoral: colegio,
+        mesaElectoral: mesa,
+        mesa_electoral: mesa,
+        participacionEstimada: participacion,
+        participacion_estimada: participacion,
+        recorridoActivo: recorrido,
+        recorrido_activo: recorrido,
+        estacionBase,
+        estacion_base: estacionBase,
+        observacionesRecorrido: observaciones,
+        observaciones_recorrido: observaciones
+      };
+      if (!hasChanges) {
+        hasChanges = ['colegioElectoral', 'colegio_electoral', 'mesaElectoral', 'mesa_electoral', 'participacionEstimada', 'participacion_estimada', 'recorridoActivo', 'recorrido_activo', 'estacionBase', 'estacion_base', 'observacionesRecorrido', 'observaciones_recorrido']
+          .some(key => item[key] !== normalizedItem[key]);
+      }
+      return normalizedItem;
     });
-    setPlantilla(normalizedItems);
+
+    if (hasChanges) setPlantilla(normalizedItems);
+
     if (!Array.isArray(load(MESAS_KEY, null))) save(MESAS_KEY, ELECTORAL_MESAS.map((nombre, idx) => ({ id: idx + 1, nombre_mesa: nombre, colegio_electoral: '' })));
     if (!Array.isArray(load(RRLL_IMPORT_KEY, null))) save(RRLL_IMPORT_KEY, []);
+
+    plantillaSchemaEnsured = true;
   }
 
   function compareByEmployeeNumber(a, b) {
@@ -409,6 +441,7 @@
   }
 
   function renderPlantilla(options = {}) {
+    ensurePlantillaSchema();
     fillSindicatoSelect('newPlantSindicato', document.getElementById('newPlantSindicato')?.value || "Sin asignar");
     const rows = sortedPlantilla();
     if (options.resetPage) plantillaCurrentPage = 1;
@@ -820,7 +853,6 @@
     });
   }
 
-  ensurePlantillaSchema();
   window.PlantillaModule = { getPlantilla, setPlantilla, togglePlantillaCreateForm, addPlantilla, deletePlantilla, openPlantillaEditModal, closePlantillaEditModal, saveEditingPlantilla, deleteEditingPlantilla, renderPlantilla, plantillaPreviousPage, plantillaNextPage, importPlantillaExcelFromInput, importPlantillaRrllFromInput, printPlantilla, exportPlantillaExcel, togglePlantillaElectoralView, setElectoralColegio, setElectoralMesa, setElectoralSindicato, setElectoralRecorrido, exportPlantillaElectoralExcel };
   window.getPlantilla = getPlantilla;
   window.setPlantilla = setPlantilla;
