@@ -421,7 +421,13 @@
   function getElectoralVisibleRows() {
     return getPlantilla()
       .filter(item => electoralSelectedColegio === 'Todos' || normalizeText(getField(item, 'colegioElectoral', 'colegio_electoral')) === electoralSelectedColegio)
-      .filter(item => normalizeText(getField(item, 'mesaElectoral', 'mesa_electoral')) === electoralSelectedMesa);
+      .filter(item => normalizeText(getField(item, 'mesaElectoral', 'mesa_electoral')) === electoralSelectedMesa)
+      .filter(item => electoralSelectedSindicato === 'Todos' || normalizeSindicato(getField(item, 'sindicato')) === electoralSelectedSindicato)
+      .filter(item => {
+        if (electoralSelectedRecorrido === 'Todos') return true;
+        const isActive = !!getField(item, 'recorridoActivo', 'recorrido_activo');
+        return electoralSelectedRecorrido === 'Sí' ? isActive : !isActive;
+      });
   }
 
   function togglePlantillaElectoralView(open) {
@@ -436,6 +442,9 @@
     if (!wrap || !plantillaElectoralView) return;
     const all = getPlantilla();
     const colegios = ['Todos', ...new Set(all.map(item => normalizeText(getField(item, 'colegioElectoral', 'colegio_electoral'))).filter(Boolean))];
+    const sindicatos = ['Todos', ...new Set(all.map(item => normalizeSindicato(getField(item, 'sindicato'))).filter(Boolean))];
+    if (!colegios.includes(electoralSelectedColegio)) electoralSelectedColegio = 'Todos';
+    if (!sindicatos.includes(electoralSelectedSindicato)) electoralSelectedSindicato = 'Todos';
     const visibleRows = getElectoralVisibleRows().sort((a, b) => normalizeSindicato(getField(a, 'sindicato')).localeCompare(normalizeSindicato(getField(b, 'sindicato')), 'es') || normalizeText(a.name).localeCompare(normalizeText(b.name), 'es'));
     const bySind = new Map();
     visibleRows.forEach(item => {
@@ -446,12 +455,31 @@
     if (selectMesa) selectMesa.value = electoralSelectedMesa;
     const colegioSelect = document.getElementById('electoralColegio');
     if (colegioSelect) colegioSelect.innerHTML = colegios.map(v => `<option ${v === electoralSelectedColegio ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
+    const extraFilters = document.getElementById('electoralExtraFilters');
+    if (!extraFilters) {
+      const filtersHtml = `
+        <div id="electoralExtraFilters" class="rrll-pro-task-form">
+          <label class="rrll-pro-field"><span>Sindicato</span><select id="electoralSindicato" onchange="setElectoralSindicato(this.value)"></select></label>
+          <label class="rrll-pro-field"><span>Recorrido activo</span><select id="electoralRecorrido" onchange="setElectoralRecorrido(this.value)"><option value="Todos">Todos</option><option value="Sí">Sí</option><option value="No">No</option></select></label>
+        </div>`;
+      document.getElementById('electoralColegio')?.closest('.rrll-pro-task-form')?.insertAdjacentHTML('afterend', filtersHtml);
+    }
+    const sindicatoSelect = document.getElementById('electoralSindicato');
+    if (sindicatoSelect) sindicatoSelect.innerHTML = sindicatos.map(v => `<option ${v === electoralSelectedSindicato ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
+    const recorridoSelect = document.getElementById('electoralRecorrido');
+    if (recorridoSelect) recorridoSelect.value = electoralSelectedRecorrido;
+    const mesaButtons = [...wrap.querySelectorAll('.rrll-pro-list-actions button')].filter(btn => /^Mesa \d+$/i.test(normalizeText(btn.textContent)));
+    mesaButtons.forEach(btn => btn.classList.toggle('rrll-pro-primary', normalizeText(btn.textContent) === electoralSelectedMesa));
     const mesaTitle = document.getElementById('electoralMesaTitle');
     if (mesaTitle) mesaTitle.textContent = `${electoralSelectedMesa} — Total personas: ${visibleRows.length}`;
+    const electoralMainTable = document.getElementById('electoralTableBody')?.closest('table');
+    const electoralSummaryTable = document.getElementById('electoralSummaryBody')?.closest('table');
+    if (electoralMainTable) electoralMainTable.querySelector('thead').innerHTML = '<tr><th>Persona</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Participación estimada</th><th>Recorrido activo</th><th>Estación base</th><th>Observaciones recorrido</th></tr>';
+    if (electoralSummaryTable) electoralSummaryTable.querySelector('thead').innerHTML = '<tr><th>Sindicato</th><th>Personas</th><th>% sobre total visible</th></tr>';
     const tableBody = document.getElementById('electoralTableBody');
-    if (tableBody) tableBody.innerHTML = visibleRows.map(item => `<tr><td>${escapeHtml(item.name || '—')}</td><td>${escapeHtml(getField(item, 'colegioElectoral', 'colegio_electoral') || '—')}</td><td>${escapeHtml(getField(item, 'mesaElectoral', 'mesa_electoral') || '—')}</td><td>${escapeHtml(normalizeSindicato(getField(item, 'sindicato')))}</td></tr>`).join('');
+    if (tableBody) tableBody.innerHTML = visibleRows.map(item => `<tr><td>${escapeHtml(item.name || '—')}</td><td>${escapeHtml(getField(item, 'colegioElectoral', 'colegio_electoral') || '—')}</td><td>${escapeHtml(getField(item, 'mesaElectoral', 'mesa_electoral') || '—')}</td><td>${escapeHtml(normalizeSindicato(getField(item, 'sindicato')))}</td><td>${escapeHtml(getField(item, 'participacionEstimada', 'participacion_estimada') || '—')}</td><td>${getField(item, 'recorridoActivo', 'recorrido_activo') ? 'Sí' : 'No'}</td><td>${escapeHtml(getField(item, 'estacionBase', 'estacion_base') || '—')}</td><td>${escapeHtml(getField(item, 'observacionesRecorrido', 'observaciones_recorrido') || '—')}</td></tr>`).join('');
     const summaryBody = document.getElementById('electoralSummaryBody');
-    if (summaryBody) summaryBody.innerHTML = [...bySind.entries()].map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${v}</td></tr>`).join('');
+    if (summaryBody) summaryBody.innerHTML = [...bySind.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es')).map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${v}</td><td>${visibleRows.length ? ((v / visibleRows.length) * 100).toFixed(1) : '0.0'}%</td></tr>`).join('');
   }
 
   function getPlantillaFieldAliases() {
