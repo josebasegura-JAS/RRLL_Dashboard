@@ -1,4 +1,4 @@
-const TICKET_RESTAURANT_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela"];
+const TICKET_RESTAURANT_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela", "Liberados"];
 const TICKET_RESTAURANT_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const TICKET_RESTAURANT_PERSON_HEADERS = ["Nº empleado", "Nombre", "Apellido1", "Apellido2", "DNI", "Puesto", "Calendario"];
 const TICKET_RESTAURANT_ABSENCE_HEADERS = ["Nº empleado", "Nombre y apellidos", "Desde", "Hasta", "Motivo", "Total días"];
@@ -144,7 +144,7 @@ let ticketRestaurantLastPlantillaLookup = "";
 let ticketRestaurantPlantillaLookupTimer = null;
 let ticketRestaurantLastVisibleCompute = null;
 let ticketRestaurantLastVisibleMonthlyQuote = null;
-let ticketRestaurantComputeSort = { key: null, direction: null };
+let ticketRestaurantComputeSort = { key: "calendar", direction: "desc" };
 let ticketRestaurantVisibleAbsenceMonth = null;
 let ticketRestaurantVisibleComputeMonth = null;
 let ticketRestaurantVisibleContributionMonth = null;
@@ -219,8 +219,55 @@ function saveTicketRestaurantPeople(items) {
   save("rrll_ticket_restaurant_people", Array.isArray(items) ? items : []);
 }
 
+function normalizeTicketAbsenceReason(value) {
+  return normalizeTicketText(value).replace(/\s+/g, " ").trim();
+}
+
+function normalizeTicketAbsenceIdentity(row) {
+  const employeeNumberKey = normalizeTicketEmployeeLookup(row && row.employeeNumber);
+  if (employeeNumberKey) return `emp:${employeeNumberKey}`;
+  const nameKey = normalizeTicketText(row && row.employeeName).replace(/\s+/g, " ").trim();
+  return nameKey ? `name:${nameKey}` : "";
+}
+
+function ticketRestaurantAbsenceUniqueKey(row, date) {
+  const identity = normalizeTicketAbsenceIdentity(row);
+  const reason = normalizeTicketAbsenceReason(row && row.reason);
+  const normalizedDate = parseTicketDate(date);
+  if (!identity || !reason || !normalizedDate) return "";
+  return `${identity}|${normalizedDate}|${reason}`;
+}
+
+function buildTicketRestaurantAbsenceDailyKeys(row) {
+  const from = parseTicketDate(row && row.from);
+  const to = parseTicketDate((row && row.to) || from);
+  const dates = expandDateRange(from, to);
+  if (!dates.length) return [];
+  return dates.map(date => ticketRestaurantAbsenceUniqueKey(row, date)).filter(Boolean);
+}
+
+function getTicketRestaurantAbsenceStats() {
+  const stored = load("rrll_ticket_restaurant_absences", []);
+  const rawRows = Array.isArray(stored) ? stored : [];
+  const unique = [];
+  const seen = new Set();
+  let hiddenDuplicates = 0;
+  rawRows.forEach(row => {
+    const keys = buildTicketRestaurantAbsenceDailyKeys(row);
+    if (!keys.length) {
+      unique.push(row);
+      return;
+    }
+    const duplicated = keys.some(key => seen.has(key));
+    keys.forEach(key => seen.add(key));
+    if (duplicated) hiddenDuplicates += 1;
+    else unique.push(row);
+  });
+  return { rows: unique, hiddenDuplicates, existingKeys: seen };
+}
+
 function getTicketRestaurantAbsences() {
-  return load("rrll_ticket_restaurant_absences", []);
+  return getTicketRestaurantAbsenceStats().rows;
 }
 
 function saveTicketRestaurantAbsences(items) {
@@ -274,7 +321,8 @@ function normalizeTicketCalendar(value) {
     ["instalacionessopela", "Instalaciones Sopela"],
     ["instalacionsopela", "Instalaciones Sopela"],
     ["ariz", "Ingeniería Ariz"],
-    ["ingenieriaariz", "Ingeniería Ariz"]
+    ["ingenieriaariz", "Ingeniería Ariz"],
+    ["liberados", "Liberados"]
   ]);
   return calendarAliases.get(key) || TICKET_RESTAURANT_CALENDARS.find(item => normalizeTicketCompactText(item) === key) || text;
 }
@@ -1146,29 +1194,50 @@ function saveTicketRestaurantAbsencePreviewRows() {
     return;
   }
   const now = new Date().toISOString();
-  const records = validation.rows.map(row => {
+  const existingStats = getTicketRestaurantAbsenceStats();
+  const existingKeys = new Set(existingStats.existingKeys);
+  const importSeenKeys = new Set();
+  const records = [];
+  let skippedDuplicates = 0;
+  validation.rows.forEach(row => {
     const from = parseTicketDate(row.fromDate);
     const to = parseTicketDate(row.toDate) || from;
-    const period = ticketRestaurantMonthYearFromDate(from);
-    return {
-      id: `tr-absence-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    const previewRecord = {
       employeeNumber: normalizeTicketEmployee(row.employeeNumber),
       employeeName: String(row.employeeName || "").replace(/\s+/g, " ").trim(),
       from,
       to,
-      reason: String(row.reason || "").trim(),
+      reason: String(row.reason || "").trim()
+    };
+    const dailyKeys = buildTicketRestaurantAbsenceDailyKeys(previewRecord);
+    const duplicated = dailyKeys.length && dailyKeys.some(key => existingKeys.has(key) || importSeenKeys.has(key));
+    dailyKeys.forEach(key => importSeenKeys.add(key));
+    if (duplicated) {
+      skippedDuplicates += 1;
+      return;
+    }
+    const period = ticketRestaurantMonthYearFromDate(from);
+    records.push({
+      id: `tr-absence-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      employeeNumber: previewRecord.employeeNumber,
+      employeeName: previewRecord.employeeName,
+      from,
+      to,
+      reason: previewRecord.reason,
       totalDays: parseTicketNumber(row.totalDays),
       month: period.month,
       year: period.year,
       createdAt: now
-    };
+    });
   });
   saveTicketRestaurantAbsences([...getTicketRestaurantAbsences(), ...records]);
   closeTicketRestaurantAbsencePreviewModal();
   renderTicketRestaurantAbsences();
   renderTicketRestaurantComputePreview();
-  showTicketRestaurantImportSummary("ticketRestaurantAbsenceImportSummary", records.length, 0, Number(document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.ignoredRows || 0), document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.fileName || "Fichero");
-  alert(`Ausencias importadas: ${records.length}.`);
+  const invalidRows = Number(document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.ignoredRows || 0);
+  showTicketRestaurantImportSummary("ticketRestaurantAbsenceImportSummary", records.length, skippedDuplicates, invalidRows, document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.fileName || "Fichero");
+  const hiddenExisting = existingStats.hiddenDuplicates;
+  alert(`Importación de ausencias finalizada.\nNuevas importadas: ${records.length}.\nIgnoradas por duplicado: ${skippedDuplicates}.\nDuplicados existentes ocultados: ${hiddenExisting}.\nFilas no válidas/ignoradas: ${invalidRows}.`);
 }
 
 async function importTicketRestaurantAbsences() {
@@ -1309,10 +1378,14 @@ function renderTicketRestaurantAbsences() {
   const count = document.getElementById("ticketRestaurantAbsencesCount");
   if (!body) return;
   renderTicketAbsenceMonthSelector();
-  const allAbsences = getTicketRestaurantAbsences();
+  const absenceStats = getTicketRestaurantAbsenceStats();
+  const allAbsences = absenceStats.rows;
   const absences = sortTicketRestaurantAbsences(filterTicketAbsencesByVisibleMonth(allAbsences));
   const visible = getTicketAbsenceVisibleMonth();
-  if (count) count.textContent = `${absences.length} de ${allAbsences.length} ausencias · ${String(visible.month).padStart(2, "0")}/${visible.year}`;
+  if (count) {
+    const duplicatedHint = absenceStats.hiddenDuplicates ? ` · ${absenceStats.hiddenDuplicates} duplicados ocultos` : "";
+    count.textContent = `${absences.length} de ${allAbsences.length} ausencias · ${String(visible.month).padStart(2, "0")}/${visible.year}${duplicatedHint}`;
+  }
   body.innerHTML = absences.length ? absences.map(item => `<tr>
     <td>${escapeHtml(item.employeeNumber)}</td><td>${escapeHtml(item.employeeName || "")}</td><td>${formatTicketDate(item.from)}</td><td>${formatTicketDate(item.to)}</td><td>${escapeHtml(item.reason)}</td><td>${escapeHtml(item.totalDays)}</td>
     <td class="table-actions"><button class="danger small" type="button" onclick="deleteTicketRestaurantAbsence('${escapeHtml(item.id)}')">Eliminar</button></td>
