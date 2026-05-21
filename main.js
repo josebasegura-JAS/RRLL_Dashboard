@@ -169,6 +169,27 @@ async function openDatabase(dbPath) {
     );
   `);
 
+
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS mesas_electorales (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre_mesa TEXT NOT NULL,
+      colegio_electoral TEXT
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS recorridos_mesa (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      mesa_id INTEGER NOT NULL,
+      orden INTEGER,
+      estacion TEXT,
+      tiempo_parada TEXT,
+      tipo_parada TEXT
+    );
+  `);
+
   try { db.run("ALTER TABLE kv_store ADD COLUMN updated_by TEXT"); } catch {}
 
   const versionRow = db.exec("SELECT value FROM meta WHERE key = 'schema_version'");

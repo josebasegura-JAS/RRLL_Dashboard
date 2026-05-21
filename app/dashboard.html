@@ -1017,9 +1017,45 @@
               <label class="rrll-pro-field">
                 <span>Sexo</span>
                 <select id="newPlantSex">
-                  <option value="M">M</option>
-                  <option value="H">H</option>
+                  <option value="">Sin definir</option>
+                  <option value="Hombre">Hombre</option>
+                  <option value="Mujer">Mujer</option>
                 </select>
+              </label>
+              <label class="rrll-pro-field">
+                <span>Colegio electoral</span>
+                <input id="newPlantColegioElectoral" placeholder="Colegio electoral" list="plantillaColegioElectoralOptions" />
+              </label>
+              <label class="rrll-pro-field">
+                <span>Mesa electoral</span>
+                <select id="newPlantMesaElectoral">
+                  <option value="">Sin definir</option>
+                  <option value="Mesa 1">Mesa 1</option>
+                  <option value="Mesa 2">Mesa 2</option>
+                  <option value="Mesa 3">Mesa 3</option>
+                  <option value="Mesa 4">Mesa 4</option>
+                  <option value="Mesa 5">Mesa 5</option>
+                </select>
+              </label>
+              <label class="rrll-pro-field">
+                <span>Sindicato</span>
+                <select id="newPlantSindicato"></select>
+              </label>
+              <label class="rrll-pro-field">
+                <span>Participación estimada (%)</span>
+                <input id="newPlantParticipacionEstimada" type="number" min="0" max="100" step="0.01" placeholder="Ej. 72,5" />
+              </label>
+              <label class="rrll-pro-field rrll-pro-field-checkbox">
+                <span>Recorrido activo</span>
+                <input id="newPlantRecorridoActivo" type="checkbox" />
+              </label>
+              <label class="rrll-pro-field">
+                <span>Estación base</span>
+                <input id="newPlantEstacionBase" placeholder="Estación base habitual" />
+              </label>
+              <label class="rrll-pro-field full">
+                <span>Observaciones recorrido</span>
+                <textarea id="newPlantObservacionesRecorrido" placeholder="Notas opcionales para recorridos futuros"></textarea>
               </label>
               <label class="rrll-pro-field">
                 <span>Puesto de trabajo</span>
@@ -1063,10 +1099,11 @@
               </div>
               <div class="rrll-pro-table-wrap">
                 <table class="rrll-pro-table plantilla-table">
-                  <thead><tr><th>Nº</th><th>Nombre y apellidos</th><th>Sexo</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel</th><th>Acciones</th></tr></thead>
+                  <thead><tr><th>Nº</th><th>Nombre y apellidos</th><th>Sexo</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel</th><th>Acciones</th></tr></thead>
                   <tbody id="plantillaTableBody"></tbody>
                 </table>
               </div>
+              <datalist id="plantillaColegioElectoralOptions"></datalist>
               <div id="plantillaPagination" class="plantilla-pagination" aria-live="polite"></div>
               <div id="plantillaImportSummary" class="plantilla-import-summary" aria-live="polite"></div>
               <div id="plantillaTableEmpty" class="rrll-pro-empty">No hay personas registradas en plantilla.</div>
