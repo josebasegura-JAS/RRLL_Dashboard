@@ -10,7 +10,7 @@
   const ELECTORAL_MESAS = ['Mesa 1', 'Mesa 2', 'Mesa 3', 'Mesa 4', 'Mesa 5'];
   let plantillaElectoralView = false;
   let electoralSelectedColegio = 'Todos';
-  let electoralSelectedMesa = 'Mesa 1';
+  let electoralSelectedMesa = 'Todos';
   let electoralSelectedSindicato = 'Todos';
   let electoralSelectedRecorrido = 'Todos';
   const RRLL_IMPORT_KEY = 'rrll_recorridos_mesa';
@@ -118,6 +118,16 @@
 
   function normalizeSindicato(value) {
     return normalizeText(value) || 'Sin asignar';
+  }
+  function plantillaDisplayDefaults(item) {
+    const colegio = normalizeText(getField(item, 'colegioElectoral', 'colegio_electoral')) || 'Sin definir';
+    const mesa = normalizeText(getField(item, 'mesaElectoral', 'mesa_electoral')) || 'Sin definir';
+    const sindicato = normalizeSindicato(getField(item, 'sindicato'));
+    const participacion = normalizeText(getField(item, 'participacionEstimada', 'participacion_estimada')) || '—';
+    const recorridoActivo = !!getField(item, 'recorridoActivo', 'recorrido_activo');
+    const estacionBase = normalizeText(getField(item, 'estacionBase', 'estacion_base')) || '—';
+    const observaciones = normalizeText(getField(item, 'observacionesRecorrido', 'observaciones_recorrido')) || '—';
+    return { colegio, mesa, sindicato, participacion, recorridoActivo, estacionBase, observaciones };
   }
   function getConfiguredSindicatos() {
     const unions = load('rrll_allegation_unions', []);
@@ -355,13 +365,14 @@
   }
 
   function rowHtml(item) {
+    const defaults = plantillaDisplayDefaults(item);
     return `
       <tr id="rrll-plant-${item.id}" class="rrll-pro-row plantilla-row" ondblclick="event.preventDefault(); event.stopPropagation(); openPlantillaEditModal('${item.id}')" title="Doble clic para editar">
         <td><strong>${escapeHtml(item.employeeNumber || '')}</strong></td>
         <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.name || 'Sin nombre')}</div></td>
-        <td>${escapeHtml(getField(item, 'colegioElectoral', 'colegio_electoral') || '')}</td>
-        <td>${escapeHtml(getField(item, 'mesaElectoral', 'mesa_electoral') || '')}</td>
-        <td>${escapeHtml(normalizeSindicato(getField(item, 'sindicato')))}</td>
+        <td>${escapeHtml(defaults.colegio)}</td>
+        <td>${escapeHtml(defaults.mesa)}</td>
+        <td>${escapeHtml(defaults.sindicato)}</td>
         <td>${escapeHtml(item.job || '')}</td>
         <td class="plantilla-col-date">${escapeHtml(formatPlantillaDate(item.positionSeniority))}</td>
         <td><span class="rrll-status-pill progress">${escapeHtml(item.level || '')}</span></td>
@@ -420,9 +431,9 @@
 
   function getElectoralVisibleRows() {
     return getPlantilla()
-      .filter(item => electoralSelectedColegio === 'Todos' || normalizeText(getField(item, 'colegioElectoral', 'colegio_electoral')) === electoralSelectedColegio)
-      .filter(item => normalizeText(getField(item, 'mesaElectoral', 'mesa_electoral')) === electoralSelectedMesa)
-      .filter(item => electoralSelectedSindicato === 'Todos' || normalizeSindicato(getField(item, 'sindicato')) === electoralSelectedSindicato)
+      .filter(item => electoralSelectedColegio === 'Todos' || plantillaDisplayDefaults(item).colegio === electoralSelectedColegio)
+      .filter(item => electoralSelectedMesa === 'Todos' || plantillaDisplayDefaults(item).mesa === electoralSelectedMesa)
+      .filter(item => electoralSelectedSindicato === 'Todos' || plantillaDisplayDefaults(item).sindicato === electoralSelectedSindicato)
       .filter(item => {
         if (electoralSelectedRecorrido === 'Todos') return true;
         const isActive = !!getField(item, 'recorridoActivo', 'recorrido_activo');
@@ -441,8 +452,9 @@
     const wrap = document.getElementById('plantillaElectoralView');
     if (!wrap || !plantillaElectoralView) return;
     const all = getPlantilla();
-    const colegios = ['Todos', ...new Set(all.map(item => normalizeText(getField(item, 'colegioElectoral', 'colegio_electoral'))).filter(Boolean))];
-    const sindicatos = ['Todos', ...new Set(all.map(item => normalizeSindicato(getField(item, 'sindicato'))).filter(Boolean))];
+    const colegios = ['Todos', ...new Set(all.map(item => plantillaDisplayDefaults(item).colegio))];
+    const mesas = ['Todos', ...new Set(all.map(item => plantillaDisplayDefaults(item).mesa))];
+    const sindicatos = ['Todos', ...new Set(all.map(item => plantillaDisplayDefaults(item).sindicato))];
     if (!colegios.includes(electoralSelectedColegio)) electoralSelectedColegio = 'Todos';
     if (!sindicatos.includes(electoralSelectedSindicato)) electoralSelectedSindicato = 'Todos';
     const visibleRows = getElectoralVisibleRows().sort((a, b) => normalizeSindicato(getField(a, 'sindicato')).localeCompare(normalizeSindicato(getField(b, 'sindicato')), 'es') || normalizeText(a.name).localeCompare(normalizeText(b.name), 'es'));
@@ -452,7 +464,11 @@
       bySind.set(k, (bySind.get(k) || 0) + 1);
     });
     const selectMesa = document.getElementById('electoralMesa');
-    if (selectMesa) selectMesa.value = electoralSelectedMesa;
+    if (selectMesa) {
+      selectMesa.innerHTML = mesas.map(v => `<option ${v === electoralSelectedMesa ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
+      if (!mesas.includes(electoralSelectedMesa)) electoralSelectedMesa = 'Todos';
+      selectMesa.value = electoralSelectedMesa;
+    }
     const colegioSelect = document.getElementById('electoralColegio');
     if (colegioSelect) colegioSelect.innerHTML = colegios.map(v => `<option ${v === electoralSelectedColegio ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
     const extraFilters = document.getElementById('electoralExtraFilters');
@@ -477,7 +493,10 @@
     if (electoralMainTable) electoralMainTable.querySelector('thead').innerHTML = '<tr><th>Persona</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Participación estimada</th><th>Recorrido activo</th><th>Estación base</th><th>Observaciones recorrido</th></tr>';
     if (electoralSummaryTable) electoralSummaryTable.querySelector('thead').innerHTML = '<tr><th>Sindicato</th><th>Personas</th><th>% sobre total visible</th></tr>';
     const tableBody = document.getElementById('electoralTableBody');
-    if (tableBody) tableBody.innerHTML = visibleRows.map(item => `<tr><td>${escapeHtml(item.name || '—')}</td><td>${escapeHtml(getField(item, 'colegioElectoral', 'colegio_electoral') || '—')}</td><td>${escapeHtml(getField(item, 'mesaElectoral', 'mesa_electoral') || '—')}</td><td>${escapeHtml(normalizeSindicato(getField(item, 'sindicato')))}</td><td>${escapeHtml(getField(item, 'participacionEstimada', 'participacion_estimada') || '—')}</td><td>${getField(item, 'recorridoActivo', 'recorrido_activo') ? 'Sí' : 'No'}</td><td>${escapeHtml(getField(item, 'estacionBase', 'estacion_base') || '—')}</td><td>${escapeHtml(getField(item, 'observacionesRecorrido', 'observaciones_recorrido') || '—')}</td></tr>`).join('');
+    if (tableBody) tableBody.innerHTML = visibleRows.map(item => {
+      const defaults = plantillaDisplayDefaults(item);
+      return `<tr><td>${escapeHtml(item.name || '—')}</td><td>${escapeHtml(defaults.colegio)}</td><td>${escapeHtml(defaults.mesa)}</td><td>${escapeHtml(defaults.sindicato)}</td><td>${escapeHtml(defaults.participacion)}</td><td>${defaults.recorridoActivo ? 'Sí' : 'No'}</td><td>${escapeHtml(defaults.estacionBase)}</td><td>${escapeHtml(defaults.observaciones)}</td></tr>`;
+    }).join('');
     const summaryBody = document.getElementById('electoralSummaryBody');
     if (summaryBody) summaryBody.innerHTML = [...bySind.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es')).map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${v}</td><td>${visibleRows.length ? ((v / visibleRows.length) * 100).toFixed(1) : '0.0'}%</td></tr>`).join('');
   }
@@ -769,7 +788,7 @@
   }
 
   function setElectoralColegio(value) { electoralSelectedColegio = value || 'Todos'; renderPlantillaElectoral(); }
-  function setElectoralMesa(value) { electoralSelectedMesa = value || 'Mesa 1'; renderPlantillaElectoral(); }
+  function setElectoralMesa(value) { electoralSelectedMesa = value || 'Todos'; renderPlantillaElectoral(); }
   function setElectoralSindicato(value) { electoralSelectedSindicato = value || 'Todos'; renderPlantillaElectoral(); }
   function setElectoralRecorrido(value) { electoralSelectedRecorrido = value || 'Todos'; renderPlantillaElectoral(); }
 
@@ -777,10 +796,11 @@
     const visible = getElectoralVisibleRows();
     const bySind = {};
     const byMesaColegio = {};
-    visible.forEach(i => { const k = normalizeSindicato(getField(i, 'sindicato')); bySind[k] = (bySind[k] || 0) + 1; });
+    visible.forEach(i => { const k = plantillaDisplayDefaults(i).sindicato; bySind[k] = (bySind[k] || 0) + 1; });
     visible.forEach(i => {
-      const colegio = normalizeText(getField(i, 'colegioElectoral', 'colegio_electoral')) || 'Sin colegio';
-      const mesa = normalizeText(getField(i, 'mesaElectoral', 'mesa_electoral')) || 'Sin mesa';
+      const defaults = plantillaDisplayDefaults(i);
+      const colegio = defaults.colegio;
+      const mesa = defaults.mesa;
       const key = `${colegio}|||${mesa}`;
       byMesaColegio[key] = (byMesaColegio[key] || 0) + 1;
     });
@@ -790,7 +810,7 @@
         { name: 'Resumen general', columns: ['Filtro colegio', 'Mesa', 'Total visible'], rows: [[electoralSelectedColegio, electoralSelectedMesa, visible.length]] },
         { name: 'Resumen sindicato', columns: ['Sindicato', 'Personas', '%'], rows: Object.entries(bySind).map(([k, v]) => [k, v, visible.length ? ((v * 100) / visible.length).toFixed(1) : '0.0']) },
         { name: 'Resumen mesa-colegio', columns: ['Colegio', 'Mesa', 'Personas'], rows: Object.entries(byMesaColegio).map(([k, v]) => { const [colegio, mesa] = k.split('|||'); return [colegio, mesa, v]; }) },
-        { name: 'Listado visible', columns: ['Persona', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Participación estimada', 'Recorrido activo'], rows: visible.map(i => [i.name || '', getField(i, 'colegioElectoral', 'colegio_electoral') || '', getField(i, 'mesaElectoral', 'mesa_electoral') || '', normalizeSindicato(getField(i, 'sindicato')), getField(i, 'participacionEstimada', 'participacion_estimada') || '', getField(i, 'recorridoActivo', 'recorrido_activo') ? 'Sí' : 'No']) }
+        { name: 'Listado visible', columns: ['Persona', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Participación estimada', 'Recorrido activo'], rows: visible.map(i => { const d = plantillaDisplayDefaults(i); return [i.name || '', d.colegio, d.mesa, d.sindicato, d.participacion, d.recorridoActivo ? 'Sí' : 'No']; }) }
       ]
     });
   }
