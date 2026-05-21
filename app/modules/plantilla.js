@@ -219,12 +219,29 @@
   }
 
 
+  function getPlantillaNombreCompleto(persona) {
+    const fromCanonical = normalizeText(getField(persona, 'nombreCompleto'));
+    const fromSnake = normalizeText(getField(persona, 'nombre_completo'));
+    const fromFullName = normalizeText(getField(persona, 'fullName'));
+    const fromSolicitante = normalizeText(getField(persona, 'solicitante'));
+    const fromLegacyName = normalizeText(getField(persona, 'name', 'nombre'));
+    const fromLegacyLastName = normalizeText(getField(persona, 'lastName', 'apellidos'));
+    return fromCanonical || fromSnake || fromFullName || fromSolicitante || normalizeText([fromLegacyName, fromLegacyLastName].filter(Boolean).join(' ')) || '';
+  }
+
+  function normalizePlantillaPerson(persona) {
+    if (!persona || typeof persona !== 'object') return persona;
+    const nombreCompleto = getPlantillaNombreCompleto(persona);
+    return {
+      ...persona,
+      ...(Object.prototype.hasOwnProperty.call(persona, 'nombreCompleto') ? {} : { nombreCompleto }),
+      ...(Object.prototype.hasOwnProperty.call(persona, 'fullName') ? {} : { fullName: nombreCompleto }),
+      ...(Object.prototype.hasOwnProperty.call(persona, 'name') ? {} : { name: nombreCompleto })
+    };
+  }
+
   function resolveNombreCompleto(item) {
-    const fromCanonical = normalizeText(getField(item, 'nombreCompleto'));
-    const fromFullName = normalizeText(getField(item, 'fullName'));
-    const fromLegacyName = normalizeText(getField(item, 'name'));
-    const fromLegacyLastName = normalizeText(getField(item, 'lastName'));
-    return fromCanonical || fromFullName || normalizeText([fromLegacyName, fromLegacyLastName].filter(Boolean).join(' ')) || fromLegacyName;
+    return getPlantillaNombreCompleto(item);
   }
 
   function resolveSexo(item) {
@@ -267,7 +284,7 @@
       const observaciones = normalizeText(getField(item, 'observacionesRecorrido', 'observaciones_recorrido'));
       const nombreCompleto = resolveNombreCompleto(item);
       const sexo = resolveSexo(item);
-      const normalizedItem = {
+      const normalizedItem = normalizePlantillaPerson({
         ...item,
         nombreCompleto,
         fullName: normalizeText(getField(item, 'fullName')) || nombreCompleto,
@@ -287,7 +304,7 @@
         ...(Object.prototype.hasOwnProperty.call(item, 'estacion_base') ? {} : { estacion_base: estacionBase }),
         ...(Object.prototype.hasOwnProperty.call(item, 'observacionesRecorrido') ? {} : { observacionesRecorrido: observaciones }),
         ...(Object.prototype.hasOwnProperty.call(item, 'observaciones_recorrido') ? {} : { observaciones_recorrido: observaciones })
-      };
+      });
       if (!hasChanges) {
         hasChanges = ['colegioElectoral', 'colegio_electoral', 'mesaElectoral', 'mesa_electoral', 'participacionEstimada', 'participacion_estimada', 'recorridoActivo', 'recorrido_activo', 'estacionBase', 'estacion_base', 'observacionesRecorrido', 'observaciones_recorrido']
           .some(key => item[key] !== normalizedItem[key]);
@@ -1065,7 +1082,7 @@
         { name: 'Resumen general', columns: ['Filtro colegio', 'Mesa', 'Total visible'], rows: [[electoralSelectedColegio, electoralSelectedMesa, visible.length]] },
         { name: 'Resumen sindicato', columns: ['Sindicato', 'Personas', '%'], rows: Object.entries(bySind).map(([k, v]) => [k, v, visible.length ? ((v * 100) / visible.length).toFixed(1) : '0.0']) },
         { name: 'Resumen mesa-colegio', columns: ['Colegio', 'Mesa', 'Personas'], rows: Object.entries(byMesaColegio).map(([k, v]) => { const [colegio, mesa] = k.split('|||'); return [colegio, mesa, v]; }) },
-        { name: 'Listado visible', columns: ['Persona', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Participación estimada', 'Recorrido activo'], rows: visible.map(i => { const d = plantillaDisplayDefaults(i); return [i.name || '', d.colegio, d.mesa, d.sindicato, d.participacion, d.recorridoActivo ? 'Sí' : 'No']; }) }
+        { name: 'Listado visible', columns: ['Persona', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Participación estimada', 'Recorrido activo'], rows: visible.map(i => { const d = plantillaDisplayDefaults(i); return [resolveNombreCompleto(i) || '', d.colegio, d.mesa, d.sindicato, d.participacion, d.recorridoActivo ? 'Sí' : 'No']; }) }
       ]
     });
   }
@@ -1073,6 +1090,9 @@
   window.PlantillaModule = { getPlantilla, setPlantilla, togglePlantillaCreateForm, addPlantilla, deletePlantilla, openPlantillaEditModal, closePlantillaEditModal, saveEditingPlantilla, deleteEditingPlantilla, renderPlantilla, plantillaPreviousPage, plantillaNextPage, importPlantillaExcelFromInput, importPlantillaRrllFromInput, printPlantilla, exportPlantillaExcel, downloadPlantillaModelExcel, togglePlantillaElectoralView, setElectoralColegio, setElectoralMesa, setElectoralSindicato, setElectoralRecorrido, exportPlantillaElectoralExcel };
   window.getPlantilla = getPlantilla;
   window.setPlantilla = setPlantilla;
+
+  window.getPlantillaNombreCompleto = getPlantillaNombreCompleto;
+  window.normalizePlantillaPerson = normalizePlantillaPerson;
   window.togglePlantillaCreateForm = togglePlantillaCreateForm;
   window.addPlantilla = addPlantilla;
   window.deletePlantilla = deletePlantilla;
