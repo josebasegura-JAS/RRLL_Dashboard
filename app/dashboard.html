@@ -1254,7 +1254,7 @@
               </div>
             </div>
 
-            <div class="licencias-columns">
+            <div class="licencias-columns licencias-priority-columns">
               <section class="rrll-pro-list-card licencias-column">
                 <div class="rrll-pro-list-toolbar licencias-toolbar">
                   <div><h3>Pendiente de aprobar</h3><p class="rrll-pro-subtitle"><span id="count-lic-pending">0</span> solicitudes</p></div>
@@ -1272,18 +1272,18 @@
                 <div class="rrll-pro-table-wrap"><table class="rrll-pro-table licencias-table"><thead><tr><th>Nº</th><th>Nombre</th><th>Tipo</th><th>Fechas</th></tr></thead><tbody id="licSignatureTableBody"></tbody></table></div>
                 <div id="licSignatureEmpty" class="rrll-pro-empty">No hay solicitudes pendientes de firma.</div>
               </section>
-
-              <section class="rrll-pro-list-card licencias-column licencias-column-active">
-                <div class="rrll-pro-list-toolbar licencias-toolbar">
-                  <div><h3>Licencias vigentes</h3><p class="rrll-pro-subtitle"><span id="count-lic-active">0</span> permisos vigentes</p></div>
-                  <div class="rrll-pro-list-actions"><button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printLicencias('active')" title="Imprimir licencias vigentes" aria-label="Imprimir licencias vigentes">🖨️</button><button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportLicenciasExcel('active')" title="Exportar licencias vigentes a Excel" aria-label="Exportar licencias vigentes a Excel">X</button></div>
-                </div>
-                <div class="rrll-pro-table-wrap"><table class="rrll-pro-table licencias-table"><thead><tr><th>Nº</th><th>Nombre</th><th>Tipo</th><th>Fechas</th></tr></thead><tbody id="licActiveTableBody"></tbody></table></div>
-                <div id="licActiveEmpty" class="rrll-pro-empty">No hay licencias vigentes.</div>
-              </section>
             </div>
 
-            <details class="rrll-pro-list-card licencias-history-card">
+            <details class="rrll-pro-list-card licencias-collapsible-card licencias-column-active" open>
+              <summary class="rrll-pro-list-toolbar licencias-toolbar">
+                <div><h3>Licencias vigentes</h3><p class="rrll-pro-subtitle"><span id="count-lic-active">0</span> permisos vigentes</p></div>
+                <div class="rrll-pro-list-actions"><button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="event.preventDefault(); event.stopPropagation(); printLicencias('active')" title="Imprimir licencias vigentes" aria-label="Imprimir licencias vigentes">🖨️</button><button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportLicenciasExcel('active')" title="Exportar licencias vigentes a Excel" aria-label="Exportar licencias vigentes a Excel">X</button></div>
+              </summary>
+              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table licencias-table"><thead><tr><th>Nº</th><th>Nombre</th><th>Tipo</th><th>Fechas</th></tr></thead><tbody id="licActiveTableBody"></tbody></table></div>
+              <div id="licActiveEmpty" class="rrll-pro-empty">No hay licencias vigentes.</div>
+            </details>
+
+            <details class="rrll-pro-list-card licencias-history-card licencias-collapsible-card">
               <summary class="rrll-pro-list-toolbar licencias-toolbar">
                 <div><h3>Histórico</h3><p class="rrll-pro-subtitle">Solicitudes finalizadas cuya fecha fin de permiso ya ha vencido, agrupadas por año.</p></div>
                 <div class="rrll-pro-list-actions"><button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="event.preventDefault(); event.stopPropagation(); printLicencias('history')" title="Imprimir histórico" aria-label="Imprimir histórico">🖨️</button><button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="event.preventDefault(); event.stopPropagation(); exportLicenciasExcel('history')" title="Exportar histórico a Excel" aria-label="Exportar histórico a Excel">X</button></div>
