@@ -582,7 +582,7 @@
     if (summary) summary.textContent = `${rows.length} personas`;
     document.querySelectorAll('#gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button').forEach(button => {
       const label = normalizeText(button.textContent);
-      const isTextAction = ['Elecciones sindicales', 'Importar RRLL', '+ Crear plantilla', 'Crear plantilla'].includes(label);
+      const isTextAction = ['Elecciones sindicales', 'Importar RRLL', '+ Crear plantilla', 'Crear plantilla', 'Descargar modelo'].includes(label);
       button.classList.toggle('plantilla-text-action', isTextAction);
     });
     const tableContainer = document.querySelector('#plantillaMainListView .rrll-pro-table-wrap');
@@ -594,7 +594,7 @@
   function ensurePlantillaModelDownloadButton() {
     const toolbar = document.querySelector('#gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions');
     if (!toolbar || toolbar.querySelector('[data-plantilla-model-download="1"]')) return;
-    toolbar.insertAdjacentHTML('beforeend', '<button type="button" class="rrll-pro-tool-button" data-plantilla-model-download="1" onclick="downloadPlantillaModelExcel()">Descargar modelo</button>');
+    toolbar.insertAdjacentHTML('beforeend', '<button type="button" class="rrll-pro-tool-button plantilla-text-action" data-plantilla-model-download="1" onclick="downloadPlantillaModelExcel()">Descargar modelo</button>');
   }
 
   function getElectoralVisibleRows() {
