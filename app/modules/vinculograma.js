@@ -50,11 +50,10 @@
   }
 
   function vinculogramaPersonFullName(person) {
+    if (typeof getPlantillaNombreCompleto === 'function') return getPlantillaNombreCompleto(person);
     if (!person || typeof person !== 'object') return '';
-    const nombreCompleto = String(person.nombreCompleto || person.fullName || '').trim();
-    if (nombreCompleto) return nombreCompleto;
-    const legacyName = String(person.name || '').trim();
-    const legacyLastName = String(person.lastName || '').trim();
+    const legacyName = String(person.name || person.nombre || '').trim();
+    const legacyLastName = String(person.lastName || person.apellidos || '').trim();
     return `${legacyName} ${legacyLastName}`.trim() || legacyName;
   }
 
@@ -271,7 +270,7 @@
     const requestEl = document.getElementById('editVincRequestDate');
     const expiryEl = document.getElementById('editVincExpiryDate');
     if (employeeEl) employeeEl.value = item.employeeNumber || '';
-    if (nameEl) nameEl.value = item.name || '';
+    if (nameEl) nameEl.value = item.nombreCompleto || item.name || '';
     if (linkedEl) linkedEl.value = item.linkedPerson || '';
     if (requestEl) requestEl.value = item.requestDate || '';
     if (expiryEl) expiryEl.value = item.expiryDate || addYearsToDate(item.requestDate, 3);
@@ -309,11 +308,11 @@
     const employeeNumber = normalizeEmployeeNumber(employeeEl?.value);
     const matchedPerson = findVincPlantillaByEmployeeNumber(employeeNumber);
     if (matchedPerson && !String(nameEl?.value || '').trim()) nameEl.value = vinculogramaPersonFullName(matchedPerson) || '';
-    const name = String(nameEl?.value || '').trim();
+    const nombreCompleto = String(nameEl?.value || '').trim();
     const linkedPerson = String(linkedEl?.value || '').trim();
     const requestDate = requestEl?.value || '';
     const expiryDate = addYearsToDate(requestDate, 3);
-    if (!employeeNumber || !name || !requestDate) {
+    if (!employeeNumber || !nombreCompleto || !requestDate) {
       alert('Introduce Nº empleado, nombre y fecha de solicitud.');
       return;
     }
@@ -323,7 +322,7 @@
     }
     const items = getVinculogramas();
     const next = items.map(item => item.id === editingVinculogramaId
-      ? { ...item, employeeNumber, name, linkedPerson, requestDate, expiryDate, updatedAt: new Date().toISOString() }
+      ? { ...item, employeeNumber, nombreCompleto, name: nombreCompleto, linkedPerson, requestDate, expiryDate, updatedAt: new Date().toISOString() }
       : item
     );
     setVinculogramas(next);
@@ -351,12 +350,12 @@
     const employeeNumber = normalizeEmployeeNumber(employeeEl.value);
     const matchedPerson = findVincPlantillaByEmployeeNumber(employeeNumber);
     if (matchedPerson && !String(nameEl.value || '').trim()) nameEl.value = vinculogramaPersonFullName(matchedPerson) || '';
-    const name = String(nameEl.value || '').trim();
+    const nombreCompleto = String(nameEl.value || '').trim();
     const linkedPerson = String(linkedEl?.value || '').trim();
     const requestDate = requestEl.value;
     const expiryDate = addYearsToDate(requestDate, 3);
 
-    if (!employeeNumber || !name || !requestDate) {
+    if (!employeeNumber || !nombreCompleto || !requestDate) {
       alert('Introduce Nº empleado, nombre y fecha de solicitud.');
       return;
     }
@@ -368,7 +367,7 @@
     const now = new Date().toISOString();
     const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `vinc-${Date.now()}`;
     const items = getVinculogramas();
-    items.push({ id, employeeNumber, name, linkedPerson, requestDate, expiryDate, createdAt: now });
+    items.push({ id, employeeNumber, nombreCompleto, name: nombreCompleto, linkedPerson, requestDate, expiryDate, createdAt: now });
     setVinculogramas(items);
 
     employeeEl.value = '';
@@ -402,7 +401,7 @@
     return `
       <tr id="rrll-vinc-${item.id}" class="rrll-pro-row vinculograma-row status-${statusClass}" ondblclick="event.preventDefault(); event.stopPropagation(); openVinculogramaEditModal('${item.id}')" title="Doble clic para editar">
         <td><strong>${escapeHtml(item.employeeNumber || '')}</strong></td>
-        <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.name || 'Sin nombre')}</div></td>
+        <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.nombreCompleto || item.name || 'Sin nombre')}</div></td>
         <td>${escapeHtml(item.linkedPerson || '')}</td>
         <td><span class="rrll-status-pill ${statusClass}">${escapeHtml(statusText)}</span><br><span class="rrll-pro-subtitle">${escapeHtml(formatVincDate(item.expiryDate))}</span></td>
         <td class="rrll-pro-actions vinculograma-actions-cell"><button class="small danger rrll-delete-icon-button vinculograma-delete-btn" type="button" onclick="event.stopPropagation(); deleteVinculograma('${item.id}')" title="Eliminar vinculograma" aria-label="Eliminar vinculograma"><svg class="vinculograma-delete-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg></button></td>
@@ -446,7 +445,7 @@
         <tr>
           <td>${idx + 1}</td>
           <td>${htmlEscapeForPrint(item.employeeNumber || '')}</td>
-          <td>${htmlEscapeForPrint(item.name || '')}</td>
+          <td>${htmlEscapeForPrint(item.nombreCompleto || item.name || '')}</td>
           <td>${htmlEscapeForPrint(item.linkedPerson || '')}</td>
           <td>${htmlEscapeForPrint(formatVincDate(item.requestDate))}</td>
           <td>${htmlEscapeForPrint(formatVincDate(item.expiryDate))}</td>
@@ -463,7 +462,7 @@
       title: data.title,
       filename: data.filename,
       headers: ['Nº empleado', 'Nombre', 'Persona vinculada', 'Fecha solicitud', 'Fecha vigencia'],
-      rows: data.rows.map(item => [item.employeeNumber || '', item.name || '', item.linkedPerson || '', formatVincDate(item.requestDate), formatVincDate(item.expiryDate)])
+      rows: data.rows.map(item => [item.employeeNumber || '', item.nombreCompleto || item.name || '', item.linkedPerson || '', formatVincDate(item.requestDate), formatVincDate(item.expiryDate)])
     };
     if (typeof exportExcelData === 'function') exportExcelData(excelData);
   }

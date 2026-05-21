@@ -252,11 +252,13 @@
     const source = item && typeof item === "object" ? item : {};
     const hasNewFlowFields = ["presenceValidation", "favorableReport", "directionValidation", "period", "observations"].some(field => Object.prototype.hasOwnProperty.call(source, field));
     const directionValidation = pick(source.directionValidation, DIRECTION_VALUES, source.status === "telework-approved" ? "Aprobada" : source.status === "telework-denied" ? "Denegada" : "Pendiente");
+    const nombreCompleto = String(source.nombreCompleto || source.name || "").trim();
     const normalized = {
       ...source,
       id: source.id || ((window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : `telework-${Date.now()}-${Math.random().toString(36).slice(2)}`),
       employeeNumber: String(source.employeeNumber || "").trim(),
-      name: String(source.name || "").trim(),
+      nombreCompleto,
+      name: String(source.name || nombreCompleto).trim(),
       job: String(source.job || "").trim(),
       period: normalizeTeleworkPeriod(source.period || source.periodo || source.campaign || source.campaña),
       type: source.type === "Renovación" ? "Renovación" : "Nuevo",
@@ -350,11 +352,10 @@
 
 
   function teleworkPersonFullName(person) {
+    if (typeof getPlantillaNombreCompleto === 'function') return getPlantillaNombreCompleto(person);
     if (!person || typeof person !== "object") return "";
-    const nombreCompleto = String(person.nombreCompleto || person.fullName || "").trim();
-    if (nombreCompleto) return nombreCompleto;
-    const legacyName = String(person.name || "").trim();
-    const legacyLastName = String(person.lastName || "").trim();
+    const legacyName = String(person.name || person.nombre || "").trim();
+    const legacyLastName = String(person.lastName || person.apellidos || "").trim();
     return `${legacyName} ${legacyLastName}`.trim() || legacyName;
   }
 
@@ -463,9 +464,9 @@
       const jobEl = document.getElementById(`${prefix}TeleworkJob`);
       if (jobEl && !jobEl.value.trim()) jobEl.value = matchedPerson.job || "";
     }
-    const name = (nameEl?.value || "").trim();
+    const nombreCompleto = (nameEl?.value || "").trim();
     const job = (document.getElementById(`${prefix}TeleworkJob`)?.value || "").trim();
-    if (!employeeNumber || !name) {
+    if (!employeeNumber || !nombreCompleto) {
       alert("Introduce al menos número de empleado y solicitante.");
       return null;
     }
@@ -486,7 +487,8 @@
     const draft = normalizeTeleworkItem({
       ...(previousItem || {}),
       employeeNumber,
-      name,
+      nombreCompleto,
+      name: nombreCompleto,
       job,
       period: normalizeTeleworkPeriod(document.getElementById(`${prefix}TeleworkPeriod`)?.value || getTeleworkActiveCampaign()),
       type: document.getElementById(`${prefix}TeleworkType`)?.value || "Nuevo",
@@ -558,7 +560,7 @@
 
   function moveTeleworkToProcessing(id) {
     const item = getTeleworkItems().find(entry => entry.id === id);
-    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    const title = item && (item.nombreCompleto || item.name) ? `“${item.nombreCompleto || item.name}”` : "esta solicitud";
     if (typeof confirmDangerAction === "function") {
       confirmDangerAction({
         title: "Cambiar estado de solicitud",
@@ -599,7 +601,7 @@
   function resolveTelework(id, status) {
     if (!["telework-approved", "telework-denied"].includes(status)) return;
     const item = getTeleworkItems().find(entry => entry.id === id);
-    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    const title = item && (item.nombreCompleto || item.name) ? `“${item.nombreCompleto || item.name}”` : "esta solicitud";
     const nextStatus = teleworkStatusLabel(status).toLowerCase();
     if (typeof confirmDangerAction === "function") {
       confirmDangerAction({
@@ -623,7 +625,7 @@
 
   function deleteTelework(id) {
     const item = getTeleworkItems().find(i => i.id === id);
-    const title = item && item.name ? `“${item.name}”` : "esta solicitud";
+    const title = item && (item.nombreCompleto || item.name) ? `“${item.nombreCompleto || item.name}”` : "esta solicitud";
     if (typeof confirmDangerAction === "function") {
       confirmDangerAction({
         title: "Eliminar solicitud de teletrabajo",
@@ -644,7 +646,7 @@
   function teleworkMatchesQuery(item, query) {
     if (!query) return true;
     return itemSearchText([
-      item.name,
+      item.nombreCompleto || item.name,
       item.employeeNumber,
       item.job,
       item.period,
@@ -789,7 +791,7 @@
     editingTeleworkId = id;
     const modal = ensureTeleworkEditModal();
     document.getElementById("editTeleworkEmployeeNumber").value = item.employeeNumber || "";
-    document.getElementById("editTeleworkName").value = item.name || "";
+    document.getElementById("editTeleworkName").value = item.nombreCompleto || item.name || "";
     document.getElementById("editTeleworkJob").value = item.job || "";
     renderTeleworkEligibilityWarning("edit");
     document.getElementById("editTeleworkPeriod").value = item.period || "";
@@ -867,7 +869,7 @@
       <article id="rrll-telework-${escapeHtml(item.id)}" class="rrll-pro-row telework-request-card status-${statusClass}" ondblclick="event.preventDefault(); event.stopPropagation(); openTeleworkEditModal('${escapeJs(item.id)}')" title="Doble clic para editar la ficha completa">
         <div class="telework-card-main">
           <div>
-            <div class="rrll-pro-title">${escapeHtml(item.name || "Sin solicitante")}</div>
+            <div class="rrll-pro-title">${escapeHtml(item.nombreCompleto || item.name || "Sin solicitante")}</div>
             <div class="rrll-pro-subtitle">Nº empleado: ${escapeHtml(item.employeeNumber || "Sin número")} · ${escapeHtml(item.job || "Sin puesto")}</div>
           </div>
           <span class="rrll-status-pill ${statusClass}">${escapeHtml(teleworkStatusLabel(item.status))}</span>
@@ -906,7 +908,7 @@
           <div class="telework-person-with-indicator">
             ${renderTeleworkPositionIndicator(item, indicatorContext)}
             <div class="telework-person-text">
-              <div class="rrll-pro-title">${escapeHtml(item.name || "Sin solicitante")}</div>
+              <div class="rrll-pro-title">${escapeHtml(item.nombreCompleto || item.name || "Sin solicitante")}</div>
               <div class="rrll-pro-subtitle">Nº empleado: ${escapeHtml(item.employeeNumber || "Sin número")} · ${escapeHtml(item.job || "Sin puesto")}</div>
             </div>
           </div>
@@ -935,7 +937,7 @@
           <div class="telework-person-with-indicator">
             ${renderTeleworkPositionIndicator(item, indicatorContext)}
             <div class="telework-person-text">
-              <div class="rrll-pro-title">${escapeHtml(item.name || "Sin solicitante")}</div>
+              <div class="rrll-pro-title">${escapeHtml(item.nombreCompleto || item.name || "Sin solicitante")}</div>
               <div class="rrll-pro-subtitle">Nº empleado: ${escapeHtml(item.employeeNumber || "Sin número")} · ${escapeHtml(item.job || "Sin puesto")}</div>
             </div>
           </div>
@@ -1507,7 +1509,7 @@
 
   function getTeleworkAbsenceKey(item) {
     const employeeNumber = String(item?.employeeNumber || "").trim().toLowerCase();
-    const fullName = String(item?.name || "").trim().toLowerCase();
+    const fullName = String(item?.nombreCompleto || item?.name || "").trim().toLowerCase();
     const dateKey = normalizeTeleworkImportDate(item?.absenceDate || item?.resolutionDate || item?.createdAt);
     if (!dateKey) return "";
     if (employeeNumber) return `emp::${employeeNumber}::${dateKey}`;
@@ -1546,7 +1548,8 @@
       return normalizeTeleworkItem({
         id: (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
         employeeNumber: teleworkCell(record, ["Nº empleado", "No empleado", "N empleado", "Numero empleado"]),
-        name: teleworkCell(record, ["Solicitante", "Nombre", "Nombre y apellidos"]),
+        nombreCompleto: teleworkCell(record, ["Nombre completo", "Solicitante", "Nombre", "Nombre y apellidos"]),
+        name: teleworkCell(record, ["Nombre completo", "Solicitante", "Nombre", "Nombre y apellidos"]),
         job: teleworkCell(record, ["Puesto de trabajo", "Puesto"]),
         period: teleworkCell(record, ["Periodo", "Campaña", "Campana"]) || defaultPeriod,
         type: teleworkCell(record, ["Tipo solicitud", "Tipo"]) || "Importada",

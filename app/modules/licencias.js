@@ -34,6 +34,15 @@
     }
   }
 
+
+  function licenciaPersonFullName(person) {
+    if (typeof getPlantillaNombreCompleto === 'function') return getPlantillaNombreCompleto(person);
+    if (!person || typeof person !== 'object') return '';
+    const legacyName = String(person.name || person.nombre || '').trim();
+    const legacyLastName = String(person.lastName || person.apellidos || '').trim();
+    return `${legacyName} ${legacyLastName}`.trim() || legacyName;
+  }
+
   function normalizeLicenciaLookup(value) {
     return String(value || '')
       .toLowerCase()
@@ -53,7 +62,7 @@
     const employeeEl = document.getElementById(target === 'modal' ? 'licenseEditEmployeeNumber' : 'newLicEmployeeNumber');
     const nameEl = document.getElementById(target === 'modal' ? 'licenseEditName' : 'newLicName');
     if (employeeEl) employeeEl.value = person.employeeNumber || '';
-    if (nameEl) nameEl.value = person.name || '';
+    if (nameEl) nameEl.value = licenciaPersonFullName(person) || '';
     if (target === 'modal') hideLicenciaModalSuggestions();
     else hideLicenciaSuggestions();
   }
@@ -106,11 +115,11 @@
     }
     const results = getPlantillaForLicencias()
       .filter(person => {
-        const name = normalizeLicenciaLookup(person.name);
+        const name = normalizeLicenciaLookup(licenciaPersonFullName(person));
         const employee = normalizeLicenciaLookup(person.employeeNumber);
         return name.includes(query) || employee.includes(query);
       })
-      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' }))
+      .sort((a, b) => String(licenciaPersonFullName(a) || '').localeCompare(String(licenciaPersonFullName(b) || ''), 'es', { sensitivity: 'base' }))
       .slice(0, 8);
 
     if (!results.length) {
@@ -122,7 +131,7 @@
     const fn = target === 'modal' ? 'selectLicenciaModalPerson' : 'selectLicenciaPerson';
     box.innerHTML = results.map(person => `
       <button type="button" class="rrll-autocomplete-option" onmousedown="event.preventDefault(); ${fn}('${person.id}')">
-        <strong>${escapeHtml(person.name || 'Sin nombre')}</strong>
+        <strong>${escapeHtml(licenciaPersonFullName(person) || 'Sin nombre')}</strong>
         <span>Nº ${escapeHtml(person.employeeNumber || '')} · ${escapeHtml(person.job || 'Sin puesto')}</span>
       </button>
     `).join('');
@@ -161,7 +170,7 @@
     if (aDigits && bDigits && Number.isFinite(aNum) && Number.isFinite(bNum) && aNum !== bNum) return aNum - bNum;
     const byRaw = aRaw.localeCompare(bRaw, 'es', { numeric: true, sensitivity: 'base' });
     if (byRaw !== 0) return byRaw;
-    return String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
+    return String(a.nombreCompleto || a.name || '').localeCompare(String(b.nombreCompleto || b.name || ''), 'es', { sensitivity: 'base' });
   }
 
   function todayDateOnly() {
@@ -333,15 +342,15 @@
 
     const employeeNumber = normalizeEmployeeNumber(employeeEl.value);
     const matchedPerson = findLicenciaPlantillaByEmployeeNumber(employeeNumber);
-    if (matchedPerson && !String(nameEl.value || '').trim()) nameEl.value = matchedPerson.name || '';
-    const name = String(nameEl.value || '').trim();
+    if (matchedPerson && !String(nameEl.value || '').trim()) nameEl.value = licenciaPersonFullName(matchedPerson) || '';
+    const nombreCompleto = String(nameEl.value || '').trim();
     const requestDate = requestEl.value;
     const type = typeEl.value || 'Licencia sin sueldo';
     const startDate = startEl.value;
     if (isAldType(type) && startDate) endEl.value = addYearsToDateInput(startDate, 5);
     const endDate = endEl.value;
 
-    if (!employeeNumber || !name || !requestDate || !startDate || !endDate) {
+    if (!employeeNumber || !nombreCompleto || !requestDate || !startDate || !endDate) {
       alert('Introduce Nº empleado, nombre, fecha de solicitud, inicio y fin del permiso.');
       return;
     }
@@ -358,7 +367,7 @@
     const now = new Date().toISOString();
     const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `lic-${Date.now()}`;
     const items = getLicencias();
-    items.push({ id, employeeNumber, name, requestDate, type, startDate, endDate, status: 'pending_approval', updates: [], createdAt: now, updatedAt: now });
+    items.push({ id, employeeNumber, nombreCompleto, name: nombreCompleto, requestDate, type, startDate, endDate, status: 'pending_approval', updates: [], createdAt: now, updatedAt: now });
     setLicencias(items);
 
     employeeEl.value = '';
@@ -431,10 +440,10 @@
     const typeInput = document.getElementById('licenseEditType');
     const startInput = document.getElementById('licenseEditStartDate');
     const endInput = document.getElementById('licenseEditEndDate');
-    if (title) title.textContent = `${item.type || 'Solicitud'} · ${item.name || 'Sin nombre'}`;
+    if (title) title.textContent = `${item.type || 'Solicitud'} · ${item.nombreCompleto || item.name || 'Sin nombre'}`;
     if (meta) meta.textContent = `Nº ${item.employeeNumber || ''} · ${licenseDisplayStatus(item)} · ${formatLicDate(item.startDate)} - ${formatLicDate(item.endDate)}`;
     if (employeeInput) employeeInput.value = item.employeeNumber || '';
-    if (nameInput) nameInput.value = item.name || '';
+    if (nameInput) nameInput.value = item.nombreCompleto || item.name || '';
     if (requestInput) requestInput.value = item.requestDate || '';
     if (typeInput) typeInput.value = item.type || 'Licencia sin sueldo';
     if (startInput) startInput.value = item.startDate || '';
@@ -457,14 +466,14 @@
 
   function readLicenseModalFields() {
     const employeeNumber = normalizeEmployeeNumber(document.getElementById('licenseEditEmployeeNumber')?.value || '');
-    const name = String(document.getElementById('licenseEditName')?.value || '').trim();
+    const nombreCompleto = String(document.getElementById('licenseEditName')?.value || '').trim();
     const requestDate = document.getElementById('licenseEditRequestDate')?.value || '';
     const type = document.getElementById('licenseEditType')?.value || 'Licencia sin sueldo';
     const startDate = document.getElementById('licenseEditStartDate')?.value || '';
     const endEl = document.getElementById('licenseEditEndDate');
     if (isAldType(type) && startDate && endEl) endEl.value = addYearsToDateInput(startDate, 5);
     const endDate = endEl?.value || '';
-    if (!employeeNumber || !name || !requestDate || !startDate || !endDate) {
+    if (!employeeNumber || !nombreCompleto || !requestDate || !startDate || !endDate) {
       alert('Introduce Nº empleado, nombre, fecha de solicitud, inicio y fin del permiso.');
       return null;
     }
@@ -477,7 +486,7 @@
       alert(dateValidation);
       return null;
     }
-    return { employeeNumber, name, requestDate, type, startDate, endDate };
+    return { employeeNumber, nombreCompleto, name: nombreCompleto, requestDate, type, startDate, endDate };
   }
 
   function applyLicenseModalFields(item) {
@@ -547,7 +556,7 @@
     return `
       <tr id="rrll-lic-${item.id}" class="rrll-pro-row licencias-row" ondblclick="openLicenciaModal('${item.id}')" title="Doble clic para actualizar">
         <td><strong>${escapeHtml(item.employeeNumber || '')}</strong></td>
-        <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.name || 'Sin nombre')}</div><span class="rrll-pro-subtitle">Solicitud: ${escapeHtml(formatLicDate(item.requestDate))}</span></td>
+        <td class="rrll-pro-main-cell"><div class="rrll-pro-title">${escapeHtml(item.nombreCompleto || item.name || 'Sin nombre')}</div><span class="rrll-pro-subtitle">Solicitud: ${escapeHtml(formatLicDate(item.requestDate))}</span></td>
         <td><span class="rrll-status-pill ${typeBadgeClass(item.type)}">${escapeHtml(item.type || '')}</span></td>
         <td><span>${escapeHtml(formatLicDate(item.startDate))}</span><br><span class="rrll-pro-subtitle">hasta ${escapeHtml(formatLicDate(item.endDate))}</span></td>
       </tr>
@@ -608,7 +617,7 @@
       <tr>
         <td>${idx + 1}</td>
         <td>${htmlEscapeForPrint(item.employeeNumber || '')}</td>
-        <td>${htmlEscapeForPrint(item.name || '')}</td>
+        <td>${htmlEscapeForPrint(item.nombreCompleto || item.name || '')}</td>
         <td>${htmlEscapeForPrint(item.type || '')}</td>
         <td>${htmlEscapeForPrint(formatLicDate(item.requestDate))}</td>
         <td>${htmlEscapeForPrint(formatLicDate(item.startDate))} - ${htmlEscapeForPrint(formatLicDate(item.endDate))}</td>
@@ -626,7 +635,7 @@
       title: data.title,
       filename: data.filename,
       headers: ['Nº empleado', 'Nombre', 'Tipo solicitud', 'Fecha solicitud', 'Fecha inicio permiso', 'Fecha fin permiso', 'Estado'],
-      rows: data.rows.map(item => [item.employeeNumber || '', item.name || '', item.type || '', formatLicDate(item.requestDate), formatLicDate(item.startDate), formatLicDate(item.endDate), licenseDisplayStatus(item)])
+      rows: data.rows.map(item => [item.employeeNumber || '', item.nombreCompleto || item.name || '', item.type || '', formatLicDate(item.requestDate), formatLicDate(item.startDate), formatLicDate(item.endDate), licenseDisplayStatus(item)])
     });
   }
 
