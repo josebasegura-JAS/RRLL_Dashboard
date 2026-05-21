@@ -4774,3 +4774,9 @@ html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active 
   display: table-cell;
   vertical-align: top;
 }
+.hidden { display: none !important; }
+#gestor-plantilla .plantilla-electoral-view #electoralCards {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
