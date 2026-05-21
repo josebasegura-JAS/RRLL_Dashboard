@@ -1246,6 +1246,7 @@ body.phase4-view-home .top-strip {
 body.phase4-view-home .header-logo-wrapper {
   width: clamp(146px, 22.7vw, 227px) !important;
   max-width: 227px !important;
+  min-width: 0 !important;
   padding: 3px 7px !important;
 }
 

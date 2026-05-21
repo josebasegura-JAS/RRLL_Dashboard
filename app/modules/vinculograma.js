@@ -49,6 +49,15 @@
     }
   }
 
+  function vinculogramaPersonFullName(person) {
+    if (!person || typeof person !== 'object') return '';
+    const nombreCompleto = String(person.nombreCompleto || person.fullName || '').trim();
+    if (nombreCompleto) return nombreCompleto;
+    const legacyName = String(person.name || '').trim();
+    const legacyLastName = String(person.lastName || '').trim();
+    return `${legacyName} ${legacyLastName}`.trim() || legacyName;
+  }
+
   function normalizeVincLookup(value) {
     return String(value || '')
       .toLowerCase()
@@ -68,7 +77,7 @@
     const employeeEl = document.getElementById('newVincEmployeeNumber');
     const nameEl = document.getElementById('newVincName');
     if (employeeEl) employeeEl.value = person.employeeNumber || '';
-    if (nameEl) nameEl.value = person.name || '';
+    if (nameEl) nameEl.value = vinculogramaPersonFullName(person) || '';
     hideVinculogramaSuggestions();
   }
 
@@ -101,11 +110,11 @@
     }
     const results = getPlantillaForVinculograma()
       .filter(person => {
-        const name = normalizeVincLookup(person.name);
+        const name = normalizeVincLookup(vinculogramaPersonFullName(person));
         const employee = normalizeVincLookup(person.employeeNumber);
         return name.includes(query) || employee.includes(query);
       })
-      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' }))
+      .sort((a, b) => String(vinculogramaPersonFullName(a) || '').localeCompare(String(vinculogramaPersonFullName(b) || ''), 'es', { sensitivity: 'base' }))
       .slice(0, 8);
 
     if (!results.length) {
@@ -116,7 +125,7 @@
 
     box.innerHTML = results.map(person => `
       <button type="button" class="rrll-autocomplete-option" onmousedown="event.preventDefault(); selectVinculogramaPerson('${person.id}')">
-        <strong>${escapeHtml(person.name || 'Sin nombre')}</strong>
+        <strong>${escapeHtml(vinculogramaPersonFullName(person) || 'Sin nombre')}</strong>
         <span>Nº ${escapeHtml(person.employeeNumber || '')} · ${escapeHtml(person.job || 'Sin puesto')}</span>
       </button>
     `).join('');
@@ -288,7 +297,7 @@
     const nameEl = document.getElementById('editVincName');
     if (!employeeEl || !nameEl) return;
     const person = findVincPlantillaByEmployeeNumber(employeeEl.value);
-    if (person) nameEl.value = person.name || '';
+    if (person) nameEl.value = vinculogramaPersonFullName(person) || '';
   }
 
   function saveEditingVinculograma() {
@@ -299,7 +308,7 @@
     const requestEl = document.getElementById('editVincRequestDate');
     const employeeNumber = normalizeEmployeeNumber(employeeEl?.value);
     const matchedPerson = findVincPlantillaByEmployeeNumber(employeeNumber);
-    if (matchedPerson && !String(nameEl?.value || '').trim()) nameEl.value = matchedPerson.name || '';
+    if (matchedPerson && !String(nameEl?.value || '').trim()) nameEl.value = vinculogramaPersonFullName(matchedPerson) || '';
     const name = String(nameEl?.value || '').trim();
     const linkedPerson = String(linkedEl?.value || '').trim();
     const requestDate = requestEl?.value || '';
@@ -341,7 +350,7 @@
 
     const employeeNumber = normalizeEmployeeNumber(employeeEl.value);
     const matchedPerson = findVincPlantillaByEmployeeNumber(employeeNumber);
-    if (matchedPerson && !String(nameEl.value || '').trim()) nameEl.value = matchedPerson.name || '';
+    if (matchedPerson && !String(nameEl.value || '').trim()) nameEl.value = vinculogramaPersonFullName(matchedPerson) || '';
     const name = String(nameEl.value || '').trim();
     const linkedPerson = String(linkedEl?.value || '').trim();
     const requestDate = requestEl.value;
