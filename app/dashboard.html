@@ -1018,14 +1018,6 @@
                 <input id="newPlantName" placeholder="Nombre y apellidos" />
               </label>
               <label class="rrll-pro-field">
-                <span>Sexo</span>
-                <select id="newPlantSex">
-                  <option value="">Sin definir</option>
-                  <option value="Hombre">Hombre</option>
-                  <option value="Mujer">Mujer</option>
-                </select>
-              </label>
-              <label class="rrll-pro-field">
                 <span>Colegio electoral</span>
                 <input id="newPlantColegioElectoral" placeholder="Colegio electoral" list="plantillaColegioElectoralOptions" />
               </label>
@@ -1095,14 +1087,16 @@
                 </div>
                 <div class="rrll-pro-list-actions">
                   <input id="plantillaExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaExcelFromInput(event)" />
-                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()" title="Importar Excel" aria-label="Importar Excel"><span aria-hidden="true">⇪</span></button>
+                  <input id="plantillaRrllExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaRrllFromInput(event)" />
+                  <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()" title="Importar corporativo" aria-label="Importar Excel"><span aria-hidden="true">⇪</span></button>
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printPlantilla()" title="Imprimir plantilla" aria-label="Imprimir plantilla"><span aria-hidden="true">🖨️</span></button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportPlantillaExcel()" title="Exportar plantilla a Excel" aria-label="Exportar plantilla a Excel"><span aria-hidden="true">X</span></button>
+                  <button class="rrll-pro-tool-button" type="button" onclick="document.getElementById('plantillaRrllExcelInput')?.click()">Importar RRLL</button>
                 </div>
               </div>
               <div class="rrll-pro-table-wrap">
                 <table class="rrll-pro-table plantilla-table">
-                  <thead><tr><th>Nº</th><th>Nombre y apellidos</th><th>Sexo</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel</th><th>Acciones</th></tr></thead>
+                  <thead><tr><th>Nº</th><th>Nombre y apellidos</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Puesto de trabajo</th><th>Antig. Puesto</th><th>Nivel</th><th>Acciones</th></tr></thead>
                   <tbody id="plantillaTableBody"></tbody>
                 </table>
               </div>
@@ -1123,16 +1117,16 @@
               <div class="rrll-pro-task-form">
                 <label class="rrll-pro-field"><span>Colegio electoral</span><select id="electoralColegio" onchange="setElectoralColegio(this.value)"></select></label>
                 <label class="rrll-pro-field"><span>Sindicato</span><select id="electoralSindicato" onchange="setElectoralSindicato(this.value)"></select></label>
-                <label class="rrll-pro-field"><span>Sexo</span><select id="electoralSexo" onchange="setElectoralSex(this.value)"><option>Todos</option><option>H</option><option>M</option></select></label>
+                
                 <label class="rrll-pro-field"><span>Recorrido activo</span><select id="electoralRecorrido" onchange="setElectoralRecorrido(this.value)"><option value="Todos">Todos</option><option value="true">Sí</option><option value="false">No</option></select></label>
               </div>
               <div class="rrll-pro-list-actions">
                 <button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 1')">Mesa 1</button><button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 2')">Mesa 2</button><button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 3')">Mesa 3</button><button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 4')">Mesa 4</button><button type="button" class="rrll-pro-tool-button" onclick="setElectoralMesa('Mesa 5')">Mesa 5</button>
               </div>
               <h3 id="electoralMesaTitle">Mesa 1 — Total personas: 0</h3>
-              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Persona</th><th>Sexo</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Participación estimada</th><th>Recorrido activo</th></tr></thead><tbody id="electoralTableBody"></tbody></table></div>
+              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Persona</th><th>Colegio electoral</th><th>Mesa electoral</th><th>Sindicato</th><th>Participación estimada</th><th>Recorrido activo</th></tr></thead><tbody id="electoralTableBody"></tbody></table></div>
               <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Sindicato</th><th>Personas</th><th>%</th></tr></thead><tbody id="electoralSummaryBody"></tbody></table></div>
-              <div style="min-height:260px"><canvas id="electoralBarsChart"></canvas></div>
+              
             </section>
           </div>
         </details>
