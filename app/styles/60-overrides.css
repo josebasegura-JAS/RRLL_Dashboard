@@ -4780,3 +4780,46 @@ html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active 
   gap: 10px;
   margin-bottom: 12px;
 }
+#gestor-plantilla .electoral-chart-wrap {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--rrll-border, #d7dbe6);
+  border-radius: 8px;
+}
+#gestor-plantilla .electoral-bars {
+  display: grid;
+  gap: 8px;
+}
+#gestor-plantilla .electoral-bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 44px;
+  gap: 8px;
+  align-items: center;
+}
+#gestor-plantilla .electoral-bar-track {
+  background: #edf2ff;
+  border-radius: 999px;
+  overflow: hidden;
+  height: 16px;
+}
+#gestor-plantilla .electoral-bar-fill {
+  background: linear-gradient(90deg, #4f46e5, #22c55e);
+  height: 100%;
+}
+#gestor-plantilla .electoral-donut {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  margin: 0 auto;
+  position: relative;
+}
+#gestor-plantilla .electoral-donut::after {
+  content: '';
+  width: 92px;
+  height: 92px;
+  background: var(--rrll-surface, #fff);
+  border-radius: 50%;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}

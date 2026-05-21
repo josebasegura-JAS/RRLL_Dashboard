@@ -441,16 +441,50 @@
     const sindicatoSet = ['Todos', ...new Set(all.map(item => normalizeSindicato(getField(item, 'sindicato'))))];
     const visibleRows = getElectoralVisibleRows().sort((a, b) => normalizeSindicato(getField(a, 'sindicato')).localeCompare(normalizeSindicato(getField(b, 'sindicato')), 'es') || normalizeText(a.name).localeCompare(normalizeText(b.name), 'es'));
     const bySind = new Map();
+    const byMesaColegio = new Map();
     visibleRows.forEach(item => {
       const k = normalizeSindicato(getField(item, 'sindicato'));
       bySind.set(k, (bySind.get(k) || 0) + 1);
+      const colegio = normalizeText(getField(item, 'colegioElectoral', 'colegio_electoral')) || 'Sin colegio';
+      const mesa = normalizeText(getField(item, 'mesaElectoral', 'mesa_electoral')) || 'Sin mesa';
+      const mcKey = `${colegio}|||${mesa}`;
+      byMesaColegio.set(mcKey, (byMesaColegio.get(mcKey) || 0) + 1);
     });
+    const selectMesa = document.getElementById('electoralMesa');
+    if (selectMesa) selectMesa.value = electoralSelectedMesa;
     document.getElementById('electoralColegio').innerHTML = colegios.map(v => `<option ${v === electoralSelectedColegio ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
     document.getElementById('electoralSindicato').innerHTML = sindicatoSet.map(v => `<option ${v === electoralSelectedSindicato ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
     document.getElementById('electoralMesaTitle').textContent = `${electoralSelectedMesa} — Total personas: ${visibleRows.length}`;
     document.getElementById('electoralTableBody').innerHTML = visibleRows.map(item => `<tr><td>${escapeHtml(item.name || '—')}</td><td>${escapeHtml(getField(item, 'colegioElectoral', 'colegio_electoral') || '—')}</td><td>${escapeHtml(getField(item, 'mesaElectoral', 'mesa_electoral') || '—')}</td><td>${escapeHtml(normalizeSindicato(getField(item, 'sindicato')))}</td><td>${escapeHtml(getField(item, 'participacionEstimada', 'participacion_estimada') || '—')}</td><td>${getField(item, 'recorridoActivo', 'recorrido_activo') ? 'Sí' : 'No'}</td></tr>`).join('');
     document.getElementById('electoralSummaryBody').innerHTML = [...bySind.entries()].map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${v}</td><td>${visibleRows.length ? ((v * 100) / visibleRows.length).toFixed(1) : '0.0'}%</td></tr>`).join('');
+    document.getElementById('electoralMesaColegioBody').innerHTML = [...byMesaColegio.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, total]) => {
+        const [colegio, mesa] = key.split('|||');
+        return `<tr><td>${escapeHtml(colegio)}</td><td>${escapeHtml(mesa)}</td><td>${total}</td></tr>`;
+      }).join('');
     document.getElementById('electoralCards').innerHTML = `<div class="rrll-pro-empty">Total personas: ${all.length} · Con sindicato: ${all.filter(i => normalizeText(getField(i, 'sindicato'))).length} · Sin sindicato: ${all.filter(i => !normalizeText(getField(i, 'sindicato'))).length} · Con recorrido activo: ${all.filter(i => !!getField(i, 'recorridoActivo', 'recorrido_activo')).length}</div>`;
+    const chartRows = [...bySind.entries()].sort((a, b) => b[1] - a[1]);
+    const maxCount = chartRows.length ? chartRows[0][1] : 1;
+    const chartTarget = document.getElementById('electoralBarChart');
+    if (chartTarget) chartTarget.innerHTML = chartRows.length
+      ? chartRows.map(([sindicato, count]) => `<div class="electoral-bar-row"><span>${escapeHtml(sindicato)}</span><div class="electoral-bar-track"><div class="electoral-bar-fill" style="width:${Math.max(4, (count / maxCount) * 100)}%"></div></div><strong>${count}</strong></div>`).join('')
+      : '<div class="rrll-pro-empty">Sin datos para gráfica.</div>';
+    const donutTarget = document.getElementById('electoralDonutChart');
+    if (donutTarget) {
+      if (!chartRows.length) donutTarget.style.background = '#edf2ff';
+      else {
+        let start = 0;
+        const gradientSegments = chartRows.map(([, count], idx) => {
+          const color = `hsl(${(idx * 67) % 360} 70% 55%)`;
+          const angle = (count / visibleRows.length) * 360;
+          const segment = `${color} ${start.toFixed(2)}deg ${(start + angle).toFixed(2)}deg`;
+          start += angle;
+          return segment;
+        });
+        donutTarget.style.background = `conic-gradient(${gradientSegments.join(', ')})`;
+      }
+    }
   }
 
   function getPlantillaFieldAliases() {
@@ -747,12 +781,20 @@
   function exportPlantillaElectoralExcel() {
     const visible = getElectoralVisibleRows();
     const bySind = {};
+    const byMesaColegio = {};
     visible.forEach(i => { const k = normalizeSindicato(getField(i, 'sindicato')); bySind[k] = (bySind[k] || 0) + 1; });
+    visible.forEach(i => {
+      const colegio = normalizeText(getField(i, 'colegioElectoral', 'colegio_electoral')) || 'Sin colegio';
+      const mesa = normalizeText(getField(i, 'mesaElectoral', 'mesa_electoral')) || 'Sin mesa';
+      const key = `${colegio}|||${mesa}`;
+      byMesaColegio[key] = (byMesaColegio[key] || 0) + 1;
+    });
     if (typeof exportExcelData === 'function') exportExcelData({
       title: `Elecciones sindicales ${electoralSelectedMesa}`,
       sheets: [
         { name: 'Resumen general', columns: ['Filtro colegio', 'Mesa', 'Total visible'], rows: [[electoralSelectedColegio, electoralSelectedMesa, visible.length]] },
         { name: 'Resumen sindicato', columns: ['Sindicato', 'Personas', '%'], rows: Object.entries(bySind).map(([k, v]) => [k, v, visible.length ? ((v * 100) / visible.length).toFixed(1) : '0.0']) },
+        { name: 'Resumen mesa-colegio', columns: ['Colegio', 'Mesa', 'Personas'], rows: Object.entries(byMesaColegio).map(([k, v]) => { const [colegio, mesa] = k.split('|||'); return [colegio, mesa, v]; }) },
         { name: 'Listado visible', columns: ['Persona', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Participación estimada', 'Recorrido activo'], rows: visible.map(i => [i.name || '', getField(i, 'colegioElectoral', 'colegio_electoral') || '', getField(i, 'mesaElectoral', 'mesa_electoral') || '', normalizeSindicato(getField(i, 'sindicato')), getField(i, 'participacionEstimada', 'participacion_estimada') || '', getField(i, 'recorridoActivo', 'recorrido_activo') ? 'Sí' : 'No']) }
       ]
     });
