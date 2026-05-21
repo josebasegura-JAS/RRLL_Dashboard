@@ -535,6 +535,9 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
+.licencias-priority-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .licencias-column,
 .licencias-history-card {
   min-width: 0;
@@ -569,6 +572,27 @@
 }
 .licencias-row td:first-child {
   border-left: 3px solid rgba(59,130,246,.65);
+}
+
+.licencias-collapsible-card {
+  margin-top: 12px;
+}
+.licencias-collapsible-card > summary.licencias-toolbar {
+  list-style: none;
+  cursor: pointer;
+}
+.licencias-collapsible-card > summary.licencias-toolbar::-webkit-details-marker {
+  display: none;
+}
+.licencias-collapsible-card > summary.licencias-toolbar h3::before {
+  content: '▸';
+  margin-right: 8px;
+  color: var(--text-secondary, #94a3b8);
+  display: inline-block;
+  transform: translateY(-1px);
+}
+.licencias-collapsible-card[open] > summary.licencias-toolbar h3::before {
+  content: '▾';
 }
 .licencias-history-card {
   margin-top: 2px;
