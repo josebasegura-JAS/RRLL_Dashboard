@@ -468,7 +468,7 @@ async function backupAllData(data) {
 
 async function getDbInfo() {
   const info = getActiveDbInfo();
-  return { mode: info.mode, path: info.path, sharedDir: info.sharedDir || "", user: info.user, localPath: info.localPath, hostname: os.hostname(), appVersion: app.getVersion() };
+  return { mode: info.mode, path: info.path, sharedDir: info.sharedDir || "", user: info.user, localPath: info.localPath };
 }
 
 function normalizeRRLLFolderPath(value) {
