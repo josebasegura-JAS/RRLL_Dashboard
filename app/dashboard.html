@@ -53,6 +53,10 @@
         </span>
         <button type="button" class="sync-now-button" onclick="reloadDatabaseFromDisk()" title="Sincronizar ahora" aria-label="Sincronizar ahora">↻</button>
       </div>
+      <details class="save-status-widget phase5-sidebar-sync presence-widget" id="presenceWidget" open>
+        <summary>Usuarios conectados <span id="presenceCount" class="phase4-nav-pill">0</span></summary>
+        <ul id="presenceUsersList" class="presence-users-list"><li class="presence-empty">Sin usuarios conectados</li></ul>
+      </details>
     </aside>
     <div class="phase4-main">
   <div class="top-strip">
@@ -2066,6 +2070,7 @@
   <script src="modules/database-sync.js"></script>
   <script src="modules/rrll-folder.js"></script>
   <script src="modules/navigation.js"></script>
+  <script src="modules/presence.js"></script>
   <script src="app.js"></script>
   <script src="modules/theme.js"></script>
   <script src="modules/bootstrap.js"></script>

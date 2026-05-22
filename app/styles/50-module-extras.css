@@ -2604,3 +2604,11 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 #gestor-ticket-restaurante .ticket-filter-row input { width: 100%; min-width: 72px; height: 28px; border: 1px solid rgba(148, 163, 184, .24); border-radius: 8px; background: rgba(15, 23, 42, .34); color: inherit; padding: 4px 7px; font-size: .78rem; }
 #gestor-ticket-restaurante .ticket-filter-row input::placeholder { color: var(--muted-color, #64748b); }
 #gestor-ticket-restaurante .ticket-monthly-quote-panel { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(148, 163, 184, .24); }
+
+/* Presencia ligera de usuarios conectados */
+.presence-widget { margin-top: 8px; padding: 8px 10px !important; }
+.presence-widget summary { cursor: pointer; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+.presence-users-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.presence-users-list li { font-size: 11px; color: #cbd5e1; display: grid; gap: 2px; }
+.presence-users-list li small { opacity: .8; }
+.presence-empty { opacity: .75; }
