@@ -118,7 +118,14 @@
       alert("Modo compartido activado correctamente.");
     } catch (error) {
       console.error("Error al activar base compartida:", error);
-      alert(`No se pudo activar la base compartida. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
+      const detail = error && error.message ? error.message : "error desconocido";
+      const riskAbort = detail.includes("No se ha cambiado el modo para evitar pérdida de información") || (error && error.code === "SHARED_DB_INCOMPLETE");
+      if (riskAbort) {
+        alert(`Migración cancelada por seguridad: ${detail}`);
+      } else {
+        alert(`No se pudo activar la base compartida. Detalle: ${detail}`);
+      }
+      await refreshDatabaseInfo();
     }
   }
 

@@ -409,11 +409,35 @@ async function saveKeyData(key, value) {
   });
 }
 
-async function saveAllData(data) {
+async function loadAllDataFromPath(dbPath) {
+  if (!dbPath || typeof dbPath !== "string") throw new Error("Ruta de base de datos no válida.");
+  return withFileLock(dbPath, async () => {
+    const { db } = await openDatabase(dbPath);
+    try {
+      const result = {};
+      const rows = db.exec("SELECT key, value FROM kv_store WHERE key LIKE 'rrll_%' ORDER BY key");
+      if (rows.length) {
+        rows[0].values.forEach(([key, value]) => { result[key] = parseValue(value); });
+      }
+      if (!Object.prototype.hasOwnProperty.call(result, "rrll_criteria")) {
+        const criteriaRows = loadCriteriaTable(db);
+        if (criteriaRows.length) result.rrll_criteria = criteriaRows;
+      }
+      return result;
+    } finally {
+      try { db.close(); } catch {}
+    }
+  });
+}
+
+async function saveAllDataToPath(dbPath, data) {
+  if (!dbPath || typeof dbPath !== "string") throw new Error("Ruta de base de datos no válida.");
   const safe = isPlainObject(data) ? data : {};
-  const info = getActiveDbInfo();
-  return withFileLock(info.path, async () => {
-    const { db } = await openDatabase(info.path);
+  const rrllEntries = Object.entries(safe).filter(([key]) => typeof key === "string" && key.startsWith("rrll_"));
+  if (!rrllEntries.length) throw new Error("No se permite guardar una base vacía o incompleta durante una migración.");
+
+  return withFileLock(dbPath, async () => {
+    const { db } = await openDatabase(dbPath);
     try {
       const now = new Date().toISOString();
       const user = getWindowsUser();
@@ -422,8 +446,8 @@ async function saveAllData(data) {
       try {
         db.run("DELETE FROM kv_store WHERE key LIKE 'rrll_%'");
         const stmt = db.prepare("INSERT OR REPLACE INTO kv_store (key, value, updated_at, updated_by) VALUES (?, ?, ?, ?)");
-        Object.entries(tracedData).forEach(([key, value]) => {
-          if (typeof key === "string" && key.startsWith("rrll_")) stmt.run([key, serializeValue(value), now, user]);
+        rrllEntries.forEach(([key, value]) => {
+          stmt.run([key, serializeValue(tracedData[key] ?? value), now, user]);
         });
         stmt.free();
         syncCriteriaTable(db, tracedData.rrll_criteria);
@@ -434,12 +458,37 @@ async function saveAllData(data) {
         try { db.run("ROLLBACK"); } catch {}
         throw error;
       }
-      persistDb(db, info.path);
+      persistDb(db, dbPath);
       return true;
     } finally {
       try { db.close(); } catch {}
     }
   });
+}
+
+async function createMigrationBackup(localDbPath, localData) {
+  const dir = ensureBackupsDir();
+  const stamp = ts();
+  const jsonBackupPath = path.join(dir, `migration-local-${stamp}.json`);
+  fs.writeFileSync(jsonBackupPath, JSON.stringify({
+    createdAt: new Date().toISOString(),
+    source: localDbPath,
+    user: getWindowsUser(),
+    values: localData
+  }, null, 2), "utf-8");
+
+  let sqliteBackupPath = null;
+  if (fs.existsSync(localDbPath)) {
+    sqliteBackupPath = path.join(dir, `migration-local-${stamp}.sqlite`);
+    fs.copyFileSync(localDbPath, sqliteBackupPath);
+  }
+  return { jsonBackupPath, sqliteBackupPath };
+}
+
+async function saveAllData(data) {
+  const safe = isPlainObject(data) ? data : {};
+  const info = getActiveDbInfo();
+  return saveAllDataToPath(info.path, safe);
 }
 
 async function backupAllData(data) {
@@ -519,15 +568,43 @@ async function setSharedDirectory(_event, directory, currentData) {
   if (!directory || typeof directory !== "string") throw new Error("Carpeta compartida no válida.");
   if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
 
+  const localDbPath = getLocalSqlitePath();
   const sharedDbPath = path.join(directory, "rrll-dashboard-shared.sqlite");
-  writeDbConfig({ mode: "shared", sharedDir: directory, sharedDbPath });
 
-  const exists = fs.existsSync(sharedDbPath);
-  const existingData = exists ? await loadAllData() : {};
-  if (!exists || !Object.keys(existingData).length) {
-    await saveAllData(isPlainObject(currentData) ? currentData : {});
+  const localDataFromSqlite = fs.existsSync(localDbPath) ? await loadAllDataFromPath(localDbPath) : {};
+  const fallbackCache = isPlainObject(currentData) ? currentData : {};
+  const sourceData = getRRLLKeyCount(localDataFromSqlite) ? localDataFromSqlite : fallbackCache;
+  if (!getRRLLKeyCount(sourceData)) {
+    throw new Error("No hay datos locales válidos para migrar a la carpeta compartida.");
   }
-  return getDbInfo();
+
+  const backup = await createMigrationBackup(localDbPath, sourceData);
+
+  const sharedExists = fs.existsSync(sharedDbPath);
+  const sharedData = sharedExists ? await loadAllDataFromPath(sharedDbPath) : {};
+  const localCount = getRRLLKeyCount(sourceData);
+  const sharedCount = getRRLLKeyCount(sharedData);
+
+  if (!sharedExists || !sharedCount || hasSuspiciouslyFewSharedKeys(sourceData, sharedData)) {
+    await saveAllDataToPath(sharedDbPath, sourceData);
+  } else if (sharedCount < localCount) {
+    const warning = "La base compartida contiene menos datos que la local. No se ha cambiado el modo para evitar pérdida de información.";
+    const error = new Error(warning);
+    error.code = "SHARED_DB_INCOMPLETE";
+    error.details = { localCount, sharedCount, backup };
+    throw error;
+  }
+
+  const finalSharedData = await loadAllDataFromPath(sharedDbPath);
+  const finalSharedCount = getRRLLKeyCount(finalSharedData);
+  const missingCritical = getCriticalKeyCoverage(sourceData).filter(key => !Object.prototype.hasOwnProperty.call(finalSharedData, key));
+
+  if (finalSharedCount < localCount || missingCritical.length) {
+    throw new Error(`Verificación final fallida. Local=${localCount}, Shared=${finalSharedCount}, Claves críticas faltantes=${missingCritical.join(", ") || "ninguna"}.`);
+  }
+
+  writeDbConfig({ mode: "shared", sharedDir: directory, sharedDbPath });
+  return { ...(await getDbInfo()), migrationBackup: backup, localKeyCount: localCount, sharedKeyCount: finalSharedCount };
 }
 
 async function useLocalDatabase(_event, currentData) {
