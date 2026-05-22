@@ -314,32 +314,35 @@ html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-hi
 
 #gestor-plantilla .plantilla-table th:nth-child(2),
 #gestor-plantilla .plantilla-table td:nth-child(2) {
-  width: 39%;
+  width: 34%;
   text-align: left;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(3),
 #gestor-plantilla .plantilla-table td:nth-child(3) {
-  width: 24%;
+  width: 26%;
   text-align: left;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(4),
 #gestor-plantilla .plantilla-table td:nth-child(4) {
-  width: 8%;
+  width: 9%;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(5),
 #gestor-plantilla .plantilla-table td:nth-child(5) {
-  width: 12%;
+  width: 13%;
   text-align: center;
   white-space: nowrap;
 }
 
 #gestor-plantilla .plantilla-table th:nth-child(6),
 #gestor-plantilla .plantilla-table td:nth-child(6) {
-  width: 8%;
+  width: 9%;
+  min-width: 92px;
   text-align: center;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 
