@@ -6,6 +6,7 @@ const os = require("os");
 let lastBackupAt = 0;
 let sqlReadyPromise = null;
 let SQLRef = null;
+let lastBackupMeta = null;
 
 const DEFAULT_RRLL_FOLDER_PATH = "G:\\Capital Humano\\Relaciones Laborales";
 
@@ -36,10 +37,44 @@ function ensureBackupsDir() {
   return dir;
 }
 
+function getNetworkBackupsDir() {
+  const info = getActiveDbInfo();
+  if (!info.sharedDir) return "";
+  const dir = path.join(info.sharedDir, "backups-red");
+  return fs.existsSync(info.sharedDir) ? dir : "";
+}
+
+function sanitizeUserForFileName() {
+  return String(getWindowsUser() || "USUARIO")
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .replace(/\s+/g, "_")
+    .toUpperCase();
+}
+
 function ts() {
   const now = new Date();
   const pad = value => String(value).padStart(2, "0");
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+}
+
+function listBackupFiles(dir, ext) {
+  if (!dir || !fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter(name => name.startsWith("backup_") && name.endsWith(ext))
+    .map(name => {
+      const file = path.join(dir, name);
+      const stat = fs.statSync(file);
+      return { file, name, mtimeMs: stat.mtimeMs };
+    })
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+}
+
+function pruneBackups(dir, ext, maxCount) {
+  const files = listBackupFiles(dir, ext);
+  files.slice(maxCount).forEach(({ file, name }) => {
+    if (name.includes("_SUSPECT")) return;
+    try { fs.unlinkSync(file); } catch {}
+  });
 }
 
 function isPlainObject(value) {
@@ -411,6 +446,7 @@ async function saveKeyData(key, value) {
 
 async function saveAllData(data) {
   const safe = isPlainObject(data) ? data : {};
+  await createRobustBackup("before_massive_import_or_destructive", await loadAllData(), { throttleMs: 0 });
   const info = getActiveDbInfo();
   return withFileLock(info.path, async () => {
     const { db } = await openDatabase(info.path);
@@ -435,6 +471,7 @@ async function saveAllData(data) {
         throw error;
       }
       persistDb(db, info.path);
+      await createRobustBackup("after_important_save", safe, { throttleMs: 0 });
       return true;
     } finally {
       try { db.close(); } catch {}
@@ -443,27 +480,55 @@ async function saveAllData(data) {
 }
 
 async function backupAllData(data) {
-  const nowMs = Date.now();
-  if (nowMs - lastBackupAt < 600) return false;
-  lastBackupAt = nowMs;
+  return createRobustBackup("manual", data, { throttleMs: 600 });
+}
 
+async function createRobustBackup(reason, data, options = {}) {
+  const nowMs = Date.now();
+  const throttleMs = Number(options.throttleMs || 0);
+  if (throttleMs && nowMs - lastBackupAt < throttleMs) return { ok: false, skipped: "throttle" };
+  lastBackupAt = nowMs;
   const safe = isPlainObject(data) ? data : {};
   const info = getActiveDbInfo();
-  const file = path.join(ensureBackupsDir(), `backup-${ts()}.json`);
-  fs.writeFileSync(
-    file,
-    JSON.stringify({
-      app: "Cuadro de Mando de RRLL",
-      version: "1.0-beta-backup",
-      createdAt: new Date().toISOString(),
-      databaseMode: info.mode,
-      databasePath: info.path,
-      user: getWindowsUser(),
-      values: safe
-    }, null, 2),
-    "utf-8"
-  );
-  return true;
+  const keyCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
+  if (!keyCount) return { ok: false, skipped: "empty" };
+  const criticalCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
+  const suspicious = criticalCount < 3;
+  const suffix = suspicious ? "_SUSPECT" : "";
+  const baseName = `backup_${ts()}_${sanitizeUserForFileName()}${suffix}`;
+  const localDir = ensureBackupsDir();
+  const networkDir = getNetworkBackupsDir();
+  if (networkDir && !fs.existsSync(networkDir)) fs.mkdirSync(networkDir, { recursive: true });
+
+  const payload = JSON.stringify({
+    app: "Cuadro de Mando de RRLL",
+    version: "2.0-backup",
+    createdAt: new Date().toISOString(),
+    reason,
+    databaseMode: info.mode,
+    databasePath: info.path,
+    user: getWindowsUser(),
+    keyCount,
+    suspicious,
+    values: safe
+  }, null, 2);
+
+  const writeTarget = targetDir => {
+    fs.writeFileSync(path.join(targetDir, `${baseName}.json`), payload, "utf-8");
+    if (fs.existsSync(info.path)) fs.copyFileSync(info.path, path.join(targetDir, `${baseName}.sqlite`));
+  };
+  writeTarget(localDir);
+  if (networkDir) writeTarget(networkDir);
+
+  pruneBackups(localDir, ".json", 50);
+  pruneBackups(localDir, ".sqlite", 50);
+  if (networkDir) {
+    pruneBackups(networkDir, ".json", 100);
+    pruneBackups(networkDir, ".sqlite", 100);
+  }
+
+  lastBackupMeta = { ok: !suspicious, suspicious, createdAt: new Date().toISOString(), reason, localDir, networkDir, baseName, dbPath: info.path };
+  return { ok: true, suspicious, keyCount, fileBase: baseName };
 }
 
 async function getDbInfo() {
@@ -488,6 +553,7 @@ async function getRRLLFolderPath() {
 }
 
 async function setRRLLFolderPath(_event, folderPath) {
+  await createRobustBackup("before_change_shared_folder", await loadAllData());
   const safePath = normalizeRRLLFolderPath(folderPath);
   if (!safePath) throw new Error("Ruta no válida.");
   fs.writeFileSync(
@@ -516,6 +582,8 @@ async function chooseSharedDirectory() {
 }
 
 async function setSharedDirectory(_event, directory, currentData) {
+  const preMigrationSnapshot = await loadAllData();
+  await createRobustBackup("before_migrate_local_to_shared", preMigrationSnapshot);
   if (!directory || typeof directory !== "string") throw new Error("Carpeta compartida no válida.");
   if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
 
@@ -531,6 +599,7 @@ async function setSharedDirectory(_event, directory, currentData) {
 }
 
 async function useLocalDatabase(_event, currentData) {
+  await createRobustBackup("before_migrate_shared_to_local", await loadAllData());
   writeDbConfig({ mode: "local" });
   if (isPlainObject(currentData) && Object.keys(currentData).length) {
     await saveAllData(currentData);
@@ -1058,6 +1127,13 @@ ipcMain.handle("db:loadAll", async () => loadAllData());
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));
+ipcMain.handle("db:createBackup", async (_event, payload) => createRobustBackup(payload && payload.reason ? payload.reason : "manual", payload && payload.data ? payload.data : {}));
+ipcMain.handle("db:getBackupStatus", async () => lastBackupMeta || { ok: false, createdAt: null, reason: null, dbPath: getActiveDbInfo().path });
+ipcMain.handle("db:openBackupsFolder", async () => {
+  const folder = ensureBackupsDir();
+  const error = await shell.openPath(folder);
+  return { ok: !error, path: folder, error: error || null };
+});
 ipcMain.handle("db:getInfo", async () => getDbInfo());
 ipcMain.handle("db:getState", async () => getDbState());
 ipcMain.handle("db:chooseSharedDirectory", chooseSharedDirectory);
@@ -1151,8 +1227,17 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   await getSQL();
-  await loadAllData();
+  const startupData = await loadAllData();
+  await createRobustBackup("app_start", startupData);
   createWindow();
+});
+
+app.on("before-quit", async () => {
+  try {
+    await createRobustBackup("app_close", await loadAllData());
+  } catch (error) {
+    console.error("No se pudo crear backup al cerrar:", error);
+  }
 });
 
 app.on("window-all-closed", () => {
