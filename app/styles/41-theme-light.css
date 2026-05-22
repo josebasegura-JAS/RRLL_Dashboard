@@ -314,7 +314,7 @@ html[data-theme="light"] body.phase4-view-module #gestor-licencias .licencias-hi
 
 #gestor-plantilla .plantilla-table th:nth-child(2),
 #gestor-plantilla .plantilla-table td:nth-child(2) {
-  width: 39%;
+  width: 35%;
   text-align: left;
 }
 
