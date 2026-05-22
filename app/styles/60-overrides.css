@@ -2508,6 +2508,39 @@ body.phase4-view-module #gestor-vinculograma .vinculograma-table td:nth-child(4)
   width: 13% !important;
 }
 
+
+body.phase4-view-module :is(#gestor-plantilla, #gestor-vinculograma) .rrll-pro-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  min-width: 0 !important;
+}
+
+body.phase4-view-module :is(#gestor-plantilla, #gestor-vinculograma) :is(.plantilla-actions-cell, .vinculograma-actions-cell) {
+  width: 56px !important;
+  min-width: 56px !important;
+  text-align: right !important;
+  overflow: visible !important;
+}
+
+body.phase4-view-module :is(#gestor-plantilla, #gestor-vinculograma) .rrll-pro-actions .rrll-danger-icon-button {
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  flex: 0 0 28px !important;
+}
+
+body.phase4-view-module :is(#gestor-plantilla, #gestor-vinculograma) .rrll-pro-actions button.small.danger:not(.rrll-danger-icon-button) {
+  min-width: 82px !important;
+  padding-inline: 12px !important;
+}
+
 body.phase4-view-module #gestor-vinculograma .vinculograma-table th:nth-child(5),
 body.phase4-view-module #gestor-vinculograma .vinculograma-table td:nth-child(5) {
   width: 17% !important;

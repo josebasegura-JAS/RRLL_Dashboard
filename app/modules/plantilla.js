@@ -546,7 +546,7 @@
         <td>${escapeHtml(item.job || '—')}</td>
         <td>${escapeHtml(resolveSexo(item) || '—')}</td>
         <td><span class="rrll-status-pill progress">${escapeHtml(item.level || '—')}</span></td>
-        <td class="rrll-pro-actions plantilla-actions-cell"><button class="small danger rrll-delete-icon-button" type="button" onclick="event.stopPropagation(); deletePlantilla('${item.id}')" title="Eliminar persona" aria-label="Eliminar persona"><span aria-hidden="true">🗑️</span></button></td>
+        <td class="rrll-pro-actions plantilla-actions-cell"><button class="small danger rrll-delete-icon-button rrll-danger-icon-button" type="button" onclick="event.stopPropagation(); deletePlantilla('${item.id}')" title="Eliminar" aria-label="Eliminar"><span aria-hidden="true">🗑️</span></button></td>
       </tr>
     `;
   }
