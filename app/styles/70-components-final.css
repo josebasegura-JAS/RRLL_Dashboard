@@ -2109,3 +2109,55 @@ html[data-theme="light"] :is(
   color: #fecaca !important;
 }
 
+/* Capa final de compatibilidad visual para acciones RRLL (sin tocar lógica). */
+:is(.rrll-pro-tool-button.rrll-icon-only, .summary-icon-button, .excel-icon, .rrll-icon-only) {
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: var(--rrll-radius-md) !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+}
+
+:is(.rrll-pro-tool-button.rrll-icon-only, .summary-icon-button, .excel-icon, .rrll-icon-only):hover {
+  transform: translateY(-1px);
+}
+
+:is(.rrll-pro-primary, .secondary, .danger, .rrll-pro-tool-button:not(.rrll-icon-only), .excel:not(.rrll-icon-only), button.excel:not(.rrll-icon-only)) {
+  width: auto !important;
+  min-width: 120px !important;
+  max-width: 100% !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+:is(.excel.rrll-icon-only, .excel-icon) {
+  min-width: 38px !important;
+  width: 38px !important;
+  padding: 0 !important;
+}
+
+:is(.rrll-toolbar, .rrll-pro-list-toolbar, .rrll-pro-list-actions, .rrll-pro-actions, .modal-actions, .form-actions, .two-buttons, .print-preview-actions) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+#gestor-plantilla :is(.plantilla-toolbar .rrll-pro-list-actions, .rrll-pro-task-head .rrll-pro-list-actions),
+#gestor-teletrabajo :is(.telework-header-actions, .rrll-pro-list-actions.telework-list-actions),
+#gestor-ticket-restaurante :is(.ticket-compute-actions, .rrll-pro-list-actions, .rrll-pro-actions) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
