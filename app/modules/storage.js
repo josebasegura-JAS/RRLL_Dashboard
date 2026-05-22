@@ -19,6 +19,73 @@ function getTodayKey() {
     let rrllIsCheckingDatabaseUpdates = false;
     let rrllSaveStatusTimer = null;
     let rrllPersistQueue = Promise.resolve();
+    const RRLL_EDITING_LOCKS_KEY = "rrll_editing_locks";
+    const RRLL_EDITING_LOCK_TTL_MS = 10 * 60 * 1000;
+    let rrllCurrentUserCache = null;
+
+    async function getCurrentWindowsUser() {
+      if (rrllCurrentUserCache) return rrllCurrentUserCache;
+      try {
+        if (window.rrllDB && typeof window.rrllDB.getInfo === "function") {
+          const info = await window.rrllDB.getInfo();
+          rrllCurrentUserCache = String((info && info.user) || "usuario").trim() || "usuario";
+          return rrllCurrentUserCache;
+        }
+      } catch (error) {
+        console.warn("No se pudo resolver usuario Windows actual:", error);
+      }
+      rrllCurrentUserCache = "usuario";
+      return rrllCurrentUserCache;
+    }
+
+    function getEditingLocks() {
+      const raw = load(RRLL_EDITING_LOCKS_KEY, []);
+      return Array.isArray(raw) ? raw : [];
+    }
+
+    function setEditingLocks(next) {
+      save(RRLL_EDITING_LOCKS_KEY, Array.isArray(next) ? next : []);
+    }
+
+    function isExpiredLock(lock) {
+      const expiresAt = Date.parse(lock && lock.expiresAt);
+      return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
+    }
+
+    async function acquireEditingLock(moduleName, recordId) {
+      const module = String(moduleName || "").trim();
+      const id = String(recordId || "").trim();
+      if (!module || !id) return { allowed: true, lock: null };
+
+      const currentUser = await getCurrentWindowsUser();
+      const locks = getEditingLocks().filter(lock => !isExpiredLock(lock));
+      const existingIndex = locks.findIndex(lock => String(lock.module) === module && String(lock.recordId) === id);
+      const existing = existingIndex >= 0 ? locks[existingIndex] : null;
+
+      if (existing && String(existing.editingBy || "").toLowerCase() !== currentUser.toLowerCase()) {
+        const startedAt = new Date(existing.editingAt || Date.now());
+        const hour = Number.isNaN(startedAt.getTime()) ? "hora no disponible" : startedAt.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+        const openAnyway = window.confirm(`Este registro está siendo editado por ${existing.editingBy || "otro usuario"} desde las ${hour}.\n\nPulsa Aceptar para abrir igualmente o Cancelar para cerrar.`);
+        if (!openAnyway) {
+          setEditingLocks(locks);
+          return { allowed: false, lock: existing };
+        }
+      }
+
+      const now = new Date();
+      const nextLock = {
+        module,
+        recordId: id,
+        editingBy: currentUser,
+        editingAt: now.toISOString(),
+        expiresAt: new Date(now.getTime() + RRLL_EDITING_LOCK_TTL_MS).toISOString()
+      };
+      const nextLocks = existingIndex >= 0
+        ? locks.map((lock, index) => (index === existingIndex ? nextLock : lock))
+        : [...locks, nextLock];
+      setEditingLocks(nextLocks);
+      return { allowed: true, lock: nextLock };
+    }
 
 
     function setSaveStatus(status, detail) {
@@ -212,3 +279,6 @@ function save(key, value) {
     window.selectPetitionAttachmentFiles = selectPetitionAttachmentFiles;
     window.renderTaskAttachments = renderTaskAttachments;
     window.renderPetitionAttachments = renderPetitionAttachments;
+
+window.acquireEditingLock = acquireEditingLock;
+window.getCurrentWindowsUser = getCurrentWindowsUser;

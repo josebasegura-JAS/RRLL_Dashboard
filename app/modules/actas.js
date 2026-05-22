@@ -284,7 +284,9 @@
       return modal;
     }
 
-    function openMinuteEditModal(id) {
+    async function openMinuteEditModal(id) {
+      const lock = await window.acquireEditingLock?.("actas", id);
+      if (lock && lock.allowed === false) return;
       const minute = getMinutes().find(item => item.id === id);
       if (!minute) return;
       editingMinuteId = id;
