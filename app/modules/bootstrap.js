@@ -120,6 +120,8 @@ function forceActiveDetailsOpen() {
       phase4RouteFromHash();
       forceActiveDetailsOpen();
       await refreshDatabaseInfo();
+      if (typeof startPresenceTracking === "function") startPresenceTracking();
+      if (typeof renderPresenceWidget === "function") renderPresenceWidget();
       startDatabaseAutoSync();
     }
 
