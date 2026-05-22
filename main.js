@@ -48,42 +48,8 @@ function isPlainObject(value) {
 
 function getWindowsUser() {
   const domain = process.env.USERDOMAIN || os.hostname();
-  let username = "usuario";
-  try {
-    username = os.userInfo().username || process.env.USERNAME || username;
-  } catch {
-    username = process.env.USERNAME || username;
-  }
+  const username = process.env.USERNAME || os.userInfo().username || "usuario";
   return `${domain}\\${username}`;
-}
-
-function applyBasicUserTrace(value, user) {
-  const now = new Date().toISOString();
-  const seen = new WeakSet();
-  function walk(input) {
-    if (Array.isArray(input)) return input.map(walk);
-    if (!isPlainObject(input)) return input;
-    if (seen.has(input)) return input;
-    seen.add(input);
-
-    const output = {};
-    Object.entries(input).forEach(([key, val]) => {
-      output[key] = walk(val);
-    });
-
-    const looksLikeRecord = Object.prototype.hasOwnProperty.call(output, "id")
-      || Object.prototype.hasOwnProperty.call(output, "createdAt")
-      || Object.prototype.hasOwnProperty.call(output, "updatedAt");
-
-    if (looksLikeRecord) {
-      if (!output.createdBy) output.createdBy = user;
-      output.updatedBy = user;
-      if (!output.createdAt) output.createdAt = now;
-      output.updatedAt = now;
-    }
-    return output;
-  }
-  return walk(value);
 }
 
 function serializeValue(value) {
@@ -395,10 +361,8 @@ async function saveKeyData(key, value) {
     const { db } = await openDatabase(info.path);
     try {
       const now = new Date().toISOString();
-      const user = getWindowsUser();
-      const tracedValue = applyBasicUserTrace(value, user);
-      db.run("INSERT OR REPLACE INTO kv_store (key, value, updated_at, updated_by) VALUES (?, ?, ?, ?)", [key, serializeValue(tracedValue), now, user]);
-      if (key === "rrll_criteria") syncCriteriaTable(db, tracedValue);
+      db.run("INSERT OR REPLACE INTO kv_store (key, value, updated_at, updated_by) VALUES (?, ?, ?, ?)", [key, serializeValue(value), now, getWindowsUser()]);
+      if (key === "rrll_criteria") syncCriteriaTable(db, value);
       addAudit(db, "save_key", key, null);
       touchDatabaseState(db);
       persistDb(db, info.path);
@@ -416,17 +380,15 @@ async function saveAllData(data) {
     const { db } = await openDatabase(info.path);
     try {
       const now = new Date().toISOString();
-      const user = getWindowsUser();
-      const tracedData = applyBasicUserTrace(safe, user);
       db.run("BEGIN TRANSACTION");
       try {
         db.run("DELETE FROM kv_store WHERE key LIKE 'rrll_%'");
         const stmt = db.prepare("INSERT OR REPLACE INTO kv_store (key, value, updated_at, updated_by) VALUES (?, ?, ?, ?)");
-        Object.entries(tracedData).forEach(([key, value]) => {
-          if (typeof key === "string" && key.startsWith("rrll_")) stmt.run([key, serializeValue(value), now, user]);
+        Object.entries(safe).forEach(([key, value]) => {
+          if (typeof key === "string" && key.startsWith("rrll_")) stmt.run([key, serializeValue(value), now, getWindowsUser()]);
         });
         stmt.free();
-        syncCriteriaTable(db, tracedData.rrll_criteria);
+        syncCriteriaTable(db, safe.rrll_criteria);
         addAudit(db, "save_all", null, "Guardado completo / importación");
         touchDatabaseState(db);
         db.run("COMMIT");
