@@ -461,7 +461,9 @@
     return modal;
   }
 
-  function openPlantillaEditModal(id) {
+  async function openPlantillaEditModal(id) {
+    const lock = await window.acquireEditingLock?.("plantilla", id);
+    if (lock && lock.allowed === false) return;
     const item = getPlantilla().find(entry => entry.id === id);
     if (!item) return;
     editingPlantillaId = id;

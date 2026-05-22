@@ -785,7 +785,9 @@
     return `<label class="rrll-pro-field"><span>${label}</span><select id="${prefix}Telework${suffix}">${options.map(option => `<option value="${option}">${option}</option>`).join("")}</select></label>`;
   }
 
-  function openTeleworkEditModal(id) {
+  async function openTeleworkEditModal(id) {
+    const lock = await window.acquireEditingLock?.("teletrabajo", id);
+    if (lock && lock.allowed === false) return;
     const item = getTeleworkItems().find(entry => entry.id === id);
     if (!item) return;
     editingTeleworkId = id;
