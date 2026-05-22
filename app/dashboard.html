@@ -1547,11 +1547,14 @@
           <span>Usuario</span><b id="configDbUserLabel">Cargando...</b>
           <span>Última sinc.</span><b id="configDbSyncLabel">Cargando...</b>
           <span>Último cambio</span><b id="configDbUpdatedByLabel">Cargando...</b>
+          <span>Último backup</span><b id="configBackupStatusLabel">Cargando...</b>
         </div>
         <div class="config-actions">
           <button type="button" onclick="chooseSharedDatabaseFolder()">Usar carpeta compartida</button>
           <button type="button" class="secondary" onclick="useLocalDatabaseMode()">Usar local</button>
           <button type="button" class="secondary" onclick="reloadDatabaseFromDisk()">Recargar base</button>
+          <button type="button" class="secondary" onclick="openBackupsFolder()">Abrir carpeta backups</button>
+          <button type="button" class="secondary" onclick="createBackupNow()">Crear backup ahora</button>
         </div>
       </div>
 

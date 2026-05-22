@@ -16,6 +16,9 @@
       phase4SetTexts(["dbModeLabel", "configDbModeLabel"], info.mode === "shared" ? "SQLite compartido" : "SQLite local");
       phase4SetTexts(["dbPathLabel", "configDbPathLabel"], info.path || "Ruta no disponible");
       phase4SetTexts(["dbUserLabel", "configDbUserLabel"], info.user || "Usuario Windows no disponible");
+      const backup = await (window.rrllDB.getBackupStatus ? window.rrllDB.getBackupStatus() : null);
+      const backupText = backup && backup.createdAt ? `${new Date(backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}` : "Sin backup";
+      phase4SetTexts(["configBackupStatusLabel"], backupText);
       await updateSyncStatus("info");
     } catch (error) {
       phase4SetTexts(["dbModeLabel", "configDbModeLabel"], "Error");
@@ -168,4 +171,15 @@
   window.chooseSharedDatabaseFolder = chooseSharedDatabaseFolder;
   window.useLocalDatabaseMode = useLocalDatabaseMode;
   window.reloadDatabaseFromDisk = reloadDatabaseFromDisk;
+  window.createBackupNow = async function createBackupNow() {
+    if (!window.rrllDB || typeof window.rrllDB.createBackup !== "function") return;
+    await window.rrllDB.createBackup({ reason: "manual_ui", data: window.rrllDatabaseCache || {} });
+    await refreshDatabaseInfo();
+    alert("Backup creado correctamente.");
+  };
+  window.openBackupsFolder = async function openBackupsFolder() {
+    if (!window.rrllDB || typeof window.rrllDB.openBackupsFolder !== "function") return;
+    const result = await window.rrllDB.openBackupsFolder();
+    if (!result || !result.ok) alert("No se pudo abrir la carpeta de backups.");
+  };
 })();
