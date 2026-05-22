@@ -423,7 +423,9 @@
     return updates.map(update => `<div class="update-line"><strong>${escapeHtml(formatLicDate((update.createdAt || '').slice(0, 10)))}</strong>: ${escapeHtml(update.text || update.action || '')}</div>`).join('');
   }
 
-  function openLicenciaModal(id) {
+  async function openLicenciaModal(id) {
+    const lock = await window.acquireEditingLock?.("licencias", id);
+    if (lock && lock.allowed === false) return;
     const item = findLicencia(id);
     if (!item) return;
     activeLicenseId = id;
