@@ -252,9 +252,7 @@
 
     let activePetitionUpdateId = null;
 
-    async function openPetitionUpdateModal(id) {
-      const lock = await window.acquireEditingLock?.("peticiones", id);
-      if (lock && lock.allowed === false) return;
+    function openPetitionUpdateModal(id) {
       const items = getPetitions();
       const item = items.find(i => i.id === id);
       if (!item) return;

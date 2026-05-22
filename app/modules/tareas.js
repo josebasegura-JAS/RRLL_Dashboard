@@ -290,9 +290,7 @@
         }).filter(update => update.text);
       }
 
-      async function openTaskUpdateModal(id) {
-        const lock = await window.acquireEditingLock?.("tareas", id);
-        if (lock && lock.allowed === false) return;
+      function openTaskUpdateModal(id) {
         const tasks = getTasks();
         const task = tasks.find(t => t.id === id);
         if (!task) return;

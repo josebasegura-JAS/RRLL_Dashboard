@@ -259,9 +259,7 @@
     return modal;
   }
 
-  async function openVinculogramaEditModal(id) {
-    const lock = await window.acquireEditingLock?.("vinculograma", id);
-    if (lock && lock.allowed === false) return;
+  function openVinculogramaEditModal(id) {
     const item = getVinculogramas().find(entry => entry.id === id);
     if (!item) return;
     editingVinculogramaId = id;
