@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("rrllDB", {
   openBackupsFolder: () => ipcRenderer.invoke("db:openBackupsFolder"),
   getInfo: () => ipcRenderer.invoke("db:getInfo"),
   getState: () => ipcRenderer.invoke("db:getState"),
+  getStartupAlert: () => ipcRenderer.invoke("db:getStartupAlert"),
   chooseSharedDirectory: () => ipcRenderer.invoke("db:chooseSharedDirectory"),
   probeSharedDirectory: directory => ipcRenderer.invoke("db:probeSharedDirectory", directory),
   setSharedDirectory: (directory, currentData) => ipcRenderer.invoke("db:setSharedDirectory", directory, currentData),

@@ -13,9 +13,15 @@
 
     try {
       const info = await window.rrllDB.getInfo();
-      phase4SetTexts(["dbModeLabel", "configDbModeLabel"], info.mode === "shared" ? "Compartida" : "Local");
+      const modeText = info.mode === "shared"
+        ? (info.fallbackLocal ? "Compartida no disponible · Local temporal" : "Compartida conectada")
+        : "Local";
+      phase4SetTexts(["dbModeLabel", "configDbModeLabel"], modeText);
       phase4SetTexts(["dbPathLabel", "configDbPathLabel"], info.path || "Ruta no disponible");
       phase4SetTexts(["dbUserLabel", "configDbUserLabel"], info.user || "Usuario Windows no disponible");
+      if (info.fallbackLocal && info.configuredSharedPath) {
+        phase4SetTexts(["dbPathLabel", "configDbPathLabel"], `${info.path} (red configurada: ${info.configuredSharedPath})`);
+      }
       const backup = await (window.rrllDB.getBackupStatus ? window.rrllDB.getBackupStatus() : null);
       const backupText = backup && backup.createdAt ? `${new Date(backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}` : "No configurado";
       phase4SetTexts(["configBackupStatusLabel"], backupText);
@@ -180,6 +186,10 @@
   window.chooseSharedDatabaseFolder = chooseSharedDatabaseFolder;
   window.useLocalDatabaseMode = useLocalDatabaseMode;
   window.reloadDatabaseFromDisk = reloadDatabaseFromDisk;
+  window.retrySharedDatabaseConnection = async function retrySharedDatabaseConnection() {
+    await refreshDatabaseInfo();
+    await updateSyncStatus("manual");
+  };
   window.createBackupNow = async function createBackupNow() {
     if (!window.rrllDB || typeof window.rrllDB.createBackup !== "function") return;
     await window.rrllDB.createBackup({ reason: "manual_ui", data: window.rrllDatabaseCache || {} });
