@@ -581,22 +581,55 @@ async function chooseSharedDirectory() {
   return result.filePaths[0];
 }
 
-async function setSharedDirectory(_event, directory, currentData) {
-  const preMigrationSnapshot = await loadAllData();
-  await createRobustBackup("before_migrate_local_to_shared", preMigrationSnapshot);
-  if (!directory || typeof directory !== "string") throw new Error("Carpeta compartida no válida.");
-  if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
 
+async function inspectSharedDatabase(directory) {
+  if (!directory || typeof directory !== "string") throw new Error("Carpeta compartida no válida.");
+  if (!fs.existsSync(directory)) throw new Error("La carpeta compartida no existe.");
   const sharedDbPath = path.join(directory, "rrll-dashboard-shared.sqlite");
-  writeDbConfig({ mode: "shared", sharedDir: directory, sharedDbPath });
+  const writableProbe = path.join(directory, `.rrll_write_test_${Date.now()}.tmp`);
+  try { fs.writeFileSync(writableProbe, "ok", "utf-8"); fs.unlinkSync(writableProbe); } catch { throw new Error("No se pudo escribir en la carpeta"); }
 
   const exists = fs.existsSync(sharedDbPath);
-  const existingData = exists ? await loadAllData() : {};
-  if (!exists || !Object.keys(existingData).length) {
-    await saveAllData(isPlainObject(currentData) ? currentData : {});
-  }
-  return getDbInfo();
+  const SQL = await getSQL();
+  const db = exists ? new SQL.Database(fs.readFileSync(sharedDbPath)) : new SQL.Database();
+  try {
+    const kvExists = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='kv_store'").length > 0;
+    if (!kvExists && exists) throw new Error("La base compartida no contiene tabla kv_store");
+    const keyRow = kvExists ? db.exec("SELECT COUNT(*) FROM kv_store WHERE key LIKE 'rrll_%'") : [];
+    const rrllKeyCount = keyRow.length ? Number(keyRow[0].values[0][0] || 0) : 0;
+    const status = !exists ? "missing" : (rrllKeyCount > 0 ? "valid" : "empty");
+    return { exists, status, sharedDbPath, rrllKeyCount, kvStore: kvExists, canRead: true, canWrite: true };
+  } finally { try { db.close(); } catch {} }
 }
+
+async function setSharedDirectory(_event, directory, currentData) {
+  const preMigrationSnapshot = await loadAllData();
+  const localKeyCount = Object.keys(preMigrationSnapshot || {}).filter(k => k.startsWith("rrll_")).length;
+  const inspection = await inspectSharedDatabase(directory);
+
+  if (inspection.status === "empty" && localKeyCount > 0) {
+    throw new Error("La base compartida parece incompleta. No se ha cambiado para evitar pérdida de datos.");
+  }
+
+  await createRobustBackup("before_migrate_local_to_shared", preMigrationSnapshot, { throttleMs: 0 });
+  const sharedDbPath = inspection.sharedDbPath;
+  writeDbConfig({ mode: "shared", sharedDir: directory, sharedDbPath });
+
+  const shouldSeed = inspection.status !== "valid";
+  if (shouldSeed) {
+    await saveAllData(isPlainObject(currentData) ? currentData : preMigrationSnapshot);
+  }
+
+  const post = await loadAllData();
+  const postCount = Object.keys(post || {}).filter(k => k.startsWith("rrll_")).length;
+  if (postCount < localKeyCount) {
+    writeDbConfig({ mode: "local" });
+    throw new Error("La base compartida parece incompleta. No se ha cambiado para evitar pérdida de datos.");
+  }
+
+  return { ...(await getDbInfo()), message: "Conectado a base compartida", inspection: { ...inspection, rrllKeyCount: postCount } };
+}
+
 
 async function useLocalDatabase(_event, currentData) {
   await createRobustBackup("before_migrate_shared_to_local", await loadAllData());
@@ -1137,6 +1170,7 @@ ipcMain.handle("db:openBackupsFolder", async () => {
 ipcMain.handle("db:getInfo", async () => getDbInfo());
 ipcMain.handle("db:getState", async () => getDbState());
 ipcMain.handle("db:chooseSharedDirectory", chooseSharedDirectory);
+ipcMain.handle("db:probeSharedDirectory", async (_event, directory) => inspectSharedDatabase(directory));
 ipcMain.handle("db:setSharedDirectory", setSharedDirectory);
 ipcMain.handle("db:useLocalDatabase", useLocalDatabase);
 ipcMain.handle("db:importCommitteeHistoryDocx", importCommitteeHistoryDocx);

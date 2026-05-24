@@ -207,6 +207,7 @@
       }
 
       function executeDeleteTask(id) {
+        try { window.clearEditingLock?.("tareas", id); } catch (error) { console.warn("No se pudo liberar lock al eliminar tarea:", error); }
         const tasks = getTasks();
         const item = tasks.find(task => task.id === id);
         if (item) moveToTrash("tasks", item);
@@ -291,8 +292,12 @@
       }
 
       async function openTaskUpdateModal(id) {
-        const lock = await window.acquireEditingLock?.("tareas", id);
-        if (lock && lock.allowed === false) return;
+        try {
+          const lock = await window.acquireEditingLock?.("tareas", id);
+          if (lock && lock.allowed === false) return;
+        } catch (error) {
+          console.warn("Fallo al validar lock de tarea. Se permite edición por seguridad:", error);
+        }
         const tasks = getTasks();
         const task = tasks.find(t => t.id === id);
         if (!task) return;
@@ -324,7 +329,11 @@
       }
 
       function closeTaskUpdateModal() {
+        const closingId = activeTaskUpdateId;
         activeTaskUpdateId = null;
+        if (closingId) {
+          try { window.clearEditingLock?.("tareas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal:", error); }
+        }
         const modal = document.getElementById("taskUpdateModal");
         if (modal) modal.classList.remove("open");
         ["taskEditTitle", "taskEditDueDate", "taskEditNotes", "taskUpdateModalText", "taskEditOrigin"].forEach(id => {
@@ -378,6 +387,9 @@
 
         const updatedTask = updated.find(task => task.id === activeTaskUpdateId);
         setTasks(updated);
+        if (activeTaskUpdateId) {
+          try { window.clearEditingLock?.("tareas", activeTaskUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar tarea:", error); }
+        }
         closeLinkedPetitionIfNeeded(updatedTask, status);
         closeTaskUpdateModal();
         renderTasks();
