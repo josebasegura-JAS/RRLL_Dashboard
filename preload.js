@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld("rrllDB", {
   getInfo: () => ipcRenderer.invoke("db:getInfo"),
   getState: () => ipcRenderer.invoke("db:getState"),
   chooseSharedDirectory: () => ipcRenderer.invoke("db:chooseSharedDirectory"),
+  probeSharedDirectory: directory => ipcRenderer.invoke("db:probeSharedDirectory", directory),
   setSharedDirectory: (directory, currentData) => ipcRenderer.invoke("db:setSharedDirectory", directory, currentData),
   useLocalDatabase: currentData => ipcRenderer.invoke("db:useLocalDatabase", currentData),
   importCommitteeHistoryDocx: () => ipcRenderer.invoke("db:importCommitteeHistoryDocx"),

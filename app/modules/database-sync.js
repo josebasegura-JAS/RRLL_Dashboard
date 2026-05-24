@@ -13,13 +13,14 @@
 
     try {
       const info = await window.rrllDB.getInfo();
-      phase4SetTexts(["dbModeLabel", "configDbModeLabel"], info.mode === "shared" ? "SQLite compartido" : "SQLite local");
+      phase4SetTexts(["dbModeLabel", "configDbModeLabel"], info.mode === "shared" ? "Compartida" : "Local");
       phase4SetTexts(["dbPathLabel", "configDbPathLabel"], info.path || "Ruta no disponible");
       phase4SetTexts(["dbUserLabel", "configDbUserLabel"], info.user || "Usuario Windows no disponible");
       const backup = await (window.rrllDB.getBackupStatus ? window.rrllDB.getBackupStatus() : null);
-      const backupText = backup && backup.createdAt ? `${new Date(backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}` : "Sin backup";
+      const backupText = backup && backup.createdAt ? `${new Date(backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}` : "No configurado";
       phase4SetTexts(["configBackupStatusLabel"], backupText);
-      await updateSyncStatus("info");
+      const state = await updateSyncStatus("info");
+      phase4SetTexts(["configDbUpdatedByLabel"], state ? "Conectado" : "Error");
     } catch (error) {
       phase4SetTexts(["dbModeLabel", "configDbModeLabel"], "Error");
       phase4SetTexts(["dbPathLabel", "configDbPathLabel"], error && error.message ? error.message : "No se pudo leer la configuración.");
@@ -109,19 +110,27 @@
       const directory = await window.rrllDB.chooseSharedDirectory();
       if (!directory) return;
 
-      const confirmed = confirm("Se usará una base de datos SQLite en la carpeta compartida seleccionada. Si está vacía, se copiarán los datos actuales. ¿Continuar?");
-      if (!confirmed) return;
-
+      const probe = await window.rrllDB.probeSharedDirectory?.(directory);
+      if (!probe) throw new Error("No se pudo validar la carpeta compartida.");
+      if (probe.status === "empty") {
+        const shouldCreate = confirm("La base compartida parece vacía. ¿Crear base compartida desde datos locales?");
+        if (!shouldCreate) return;
+      }
+      if (probe.status === "missing") {
+        const shouldCreate = confirm("No existe base SQLite compartida. ¿Crearla desde datos locales?");
+        if (!shouldCreate) return;
+      }
+      alert(`Base encontrada con ${Number(probe.rrllKeyCount || 0)} claves.`);
       await window.rrllDB.setSharedDirectory(directory, rrllDatabaseCache || {});
       rrllDatabaseCache = await window.rrllDB.loadAll();
       const state = await updateSyncStatus("mode-change");
       if (state && state.token) rrllLastKnownDbToken = state.token;
       renderAfterImport();
       await refreshDatabaseInfo();
-      alert("Modo compartido activado correctamente.");
+      alert("Conectado a base compartida");
     } catch (error) {
       console.error("Error al activar base compartida:", error);
-      alert(`No se pudo activar la base compartida. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
+      alert(`No se ha cambiado la configuración por seguridad. ${error && error.message ? error.message : "error desconocido"}`);
     }
   }
 

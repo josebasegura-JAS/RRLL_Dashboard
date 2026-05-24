@@ -52,13 +52,44 @@ function getTodayKey() {
       return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
     }
 
+    
+    function purgeExpiredEditingLocks() {
+      const locks = getEditingLocks();
+      const active = locks.filter(lock => !isExpiredLock(lock));
+      if (active.length !== locks.length) setEditingLocks(active);
+      return active;
+    }
+
+    function getActiveEditingLock(moduleName, recordId) {
+      const module = String(moduleName || "").trim();
+      const id = String(recordId || "").trim();
+      if (!module || !id) return null;
+      const active = purgeExpiredEditingLocks();
+      return active.find(lock => String(lock.module) === module && String(lock.recordId) === id) || null;
+    }
+
+    function clearEditingLock(moduleName, recordId) {
+      try {
+        const module = String(moduleName || "").trim();
+        const id = String(recordId || "").trim();
+        if (!module || !id) return false;
+        const locks = purgeExpiredEditingLocks();
+        const next = locks.filter(lock => !(String(lock.module) === module && String(lock.recordId) === id));
+        if (next.length !== locks.length) setEditingLocks(next);
+        return true;
+      } catch (error) {
+        console.warn("No se pudo liberar lock de edición:", error);
+        return false;
+      }
+    }
+
     async function acquireEditingLock(moduleName, recordId) {
       const module = String(moduleName || "").trim();
       const id = String(recordId || "").trim();
       if (!module || !id) return { allowed: true, lock: null };
 
       const currentUser = await getCurrentWindowsUser();
-      const locks = getEditingLocks().filter(lock => !isExpiredLock(lock));
+      const locks = purgeExpiredEditingLocks();
       const existingIndex = locks.findIndex(lock => String(lock.module) === module && String(lock.recordId) === id);
       const existing = existingIndex >= 0 ? locks[existingIndex] : null;
 
@@ -282,3 +313,7 @@ function save(key, value) {
 
 window.acquireEditingLock = acquireEditingLock;
 window.getCurrentWindowsUser = getCurrentWindowsUser;
+
+window.purgeExpiredEditingLocks = purgeExpiredEditingLocks;
+window.getActiveEditingLock = getActiveEditingLock;
+window.clearEditingLock = clearEditingLock;
