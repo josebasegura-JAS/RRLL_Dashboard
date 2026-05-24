@@ -7,6 +7,7 @@ let lastBackupAt = 0;
 let sqlReadyPromise = null;
 let SQLRef = null;
 let lastBackupMeta = null;
+let startupDbAlert = null;
 
 const DEFAULT_RRLL_FOLDER_PATH = "G:\\Capital Humano\\Relaciones Laborales";
 
@@ -38,7 +39,7 @@ function ensureBackupsDir() {
 }
 
 function getNetworkBackupsDir() {
-  const info = getActiveDbInfo();
+  const info = resolveDbAccessInfo();
   if (!info.sharedDir) return "";
   const dir = path.join(info.sharedDir, "backups-red");
   return fs.existsSync(info.sharedDir) ? dir : "";
@@ -159,6 +160,39 @@ function getActiveDbInfo() {
     };
   }
   return { mode: "local", path: localPath, user: getWindowsUser(), localPath };
+}
+
+function isPathAccessible(filePath) {
+  try {
+    fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveDbAccessInfo() {
+  const config = readDbConfig();
+  const localPath = getLocalSqlitePath();
+  const user = getWindowsUser();
+  if (config.mode === "shared" && config.sharedDbPath) {
+    const sharedDir = config.sharedDir || path.dirname(config.sharedDbPath);
+    const sharedReachable = fs.existsSync(sharedDir)
+      && isPathAccessible(sharedDir)
+      && (!fs.existsSync(config.sharedDbPath) || isPathAccessible(config.sharedDbPath));
+    if (sharedReachable) {
+      startupDbAlert = null;
+      return { mode: "shared", effectiveMode: "shared", path: config.sharedDbPath, sharedDir, configuredSharedPath: config.sharedDbPath, user, localPath, fallbackLocal: false };
+    }
+    startupDbAlert = {
+      title: "Base de datos de red no disponible",
+      message: "No se ha podido acceder a la base de datos compartida. La aplicación se ha abierto con los datos locales de este equipo. Cuando recuperes conexión, puedes reintentar desde Configuración.",
+      configuredPath: config.sharedDbPath
+    };
+    return { mode: "shared", effectiveMode: "local", path: localPath, sharedDir, configuredSharedPath: config.sharedDbPath, user, localPath, fallbackLocal: true };
+  }
+  startupDbAlert = null;
+  return { mode: "local", effectiveMode: "local", path: localPath, user, localPath, fallbackLocal: false };
 }
 
 async function getSQL() {
@@ -364,11 +398,21 @@ function loadCriteriaTable(db) {
 }
 
 async function getDbState() {
-  const info = getActiveDbInfo();
+  const info = resolveDbAccessInfo();
   return withFileLock(info.path, async () => {
     const { db } = await openDatabase(info.path);
     try {
-      const result = { mode: info.mode, path: info.path, user: info.user, lastUpdate: null, lastUpdateBy: null, token: null };
+      const result = {
+        mode: info.mode,
+        effectiveMode: info.effectiveMode,
+        fallbackLocal: !!info.fallbackLocal,
+        configuredSharedPath: info.configuredSharedPath || "",
+        path: info.path,
+        user: info.user,
+        lastUpdate: null,
+        lastUpdateBy: null,
+        token: null
+      };
       const rows = db.exec("SELECT key, value FROM meta WHERE key IN ('last_update', 'last_update_by', 'last_update_token')");
       if (rows.length) {
         rows[0].values.forEach(([key, value]) => {
@@ -385,11 +429,11 @@ async function getDbState() {
 }
 
 async function loadAllData() {
-  const info = getActiveDbInfo();
+  const info = resolveDbAccessInfo();
   return withFileLock(info.path, async () => {
     const { db, existed } = await openDatabase(info.path);
     try {
-      if (!existed && info.mode === "local") {
+      if (!existed && info.effectiveMode === "local") {
         const legacy = readLegacyJsonDatabase();
         if (Object.keys(legacy).length) {
           const now = new Date().toISOString();
@@ -425,7 +469,7 @@ async function loadAllData() {
 
 async function saveKeyData(key, value) {
   if (typeof key !== "string" || !key.startsWith("rrll_")) return false;
-  const info = getActiveDbInfo();
+  const info = resolveDbAccessInfo();
   return withFileLock(info.path, async () => {
     const { db } = await openDatabase(info.path);
     try {
@@ -447,7 +491,7 @@ async function saveKeyData(key, value) {
 async function saveAllData(data) {
   const safe = isPlainObject(data) ? data : {};
   await createRobustBackup("before_massive_import_or_destructive", await loadAllData(), { throttleMs: 0 });
-  const info = getActiveDbInfo();
+  const info = resolveDbAccessInfo();
   return withFileLock(info.path, async () => {
     const { db } = await openDatabase(info.path);
     try {
@@ -489,7 +533,7 @@ async function createRobustBackup(reason, data, options = {}) {
   if (throttleMs && nowMs - lastBackupAt < throttleMs) return { ok: false, skipped: "throttle" };
   lastBackupAt = nowMs;
   const safe = isPlainObject(data) ? data : {};
-  const info = getActiveDbInfo();
+  const info = resolveDbAccessInfo();
   const keyCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
   if (!keyCount) return { ok: false, skipped: "empty" };
   const criticalCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
@@ -532,8 +576,17 @@ async function createRobustBackup(reason, data, options = {}) {
 }
 
 async function getDbInfo() {
-  const info = getActiveDbInfo();
-  return { mode: info.mode, path: info.path, sharedDir: info.sharedDir || "", user: info.user, localPath: info.localPath };
+  const info = resolveDbAccessInfo();
+  return {
+    mode: info.mode,
+    effectiveMode: info.effectiveMode,
+    path: info.path,
+    sharedDir: info.sharedDir || "",
+    user: info.user,
+    localPath: info.localPath,
+    fallbackLocal: !!info.fallbackLocal,
+    configuredSharedPath: info.configuredSharedPath || ""
+  };
 }
 
 function normalizeRRLLFolderPath(value) {
@@ -1169,6 +1222,7 @@ ipcMain.handle("db:openBackupsFolder", async () => {
 });
 ipcMain.handle("db:getInfo", async () => getDbInfo());
 ipcMain.handle("db:getState", async () => getDbState());
+ipcMain.handle("db:getStartupAlert", async () => startupDbAlert);
 ipcMain.handle("db:chooseSharedDirectory", chooseSharedDirectory);
 ipcMain.handle("db:probeSharedDirectory", async (_event, directory) => inspectSharedDatabase(directory));
 ipcMain.handle("db:setSharedDirectory", setSharedDirectory);

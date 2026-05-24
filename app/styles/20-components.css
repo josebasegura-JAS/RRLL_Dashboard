@@ -615,4 +615,26 @@ body.phase4-view-module .session-columns {
     font-size: 20px !important;
   }
 }
+.db-startup-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 
+.db-startup-modal-card {
+  width: min(760px, 100%);
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+  padding: 18px 20px;
+}
+
+.db-startup-modal-card h3 { color: #9a3412; margin-bottom: 10px; }
+.db-startup-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+button.warning { background: #ea580c; color: #fff; }

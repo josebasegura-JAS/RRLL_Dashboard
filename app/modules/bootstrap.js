@@ -98,6 +98,39 @@ function forceActiveDetailsOpen() {
   document.querySelectorAll('#gestor-comite.phase4-active-module details.committee-subsection[open], #gestor-paritaria.phase4-active-module details.paritaria-subsection[open]').forEach(d => { d.open = true; });
 }
 
+async function showStartupDbFallbackAlert() {
+  if (!window.rrllDB || typeof window.rrllDB.getStartupAlert !== "function") return;
+  const alertInfo = await window.rrllDB.getStartupAlert();
+  if (!alertInfo) return;
+  const existing = document.getElementById("dbStartupFallbackModal");
+  if (existing) existing.remove();
+  const modal = document.createElement("div");
+  modal.id = "dbStartupFallbackModal";
+  modal.className = "db-startup-modal open";
+  modal.innerHTML = `
+    <div class="db-startup-modal-card">
+      <h3>Base de datos de red no disponible</h3>
+      <p>No se ha podido acceder a la base de datos compartida. La aplicación se ha abierto con los datos locales de este equipo. Cuando recuperes conexión, puedes reintentar desde Configuración.</p>
+      <p class="muted">Ruta configurada: ${escapeHtml(alertInfo.configuredPath || "No disponible")}</p>
+      <div class="db-startup-modal-actions">
+        <button type="button" class="warning" id="dbStartupRetryBtn">Reintentar</button>
+        <button type="button" class="secondary" id="dbStartupConfigBtn">Ir a configuración</button>
+        <button type="button" id="dbStartupContinueBtn">Continuar en local</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("dbStartupRetryBtn")?.addEventListener("click", async () => {
+    if (typeof window.retrySharedDatabaseConnection === "function") await window.retrySharedDatabaseConnection();
+    if (typeof refreshDatabaseInfo === "function") await refreshDatabaseInfo();
+    modal.remove();
+  });
+  document.getElementById("dbStartupConfigBtn")?.addEventListener("click", async () => {
+    if (typeof openConfigModal === "function") await openConfigModal();
+    modal.remove();
+  });
+  document.getElementById("dbStartupContinueBtn")?.addEventListener("click", () => modal.remove());
+}
+
     async function initializeApp() {
       setupGestorAccordions();
       setupPhase4Navigation();
@@ -120,6 +153,7 @@ function forceActiveDetailsOpen() {
       phase4RouteFromHash();
       forceActiveDetailsOpen();
       await refreshDatabaseInfo();
+      await showStartupDbFallbackAlert();
       startDatabaseAutoSync();
     }
 
