@@ -255,12 +255,13 @@
 
     async function openPetitionUpdateModal(id) {
       const lock = await window.acquireEditingLock?.("peticiones", id);
-      if (lock && lock.allowed === false) return;
+      if (lock && lock.allowed === false) { window.showEditingLockBlockedMessage?.(lock.lock); return; }
       const items = getPetitions();
       const item = items.find(i => i.id === id);
       if (!item) return;
 
       activePetitionUpdateId = id;
+      window.startEditingLockHeartbeat?.("peticiones", id);
       const sources = Array.isArray(item.sources) ? item.sources : [];
       const titleEl = document.getElementById("petitionUpdateModalTitle");
       if (titleEl) titleEl.textContent = item.title || "Petición sin título";
@@ -296,6 +297,7 @@
       const closingId = activePetitionUpdateId;
       activePetitionUpdateId = null;
       if (closingId) {
+        window.clearEditingLockHeartbeat?.("peticiones", closingId);
         try { window.clearEditingLock?.("peticiones", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de petición:", error); }
       }
       const modal = document.getElementById("petitionUpdateModal");
@@ -362,6 +364,7 @@
 
       setPetitions(updatedItems);
       if (activePetitionUpdateId) {
+        window.clearEditingLockHeartbeat?.("peticiones", activePetitionUpdateId);
         try { window.clearEditingLock?.("peticiones", activePetitionUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar petición:", error); }
       }
       await closePetitionUpdateModal();

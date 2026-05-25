@@ -347,12 +347,15 @@
     }
 
 
-    function openAgendaUpdateModal(id) {
+    async function openAgendaUpdateModal(id) {
+      const lock = await window.acquireEditingLock?.("comite_puntos", id);
+      if (lock && lock.allowed === false) { window.showEditingLockBlockedMessage?.(lock.lock); return; }
       const items = getAgendaItems();
       const item = items.find(i => i.id === id);
       if (!item) return;
 
       activeAgendaUpdateId = id;
+      window.startEditingLockHeartbeat?.("comite_puntos", id);
       const titleEl = document.getElementById("agendaUpdateModalTitle");
       if (titleEl) titleEl.textContent = item.title || "Punto sin título";
 
@@ -378,7 +381,12 @@
     }
 
     async function closeAgendaUpdateModal() {
+      const closingId = activeAgendaUpdateId;
       activeAgendaUpdateId = null;
+      if (closingId) {
+        window.clearEditingLockHeartbeat?.("comite_puntos", closingId);
+        try { window.clearEditingLock?.("comite_puntos", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de comité:", error); }
+      }
       const modal = document.getElementById("agendaUpdateModal");
       if (modal) modal.classList.remove("open");
       ["agendaEditTitle", "agendaEditPetitioner", "agendaEditRequestDate", "agendaEditCommitteeSession", "agendaEditNotes", "agendaUpdateModalText"].forEach(id => {
@@ -443,6 +451,8 @@
       });
 
       setAgendaItems(items);
+      window.clearEditingLockHeartbeat?.("comite_puntos", activeAgendaUpdateId);
+      try { window.clearEditingLock?.("comite_puntos", activeAgendaUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar punto de comité:", error); }
       await closeAgendaUpdateModal();
       renderAgendaItems();
     }

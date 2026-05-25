@@ -294,7 +294,7 @@
       async function openTaskUpdateModal(id) {
         try {
           const lock = await window.acquireEditingLock?.("tareas", id);
-          if (lock && lock.allowed === false) return;
+          if (lock && lock.allowed === false) { window.showEditingLockBlockedMessage?.(lock.lock); return; }
         } catch (error) {
           console.warn("Fallo al validar lock de tarea. Se permite edición por seguridad:", error);
         }
@@ -303,6 +303,7 @@
         if (!task) return;
 
         activeTaskUpdateId = id;
+        window.startEditingLockHeartbeat?.("tareas", id);
         const titleEl = document.getElementById("taskUpdateModalTitle");
         const titleInput = document.getElementById("taskEditTitle");
         const dueInput = document.getElementById("taskEditDueDate");
@@ -332,6 +333,7 @@
         const closingId = activeTaskUpdateId;
         activeTaskUpdateId = null;
         if (closingId) {
+          window.clearEditingLockHeartbeat?.("tareas", closingId);
           try { window.clearEditingLock?.("tareas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal:", error); }
         }
         const modal = document.getElementById("taskUpdateModal");
@@ -389,6 +391,7 @@
         const updatedTask = updated.find(task => task.id === activeTaskUpdateId);
         setTasks(updated);
         if (activeTaskUpdateId) {
+          window.clearEditingLockHeartbeat?.("tareas", activeTaskUpdateId);
           try { window.clearEditingLock?.("tareas", activeTaskUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar tarea:", error); }
         }
         closeLinkedPetitionIfNeeded(updatedTask, status);

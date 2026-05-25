@@ -22,8 +22,10 @@ function getTodayKey() {
     let rrllLastSyncOffline = false;
     let rrllPersistQueue = Promise.resolve();
     const RRLL_EDITING_LOCKS_KEY = "rrll_editing_locks";
-    const RRLL_EDITING_LOCK_TTL_MS = 10 * 60 * 1000;
+    const RRLL_EDITING_LOCK_TTL_MS = 30 * 1000;
+    const RRLL_EDITING_LOCK_HEARTBEAT_MS = 10 * 1000;
     let rrllCurrentUserCache = null;
+    const rrllEditingHeartbeatTimers = {};
 
     async function getCurrentWindowsUser() {
       if (rrllCurrentUserCache) return rrllCurrentUserCache;
@@ -127,6 +129,47 @@ function getTodayKey() {
       setEditingLocks(nextLocks);
       console.info("[RRLL LOCK] lock adquirido:", { module, recordId: id, editingBy: currentUser, expiresAt: nextLock.expiresAt });
       return { allowed: true, lock: nextLock };
+    }
+
+    async function renewEditingLock(moduleName, recordId) {
+      const module = String(moduleName || "").trim();
+      const id = String(recordId || "").trim();
+      if (!module || !id) return { allowed: true, lock: null };
+      console.info("[RRLL LOCK] heartbeat enviado:", { module, recordId: id });
+      return acquireEditingLock(module, id);
+    }
+
+    function clearEditingLockHeartbeat(moduleName, recordId) {
+      const key = `${String(moduleName || "").trim()}::${String(recordId || "").trim()}`;
+      if (rrllEditingHeartbeatTimers[key]) {
+        clearInterval(rrllEditingHeartbeatTimers[key]);
+        delete rrllEditingHeartbeatTimers[key];
+      }
+    }
+
+    function startEditingLockHeartbeat(moduleName, recordId) {
+      const module = String(moduleName || "").trim();
+      const id = String(recordId || "").trim();
+      if (!module || !id) return;
+      clearEditingLockHeartbeat(module, id);
+      rrllEditingHeartbeatTimers[`${module}::${id}`] = setInterval(async () => {
+        try {
+          const result = await renewEditingLock(module, id);
+          if (result?.lock?.expiresAt) console.info("[RRLL LOCK] lock renovado:", { module, recordId: id, expiresAt: result.lock.expiresAt });
+        } catch (error) {
+          console.warn("[RRLL LOCK] fallo heartbeat (reintento automático):", { module, recordId: id, error: error?.message || error });
+        }
+      }, RRLL_EDITING_LOCK_HEARTBEAT_MS);
+    }
+
+    function showEditingLockBlockedMessage(lock) {
+      if (!lock) return;
+      const editingBy = lock.editingBy || "otro usuario";
+      const editingDate = Date.parse(lock.editingAt || "");
+      const editingAt = Number.isFinite(editingDate)
+        ? new Date(editingDate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        : "hora no disponible";
+      alert(`Este registro está siendo editado por ${editingBy}. Podrás editarlo cuando finalice o en unos segundos si la edición quedó abierta.\n\nUsuario: ${editingBy}\nHora del lock: ${editingAt}\nEl bloqueo caduca automáticamente en 30 segundos.`);
     }
 
     async function clearEditingLocksForCurrentUser(reason) {
@@ -337,6 +380,10 @@ function save(key, value) {
     window.renderPetitionAttachments = renderPetitionAttachments;
 
 window.acquireEditingLock = acquireEditingLock;
+window.renewEditingLock = renewEditingLock;
+window.startEditingLockHeartbeat = startEditingLockHeartbeat;
+window.clearEditingLockHeartbeat = clearEditingLockHeartbeat;
+window.showEditingLockBlockedMessage = showEditingLockBlockedMessage;
 window.getCurrentWindowsUser = getCurrentWindowsUser;
 
 window.purgeExpiredEditingLocks = purgeExpiredEditingLocks;
