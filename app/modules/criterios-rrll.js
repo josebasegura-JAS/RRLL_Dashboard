@@ -638,7 +638,10 @@
 
   async function openCriteriaEditModal(criteriaId) {
     const lock = await window.acquireEditingLock?.("criterio", criteriaId);
-    if (lock && lock.allowed === false) return;
+    if (lock && lock.allowed === false) {
+      window.showEditingLockBlockedMessage?.(lock.lock);
+      return;
+    }
     const item = getCriteria().find(criteria => criteria.id === criteriaId);
     if (!item) return;
     editingCriteriaId = criteriaId;

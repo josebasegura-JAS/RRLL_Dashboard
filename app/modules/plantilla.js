@@ -463,7 +463,10 @@
 
   async function openPlantillaEditModal(id) {
     const lock = await window.acquireEditingLock?.("plantilla", id);
-    if (lock && lock.allowed === false) return;
+    if (lock && lock.allowed === false) {
+      window.showEditingLockBlockedMessage?.(lock.lock);
+      return;
+    }
     const item = getPlantilla().find(entry => entry.id === id);
     if (!item) return;
     editingPlantillaId = id;
