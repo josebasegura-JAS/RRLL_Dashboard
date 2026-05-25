@@ -381,7 +381,7 @@
       setTimeout(() => (updateInput || titleInput)?.focus(), 0);
     }
 
-    function closeParitariaUpdateModal() {
+    async function closeParitariaUpdateModal() {
       const closingId = activeParitariaUpdateId;
       activeParitariaUpdateId = null;
       if (closingId) {
@@ -399,6 +399,7 @@
       const existing = document.getElementById("paritariaExistingUpdates");
       if (existing) existing.innerHTML = "";
       refreshParitariaPetitionerOptions();
+      await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
     function saveParitariaUpdateFromModal() {

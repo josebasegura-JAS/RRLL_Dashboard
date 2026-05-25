@@ -657,7 +657,7 @@
     setTimeout(() => document.getElementById('editCriteriaSubject')?.focus(), 0);
   }
 
-  function closeCriteriaEditModal() {
+  async function closeCriteriaEditModal() {
     const modal = document.getElementById('criteriaEditModal');
     if (modal) modal.classList.remove('open');
     const closingId = editingCriteriaId;
@@ -666,6 +666,7 @@
       window.clearEditingLockHeartbeat?.("criterio", closingId);
       try { window.clearEditingLock?.("criterio", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de criterio:", error); }
     }
+    await window.runPendingRemoteRefreshIfNeeded?.();
   }
 
   function saveEditingCriteria() {

@@ -284,7 +284,7 @@
     setTimeout(() => employeeEl?.focus(), 0);
   }
 
-  function closeVinculogramaEditModal() {
+  async function closeVinculogramaEditModal() {
     const modal = document.getElementById('vinculogramaEditModal');
     if (modal) modal.classList.remove('open');
     const closingId = editingVinculogramaId;
@@ -293,6 +293,7 @@
       window.clearEditingLockHeartbeat?.("vinculograma", closingId);
       try { window.clearEditingLock?.("vinculograma", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de vinculograma:", error); }
     }
+    await window.runPendingRemoteRefreshIfNeeded?.();
   }
 
   function updateEditVincVigenciaPreview() {
