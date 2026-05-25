@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld("rrllDB", {
   getStartupAlert: () => ipcRenderer.invoke("db:getStartupAlert"),
   chooseSharedDirectory: () => ipcRenderer.invoke("db:chooseSharedDirectory"),
   probeSharedDirectory: directory => ipcRenderer.invoke("db:probeSharedDirectory", directory),
-  setSharedDirectory: (directory, currentData) => ipcRenderer.invoke("db:setSharedDirectory", directory, currentData),
+  setSharedDirectory: (directory, currentData, options) => ipcRenderer.invoke("db:setSharedDirectory", directory, currentData, options),
   useLocalDatabase: currentData => ipcRenderer.invoke("db:useLocalDatabase", currentData),
   importCommitteeHistoryDocx: () => ipcRenderer.invoke("db:importCommitteeHistoryDocx"),
   importParitariaHistoryDocx: () => ipcRenderer.invoke("db:importParitariaHistoryDocx"),
