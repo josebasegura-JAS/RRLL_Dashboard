@@ -35,6 +35,7 @@ function rrllSafeCall(label, fn) {
       rrllSafeCall("plantilla", () => { if (typeof renderPlantilla === "function") renderPlantilla(); });
       rrllSafeCall("criterios RRLL", () => { if (typeof renderCriteria === "function") renderCriteria(); });
       rrllSafeCall("Ticket Restaurante", () => { if (typeof renderTicketRestaurant === "function") renderTicketRestaurant(); });
+      rrllSafeCall("sorteos", () => { if (typeof renderSorteos === "function") renderSorteos(); });
       rrllSafeCall("papelera", () => renderTrash());
       rrllSafeCall("estado de alertas", () => restoreAlertsPanelState());
       rrllSafeCall("alertas", () => renderAlertsPanel());

@@ -146,6 +146,7 @@
         if (typeof renderPlantilla === "function") renderPlantilla();
         if (typeof renderCriteria === "function") renderCriteria();
         if (typeof renderTicketRestaurant === "function") renderTicketRestaurant();
+        if (typeof renderSorteos === "function") renderSorteos();
         renderTrash();
         restoreAlertsPanelState();
         renderAlertsPanel();
