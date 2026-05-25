@@ -464,7 +464,7 @@
     if (modal) modal.classList.add('open');
   }
 
-  function closeLicenciaModal() {
+  async function closeLicenciaModal() {
     const closingId = activeLicenseId;
     activeLicenseId = null;
     hideLicenciaModalSuggestions();
@@ -474,6 +474,7 @@
     }
     const modal = document.getElementById('licenseUpdateModal');
     if (modal) modal.classList.remove('open');
+    await window.runPendingRemoteRefreshIfNeeded?.();
   }
 
   function readLicenseModalFields() {

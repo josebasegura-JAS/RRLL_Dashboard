@@ -489,7 +489,7 @@
     setTimeout(() => document.getElementById('editPlantEmployeeNumber')?.focus(), 0);
   }
 
-  function closePlantillaEditModal() {
+  async function closePlantillaEditModal() {
     const modal = document.getElementById('plantillaEditModal');
     if (modal) modal.classList.remove('open');
     const closingId = editingPlantillaId;
@@ -498,6 +498,7 @@
       window.clearEditingLockHeartbeat?.("plantilla", closingId);
       try { window.clearEditingLock?.("plantilla", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de plantilla:", error); }
     }
+    await window.runPendingRemoteRefreshIfNeeded?.();
   }
 
   function saveEditingPlantilla() {
