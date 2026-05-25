@@ -288,10 +288,11 @@
 
     async function openMinuteEditModal(id) {
       const lock = await window.acquireEditingLock?.("actas", id);
-      if (lock && lock.allowed === false) return;
+      if (lock && lock.allowed === false) { window.showEditingLockBlockedMessage?.(lock.lock); return; }
       const minute = getMinutes().find(item => item.id === id);
       if (!minute) return;
       editingMinuteId = id;
+      window.startEditingLockHeartbeat?.("actas", id);
       const modal = ensureMinuteEditModal();
       const titleEl = document.getElementById("editMinuteTitle");
       const statusEl = document.getElementById("editMinuteStatus");
@@ -306,9 +307,14 @@
     }
 
     async function closeMinuteEditModal() {
+      const closingId = editingMinuteId;
       const modal = document.getElementById("minuteEditModal");
       if (modal) modal.classList.remove("open");
       editingMinuteId = null;
+      if (closingId) {
+        window.clearEditingLockHeartbeat?.("actas", closingId);
+        try { window.clearEditingLock?.("actas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de acta:", error); }
+      }
       await window.runPendingRemoteRefreshIfNeeded?.();
     }
 

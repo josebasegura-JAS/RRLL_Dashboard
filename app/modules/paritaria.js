@@ -348,12 +348,15 @@
     }
 
 
-    function openParitariaUpdateModal(id) {
+    async function openParitariaUpdateModal(id) {
+      const lock = await window.acquireEditingLock?.("paritaria_puntos", id);
+      if (lock && lock.allowed === false) { window.showEditingLockBlockedMessage?.(lock.lock); return; }
       const items = getParitariaItems();
       const item = items.find(i => i.id === id);
       if (!item) return;
 
       activeParitariaUpdateId = id;
+      window.startEditingLockHeartbeat?.("paritaria_puntos", id);
       const titleEl = document.getElementById("paritariaUpdateModalTitle");
       if (titleEl) titleEl.textContent = item.title || "Punto sin título";
 
@@ -379,7 +382,12 @@
     }
 
     function closeParitariaUpdateModal() {
+      const closingId = activeParitariaUpdateId;
       activeParitariaUpdateId = null;
+      if (closingId) {
+        window.clearEditingLockHeartbeat?.("paritaria_puntos", closingId);
+        try { window.clearEditingLock?.("paritaria_puntos", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de paritaria:", error); }
+      }
       const modal = document.getElementById("paritariaUpdateModal");
       if (modal) modal.classList.remove("open");
       ["paritariaEditTitle", "paritariaEditPetitioner", "paritariaEditRequestDate", "paritariaEditSession", "paritariaEditNotes", "paritariaUpdateModalText"].forEach(id => {
@@ -444,6 +452,8 @@
       });
 
       setParitariaItems(items);
+      window.clearEditingLockHeartbeat?.("paritaria_puntos", activeParitariaUpdateId);
+      try { window.clearEditingLock?.("paritaria_puntos", activeParitariaUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar punto de paritaria:", error); }
       closeParitariaUpdateModal();
       renderParitariaItems();
     }
