@@ -65,6 +65,52 @@
     renderRemoteRefreshNotice._timer = setTimeout(() => el.classList.remove("visible"), 3500);
   }
 
+
+
+  function isSharedModeState(info) {
+    return !!(info && info.mode === "shared" && !info.fallbackLocal);
+  }
+
+  function hasActiveEditingContext() {
+    const modalSelectors = [
+      "#taskUpdateModal.open",
+      "#petitionUpdateModal.open",
+      "#agendaUpdateModal.open",
+      "#minuteDueDateModal.open",
+      "#minuteAllegationsModal.open",
+      "#committeeSessionOrderModal.open",
+      "#paritariaSessionOrderModal.open",
+      "#addAgendaToCommitteeModal.open",
+      "#addParitariaToParitariaModal.open",
+      "#licenciaModal.open",
+      "#ticketRestaurantPersonFormModal.open",
+      "#criteriaEditModal.open",
+      "#plantillaEditModal.open"
+    ];
+    return modalSelectors.some(selector => document.querySelector(selector));
+  }
+
+  function preserveScrollPositions() {
+    const targets = [window, document.scrollingElement, document.getElementById("appContent")].filter(Boolean);
+    return targets.map(target => ({
+      target,
+      top: target === window ? window.scrollY : target.scrollTop,
+      left: target === window ? window.scrollX : target.scrollLeft
+    }));
+  }
+
+  function restoreScrollPositions(snapshots) {
+    (snapshots || []).forEach(snapshot => {
+      if (!snapshot || !snapshot.target) return;
+      if (snapshot.target === window) {
+        window.scrollTo(snapshot.left || 0, snapshot.top || 0);
+      } else {
+        snapshot.target.scrollTop = snapshot.top || 0;
+        snapshot.target.scrollLeft = snapshot.left || 0;
+      }
+    });
+  }
+
   async function checkDatabaseUpdatesSilently() {
     if (!window.rrllDB || typeof window.rrllDB.getState !== "function" || typeof window.rrllDB.loadAll !== "function") return;
     if (rrllIsApplyingRemoteRefresh || rrllIsCheckingDatabaseUpdates) return;
@@ -72,6 +118,19 @@
 
     rrllIsCheckingDatabaseUpdates = true;
     try {
+      const info = typeof window.rrllDB.getInfo === "function" ? await window.rrllDB.getInfo() : null;
+      if (!isSharedModeState(info)) {
+        console.info("[RRLL SYNC] Sincronización omitida: modo local o fallback local activo.");
+        rrllLastSyncOffline = !!(info && info.fallbackLocal);
+        return;
+      }
+
+      if (rrllLastSyncOffline) {
+        rrllLastSyncOffline = false;
+        console.info("[RRLL SYNC] Reconexión correcta con base compartida.");
+        setSaveStatus("synced", "Reconectado a la base compartida.");
+      }
+
       const state = await window.rrllDB.getState();
       const token = state && state.token;
       if (!token) return;
@@ -83,17 +142,32 @@
       }
 
       if (token !== rrllLastKnownDbToken) {
+        console.info("[RRLL SYNC] Cambios detectados en base compartida.", { tokenAnterior: rrllLastKnownDbToken, tokenActual: token });
+        if (hasActiveEditingContext()) {
+          rrllLastKnownDbToken = token;
+          console.info("[RRLL SYNC] Refresh omitido por edición activa.");
+          setSaveStatus("synced", "Cambios detectados. Refresco pospuesto por edición activa.");
+          await refreshDatabaseInfo();
+          return;
+        }
+
         rrllIsApplyingRemoteRefresh = true;
+        const scrollSnapshots = preserveScrollPositions();
         rrllDatabaseCache = await window.rrllDB.loadAll();
         rrllLastKnownDbToken = token;
         renderAfterImport();
+        restoreScrollPositions(scrollSnapshots);
         await refreshDatabaseInfo();
         renderRemoteRefreshNotice(state);
+        console.info("[RRLL SYNC] Refresh ejecutado correctamente.");
         setSaveStatus("synced", `Actualizado desde base compartida: ${formatSyncDate(state.lastUpdate || new Date().toISOString())}`);
       }
     } catch (error) {
-      console.error("Error en sincronización automática:", error);
-      setSaveStatus("offline", error && error.message ? error.message : "No se pudo comprobar la base de datos compartida.");
+      if (!rrllLastSyncOffline) {
+        rrllLastSyncOffline = true;
+        console.warn("[RRLL SYNC] Conexión perdida con base compartida.", error);
+      }
+      setSaveStatus("offline", error && error.message ? error.message : "Conexión con base compartida no disponible. Modo local temporal.");
     } finally {
       rrllIsApplyingRemoteRefresh = false;
       rrllIsCheckingDatabaseUpdates = false;
@@ -102,8 +176,9 @@
 
   function startDatabaseAutoSync() {
     if (rrllAutoSyncTimer) clearInterval(rrllAutoSyncTimer);
+    console.info("[RRLL SYNC] Sincronización automática iniciada (intervalo: 12s).");
     checkDatabaseUpdatesSilently();
-    rrllAutoSyncTimer = setInterval(checkDatabaseUpdatesSilently, 20000);
+    rrllAutoSyncTimer = setInterval(checkDatabaseUpdatesSilently, 12000);
   }
 
   async function chooseSharedDatabaseFolder() {

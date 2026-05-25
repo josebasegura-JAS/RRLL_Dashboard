@@ -18,6 +18,7 @@ function getTodayKey() {
     let rrllIsApplyingRemoteRefresh = false;
     let rrllIsCheckingDatabaseUpdates = false;
     let rrllSaveStatusTimer = null;
+    let rrllLastSyncOffline = false;
     let rrllPersistQueue = Promise.resolve();
     const RRLL_EDITING_LOCKS_KEY = "rrll_editing_locks";
     const RRLL_EDITING_LOCK_TTL_MS = 10 * 60 * 1000;
