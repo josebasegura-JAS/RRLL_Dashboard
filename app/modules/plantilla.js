@@ -467,6 +467,7 @@
     const item = getPlantilla().find(entry => entry.id === id);
     if (!item) return;
     editingPlantillaId = id;
+    window.startEditingLockHeartbeat?.("plantilla", id);
     const modal = ensurePlantillaEditModal();
     fillSindicatoSelect('editPlantSindicato', getField(item, 'sindicato'));
     document.getElementById('editPlantEmployeeNumber').value = item.employeeNumber || '';
@@ -488,7 +489,12 @@
   function closePlantillaEditModal() {
     const modal = document.getElementById('plantillaEditModal');
     if (modal) modal.classList.remove('open');
+    const closingId = editingPlantillaId;
     editingPlantillaId = null;
+    if (closingId) {
+      window.clearEditingLockHeartbeat?.("plantilla", closingId);
+      try { window.clearEditingLock?.("plantilla", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de plantilla:", error); }
+    }
   }
 
   function saveEditingPlantilla() {
@@ -536,6 +542,7 @@
     if (!editingPlantillaId) return;
     const id = editingPlantillaId;
     closePlantillaEditModal();
+    try { window.clearEditingLock?.("plantilla", id); } catch (error) { console.warn("No se pudo liberar lock al eliminar plantilla:", error); }
     deletePlantilla(id);
   }
 

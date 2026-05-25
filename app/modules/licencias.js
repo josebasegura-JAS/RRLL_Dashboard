@@ -411,6 +411,7 @@
 
   function deleteLicencia(id) {
     const items = getLicencias();
+    try { window.clearEditingLock?.("licencias", id); } catch (error) { console.warn("No se pudo liberar lock al eliminar licencia:", error); }
     const item = items.find(i => i.id === id);
     if (item && typeof moveToTrash === 'function') moveToTrash('licencias', item);
     setLicencias(items.filter(i => i.id !== id));
@@ -429,6 +430,7 @@
     const item = findLicencia(id);
     if (!item) return;
     activeLicenseId = id;
+    window.startEditingLockHeartbeat?.("licencias", id);
     const modal = document.getElementById('licenseUpdateModal');
     const title = document.getElementById('licenseModalTitle');
     const meta = document.getElementById('licenseModalMeta');
@@ -460,8 +462,13 @@
   }
 
   function closeLicenciaModal() {
+    const closingId = activeLicenseId;
     activeLicenseId = null;
     hideLicenciaModalSuggestions();
+    if (closingId) {
+      window.clearEditingLockHeartbeat?.("licencias", closingId);
+      try { window.clearEditingLock?.("licencias", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de licencia:", error); }
+    }
     const modal = document.getElementById('licenseUpdateModal');
     if (modal) modal.classList.remove('open');
   }
