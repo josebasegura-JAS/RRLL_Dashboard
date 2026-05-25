@@ -55,7 +55,13 @@ function getTodayKey() {
     
     function purgeExpiredEditingLocks() {
       const locks = getEditingLocks();
-      const active = locks.filter(lock => !isExpiredLock(lock));
+      const active = locks.filter(lock => {
+        const expired = isExpiredLock(lock);
+        if (expired) {
+          console.info("[RRLL LOCK] lock caducado eliminado:", { module: lock?.module, recordId: lock?.recordId, editingBy: lock?.editingBy, expiresAt: lock?.expiresAt });
+        }
+        return !expired;
+      });
       if (active.length !== locks.length) setEditingLocks(active);
       return active;
     }
@@ -75,7 +81,10 @@ function getTodayKey() {
         if (!module || !id) return false;
         const locks = purgeExpiredEditingLocks();
         const next = locks.filter(lock => !(String(lock.module) === module && String(lock.recordId) === id));
-        if (next.length !== locks.length) setEditingLocks(next);
+        if (next.length !== locks.length) {
+          console.info("[RRLL LOCK] lock liberado:", { module, recordId: id });
+          setEditingLocks(next);
+        }
         return true;
       } catch (error) {
         console.warn("No se pudo liberar lock de edición:", error);
@@ -94,13 +103,12 @@ function getTodayKey() {
       const existing = existingIndex >= 0 ? locks[existingIndex] : null;
 
       if (existing && String(existing.editingBy || "").toLowerCase() !== currentUser.toLowerCase()) {
-        const startedAt = new Date(existing.editingAt || Date.now());
-        const hour = Number.isNaN(startedAt.getTime()) ? "hora no disponible" : startedAt.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
-        const openAnyway = window.confirm(`Este registro está siendo editado por ${existing.editingBy || "otro usuario"} desde las ${hour}.\n\nPulsa Aceptar para abrir igualmente o Cancelar para cerrar.`);
-        if (!openAnyway) {
-          setEditingLocks(locks);
-          return { allowed: false, lock: existing };
-        }
+        console.info("[RRLL LOCK] edición bloqueada por otro usuario:", { module, recordId: id, requestedBy: currentUser, lockedBy: existing.editingBy, editingAt: existing.editingAt });
+        return { allowed: false, lock: existing };
+      }
+
+      if (existing && String(existing.editingBy || "").toLowerCase() === currentUser.toLowerCase()) {
+        console.info("[RRLL LOCK] edición permitida por ser el mismo usuario:", { module, recordId: id, editingBy: currentUser });
       }
 
       const now = new Date();
@@ -115,7 +123,22 @@ function getTodayKey() {
         ? locks.map((lock, index) => (index === existingIndex ? nextLock : lock))
         : [...locks, nextLock];
       setEditingLocks(nextLocks);
+      console.info("[RRLL LOCK] lock adquirido:", { module, recordId: id, editingBy: currentUser, expiresAt: nextLock.expiresAt });
       return { allowed: true, lock: nextLock };
+    }
+
+    async function clearEditingLocksForCurrentUser(reason) {
+      try {
+        const currentUser = await getCurrentWindowsUser();
+        const locks = purgeExpiredEditingLocks();
+        const next = locks.filter(lock => String(lock.editingBy || "").toLowerCase() !== currentUser.toLowerCase());
+        if (next.length !== locks.length) {
+          console.info("[RRLL LOCK] liberando locks de sesión:", { reason: reason || "unknown", editingBy: currentUser, released: locks.length - next.length });
+          setEditingLocks(next);
+        }
+      } catch (error) {
+        console.warn("No se pudieron liberar locks de sesión:", error);
+      }
     }
 
 
@@ -317,3 +340,14 @@ window.getCurrentWindowsUser = getCurrentWindowsUser;
 window.purgeExpiredEditingLocks = purgeExpiredEditingLocks;
 window.getActiveEditingLock = getActiveEditingLock;
 window.clearEditingLock = clearEditingLock;
+window.clearEditingLocksForCurrentUser = clearEditingLocksForCurrentUser;
+
+window.addEventListener("beforeunload", () => {
+  clearEditingLocksForCurrentUser("beforeunload");
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    purgeExpiredEditingLocks();
+  }
+});
