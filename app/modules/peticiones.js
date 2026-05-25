@@ -215,6 +215,7 @@
     }
 
     function executeDeletePetition(id) {
+      try { window.clearEditingLock?.("peticiones", id); } catch (error) { console.warn("No se pudo liberar lock al eliminar petición:", error); }
       const items = getPetitions();
       const item = items.find(i => i.id === id);
       if (item) {
@@ -292,7 +293,11 @@
     }
 
     function closePetitionUpdateModal() {
+      const closingId = activePetitionUpdateId;
       activePetitionUpdateId = null;
+      if (closingId) {
+        try { window.clearEditingLock?.("peticiones", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de petición:", error); }
+      }
       const modal = document.getElementById("petitionUpdateModal");
       if (modal) modal.classList.remove("open");
       ["petitionEditTitle", "petitionEditDueDate", "petitionEditNotes", "petitionUpdateModalText"].forEach(id => {
@@ -355,6 +360,9 @@
       });
 
       setPetitions(updatedItems);
+      if (activePetitionUpdateId) {
+        try { window.clearEditingLock?.("peticiones", activePetitionUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar petición:", error); }
+      }
       closePetitionUpdateModal();
       renderPetitions();
     }
@@ -634,118 +642,6 @@
       };
     }).filter(update => update.text);
   }
-
-  // Se sustituyen las llamadas genéricas por helpers propios del módulo.
-  const _openPetitionUpdateModal = openPetitionUpdateModal;
-  openPetitionUpdateModal = function(id) {
-    const items = getPetitions();
-    const item = items.find(i => i.id === id);
-    if (!item) return;
-
-    activePetitionUpdateId = id;
-    const sources = Array.isArray(item.sources) ? item.sources : [];
-    const titleEl = document.getElementById("petitionUpdateModalTitle");
-    if (titleEl) titleEl.textContent = item.title || "Petición sin título";
-    const titleInput = document.getElementById("petitionEditTitle");
-    const dueInput = document.getElementById("petitionEditDueDate");
-    const priorityInput = document.getElementById("petitionEditPriority");
-    const statusInput = document.getElementById("petitionEditStatus");
-    const notesInput = document.getElementById("petitionEditNotes");
-    const unionInput = document.getElementById("petitionEditUnion");
-    const companyInput = document.getElementById("petitionEditCompany");
-    const originInput = document.getElementById("petitionEditOrigin");
-    const updateInput = document.getElementById("petitionUpdateModalText");
-
-    if (titleInput) titleInput.value = item.title || "";
-    if (dueInput) dueInput.value = item.dueDate || "";
-    if (priorityInput) priorityInput.value = normalizePriority(item.priority);
-    if (statusInput) statusInput.value = item.status || "petition-pending";
-    if (notesInput) notesInput.value = item.notes || "";
-    if (unionInput) unionInput.checked = sources.includes("Sindicato");
-    if (companyInput) companyInput.checked = sources.includes("Empresa");
-    populatePetitionOriginSelect("petitionEditOrigin", petitionOriginValue(item), true);
-    if (originInput) originInput.value = petitionOriginValue(item);
-    if (updateInput) updateInput.value = "";
-    renderPetitionEditableUpdates("petitionExistingUpdates", item.updates || []);
-
-    document.getElementById("petitionUpdateModal").classList.add("open");
-    setTimeout(() => (updateInput || titleInput)?.focus(), 0);
-  };
-
-  const _savePetitionUpdateFromModal = savePetitionUpdateFromModal;
-  savePetitionUpdateFromModal = function() {
-    if (!activePetitionUpdateId) return;
-
-    const title = (document.getElementById("petitionEditTitle")?.value || "").trim();
-    if (!title) {
-      alert("La petición necesita un título.");
-      return;
-    }
-
-    const sources = [];
-    if (document.getElementById("petitionEditUnion")?.checked) sources.push("Sindicato");
-    if (document.getElementById("petitionEditCompany")?.checked) sources.push("Empresa");
-
-    const status = document.getElementById("petitionEditStatus")?.value || "petition-pending";
-    const origin = normalizePetitionOrigin(document.getElementById("petitionEditOrigin")?.value || "");
-    const rawDueDate = document.getElementById("petitionEditDueDate")?.value || "";
-    const dueDate = typeof normalizeDateInput === "function" ? normalizeDateInput(rawDueDate) : rawDueDate;
-    if (dueDate === null) {
-      alert("La fecha límite no es válida.");
-      return;
-    }
-    const priority = normalizePriority(document.getElementById("petitionEditPriority")?.value || "normal");
-    const notes = (document.getElementById("petitionEditNotes")?.value || "").trim();
-    const updateText = (document.getElementById("petitionUpdateModalText")?.value || "").trim();
-    const currentItem = getPetitions().find(item => item.id === activePetitionUpdateId);
-    const shouldCloseLinkedTask = status === "petition-closed"
-      && currentItem
-      && currentItem.status !== "petition-closed"
-      && getLinkedTasksForPetition(currentItem).length;
-
-    const applySave = () => {
-      const now = new Date().toISOString();
-      let savedPetition = null;
-      const updatedItems = getPetitions().map(item => {
-        if (item.id !== activePetitionUpdateId) return item;
-        const editedUpdates = collectPetitionEditableUpdates("petitionExistingUpdates", item.updates || []);
-        const updates = updateText
-          ? [...editedUpdates, { text: updateText, createdAt: now }]
-          : editedUpdates;
-        savedPetition = {
-          ...item,
-          title,
-          status,
-          sources,
-          origin,
-          dueDate,
-          priority,
-          notes,
-          closedAt: status === "petition-closed" ? (item.closedAt || now) : null,
-          updatedAt: now,
-          updates
-        };
-        return savedPetition;
-      });
-
-      setPetitions(updatedItems);
-      if (status === "petition-closed") closeLinkedTasksForPetition(savedPetition, now);
-      closePetitionUpdateModal();
-      renderPetitions();
-    };
-
-    if (shouldCloseLinkedTask && typeof confirmDangerAction === "function") {
-      confirmDangerAction({
-        title: "Cerrar petición con tarea vinculada",
-        message: "Esta petición tiene una tarea vinculada. Si cierras la petición, también se cerrará la tarea asociada. ¿Quieres continuar?",
-        confirmLabel: "Cerrar petición y tarea",
-        onConfirm: applySave
-      });
-      return;
-    }
-
-    applySave();
-  };
 
   function renderPetitionOriginSettings() {
     const container = document.getElementById("petitionOriginsConfigList");
