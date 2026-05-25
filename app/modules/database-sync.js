@@ -82,7 +82,10 @@
       "#paritariaSessionOrderModal.open",
       "#addAgendaToCommitteeModal.open",
       "#addParitariaToParitariaModal.open",
-      "#licenciaModal.open",
+      "#paritariaUpdateModal.open",
+      "#minuteEditModal.open",
+      "#vinculogramaEditModal.open",
+      "#licenseUpdateModal.open",
       "#ticketRestaurantPersonFormModal.open",
       "#criteriaEditModal.open",
       "#plantillaEditModal.open"
