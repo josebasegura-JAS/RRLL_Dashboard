@@ -54,8 +54,20 @@
 
   function buildSearchIndex() {
     const rows = [];
+    const seen = new Set();
 
-    safeArray('getTasks').forEach(item => rows.push({
+    function pushRow(row) {
+      if (!row || !row.module) return;
+      const normalizedTarget = String(row.targetId || '').trim();
+      const normalizedTitle = String(row.title || '').trim();
+      const normalizedStatus = String(row.status || '').trim();
+      const dedupeKey = [row.module, row.anchor || '', normalizedTarget || normalizedTitle, normalizedStatus].join('||').toLowerCase();
+      if (seen.has(dedupeKey)) return;
+      seen.add(dedupeKey);
+      rows.push(row);
+    }
+
+    safeArray('getTasks').forEach(item => pushRow({
       module: 'Tareas',
       title: item.title,
       status: labelStatus(item.status),
@@ -65,7 +77,7 @@
       text: searchText([item.title, item.notes, item.status, item.dueDate, labelPriority(item.priority), ...(item.updates || []).map(u => u.text)])
     }));
 
-    safeArray('getAgendaItems').forEach(item => rows.push({
+    safeArray('getAgendaItems').forEach(item => pushRow({
       module: 'Comité',
       title: item.title,
       status: labelStatus(item.status),
@@ -75,7 +87,7 @@
       text: searchText([item.title, item.petitioner, item.notes, item.status, item.committeeSessionCode, item.committeeSessionDate, item.committeeSessionOrder, ...(item.updates || []).map(u => u.text)])
     }));
 
-    safeArray('getCommitteeSessions').forEach(session => rows.push({
+    safeArray('getCommitteeSessions').forEach(session => pushRow({
       module: 'Sesiones Comité',
       title: session.title || session.code || 'Sesión',
       status: session.status === 'closed' ? 'Histórico' : 'Abierta',
@@ -85,7 +97,7 @@
       text: searchText([session.title, session.code, session.date, session.rawDate, session.notes, session.status, ...(typeof window.getCommitteeSessionDisplayItems === 'function' ? window.getCommitteeSessionDisplayItems(session).map(item => `${item.title || ''} ${item.meta || ''}`) : [])])
     }));
 
-    safeArray('getParitariaItems').forEach(item => rows.push({
+    safeArray('getParitariaItems').forEach(item => pushRow({
       module: 'Paritaria',
       title: item.title,
       status: labelStatus(item.status),
@@ -95,7 +107,7 @@
       text: searchText([item.title, item.petitioner, item.notes, item.status, item.paritariaSessionCode, item.paritariaSessionDate, item.paritariaSessionOrder, ...(item.updates || []).map(u => u.text)])
     }));
 
-    safeArray('getParitariaSessions').forEach(session => rows.push({
+    safeArray('getParitariaSessions').forEach(session => pushRow({
       module: 'Sesiones Paritaria',
       title: session.title || session.code || 'Sesión',
       status: session.status === 'closed' ? 'Histórico' : 'Abierta',
@@ -105,29 +117,73 @@
       text: searchText([session.title, session.code, session.date, session.rawDate, session.notes, session.status, ...(typeof window.getParitariaSessionDisplayItems === 'function' ? window.getParitariaSessionDisplayItems(session).map(item => `${item.title || ''} ${item.meta || ''}`) : [])])
     }));
 
-    safeArray('getMinutes').forEach(item => rows.push({
+    safeArray('getMinutes').forEach(item => pushRow({
       module: 'Actas', title: item.title, status: labelStatus(item.status), notes: item.notes,
       anchor: 'gestor-actas', targetId: `rrll-minute-${item.id}`,
       text: searchText([item.title, item.notes, item.status, item.dueDate])
     }));
 
-    safeArray('getPetitions').forEach(item => rows.push({
+    safeArray('getPetitions').forEach(item => pushRow({
       module: 'Peticiones', title: item.title, status: labelStatus(item.status),
       notes: `${(item.sources || []).join(', ')} ${item.notes || ''} ${item.dueDate ? 'Fecha límite: ' + item.dueDate : ''} Prioridad: ${labelPriority(item.priority)}`,
       anchor: 'gestor-peticiones', targetId: `rrll-petition-${item.id}`,
       text: searchText([item.title, item.notes, item.status, item.dueDate, labelPriority(item.priority), ...(item.sources || []), ...(item.updates || []).map(u => u.text)])
     }));
 
-    safeArray('getTeleworkItems').forEach(item => rows.push({
+    safeArray('getTeleworkItems').forEach(item => pushRow({
       module: 'Teletrabajo', title: item.name, status: labelStatus(item.status),
       notes: `${item.employeeNumber || ''} ${item.period || ''} ${item.type || ''} ${(item.days || []).join(', ')}`,
       anchor: 'gestor-teletrabajo', targetId: `rrll-telework-${item.id}`,
       text: searchText([item.name, item.employeeNumber, item.period, item.type, item.status, ...(item.days || [])])
     }));
 
+
+    safeArray('getCriteria').forEach(item => pushRow({
+      module: 'Criterios RRLL',
+      title: item.subject || item.generalCriterion || 'Sin asunto',
+      status: item.origin || 'Criterio interno',
+      notes: `Fecha: ${item.date || ''} ${item.generalCriterion || ''} ${item.observations || ''} ${item.tags || ''}`.trim(),
+      anchor: 'gestor-criterios',
+      targetId: '',
+      text: searchText([item.date, item.subject, item.generalCriterion, item.observations, item.tags, item.origin])
+    }));
+
+    safeArray('getTicketRestaurantPeople').forEach(item => pushRow({
+      module: 'Ticket Restaurante',
+      title: [item.name, item.surname1, item.surname2].filter(Boolean).join(' ') || item.employeeNumber || 'Persona sin nombre',
+      status: item.calendar || 'Sin calendario',
+      notes: `Nº empleado: ${item.employeeNumber || ''} DNI: ${item.dni || ''} Puesto: ${item.position || ''} Calendario: ${item.calendar || ''}`,
+      anchor: 'gestor-ticket-restaurante',
+      targetId: '',
+      text: searchText([item.employeeNumber, item.name, item.surname1, item.surname2, item.dni, item.position, item.calendar])
+    }));
+
+    safeArray('getTicketRestaurantAbsences').forEach(item => pushRow({
+      module: 'Ticket Restaurante',
+      title: item.employeeNumber ? `Ausencia ${item.employeeNumber}` : (item.fullName || 'Ausencia'),
+      status: item.reason || item.source || 'Ausencia',
+      notes: `Desde: ${item.from || ''} Hasta: ${item.to || item.from || ''} ${item.fullName || ''} ${item.reason || ''}`.trim(),
+      anchor: 'gestor-ticket-restaurante',
+      targetId: '',
+      text: searchText([item.employeeNumber, item.fullName, item.from, item.to, item.reason, item.source, item.notes])
+    }));
+
+    safeArray('getTrashItems').forEach(entry => {
+      const item = entry && entry.item ? entry.item : {};
+      pushRow({
+        module: 'Papelera',
+        title: item.title || item.name || 'Elemento eliminado',
+        status: entry && entry.module ? `Módulo: ${entry.module}` : 'Elemento eliminado',
+        notes: `Eliminado: ${entry && entry.deletedAt ? entry.deletedAt : ''} ${item.notes || ''} ${item.employeeNumber || ''}`.trim(),
+        anchor: 'trashModal',
+        targetId: '',
+        text: searchText([entry && entry.module, entry && entry.deletedAt, item.title, item.name, item.notes, item.employeeNumber, item.requestDate])
+      });
+    });
+
     safeArray('getVinculogramas').forEach(item => {
       const expired = typeof window.isVinculogramaExpired === 'function' ? window.isVinculogramaExpired(item) : false;
-      rows.push({
+      pushRow({
         module: 'Vinculograma', title: item.name, status: expired ? 'Vencido' : 'Vigente',
         notes: `Nº empleado: ${item.employeeNumber || ''} Persona vinculada: ${item.linkedPerson || ''} Solicitud: ${item.requestDate || ''} Vigencia: ${item.expiryDate || ''}`,
         anchor: 'gestor-vinculograma', targetId: `rrll-vinc-${item.id}`,
@@ -135,7 +191,7 @@
       });
     });
 
-    safeArray('getLicencias').forEach(item => rows.push({
+    safeArray('getLicencias').forEach(item => pushRow({
       module: 'Licencias y excedencias', title: item.name,
       status: typeof window.licenseDisplayStatus === 'function' ? window.licenseDisplayStatus(item) : (item.status || ''),
       notes: `Nº empleado: ${item.employeeNumber || ''} Tipo: ${item.type || ''} Solicitud: ${item.requestDate || ''} Inicio: ${item.startDate || ''} Fin: ${item.endDate || ''}`,
@@ -143,7 +199,7 @@
       text: searchText([item.name, item.employeeNumber, item.type, item.requestDate, item.startDate, item.endDate, item.status, ...(item.updates || []).map(u => u.text)])
     }));
 
-    safeArray('getPlantilla').forEach(item => rows.push({
+    safeArray('getPlantilla').forEach(item => pushRow({
       module: 'Plantilla', title: item.name, status: item.level || '',
       notes: `Nº empleado: ${item.employeeNumber || ''} Sexo: ${item.sex || ''} Puesto: ${item.job || ''} Nivel: ${item.level || ''}`,
       anchor: 'gestor-plantilla', targetId: `rrll-plant-${item.id}`,
@@ -161,6 +217,10 @@
       const parent = document.getElementById('gestor-comite');
       if (parent?.tagName?.toLowerCase() === 'details') parent.open = true;
       if (typeof window.openCommitteeSubsection === 'function') window.openCommitteeSubsection(anchor);
+    }
+
+    if (anchor === 'trashModal' && typeof window.openTrashModal === 'function') {
+      window.openTrashModal();
     }
 
     if (anchor === 'gestor-puntos-paritaria' || anchor === 'gestor-sesiones-paritaria') {
@@ -206,7 +266,10 @@
     telework: { title: 'Buscar en teletrabajo', label: 'Teletrabajo' },
     vinculograma: { title: 'Buscar en vinculograma', label: 'Vinculograma' },
     licencias: { title: 'Buscar en licencias y excedencias', label: 'Licencias y excedencias' },
-    plantilla: { title: 'Buscar en plantilla', label: 'Plantilla' }
+    plantilla: { title: 'Buscar en plantilla', label: 'Plantilla' },
+    criterios: { title: 'Buscar en criterios RRLL', label: 'Criterios RRLL' },
+    ticketRestaurante: { title: 'Buscar en ticket restaurante', label: 'Ticket Restaurante' },
+    papelera: { title: 'Buscar en papelera', label: 'Papelera' }
   };
 
   let activeModuleSearchType = null;
