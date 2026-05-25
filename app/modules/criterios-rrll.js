@@ -636,10 +636,13 @@
     return modal;
   }
 
-  function openCriteriaEditModal(criteriaId) {
+  async function openCriteriaEditModal(criteriaId) {
+    const lock = await window.acquireEditingLock?.("criterio", criteriaId);
+    if (lock && lock.allowed === false) return;
     const item = getCriteria().find(criteria => criteria.id === criteriaId);
     if (!item) return;
     editingCriteriaId = criteriaId;
+    window.startEditingLockHeartbeat?.("criterio", criteriaId);
     const modal = ensureCriteriaEditModal();
     document.getElementById('editCriteriaDate').value = item.date || '';
     document.getElementById('editCriteriaSubject').value = item.subject || '';
@@ -654,7 +657,12 @@
   function closeCriteriaEditModal() {
     const modal = document.getElementById('criteriaEditModal');
     if (modal) modal.classList.remove('open');
+    const closingId = editingCriteriaId;
     editingCriteriaId = null;
+    if (closingId) {
+      window.clearEditingLockHeartbeat?.("criterio", closingId);
+      try { window.clearEditingLock?.("criterio", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de criterio:", error); }
+    }
   }
 
   function saveEditingCriteria() {
@@ -671,6 +679,7 @@
   function deleteCriteria(criteriaId) {
     if (!criteriaId) return;
     if (!confirm('¿Seguro que quieres eliminar este criterio?')) return;
+    try { window.clearEditingLock?.("criterio", criteriaId); } catch (error) { console.warn("No se pudo liberar lock al eliminar criterio:", error); }
     setCriteria(getCriteria().filter(item => item.id !== criteriaId));
     if (editingCriteriaId === criteriaId) closeCriteriaEditModal();
     renderCriteria();
