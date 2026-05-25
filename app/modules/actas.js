@@ -69,13 +69,14 @@
       `).join("");
     }
 
-    function closeMinuteAllegationsModal() {
+    async function closeMinuteAllegationsModal() {
       activeMinuteAllegationsId = null;
       const modal = document.getElementById("minuteAllegationsModal");
       if (modal) modal.classList.remove("open");
+      await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
-    function saveMinuteAllegationsFromModal() {
+    async function saveMinuteAllegationsFromModal() {
       if (!activeMinuteAllegationsId) return;
       const unionsText = document.getElementById("minuteAllegationsUnionsText")?.value || "";
       setAllegationUnions(unionsText);
@@ -93,7 +94,7 @@
         allegations,
         updatedAt: now
       } : minute));
-      closeMinuteAllegationsModal();
+      await closeMinuteAllegationsModal();
       renderMinutes();
     }
 
@@ -208,15 +209,16 @@
       setTimeout(() => document.getElementById("minuteDueDateInput").focus(), 0);
     }
 
-    function closeMinuteDueDateModal() {
+    async function closeMinuteDueDateModal() {
       activeMinuteDueDateId = null;
       const modal = document.getElementById("minuteDueDateModal");
       if (modal) modal.classList.remove("open");
       const input = document.getElementById("minuteDueDateInput");
       if (input) input.value = "";
+      await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
-    function saveMinuteDueDateFromModal() {
+    async function saveMinuteDueDateFromModal() {
       const input = document.getElementById("minuteDueDateInput");
       const due = input.value;
 
@@ -228,7 +230,7 @@
       });
 
       setMinutes(minutes);
-      closeMinuteDueDateModal();
+      await closeMinuteDueDateModal();
       renderMinutes();
     }
 
@@ -303,13 +305,14 @@
       setTimeout(() => titleEl?.focus(), 0);
     }
 
-    function closeMinuteEditModal() {
+    async function closeMinuteEditModal() {
       const modal = document.getElementById("minuteEditModal");
       if (modal) modal.classList.remove("open");
       editingMinuteId = null;
+      await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
-    function saveEditingMinute() {
+    async function saveEditingMinute() {
       if (!editingMinuteId) return;
       const title = (document.getElementById("editMinuteTitle")?.value || "").trim();
       const status = document.getElementById("editMinuteStatus")?.value || "direction";
@@ -327,16 +330,16 @@
         notes,
         updatedAt: new Date().toISOString()
       } : minute));
-      closeMinuteEditModal();
+      await closeMinuteEditModal();
       renderMinutes();
       if (typeof updateQuickCounts === "function") updateQuickCounts();
       if (typeof renderHomeDashboard === "function") renderHomeDashboard();
     }
 
-    function deleteEditingMinute() {
+    async function deleteEditingMinute() {
       if (!editingMinuteId) return;
       const id = editingMinuteId;
-      closeMinuteEditModal();
+      await closeMinuteEditModal();
       deleteMinute(id);
     }
 

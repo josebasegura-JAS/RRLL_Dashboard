@@ -377,7 +377,7 @@
       setTimeout(() => (updateInput || titleInput)?.focus(), 0);
     }
 
-    function closeAgendaUpdateModal() {
+    async function closeAgendaUpdateModal() {
       activeAgendaUpdateId = null;
       const modal = document.getElementById("agendaUpdateModal");
       if (modal) modal.classList.remove("open");
@@ -390,9 +390,10 @@
       const existing = document.getElementById("agendaExistingUpdates");
       if (existing) existing.innerHTML = "";
       refreshAgendaPetitionerOptions();
+      await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
-    function saveAgendaUpdateFromModal() {
+    async function saveAgendaUpdateFromModal() {
       if (!activeAgendaUpdateId) return;
 
       const title = (document.getElementById("agendaEditTitle")?.value || "").trim();
@@ -442,7 +443,7 @@
       });
 
       setAgendaItems(items);
-      closeAgendaUpdateModal();
+      await closeAgendaUpdateModal();
       renderAgendaItems();
     }
 

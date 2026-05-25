@@ -14,6 +14,7 @@ function getTodayKey() {
 
     let rrllDatabaseCache = {};
     let rrllLastKnownDbToken = null;
+    let rrllPendingRemoteRefresh = false;
     let rrllAutoSyncTimer = null;
     let rrllIsApplyingRemoteRefresh = false;
     let rrllIsCheckingDatabaseUpdates = false;
