@@ -259,6 +259,8 @@
       }
 
       let activeTaskUpdateId = null;
+      let isTaskModalOpening = false;
+      let isTaskModalClosing = false;
 
       function renderEditableUpdates(containerId, updates) {
         const container = document.getElementById(containerId);
@@ -291,58 +293,113 @@
         }).filter(update => update.text);
       }
 
+      function resetTaskUpdateModalEditableState() {
+        const modal = document.getElementById("taskUpdateModal");
+        const fields = [
+          "taskEditTitle",
+          "taskEditDueDate",
+          "taskEditPriority",
+          "taskEditOrigin",
+          "taskEditStatus",
+          "taskEditNotes",
+          "taskUpdateModalText"
+        ].map(id => document.getElementById(id)).filter(Boolean);
+        const updatesContainer = document.getElementById("taskExistingUpdates");
+        const attachmentsContainer = document.getElementById("taskAttachmentsList");
+        const actionButtons = modal ? Array.from(modal.querySelectorAll("button")) : [];
+        const textareas = updatesContainer ? Array.from(updatesContainer.querySelectorAll("textarea")) : [];
+        const unlockElement = (el) => {
+          if (!el) return;
+          el.disabled = false;
+          el.readOnly = false;
+          el.removeAttribute("disabled");
+          el.removeAttribute("readonly");
+          el.classList.remove("locked", "is-locked", "readonly");
+        };
+        fields.forEach(el => { unlockElement(el); if ("value" in el) el.value = ""; });
+        textareas.forEach(unlockElement);
+        actionButtons.forEach(unlockElement);
+        if (updatesContainer) updatesContainer.innerHTML = "";
+        if (attachmentsContainer) attachmentsContainer.innerHTML = "";
+        window.__taskDraftAttachments = [];
+        console.info("[RRLL TASK] modal reseteado editable");
+      }
+
       async function openTaskUpdateModal(id) {
+        if (isTaskModalOpening) return;
+        isTaskModalOpening = true;
         try {
+          if (activeTaskUpdateId && activeTaskUpdateId !== id) {
+            await closeTaskUpdateModal();
+          }
           const lock = await window.acquireEditingLock?.("tareas", id);
-          if (lock && lock.allowed === false) { window.showEditingLockBlockedMessage?.(lock.lock); return; }
+          if (lock && lock.allowed === false) {
+            console.info("[RRLL TASK] lock bloqueado por otro usuario");
+            window.showEditingLockBlockedMessage?.(lock.lock);
+            return;
+          }
+          const tasks = getTasks();
+          const task = tasks.find(t => t.id === id);
+          if (!task) return;
+
+          resetTaskUpdateModalEditableState();
+          activeTaskUpdateId = id;
+          console.info("[RRLL TASK] lock permitido, abriendo modal editable");
+          window.startEditingLockHeartbeat?.("tareas", id);
+          const titleEl = document.getElementById("taskUpdateModalTitle");
+          const titleInput = document.getElementById("taskEditTitle");
+          const dueInput = document.getElementById("taskEditDueDate");
+          const priorityInput = document.getElementById("taskEditPriority");
+          const statusInput = document.getElementById("taskEditStatus");
+          const notesInput = document.getElementById("taskEditNotes");
+          const originInput = document.getElementById("taskEditOrigin");
+          const updateInput = document.getElementById("taskUpdateModalText");
+
+          if (titleEl) titleEl.textContent = task.title || "Tarea sin título";
+          if (titleInput) titleInput.value = task.title || "";
+          if (dueInput) dueInput.value = typeof normalizeDateInput === "function" ? (normalizeDateInput(task.dueDate) || "") : (task.dueDate || "");
+          if (priorityInput) priorityInput.value = normalizePriority(task.priority);
+          if (statusInput) statusInput.value = task.status || "pending";
+          if (notesInput) notesInput.value = task.notes || "";
+          populateTaskOriginSelect("taskEditOrigin", taskOriginValue(task), true);
+          if (updateInput) updateInput.value = "";
+          renderEditableUpdates("taskExistingUpdates", task.updates || []);
+          document.querySelectorAll("#taskExistingUpdates textarea").forEach(textarea => {
+            textarea.disabled = false;
+            textarea.readOnly = false;
+            textarea.removeAttribute("disabled");
+            textarea.removeAttribute("readonly");
+          });
+          window.__taskDraftAttachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
+          if (typeof renderTaskAttachments === "function") renderTaskAttachments("taskAttachmentsList", window.__taskDraftAttachments);
+
+          document.getElementById("taskUpdateModal").classList.add("open");
+          setTimeout(() => (updateInput || titleInput)?.focus(), 0);
         } catch (error) {
-          console.warn("Fallo al validar lock de tarea. Se permite edición por seguridad:", error);
+          console.warn("Fallo al abrir modal de tarea:", error);
+        } finally {
+          isTaskModalOpening = false;
         }
-        const tasks = getTasks();
-        const task = tasks.find(t => t.id === id);
-        if (!task) return;
-
-        activeTaskUpdateId = id;
-        window.startEditingLockHeartbeat?.("tareas", id);
-        const titleEl = document.getElementById("taskUpdateModalTitle");
-        const titleInput = document.getElementById("taskEditTitle");
-        const dueInput = document.getElementById("taskEditDueDate");
-        const priorityInput = document.getElementById("taskEditPriority");
-        const statusInput = document.getElementById("taskEditStatus");
-        const notesInput = document.getElementById("taskEditNotes");
-        const originInput = document.getElementById("taskEditOrigin");
-        const updateInput = document.getElementById("taskUpdateModalText");
-
-        if (titleEl) titleEl.textContent = task.title || "Tarea sin título";
-        if (titleInput) titleInput.value = task.title || "";
-        if (dueInput) dueInput.value = typeof normalizeDateInput === "function" ? (normalizeDateInput(task.dueDate) || "") : (task.dueDate || "");
-        if (priorityInput) priorityInput.value = normalizePriority(task.priority);
-        if (statusInput) statusInput.value = task.status || "pending";
-        if (notesInput) notesInput.value = task.notes || "";
-        populateTaskOriginSelect("taskEditOrigin", taskOriginValue(task), true);
-        if (updateInput) updateInput.value = "";
-        renderEditableUpdates("taskExistingUpdates", task.updates || []);
-        window.__taskDraftAttachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
-        if (typeof renderTaskAttachments === "function") renderTaskAttachments("taskAttachmentsList", window.__taskDraftAttachments);
-
-        document.getElementById("taskUpdateModal").classList.add("open");
-        setTimeout(() => (updateInput || titleInput)?.focus(), 0);
       }
 
       async function closeTaskUpdateModal() {
+        if (isTaskModalClosing) return;
+        isTaskModalClosing = true;
         const closingId = activeTaskUpdateId;
-        activeTaskUpdateId = null;
-        if (closingId) {
-          window.clearEditingLockHeartbeat?.("tareas", closingId);
-          try { window.clearEditingLock?.("tareas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal:", error); }
+        try {
+          const modal = document.getElementById("taskUpdateModal");
+          if (modal) modal.classList.remove("open");
+          if (closingId) {
+            window.clearEditingLockHeartbeat?.("tareas", closingId);
+            try { window.clearEditingLock?.("tareas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal:", error); }
+          }
+          activeTaskUpdateId = null;
+          resetTaskUpdateModalEditableState();
+          console.info("[RRLL TASK] modal cerrado y lock liberado");
+          await window.runPendingRemoteRefreshIfNeeded?.();
+        } finally {
+          isTaskModalClosing = false;
         }
-        const modal = document.getElementById("taskUpdateModal");
-        if (modal) modal.classList.remove("open");
-        ["taskEditTitle", "taskEditDueDate", "taskEditNotes", "taskUpdateModalText", "taskEditOrigin"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = "";
-        });
-        await window.runPendingRemoteRefreshIfNeeded?.();
       }
 
       async function saveTaskUpdateFromModal() {
@@ -390,10 +447,6 @@
 
         const updatedTask = updated.find(task => task.id === activeTaskUpdateId);
         setTasks(updated);
-        if (activeTaskUpdateId) {
-          window.clearEditingLockHeartbeat?.("tareas", activeTaskUpdateId);
-          try { window.clearEditingLock?.("tareas", activeTaskUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar tarea:", error); }
-        }
         closeLinkedPetitionIfNeeded(updatedTask, status);
         await closeTaskUpdateModal();
         renderTasks();
