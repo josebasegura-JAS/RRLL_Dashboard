@@ -261,7 +261,10 @@
 
   async function openVinculogramaEditModal(id) {
     const lock = await window.acquireEditingLock?.("vinculograma", id);
-    if (lock && lock.allowed === false) return;
+    if (lock && lock.allowed === false) {
+      window.showEditingLockBlockedMessage?.(lock.lock);
+      return;
+    }
     const item = getVinculogramas().find(entry => entry.id === id);
     if (!item) return;
     editingVinculogramaId = id;

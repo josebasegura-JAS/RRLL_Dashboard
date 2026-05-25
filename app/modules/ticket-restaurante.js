@@ -827,8 +827,6 @@ function renderTicketRestaurantCalendar() {
 }
 
 async function openTicketRestaurantPersonForm(employeeNumber) {
-  const lock = await window.acquireEditingLock?.("ticket-restaurante", employeeNumber);
-  if (lock && lock.allowed === false) return;
   ticketRestaurantEditingEmployee = employeeNumber ? normalizeTicketEmployee(employeeNumber) : null;
   ticketRestaurantLastPlantillaLookup = "";
   const people = getTicketRestaurantPeople();
@@ -1577,8 +1575,6 @@ function deleteTicketRestaurantAbsence(id) {
 }
 
 async function openTicketRestaurantAbsenceEditModal(id) {
-  const lock = await window.acquireEditingLock?.("ticket-restaurante", id);
-  if (lock && lock.allowed === false) return;
   const absences = getTicketRestaurantAbsences();
   const current = absences.find(item => item.id === id);
   if (!current) return;

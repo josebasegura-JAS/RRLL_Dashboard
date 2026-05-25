@@ -786,8 +786,6 @@
   }
 
   async function openTeleworkEditModal(id) {
-    const lock = await window.acquireEditingLock?.("teletrabajo", id);
-    if (lock && lock.allowed === false) return;
     const item = getTeleworkItems().find(entry => entry.id === id);
     if (!item) return;
     editingTeleworkId = id;

@@ -426,7 +426,10 @@
 
   async function openLicenciaModal(id) {
     const lock = await window.acquireEditingLock?.("licencias", id);
-    if (lock && lock.allowed === false) return;
+    if (lock && lock.allowed === false) {
+      window.showEditingLockBlockedMessage?.(lock.lock);
+      return;
+    }
     const item = findLicencia(id);
     if (!item) return;
     activeLicenseId = id;
