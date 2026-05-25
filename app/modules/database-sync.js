@@ -111,6 +111,57 @@
     });
   }
 
+  async function applyRemoteRefresh(state, options = {}) {
+    const token = state && state.token;
+    if (!token) return false;
+
+    rrllIsApplyingRemoteRefresh = true;
+    const scrollSnapshots = preserveScrollPositions();
+    rrllDatabaseCache = await window.rrllDB.loadAll();
+    rrllLastKnownDbToken = token;
+    rrllPendingRemoteRefresh = false;
+    renderAfterImport();
+    restoreScrollPositions(scrollSnapshots);
+    await refreshDatabaseInfo();
+    renderRemoteRefreshNotice(state);
+    if (options.pendingSource) {
+      console.info("[RRLL SYNC] Refresh pendiente ejecutado al cerrar modal.");
+    } else {
+      console.info("[RRLL SYNC] Refresh ejecutado correctamente.");
+    }
+    setSaveStatus("synced", `Actualizado desde base compartida: ${formatSyncDate(state.lastUpdate || new Date().toISOString())}`);
+    return true;
+  }
+
+  async function runPendingRemoteRefreshIfNeeded() {
+    if (!rrllPendingRemoteRefresh) return false;
+    if (!window.rrllDB || typeof window.rrllDB.getState !== "function" || typeof window.rrllDB.loadAll !== "function") return false;
+    if (rrllIsApplyingRemoteRefresh || rrllIsCheckingDatabaseUpdates) return false;
+    if (document.hidden) return false;
+    if (hasActiveEditingContext()) return false;
+
+    rrllIsCheckingDatabaseUpdates = true;
+    try {
+      const state = await window.rrllDB.getState();
+      const token = state && state.token;
+      if (!token) {
+        rrllPendingRemoteRefresh = false;
+        return false;
+      }
+      if (rrllLastKnownDbToken && token === rrllLastKnownDbToken) {
+        rrllPendingRemoteRefresh = false;
+        return false;
+      }
+      return await applyRemoteRefresh(state, { pendingSource: true });
+    } catch (error) {
+      console.warn("[RRLL SYNC] Error al ejecutar refresh pendiente:", error);
+      return false;
+    } finally {
+      rrllIsApplyingRemoteRefresh = false;
+      rrllIsCheckingDatabaseUpdates = false;
+    }
+  }
+
   async function checkDatabaseUpdatesSilently() {
     if (!window.rrllDB || typeof window.rrllDB.getState !== "function" || typeof window.rrllDB.loadAll !== "function") return;
     if (rrllIsApplyingRemoteRefresh || rrllIsCheckingDatabaseUpdates) return;
@@ -142,25 +193,16 @@
       }
 
       if (token !== rrllLastKnownDbToken) {
-        console.info("[RRLL SYNC] Cambios detectados en base compartida.", { tokenAnterior: rrllLastKnownDbToken, tokenActual: token });
+        console.info("[RRLL SYNC] Cambio remoto detectado.", { tokenAnterior: rrllLastKnownDbToken, tokenActual: token });
         if (hasActiveEditingContext()) {
-          rrllLastKnownDbToken = token;
-          console.info("[RRLL SYNC] Refresh omitido por edición activa.");
+          rrllPendingRemoteRefresh = true;
+          console.info("[RRLL SYNC] Refresh pospuesto por edición activa.");
           setSaveStatus("synced", "Cambios detectados. Refresco pospuesto por edición activa.");
           await refreshDatabaseInfo();
           return;
         }
 
-        rrllIsApplyingRemoteRefresh = true;
-        const scrollSnapshots = preserveScrollPositions();
-        rrllDatabaseCache = await window.rrllDB.loadAll();
-        rrllLastKnownDbToken = token;
-        renderAfterImport();
-        restoreScrollPositions(scrollSnapshots);
-        await refreshDatabaseInfo();
-        renderRemoteRefreshNotice(state);
-        console.info("[RRLL SYNC] Refresh ejecutado correctamente.");
-        setSaveStatus("synced", `Actualizado desde base compartida: ${formatSyncDate(state.lastUpdate || new Date().toISOString())}`);
+        await applyRemoteRefresh(state);
       }
     } catch (error) {
       if (!rrllLastSyncOffline) {
@@ -268,6 +310,7 @@
   window.renderRemoteRefreshNotice = renderRemoteRefreshNotice;
   window.checkDatabaseUpdatesSilently = checkDatabaseUpdatesSilently;
   window.startDatabaseAutoSync = startDatabaseAutoSync;
+  window.runPendingRemoteRefreshIfNeeded = runPendingRemoteRefreshIfNeeded;
   window.chooseSharedDatabaseFolder = chooseSharedDatabaseFolder;
   window.useLocalDatabaseMode = useLocalDatabaseMode;
   window.reloadDatabaseFromDisk = reloadDatabaseFromDisk;

@@ -328,7 +328,7 @@
         setTimeout(() => (updateInput || titleInput)?.focus(), 0);
       }
 
-      function closeTaskUpdateModal() {
+      async function closeTaskUpdateModal() {
         const closingId = activeTaskUpdateId;
         activeTaskUpdateId = null;
         if (closingId) {
@@ -340,9 +340,10 @@
           const el = document.getElementById(id);
           if (el) el.value = "";
         });
+        await window.runPendingRemoteRefreshIfNeeded?.();
       }
 
-      function saveTaskUpdateFromModal() {
+      async function saveTaskUpdateFromModal() {
         if (!activeTaskUpdateId) return;
 
         const title = (document.getElementById("taskEditTitle")?.value || "").trim();
@@ -391,7 +392,7 @@
           try { window.clearEditingLock?.("tareas", activeTaskUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar tarea:", error); }
         }
         closeLinkedPetitionIfNeeded(updatedTask, status);
-        closeTaskUpdateModal();
+        await closeTaskUpdateModal();
         renderTasks();
       }
 

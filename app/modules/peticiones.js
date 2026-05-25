@@ -292,7 +292,7 @@
       setTimeout(() => (updateInput || titleInput)?.focus(), 0);
     }
 
-    function closePetitionUpdateModal() {
+    async function closePetitionUpdateModal() {
       const closingId = activePetitionUpdateId;
       activePetitionUpdateId = null;
       if (closingId) {
@@ -309,9 +309,10 @@
       if (unionInput) unionInput.checked = false;
       if (companyInput) companyInput.checked = false;
       populatePetitionOriginSelect("petitionEditOrigin", "", true);
+      await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
-    function savePetitionUpdateFromModal() {
+    async function savePetitionUpdateFromModal() {
       if (!activePetitionUpdateId) return;
 
       const title = (document.getElementById("petitionEditTitle")?.value || "").trim();
@@ -363,7 +364,7 @@
       if (activePetitionUpdateId) {
         try { window.clearEditingLock?.("peticiones", activePetitionUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar petición:", error); }
       }
-      closePetitionUpdateModal();
+      await closePetitionUpdateModal();
       renderPetitions();
     }
 
