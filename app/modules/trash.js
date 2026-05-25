@@ -64,6 +64,10 @@ function emptyTrash() {
   const trash = getTrashItems();
   if (!trash.length) return;
   if (!confirm("Se vaciará la papelera definitivamente. ¿Continuar?")) return;
+  save("rrll_trash_last_empty_backup", {
+    emptiedAt: new Date().toISOString(),
+    items: JSON.parse(JSON.stringify(trash))
+  });
   setTrashItems([]);
   renderTrash();
 }
