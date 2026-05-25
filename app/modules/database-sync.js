@@ -43,7 +43,6 @@
       const state = await window.rrllDB.getState();
       phase4SetTexts(["dbSyncLabel", "configDbSyncLabel"], `${formatSyncDate(state.lastUpdate)}${source ? "" : ""}`);
       phase4SetTexts(["dbUpdatedByLabel", "configDbUpdatedByLabel"], state.lastUpdateBy || "Sin datos");
-      if (state.token && !rrllLastKnownDbToken) rrllLastKnownDbToken = state.token;
       if (source !== "save") {
         setSaveStatus("synced", `Sincronizado: ${formatSyncDate(state.lastUpdate || new Date().toISOString())}`);
       }
@@ -127,6 +126,7 @@
     restoreScrollPositions(scrollSnapshots);
     await refreshDatabaseInfo();
     renderRemoteRefreshNotice(state);
+    console.info("[RRLL SYNC] token aplicado tras loadAll", { token });
     if (options.pendingSource) {
       console.info("[RRLL SYNC] Refresh pendiente ejecutado al cerrar modal.");
     } else {
@@ -196,10 +196,10 @@
       }
 
       if (token !== rrllLastKnownDbToken) {
-        console.info("[RRLL SYNC] Cambio remoto detectado.", { tokenAnterior: rrllLastKnownDbToken, tokenActual: token });
+        console.info("[RRLL SYNC] token remoto detectado", { tokenAnterior: rrllLastKnownDbToken, tokenActual: token });
         if (hasActiveEditingContext()) {
           rrllPendingRemoteRefresh = true;
-          console.info("[RRLL SYNC] Refresh pospuesto por edición activa.");
+          console.info("[RRLL SYNC] token no aplicado por edición activa");
           setSaveStatus("synced", "Cambios detectados. Refresco pospuesto por edición activa.");
           await refreshDatabaseInfo();
           return;
@@ -224,6 +224,14 @@
     console.info("[RRLL SYNC] Sincronización automática iniciada (intervalo: 12s).");
     checkDatabaseUpdatesSilently();
     rrllAutoSyncTimer = setInterval(checkDatabaseUpdatesSilently, 12000);
+    if (!startDatabaseAutoSync._listenersAttached) {
+      window.addEventListener("focus", () => { checkDatabaseUpdatesSilently(); });
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkDatabaseUpdatesSilently();
+      });
+      window.addEventListener("hashchange", () => { checkDatabaseUpdatesSilently(); });
+      startDatabaseAutoSync._listenersAttached = true;
+    }
   }
 
   async function chooseSharedDatabaseFolder() {
