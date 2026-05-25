@@ -118,16 +118,26 @@
 
       const probe = await window.rrllDB.probeSharedDirectory?.(directory);
       if (!probe) throw new Error("No se pudo validar la carpeta compartida.");
+      let options = {};
       if (probe.status === "empty") {
-        const shouldCreate = confirm("La base compartida parece vacía. ¿Crear base compartida desde datos locales?");
+        const shouldCreate = confirm("La base compartida está vacía. ¿Inicializarla desde los datos locales actuales? Se creará backup automático.");
         if (!shouldCreate) return;
       }
       if (probe.status === "missing") {
-        const shouldCreate = confirm("No existe base SQLite compartida. ¿Crearla desde datos locales?");
+        const shouldCreate = confirm("No existe base SQLite compartida. ¿Crear base compartida desde datos locales actuales? Se creará backup automático.");
         if (!shouldCreate) return;
       }
-      alert(`Base encontrada con ${Number(probe.rrllKeyCount || 0)} claves.`);
-      await window.rrllDB.setSharedDirectory(directory, rrllDatabaseCache || {});
+      if (probe.status === "valid") {
+        const localCount = Object.keys(rrllDatabaseCache || {}).filter(key => String(key || "").startsWith("rrll_")).length;
+        const sharedCount = Number(probe.rrllKeyCount || 0);
+        if (sharedCount < localCount) {
+          const proceedWithLowerCount = confirm(`La base de red existente tiene menos claves RRLL (${sharedCount}) que la base actual (${localCount}). ¿Conectar igualmente a esa base existente?`);
+          if (!proceedWithLowerCount) return;
+          options.allowExistingLowerCount = true;
+        }
+      }
+      alert(`Base detectada con ${Number(probe.rrllKeyCount || 0)} claves RRLL.`);
+      await window.rrllDB.setSharedDirectory(directory, rrllDatabaseCache || {}, options);
       rrllDatabaseCache = await window.rrllDB.loadAll();
       const state = await updateSyncStatus("mode-change");
       if (state && state.token) rrllLastKnownDbToken = state.token;
@@ -187,6 +197,24 @@
   window.useLocalDatabaseMode = useLocalDatabaseMode;
   window.reloadDatabaseFromDisk = reloadDatabaseFromDisk;
   window.retrySharedDatabaseConnection = async function retrySharedDatabaseConnection() {
+    if (!window.rrllDB || typeof window.rrllDB.getInfo !== "function" || typeof window.rrllDB.setSharedDirectory !== "function") {
+      await refreshDatabaseInfo();
+      await updateSyncStatus("manual");
+      return;
+    }
+
+    const info = await window.rrllDB.getInfo();
+    if (info && info.mode === "shared" && info.configuredSharedPath) {
+      try {
+        const sharedDir = info.sharedDir || (info.configuredSharedPath.includes('\\') || info.configuredSharedPath.includes('/') ? info.configuredSharedPath.replace(/[\/][^\/]+$/, "") : "");
+        if (sharedDir) {
+          await window.rrllDB.setSharedDirectory(sharedDir, rrllDatabaseCache || {}, { allowExistingLowerCount: true });
+        }
+      } catch (error) {
+        console.warn("No se pudo reconectar automáticamente a la base de red configurada:", error);
+      }
+    }
+
     await refreshDatabaseInfo();
     await updateSyncStatus("manual");
   };

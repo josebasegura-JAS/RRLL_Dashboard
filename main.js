@@ -182,17 +182,37 @@ function resolveDbAccessInfo() {
       && (!fs.existsSync(config.sharedDbPath) || isPathAccessible(config.sharedDbPath));
     if (sharedReachable) {
       startupDbAlert = null;
-      return { mode: "shared", effectiveMode: "shared", path: config.sharedDbPath, sharedDir, configuredSharedPath: config.sharedDbPath, user, localPath, fallbackLocal: false };
+      const info = { mode: "shared", effectiveMode: "shared", path: config.sharedDbPath, sharedDir, configuredSharedPath: config.sharedDbPath, user, localPath, fallbackLocal: false };
+      logDbMode("Modo activo: red", info);
+      return info;
     }
     startupDbAlert = {
       title: "Base de datos de red no disponible",
       message: "No se ha podido acceder a la base de datos compartida. La aplicación se ha abierto con los datos locales de este equipo. Cuando recuperes conexión, puedes reintentar desde Configuración.",
       configuredPath: config.sharedDbPath
     };
-    return { mode: "shared", effectiveMode: "local", path: localPath, sharedDir, configuredSharedPath: config.sharedDbPath, user, localPath, fallbackLocal: true };
+    const info = { mode: "shared", effectiveMode: "local", path: localPath, sharedDir, configuredSharedPath: config.sharedDbPath, user, localPath, fallbackLocal: true };
+    logDbMode("Modo activo: local temporal", info, { fallbackReason: "Red no disponible" });
+    return info;
   }
   startupDbAlert = null;
-  return { mode: "local", effectiveMode: "local", path: localPath, user, localPath, fallbackLocal: false };
+  const info = { mode: "local", effectiveMode: "local", path: localPath, user, localPath, fallbackLocal: false };
+  logDbMode("Modo activo: local", info);
+  return info;
+}
+
+
+function logDbMode(prefix, info, extra = {}) {
+  const payload = {
+    mode: info && info.mode ? info.mode : "unknown",
+    effectiveMode: info && info.effectiveMode ? info.effectiveMode : "unknown",
+    activePath: info && info.path ? info.path : "",
+    configuredSharedPath: info && info.configuredSharedPath ? info.configuredSharedPath : "",
+    sharedDir: info && info.sharedDir ? info.sharedDir : "",
+    fallbackLocal: !!(info && info.fallbackLocal),
+    ...extra
+  };
+  console.log(`[RRLL][DB] ${prefix}`, payload);
 }
 
 async function getSQL() {
@@ -655,29 +675,42 @@ async function inspectSharedDatabase(directory) {
   } finally { try { db.close(); } catch {} }
 }
 
-async function setSharedDirectory(_event, directory, currentData) {
+async function setSharedDirectory(_event, directory, currentData, options = {}) {
   const preMigrationSnapshot = await loadAllData();
+  const originData = isPlainObject(currentData) && Object.keys(currentData).length ? currentData : preMigrationSnapshot;
   const localKeyCount = Object.keys(preMigrationSnapshot || {}).filter(k => k.startsWith("rrll_")).length;
   const inspection = await inspectSharedDatabase(directory);
+  const allowExistingLowerCount = !!(options && options.allowExistingLowerCount);
 
-  if (inspection.status === "empty" && localKeyCount > 0) {
-    throw new Error("La base compartida parece incompleta. No se ha cambiado para evitar pérdida de datos.");
-  }
+  logDbMode("Solicitud de cambio a red", resolveDbAccessInfo(), {
+    configuredSharedPath: inspection.sharedDbPath,
+    targetStatus: inspection.status,
+    originKeyCount: localKeyCount,
+    existingSharedKeyCount: Number(inspection.rrllKeyCount || 0),
+    allowExistingLowerCount
+  });
 
   await createRobustBackup("before_migrate_local_to_shared", preMigrationSnapshot, { throttleMs: 0 });
+  console.log("[RRLL][DB] Backup creado antes de migrar local → red", { sharedDbPath: inspection.sharedDbPath });
+
   const sharedDbPath = inspection.sharedDbPath;
+  const shouldSeedFromLocal = inspection.status === "missing" || inspection.status === "empty";
+
   writeDbConfig({ mode: "shared", sharedDir: directory, sharedDbPath });
 
-  const shouldSeed = inspection.status !== "valid";
-  if (shouldSeed) {
-    await saveAllData(isPlainObject(currentData) ? currentData : preMigrationSnapshot);
+  if (shouldSeedFromLocal) {
+    await saveAllData(originData);
+    console.log("[RRLL][DB] Migración local → red completada", { sharedDbPath, seededFromLocal: true });
+  } else {
+    console.log("[RRLL][DB] Base de red existente con datos; se conecta sin sobrescribir", { sharedDbPath });
   }
 
   const post = await loadAllData();
   const postCount = Object.keys(post || {}).filter(k => k.startsWith("rrll_")).length;
-  if (postCount < localKeyCount) {
+  if (postCount < localKeyCount && !allowExistingLowerCount) {
     writeDbConfig({ mode: "local" });
-    throw new Error("La base compartida parece incompleta. No se ha cambiado para evitar pérdida de datos.");
+    console.warn("[RRLL][DB] Migración local → red bloqueada por seguridad", { originKeyCount: localKeyCount, resultingKeyCount: postCount, sharedDbPath });
+    throw new Error("La base de red resultante tiene menos datos RRLL que la base local. Operación bloqueada por seguridad.");
   }
 
   return { ...(await getDbInfo()), message: "Conectado a base compartida", inspection: { ...inspection, rrllKeyCount: postCount } };
