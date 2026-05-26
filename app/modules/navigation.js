@@ -418,6 +418,7 @@ function toggleSidebarLeft() {
         "#gestor-plantilla": "gestor-plantilla",
         "#gestor-criterios": "gestor-criterios",
         "#gestor-ticket-restaurante": "gestor-ticket-restaurante",
+        "#gestor-sorteos": "gestor-sorteos",
         "#gestor-comite": "gestor-comite",
         "#gestor-paritaria": "gestor-paritaria",
         "#gestor-puntos-comite": "gestor-puntos-comite",
@@ -427,12 +428,25 @@ function toggleSidebarLeft() {
       };
       links.forEach(link => {
         link.addEventListener("click", event => {
-          if (link.classList.contains("phase4-nav-parent")) {
+          if (link.classList.contains("sidebar-group-toggle")) {
             event.preventDefault();
             return;
           }
           const href = link.getAttribute("href") || "";
+          if (link.classList.contains("phase4-nav-parent")) {
+            event.preventDefault();
+            return;
+          }
           const view = link.getAttribute("data-view") || "";
+          const hasNavigationTarget = !!href || !!view;
+          const isActionButton = link.classList.contains("phase4-nav-trash-icon")
+            || link.classList.contains("phase4-nav-settings-icon")
+            || link.classList.contains("phase4-nav-folder-link")
+            || (!href && !view);
+          if (!hasNavigationTarget || isActionButton) {
+            event.preventDefault();
+            return;
+          }
           if (view === "home") {
             event.preventDefault();
             history.replaceState(null, "", window.location.pathname + window.location.search);
