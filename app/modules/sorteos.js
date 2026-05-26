@@ -18,14 +18,33 @@
   function getExclusions() { return Array.isArray(load(EXCLUSIONS_KEY, [])) ? load(EXCLUSIONS_KEY, []) : []; }
   function setExclusions(v) { save(EXCLUSIONS_KEY, Array.isArray(v) ? v : []); }
 
-  function employeeKey(person) {
-    const num = String(person?.employeeNumber || person?.employee_number || '').trim();
-    const name = String(person?.nombreCompleto || person?.name || person?.nombre || '').trim();
-    return (num || name).toLowerCase();
+  function readAny(person, fields) {
+    for (const field of fields) {
+      const value = person?.[field];
+      if (value !== undefined && value !== null) {
+        const text = String(value).trim();
+        if (text) return text;
+      }
+    }
+    return '';
   }
 
-  function displayName(person) {
-    return String(person?.nombreCompleto || person?.name || person?.nombre || '').trim();
+  function normalizedEmployeeNumber(person) {
+    return readAny(person, ['employeeNumber', 'employee_number', 'numeroEmpleado', 'nEmpleado', 'idEmpleado', 'employeeId']);
+  }
+
+  function normalizedFullName(person) {
+    const rawFull = readAny(person, ['nombreApellidos', 'fullName', 'employeeName', 'name', 'persona', 'trabajador', 'nombreCompleto']);
+    const nombre = readAny(person, ['nombre', 'firstName', 'givenName']);
+    const apellidos = readAny(person, ['apellidos', 'lastName', 'surname', 'apellido1']);
+    if (nombre && apellidos) return `${nombre} ${apellidos}`.trim();
+    if (nombre) return nombre;
+    if (rawFull) return rawFull;
+    return 'Sin nombre';
+  }
+
+  function employeeKey(person) {
+    return (normalizedEmployeeNumber(person) || normalizedFullName(person)).toLowerCase();
   }
 
   function renderSorteos() {
@@ -41,6 +60,12 @@
     if (exEl) exEl.textContent = String(exclusions.length);
     if (avEl) avEl.textContent = String(available.length);
 
+    const exToggle = document.getElementById('drawExclusionsToggle');
+    if (exToggle) exToggle.textContent = `Exclusiones (${exclusions.length}) ▾`;
+    const historyToggle = document.getElementById('drawHistoryToggle');
+    const draws = getDraws();
+    if (historyToggle) historyToggle.textContent = `Histórico de sorteos (${draws.length}) ▾`;
+
     const emptyWarn = document.getElementById('drawsNoTemplateWarning');
     if (emptyWarn) emptyWarn.style.display = plantilla.length ? 'none' : 'block';
 
@@ -55,18 +80,18 @@
     const plantilla = getPlantillaItems();
     const exclusions = getExclusions();
     const excluded = new Set(exclusions.map(e => e.key));
-    if (!q) { rows.innerHTML = '<div class="muted">Escribe para buscar por nº empleado, nombre o apellidos.</div>'; return; }
+    if (!q) { rows.innerHTML = '<tr><td colspan="2" class="muted">Escribe para buscar por nº empleado, nombre o apellidos.</td></tr>'; return; }
 
     const matches = plantilla.filter(p => {
-      const num = String(p.employeeNumber || '').toLowerCase();
-      const name = displayName(p).toLowerCase();
+      const num = normalizedEmployeeNumber(p).toLowerCase();
+      const name = normalizedFullName(p).toLowerCase();
       return num.includes(q) || name.includes(q);
     }).slice(0, 30);
 
-    if (!matches.length) { rows.innerHTML = '<div class="muted">Sin coincidencias.</div>'; return; }
+    if (!matches.length) { rows.innerHTML = '<tr><td colspan="2" class="muted">Sin coincidencias.</td></tr>'; return; }
     rows.innerHTML = matches.map(p => {
       const key = employeeKey(p);
-      return `<div class="rrll-pro-list-row"><div><b>${escapeHtml(String(p.employeeNumber || ''))}</b> · ${escapeHtml(displayName(p))}</div><button type="button" class="secondary small" onclick="excludePersonFromDraw('${encodeURIComponent(key)}')" ${excluded.has(key) ? 'disabled' : ''}>Excluir</button></div>`;
+      return `<tr><td><b>${escapeHtml(normalizedEmployeeNumber(p))}</b> · ${escapeHtml(normalizedFullName(p))}</td><td><button type="button" class="secondary small" onclick="excludePersonFromDraw('${encodeURIComponent(key)}')" ${excluded.has(key) ? 'disabled' : ''}>Excluir</button></td></tr>`;
     }).join('');
     window.__drawSearchMap = Object.fromEntries(matches.map(p => [employeeKey(p), p]));
   }
@@ -79,8 +104,8 @@
     if (current.some(e => e.key === key)) { alert('La persona ya está excluida.'); return; }
     current.push({
       key,
-      employeeNumber: String(person.employeeNumber || '').trim(),
-      fullName: displayName(person),
+      employeeNumber: normalizedEmployeeNumber(person),
+      fullName: normalizedFullName(person),
       motivo: 'Manual',
       excludedAt: new Date().toISOString()
     });
@@ -95,33 +120,18 @@
     runDrawSearch();
   }
 
-  function resetDrawWinnerExclusions() {
-    setExclusions(getExclusions().filter(e => e.motivo !== 'Ganador sorteo'));
-    renderSorteos();
-  }
-
-  function resetAllDrawExclusions() {
-    if (!confirm('¿Seguro que quieres resetear todas las exclusiones?')) return;
-    setExclusions([]);
-    renderSorteos();
-  }
+  function resetDrawWinnerExclusions() { setExclusions(getExclusions().filter(e => e.motivo !== 'Ganador sorteo')); renderSorteos(); }
+  function resetAllDrawExclusions() { if (confirm('¿Seguro que quieres resetear todas las exclusiones?')) { setExclusions([]); renderSorteos(); } }
 
   function renderExclusionsTable() {
     const el = document.getElementById('drawExclusionsTable');
     if (!el) return;
     const items = getExclusions();
-    if (!items.length) { el.innerHTML = '<div class="muted">No hay exclusiones.</div>'; return; }
-    el.innerHTML = `<table class="rrll-pro-table"><thead><tr><th>Nº empleado</th><th>Nombre y apellidos</th><th>Motivo</th><th>Fecha de exclusión</th><th>Acciones</th></tr></thead><tbody>${items.map(e => `<tr><td>${escapeHtml(e.employeeNumber || '')}</td><td>${escapeHtml(e.fullName || '')}</td><td>${escapeHtml(e.motivo || '')}</td><td>${new Date(e.excludedAt).toLocaleString('es-ES')}</td><td><button type="button" class="secondary small" onclick="removeDrawExclusion('${encodeURIComponent(e.key)}')">Quitar</button></td></tr>`).join('')}</tbody></table>`;
+    if (!items.length) { el.innerHTML = '<tr><td colspan="5" class="muted">No hay exclusiones.</td></tr>'; return; }
+    el.innerHTML = items.map(e => `<tr><td>${escapeHtml(e.employeeNumber || '')}</td><td>${escapeHtml(e.fullName || 'Sin nombre')}</td><td>${escapeHtml(e.motivo || '')}</td><td>${new Date(e.excludedAt).toLocaleString('es-ES')}</td><td><button type="button" class="secondary small" onclick="removeDrawExclusion('${encodeURIComponent(e.key)}')">Quitar</button></td></tr>`).join('');
   }
 
-  function shuffleArray(list) {
-    const arr = [...list];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
+  function shuffleArray(list) { const arr = [...list]; for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
 
   function runDraw() {
     const title = String(document.getElementById('drawTitle')?.value || '').trim();
@@ -141,32 +151,17 @@
 
     const winners = shuffleArray(available).slice(0, winnersRequested).map((p, idx) => ({
       position: idx + 1,
-      employeeNumber: String(p.employeeNumber || '').trim(),
-      fullName: displayName(p)
+      employeeNumber: normalizedEmployeeNumber(p),
+      fullName: normalizedFullName(p)
     }));
 
-    const draw = {
-      id: (crypto.randomUUID ? crypto.randomUUID() : `draw-${Date.now()}`),
-      title,
-      date,
-      createdAt: new Date().toISOString(),
-      winnersRequested,
-      totalTemplate: plantilla.length,
-      totalExcludedBefore: exclusions.length,
-      totalAvailable: available.length,
-      winners,
-      user: (typeof getCurrentWindowsUser === 'function' ? undefined : undefined)
-    };
-
-    const draws = getDraws();
-    draws.unshift(draw);
-    setDraws(draws);
+    const draw = { id: (crypto.randomUUID ? crypto.randomUUID() : `draw-${Date.now()}`), title, date, createdAt: new Date().toISOString(), winnersRequested, totalTemplate: plantilla.length, totalExcludedBefore: exclusions.length, totalAvailable: available.length, winners };
+    const draws = getDraws(); draws.unshift(draw); setDraws(draws);
 
     const nextExclusions = [...exclusions];
     winners.forEach(w => {
       const key = (String(w.employeeNumber || '').trim() || String(w.fullName || '').trim()).toLowerCase();
-      if (nextExclusions.some(e => e.key === key)) return;
-      nextExclusions.push({ key, employeeNumber: w.employeeNumber, fullName: w.fullName, motivo: 'Ganador sorteo', excludedAt: new Date().toISOString() });
+      if (!nextExclusions.some(e => e.key === key)) nextExclusions.push({ key, employeeNumber: w.employeeNumber, fullName: w.fullName, motivo: 'Ganador sorteo', excludedAt: new Date().toISOString() });
     });
     setExclusions(nextExclusions);
 
@@ -179,41 +174,38 @@
   function renderDrawWinners(draw) {
     const el = document.getElementById('drawWinnersTable');
     if (!el) return;
-    if (!draw || !Array.isArray(draw.winners) || !draw.winners.length) { el.innerHTML = '<div class="muted">Sin resultados todavía.</div>'; return; }
-    el.innerHTML = `<table class="rrll-pro-table"><thead><tr><th>Posición</th><th>Nº empleado</th><th>Nombre y apellidos</th><th>Título sorteo</th><th>Fecha sorteo</th></tr></thead><tbody>${draw.winners.map(w => `<tr><td>${w.position}</td><td>${escapeHtml(w.employeeNumber || '')}</td><td>${escapeHtml(w.fullName || '')}</td><td>${escapeHtml(draw.title)}</td><td>${escapeHtml(draw.date)}</td></tr>`).join('')}</tbody></table>`;
+    if (!draw || !Array.isArray(draw.winners) || !draw.winners.length) { el.innerHTML = '<tr><td colspan="5" class="muted">Sin resultados todavía.</td></tr>'; return; }
+    el.innerHTML = draw.winners.map(w => `<tr><td>${w.position}</td><td>${escapeHtml(w.employeeNumber || '')}</td><td>${escapeHtml(w.fullName || 'Sin nombre')}</td><td>${escapeHtml(draw.title)}</td><td>${escapeHtml(draw.date)}</td></tr>`).join('');
   }
 
   function exportDrawWinners(draw) {
     const source = draw || lastDrawResult;
-    if (!source) return alert('No hay resultado visible para exportar.');
+    if (!source || !Array.isArray(source.winners) || !source.winners.length) return alert('No hay ganadores visibles para exportar.');
     if (typeof exportExcelData !== 'function') return;
-    exportExcelData({
-      filename: `sorteo-${source.date || 'sin-fecha'}`,
-      sheetName: 'Sorteo',
-      headers: ['Título sorteo', 'Fecha', 'Número ganadores', 'Posición', 'Nº empleado', 'Nombre y apellidos'],
-      rows: source.winners.map(w => [source.title, source.date, source.winnersRequested, w.position, w.employeeNumber, w.fullName])
-    });
+    exportExcelData({ filename: `sorteo-${source.date || 'sin-fecha'}`, sheetName: 'Sorteo', headers: ['Título sorteo', 'Fecha', 'Posición', 'Nº empleado', 'Nombre y apellidos'], rows: source.winners.map(w => [source.title, source.date, w.position, w.employeeNumber, w.fullName || 'Sin nombre']) });
   }
 
   function renderDrawHistory() {
     const el = document.getElementById('drawHistoryTable');
     if (!el) return;
     const draws = getDraws();
-    if (!draws.length) { el.innerHTML = '<div class="muted">Sin histórico.</div>'; return; }
-    el.innerHTML = `<table class="rrll-pro-table"><thead><tr><th>Fecha</th><th>Título</th><th>Nº ganadores</th><th>Acciones</th></tr></thead><tbody>${draws.map(d => `<tr><td>${escapeHtml(d.date || '')}</td><td>${escapeHtml(d.title || '')}</td><td>${Number(d.winnersRequested || 0)}</td><td><button type="button" class="secondary small" onclick="showDrawWinnersById('${d.id}')">Ver ganadores</button> <button type="button" class="secondary small" onclick="exportDrawById('${d.id}')">Exportar</button></td></tr>`).join('')}</tbody></table>`;
+    if (!draws.length) { el.innerHTML = '<tr><td colspan="4" class="muted">Sin histórico.</td></tr>'; return; }
+    el.innerHTML = draws.map(d => `<tr><td>${escapeHtml(d.date || '')}</td><td>${escapeHtml(d.title || '')}</td><td>${Number(d.winnersRequested || 0)}</td><td><button type="button" class="secondary small" onclick="showDrawWinnersById('${d.id}')">Ver ganadores</button> <button type="button" class="secondary small" onclick="exportDrawById('${d.id}')">Exportar</button></td></tr>`).join('');
   }
 
-  function showDrawWinnersById(id) {
-    const draw = getDraws().find(d => d.id === id);
-    if (!draw) return;
-    lastDrawResult = draw;
-    renderDrawWinners(draw);
-  }
+  function showDrawWinnersById(id) { const draw = getDraws().find(d => d.id === id); if (!draw) return; lastDrawResult = draw; renderDrawWinners(draw); }
+  function exportDrawById(id) { const draw = getDraws().find(d => d.id === id); if (draw) exportDrawWinners(draw); }
 
-  function exportDrawById(id) {
-    const draw = getDraws().find(d => d.id === id);
-    if (!draw) return;
-    exportDrawWinners(draw);
+  function toggleDrawSection(section) {
+    const cfg = section === 'exclusions'
+      ? { bodyId: 'drawExclusionsBody', btnId: 'drawExclusionsToggle', base: 'Exclusiones', count: getExclusions().length }
+      : { bodyId: 'drawHistoryBody', btnId: 'drawHistoryToggle', base: 'Histórico de sorteos', count: getDraws().length };
+    const body = document.getElementById(cfg.bodyId);
+    const button = document.getElementById(cfg.btnId);
+    if (!body || !button) return;
+    const isHidden = body.style.display === 'none';
+    body.style.display = isHidden ? '' : 'none';
+    button.textContent = `${cfg.base} (${cfg.count}) ${isHidden ? '▾' : '▸'}`;
   }
 
   window.renderSorteos = renderSorteos;
@@ -226,4 +218,5 @@
   window.exportDrawWinners = () => exportDrawWinners();
   window.showDrawWinnersById = showDrawWinnersById;
   window.exportDrawById = exportDrawById;
+  window.toggleDrawSection = toggleDrawSection;
 })();
