@@ -259,6 +259,7 @@
       }
 
       let activeTaskUpdateId = null;
+      let activeTaskLoadedUpdatedAt = "";
       let isTaskModalOpening = false;
       let isTaskModalClosing = false;
 
@@ -344,6 +345,7 @@
 
           resetTaskUpdateModalEditableState();
           activeTaskUpdateId = id;
+          activeTaskLoadedUpdatedAt = task.updatedAt || "";
           console.info("[RRLL TASK] lock permitido, abriendo modal editable");
           window.startEditingLockHeartbeat?.("tareas", id);
           const titleEl = document.getElementById("taskUpdateModalTitle");
@@ -394,6 +396,7 @@
             try { window.clearEditingLock?.("tareas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal:", error); }
           }
           activeTaskUpdateId = null;
+          activeTaskLoadedUpdatedAt = "";
           resetTaskUpdateModalEditableState();
           console.info("[RRLL TASK] modal cerrado y lock liberado");
           await window.waitForPendingSaves?.();
@@ -425,29 +428,54 @@
         const updateText = (document.getElementById("taskUpdateModalText")?.value || "").trim();
         const now = new Date().toISOString();
 
-        const updated = getTasks().map(task => {
-          if (task.id !== activeTaskUpdateId) return task;
-          const editedUpdates = collectEditableUpdates("taskExistingUpdates", task.updates || []);
-          const updates = updateText
-            ? [...editedUpdates, { text: updateText, createdAt: now }]
-            : editedUpdates;
-          return {
-            ...task,
-            title,
-            notes,
-            status,
-            dueDate,
-            priority,
-            origin,
-            closedAt: status === "closed" ? (task.closedAt || now) : null,
-            updatedAt: now,
-            updates,
-            attachments: Array.isArray(window.__taskDraftAttachments) ? window.__taskDraftAttachments : []
-          };
-        });
+        console.info("[RRLL TASK] merge-on-save iniciado", { id: activeTaskUpdateId });
+        const currentTask = getTasks().find(task => task.id === activeTaskUpdateId);
+        if (!currentTask) return;
+        const editedUpdates = collectEditableUpdates("taskExistingUpdates", currentTask.updates || []);
+        const updates = updateText ? [...editedUpdates, { text: updateText, createdAt: now }] : editedUpdates;
+        const editedTask = {
+          ...currentTask,
+          title,
+          notes,
+          status,
+          dueDate,
+          priority,
+          origin,
+          closedAt: status === "closed" ? (currentTask.closedAt || now) : null,
+          updatedAt: now,
+          updates,
+          attachments: Array.isArray(window.__taskDraftAttachments) ? window.__taskDraftAttachments : []
+        };
 
-        const updatedTask = updated.find(task => task.id === activeTaskUpdateId);
-        setTasks(updated);
+        let mergedTasks = getTasks().map(task => task.id === activeTaskUpdateId ? editedTask : task);
+        if (window.rrllDB && typeof window.rrllDB.loadAll === "function") {
+          try {
+            const latestData = await window.rrllDB.loadAll();
+            console.info("[RRLL TASK] datos remotos cargados");
+            const latestTasks = Array.isArray(latestData?.rrll_tasks) ? latestData.rrll_tasks : [];
+            const remoteIndex = latestTasks.findIndex(task => task.id === activeTaskUpdateId);
+            if (remoteIndex < 0) {
+              console.warn("[RRLL TASK] guardado bloqueado porque el registro ya no existe", { id: activeTaskUpdateId });
+              alert("Este registro ya no existe en la base compartida. Puede haber sido eliminado por otro usuario.");
+              return;
+            }
+            const remoteTask = latestTasks[remoteIndex];
+            if (remoteTask?.updatedAt && activeTaskLoadedUpdatedAt && Date.parse(remoteTask.updatedAt) > Date.parse(activeTaskLoadedUpdatedAt)) {
+              console.warn("[RRLL TASK] posible conflicto detectado", { id: activeTaskUpdateId, remoteUpdatedAt: remoteTask.updatedAt, loadedUpdatedAt: activeTaskLoadedUpdatedAt });
+              if (!confirm("Se detectaron cambios remotos más recientes en este registro. ¿Quieres sobrescribirlos con tu edición?")) return;
+            }
+            mergedTasks = [...latestTasks];
+            mergedTasks[remoteIndex] = { ...remoteTask, ...editedTask };
+            console.info("[RRLL TASK] registro reemplazado por id", { id: activeTaskUpdateId });
+          } catch (error) {
+            console.warn("[RRLL TASK] loadAll falló, se usa flujo local actual:", error);
+          }
+        }
+
+        const updatedTask = mergedTasks.find(task => task.id === activeTaskUpdateId);
+        setTasks(mergedTasks);
+        await window.waitForPendingSaves?.();
+        console.info("[RRLL TASK] guardado fusionado completado", { id: activeTaskUpdateId });
         closeLinkedPetitionIfNeeded(updatedTask, status);
         await closeTaskUpdateModal();
         renderTasks();
