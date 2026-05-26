@@ -76,6 +76,48 @@
       save("rrll_petitions", items);
     }
 
+    async function getLatestPetitionsForSafeSave() {
+      if (window.rrllDB && typeof window.rrllDB.loadAll === "function") {
+        try {
+          const latestData = await window.rrllDB.loadAll();
+          return Array.isArray(latestData?.rrll_petitions) ? latestData.rrll_petitions : [];
+        } catch (error) {
+          console.warn("[RRLL SAFE SAVE] loadAll falló, fallback local", error);
+        }
+      }
+      return getPetitions();
+    }
+
+    async function saveMergedPetitions(mutator, contextLabel) {
+      console.info("[RRLL SAFE SAVE] petitions merge iniciado", { context: contextLabel });
+      const latestPetitions = await getLatestPetitionsForSafeSave();
+      const mergedPetitions = typeof mutator === "function" ? (mutator([...latestPetitions]) || latestPetitions) : latestPetitions;
+      setPetitions(mergedPetitions);
+      await window.waitForPendingSaves?.();
+      return mergedPetitions;
+    }
+
+    async function getLatestTasksForSafeSave() {
+      if (window.rrllDB && typeof window.rrllDB.loadAll === "function") {
+        try {
+          const latestData = await window.rrllDB.loadAll();
+          return Array.isArray(latestData?.rrll_tasks) ? latestData.rrll_tasks : [];
+        } catch (error) {
+          console.warn("[RRLL SAFE SAVE] loadAll falló, fallback local", error);
+        }
+      }
+      return typeof getTasks === "function" ? getTasks() : [];
+    }
+
+    async function saveMergedTasks(mutator, contextLabel) {
+      console.info("[RRLL SAFE SAVE] tasks merge iniciado", { context: contextLabel });
+      const latestTasks = await getLatestTasksForSafeSave();
+      const mergedTasks = typeof mutator === "function" ? (mutator([...latestTasks]) || latestTasks) : latestTasks;
+      setTasks(mergedTasks);
+      await window.waitForPendingSaves?.();
+      return mergedTasks;
+    }
+
     function getLinkedTasksForPetition(petition) {
       if (!petition || typeof getTasks !== "function") return [];
       const linkedIds = [petition.taskId, petition.linkedTaskId].filter(Boolean).map(String);
@@ -86,25 +128,29 @@
       });
     }
 
-    function closeLinkedTasksForPetition(petition, closedAt) {
+    async function closeLinkedTasksForPetition(petition, closedAt) {
       const linkedTasks = getLinkedTasksForPetition(petition);
       if (!linkedTasks.length || typeof getTasks !== "function" || typeof setTasks !== "function") return;
       const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
       const now = closedAt || new Date().toISOString();
-      setTasks(getTasks().map(task => linkedTaskIds.has(String(task.id))
+      await saveMergedTasks((tasks) => tasks.map(task => linkedTaskIds.has(String(task.id))
         ? { ...task, status: "closed", closedAt: task.closedAt || now, updatedAt: now }
-        : task));
+        : task), "closeLinkedTasksForPetition");
+      console.info("[RRLL SAFE SAVE] registro actualizado por id");
       if (typeof renderTasks === "function") renderTasks();
     }
 
-    function deleteLinkedTasksForPetition(petition) {
+    async function deleteLinkedTasksForPetition(petition) {
       const linkedTasks = getLinkedTasksForPetition(petition);
       if (!linkedTasks.length || typeof getTasks !== "function" || typeof setTasks !== "function") return;
       const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
       if (typeof moveToTrash === "function") {
         linkedTasks.forEach(task => moveToTrash("tasks", task));
       }
-      setTasks(getTasks().filter(task => !linkedTaskIds.has(String(task.id))));
+      await saveMergedTasks((tasks) => {
+        console.info("[RRLL SAFE SAVE] registro eliminado por id");
+        return tasks.filter(task => !linkedTaskIds.has(String(task.id)));
+      }, "deleteLinkedTasksForPetition");
       if (typeof renderTasks === "function") renderTasks();
     }
 
@@ -116,7 +162,7 @@
       if (open) setTimeout(() => document.getElementById("newPetitionTitle")?.focus(), 0);
     }
 
-    function addPetition() {
+    async function addPetition() {
       const titleEl = document.getElementById("newPetitionTitle");
       const statusEl = document.getElementById("newPetitionStatus");
       const unionEl = document.getElementById("newPetitionUnion");
@@ -144,8 +190,8 @@
       const origin = normalizePetitionOrigin(originEl ? originEl.value : "") || getPetitionOrigins()[0] || "";
       const attachments = Array.isArray(window.__petitionDraftAttachments) ? window.__petitionDraftAttachments : [];
       populatePetitionOriginSelect("newPetitionOrigin", origin, false);
-      const items = getPetitions();
-      items.unshift({
+      await saveMergedPetitions((items) => {
+        items.unshift({
         id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
         title,
         status: "petition-pending",
@@ -158,9 +204,10 @@
         createdAt: now,
         closedAt: null,
         attachments
-      });
-
-      setPetitions(items);
+        });
+        console.info("[RRLL SAFE SAVE] registro creado sin pisar remoto");
+        return items;
+      }, "addPetition");
       titleEl.value = "";
       if (statusEl) statusEl.value = "petition-pending";
       unionEl.checked = false;
@@ -175,19 +222,19 @@
       renderPetitions();
     }
 
-    function executeMovePetition(id, status) {
+    async function executeMovePetition(id, status) {
       const now = new Date().toISOString();
-      const items = getPetitions().map(item => {
+      const items = await saveMergedPetitions((latestPetitions) => latestPetitions.map(item => {
         if (item.id !== id) return item;
+        console.info("[RRLL SAFE SAVE] registro actualizado por id", { id });
         return {
           ...item,
           status,
           closedAt: status === "petition-closed" ? (item.closedAt || now) : null
         };
-      });
+      }), "executeMovePetition");
       const movedPetition = items.find(item => item.id === id);
-      setPetitions(items);
-      if (status === "petition-closed") closeLinkedTasksForPetition(movedPetition, now);
+      if (status === "petition-closed") await closeLinkedTasksForPetition(movedPetition, now);
       renderPetitions();
     }
 
@@ -214,15 +261,18 @@
       });
     }
 
-    function executeDeletePetition(id) {
+    async function executeDeletePetition(id) {
       try { window.clearEditingLock?.("peticiones", id); } catch (error) { console.warn("No se pudo liberar lock al eliminar petición:", error); }
-      const items = getPetitions();
+      const items = await getLatestPetitionsForSafeSave();
       const item = items.find(i => i.id === id);
       if (item) {
-        deleteLinkedTasksForPetition(item);
+        await deleteLinkedTasksForPetition(item);
         moveToTrash("petitions", item);
       }
-      setPetitions(items.filter(i => i.id !== id));
+      await saveMergedPetitions((latestPetitions) => {
+        console.info("[RRLL SAFE SAVE] registro eliminado por id", { id });
+        return latestPetitions.filter(i => i.id !== id);
+      }, "executeDeletePetition");
       renderPetitions();
       renderTrash();
       restoreAlertsPanelState();
@@ -545,12 +595,12 @@
       renderPetitions();
     }
 
-    function createTaskFromPetition(id) {
+    async function createTaskFromPetition(id) {
       const petition = getPetitions().find(item => item.id === id);
       if (!petition || typeof getTasks !== "function" || typeof setTasks !== "function") return;
       const now = new Date().toISOString();
-      const tasks = getTasks();
-      tasks.unshift({
+      await saveMergedTasks((tasks) => {
+        tasks.unshift({
         id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
         title: petition.title || "Petición sin título",
         notes: petition.notes || "",
@@ -562,9 +612,11 @@
         createdAt: now,
         closedAt: null,
         updates: []
-      });
-      setTasks(tasks);
-      executeMovePetition(id, "petition-progress");
+        });
+        console.info("[RRLL SAFE SAVE] registro creado sin pisar remoto");
+        return tasks;
+      }, "createTaskFromPetition");
+      await executeMovePetition(id, "petition-progress");
       if (typeof renderTasks === "function") renderTasks();
     }
 
