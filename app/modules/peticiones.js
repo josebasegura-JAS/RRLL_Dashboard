@@ -252,6 +252,7 @@
     }
 
     let activePetitionUpdateId = null;
+    let activePetitionLoadedUpdatedAt = "";
 
     async function openPetitionUpdateModal(id) {
       const lock = await window.acquireEditingLock?.("peticiones", id);
@@ -261,6 +262,7 @@
       if (!item) return;
 
       activePetitionUpdateId = id;
+      activePetitionLoadedUpdatedAt = item.updatedAt || "";
       window.startEditingLockHeartbeat?.("peticiones", id);
       const sources = Array.isArray(item.sources) ? item.sources : [];
       const titleEl = document.getElementById("petitionUpdateModalTitle");
@@ -296,6 +298,7 @@
     async function closePetitionUpdateModal() {
       const closingId = activePetitionUpdateId;
       activePetitionUpdateId = null;
+      activePetitionLoadedUpdatedAt = "";
       if (closingId) {
         window.clearEditingLockHeartbeat?.("peticiones", closingId);
         try { window.clearEditingLock?.("peticiones", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de petición:", error); }
@@ -341,29 +344,54 @@
       const updateText = (document.getElementById("petitionUpdateModalText")?.value || "").trim();
       const now = new Date().toISOString();
 
-      const updatedItems = getPetitions().map(item => {
-        if (item.id !== activePetitionUpdateId) return item;
-        const editedUpdates = collectEditableUpdates("petitionExistingUpdates", item.updates || []);
-        const updates = updateText
-          ? [...editedUpdates, { text: updateText, createdAt: now }]
-          : editedUpdates;
-        return {
-          ...item,
-          title,
-          status,
-          sources,
-          origin,
-          dueDate,
-          priority,
-          notes,
-          closedAt: status === "petition-closed" ? (item.closedAt || now) : null,
-          updatedAt: now,
-          updates,
-          attachments: Array.isArray(window.__petitionDraftAttachments) ? window.__petitionDraftAttachments : []
-        };
-      });
+      console.info("[RRLL PETITION] merge-on-save iniciado", { id: activePetitionUpdateId });
+      const currentPetition = getPetitions().find(item => item.id === activePetitionUpdateId);
+      if (!currentPetition) return;
+      const editedUpdates = collectEditableUpdates("petitionExistingUpdates", currentPetition.updates || []);
+      const updates = updateText ? [...editedUpdates, { text: updateText, createdAt: now }] : editedUpdates;
+      const editedPetition = {
+        ...currentPetition,
+        title,
+        status,
+        sources,
+        origin,
+        dueDate,
+        priority,
+        notes,
+        closedAt: status === "petition-closed" ? (currentPetition.closedAt || now) : null,
+        updatedAt: now,
+        updates,
+        attachments: Array.isArray(window.__petitionDraftAttachments) ? window.__petitionDraftAttachments : []
+      };
 
-      setPetitions(updatedItems);
+      let mergedPetitions = getPetitions().map(item => item.id === activePetitionUpdateId ? editedPetition : item);
+      if (window.rrllDB && typeof window.rrllDB.loadAll === "function") {
+        try {
+          const latestData = await window.rrllDB.loadAll();
+          console.info("[RRLL PETITION] datos remotos cargados");
+          const latestPetitions = Array.isArray(latestData?.rrll_petitions) ? latestData.rrll_petitions : [];
+          const remoteIndex = latestPetitions.findIndex(item => item.id === activePetitionUpdateId);
+          if (remoteIndex < 0) {
+            console.warn("[RRLL PETITION] guardado bloqueado porque el registro ya no existe", { id: activePetitionUpdateId });
+            alert("Este registro ya no existe en la base compartida. Puede haber sido eliminado por otro usuario.");
+            return;
+          }
+          const remotePetition = latestPetitions[remoteIndex];
+          if (remotePetition?.updatedAt && activePetitionLoadedUpdatedAt && Date.parse(remotePetition.updatedAt) > Date.parse(activePetitionLoadedUpdatedAt)) {
+            console.warn("[RRLL PETITION] posible conflicto detectado", { id: activePetitionUpdateId, remoteUpdatedAt: remotePetition.updatedAt, loadedUpdatedAt: activePetitionLoadedUpdatedAt });
+            if (!confirm("Se detectaron cambios remotos más recientes en este registro. ¿Quieres sobrescribirlos con tu edición?")) return;
+          }
+          mergedPetitions = [...latestPetitions];
+          mergedPetitions[remoteIndex] = { ...remotePetition, ...editedPetition };
+          console.info("[RRLL PETITION] registro reemplazado por id", { id: activePetitionUpdateId });
+        } catch (error) {
+          console.warn("[RRLL PETITION] loadAll falló, se usa flujo local actual:", error);
+        }
+      }
+
+      setPetitions(mergedPetitions);
+      await window.waitForPendingSaves?.();
+      console.info("[RRLL PETITION] guardado fusionado completado", { id: activePetitionUpdateId });
       if (activePetitionUpdateId) {
         window.clearEditingLockHeartbeat?.("peticiones", activePetitionUpdateId);
         try { window.clearEditingLock?.("peticiones", activePetitionUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar petición:", error); }
