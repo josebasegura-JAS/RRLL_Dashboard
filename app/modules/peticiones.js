@@ -440,6 +440,10 @@
       }
 
       setPetitions(mergedPetitions);
+      const updatedPetition = mergedPetitions.find(item => item.id === activePetitionUpdateId);
+      if (updatedPetition?.status === "petition-closed") {
+        await closeLinkedTasksForPetition(updatedPetition, now);
+      }
       await window.waitForPendingSaves?.();
       console.info("[RRLL PETITION] guardado fusionado completado", { id: activePetitionUpdateId });
       if (activePetitionUpdateId) {
