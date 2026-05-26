@@ -135,6 +135,27 @@
         save("rrll_tasks", tasks);
       }
 
+      async function getLatestTasksForSafeSave() {
+        if (window.rrllDB && typeof window.rrllDB.loadAll === "function") {
+          try {
+            const latestData = await window.rrllDB.loadAll();
+            return Array.isArray(latestData?.rrll_tasks) ? latestData.rrll_tasks : [];
+          } catch (error) {
+            console.warn("[RRLL SAFE SAVE] loadAll falló, fallback local", error);
+          }
+        }
+        return getTasks();
+      }
+
+      async function saveMergedTasks(mutator, contextLabel) {
+        console.info("[RRLL SAFE SAVE] tasks merge iniciado", { context: contextLabel });
+        const latestTasks = await getLatestTasksForSafeSave();
+        const mergedTasks = typeof mutator === "function" ? (mutator([...latestTasks]) || latestTasks) : latestTasks;
+        setTasks(mergedTasks);
+        await window.waitForPendingSaves?.();
+        return mergedTasks;
+      }
+
       function toggleTaskCreateForm(forceOpen) {
         const form = document.getElementById("taskCreateForm");
         if (!form) return;
@@ -143,7 +164,7 @@
         if (open) setTimeout(() => document.getElementById("newTaskTitle")?.focus(), 0);
       }
 
-      function addTask() {
+      async function addTask() {
         const titleEl = document.getElementById("newTaskTitle");
         const notesEl = document.getElementById("newTaskNotes");
         const statusEl = document.getElementById("newTaskStatus");
@@ -165,8 +186,8 @@
         const status = statusEl.value;
         const attachments = Array.isArray(window.__taskDraftAttachments) ? window.__taskDraftAttachments : [];
 
-        const tasks = getTasks();
-        tasks.unshift({
+        await saveMergedTasks((tasks) => {
+          tasks.unshift({
           id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
           title,
           notes: notesEl.value.trim(),
@@ -179,9 +200,10 @@
           closedAt: status === "closed" ? now : null,
           updates: [],
           attachments
-        });
-
-        setTasks(tasks);
+          });
+          console.info("[RRLL SAFE SAVE] registro creado sin pisar remoto");
+          return tasks;
+        }, "addTask");
         titleEl.value = "";
         notesEl.value = "";
         statusEl.value = "pending";
@@ -196,16 +218,16 @@
 
       async function executeMoveTask(id, status) {
         const now = new Date().toISOString();
-        const tasks = getTasks().map(task => {
+        const tasks = await saveMergedTasks((latestTasks) => latestTasks.map(task => {
           if (task.id !== id) return task;
+          console.info("[RRLL SAFE SAVE] registro actualizado por id", { id });
           return {
             ...task,
             status,
             closedAt: status === "closed" ? (task.closedAt || now) : null
           };
-        });
+        }), "executeMoveTask");
         const movedTask = tasks.find(task => task.id === id);
-        setTasks(tasks);
         await closeLinkedPetitionIfNeeded(movedTask, status);
         renderTasks();
       }
@@ -222,12 +244,16 @@
         });
       }
 
-      function executeDeleteTask(id) {
+      async function executeDeleteTask(id) {
         try { window.clearEditingLock?.("tareas", id); } catch (error) { console.warn("No se pudo liberar lock al eliminar tarea:", error); }
-        const tasks = getTasks();
+        const tasks = await getLatestTasksForSafeSave();
         const item = tasks.find(task => task.id === id);
         if (item) moveToTrash("tasks", item);
-        setTasks(tasks.filter(task => task.id !== id));
+        await saveMergedTasks((latestTasks) => {
+          const filtered = latestTasks.filter(task => task.id !== id);
+          console.info("[RRLL SAFE SAVE] registro eliminado por id", { id });
+          return filtered;
+        }, "executeDeleteTask");
         renderTasks();
         renderTrash();
         restoreAlertsPanelState();
@@ -253,11 +279,11 @@
         return closed >= limit;
       }
 
-      function executeDeleteVisibleClosedTasks() {
-        const tasks = getTasks();
+      async function executeDeleteVisibleClosedTasks() {
+        const tasks = await getLatestTasksForSafeSave();
         const visibleClosed = tasks.filter(task => isClosedWithinLastMonth(task));
         visibleClosed.forEach(task => moveToTrash("tasks", task));
-        setTasks(tasks.filter(task => !isClosedWithinLastMonth(task)));
+        await saveMergedTasks((latestTasks) => latestTasks.filter(task => !isClosedWithinLastMonth(task)), "executeDeleteVisibleClosedTasks");
         renderTasks();
         renderTrash();
         restoreAlertsPanelState();
