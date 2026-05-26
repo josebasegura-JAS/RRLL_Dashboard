@@ -399,6 +399,7 @@
       const existing = document.getElementById("paritariaExistingUpdates");
       if (existing) existing.innerHTML = "";
       refreshParitariaPetitionerOptions();
+      await window.waitForPendingSaves?.();
       await window.runPendingRemoteRefreshIfNeeded?.();
     }
 

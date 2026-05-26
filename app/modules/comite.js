@@ -398,6 +398,7 @@
       const existing = document.getElementById("agendaExistingUpdates");
       if (existing) existing.innerHTML = "";
       refreshAgendaPetitionerOptions();
+      await window.waitForPendingSaves?.();
       await window.runPendingRemoteRefreshIfNeeded?.();
     }
 

@@ -73,6 +73,7 @@
       activeMinuteAllegationsId = null;
       const modal = document.getElementById("minuteAllegationsModal");
       if (modal) modal.classList.remove("open");
+      await window.waitForPendingSaves?.();
       await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
@@ -215,6 +216,7 @@
       if (modal) modal.classList.remove("open");
       const input = document.getElementById("minuteDueDateInput");
       if (input) input.value = "";
+      await window.waitForPendingSaves?.();
       await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
@@ -315,6 +317,7 @@
         window.clearEditingLockHeartbeat?.("actas", closingId);
         try { window.clearEditingLock?.("actas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de acta:", error); }
       }
+      await window.waitForPendingSaves?.();
       await window.runPendingRemoteRefreshIfNeeded?.();
     }
 

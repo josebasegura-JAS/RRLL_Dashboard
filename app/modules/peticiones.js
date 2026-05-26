@@ -311,6 +311,7 @@
       if (unionInput) unionInput.checked = false;
       if (companyInput) companyInput.checked = false;
       populatePetitionOriginSelect("petitionEditOrigin", "", true);
+      await window.waitForPendingSaves?.();
       await window.runPendingRemoteRefreshIfNeeded?.();
     }
 
