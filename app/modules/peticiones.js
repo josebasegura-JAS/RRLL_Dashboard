@@ -129,28 +129,46 @@
     }
 
     async function closeLinkedTasksForPetition(petition, closedAt) {
-      const linkedTasks = getLinkedTasksForPetition(petition);
-      if (!linkedTasks.length || typeof getTasks !== "function" || typeof setTasks !== "function") return;
-      const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
       const now = closedAt || new Date().toISOString();
-      await saveMergedTasks((tasks) => tasks.map(task => linkedTaskIds.has(String(task.id))
-        ? { ...task, status: "closed", closedAt: task.closedAt || now, updatedAt: now }
-        : task), "closeLinkedTasksForPetition");
+      let hasLinkedTasks = false;
+      await saveMergedTasks((tasks) => {
+        if (!petition || !Array.isArray(tasks) || !tasks.length) return tasks;
+        const linkedTasks = tasks.filter(task => task && (
+          String(task.petitionId || "") === String(petition.id) ||
+          String(task.id) === String(petition.taskId) ||
+          String(task.id) === String(petition.linkedTaskId)
+        ));
+        if (!linkedTasks.length) return tasks;
+        hasLinkedTasks = true;
+        const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
+        return tasks.map(task => linkedTaskIds.has(String(task.id))
+          ? { ...task, status: "closed", closedAt: task.closedAt || now, updatedAt: now }
+          : task);
+      }, "closeLinkedTasksForPetition");
+      if (!hasLinkedTasks) return;
       console.info("[RRLL SAFE SAVE] registro actualizado por id");
       if (typeof renderTasks === "function") renderTasks();
     }
 
     async function deleteLinkedTasksForPetition(petition) {
-      const linkedTasks = getLinkedTasksForPetition(petition);
-      if (!linkedTasks.length || typeof getTasks !== "function" || typeof setTasks !== "function") return;
-      const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
-      if (typeof moveToTrash === "function") {
-        linkedTasks.forEach(task => moveToTrash("tasks", task));
-      }
+      let hasLinkedTasks = false;
       await saveMergedTasks((tasks) => {
+        if (!petition || !Array.isArray(tasks) || !tasks.length) return tasks;
+        const linkedTasks = tasks.filter(task => task && (
+          String(task.petitionId || "") === String(petition.id) ||
+          String(task.id) === String(petition.taskId) ||
+          String(task.id) === String(petition.linkedTaskId)
+        ));
+        if (!linkedTasks.length) return tasks;
+        hasLinkedTasks = true;
+        const linkedTaskIds = new Set(linkedTasks.map(task => String(task.id)));
+        if (typeof moveToTrash === "function") {
+          linkedTasks.forEach(task => moveToTrash("tasks", task));
+        }
         console.info("[RRLL SAFE SAVE] registro eliminado por id");
         return tasks.filter(task => !linkedTaskIds.has(String(task.id)));
       }, "deleteLinkedTasksForPetition");
+      if (!hasLinkedTasks) return;
       if (typeof renderTasks === "function") renderTasks();
     }
 
