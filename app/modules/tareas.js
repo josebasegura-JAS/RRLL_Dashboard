@@ -101,13 +101,29 @@
         return `<span class="task-origin-badge${origin ? "" : " is-empty"}">${escapeHtml(origin || "Sin origen")}</span>`;
       }
 
-      function closeLinkedPetitionIfNeeded(task, status) {
+      async function closeLinkedPetitionIfNeeded(task, status) {
         if (status !== "closed" || !task || !task.petitionId || typeof getPetitions !== "function" || typeof setPetitions !== "function") return;
         const now = new Date().toISOString();
-        const petitions = getPetitions().map(petition => petition.id === task.petitionId
+
+        let petitions = null;
+        if (window.rrllDB && typeof window.rrllDB.loadAll === "function") {
+          try {
+            const latestData = await window.rrllDB.loadAll();
+            const latestPetitions = Array.isArray(latestData?.rrll_petitions) ? latestData.rrll_petitions : [];
+            petitions = latestPetitions;
+          } catch (error) {
+            console.warn("[RRLL TASK] loadAll falló al cerrar petición vinculada, se usa fallback local:", error);
+          }
+        }
+
+        if (!petitions) petitions = getPetitions();
+
+        const mergedPetitions = petitions.map(petition => petition.id === task.petitionId
           ? { ...petition, status: "petition-closed", closedAt: petition.closedAt || now, updatedAt: now }
           : petition);
-        setPetitions(petitions);
+
+        setPetitions(mergedPetitions);
+        await window.waitForPendingSaves?.();
         if (typeof renderPetitions === "function") renderPetitions();
       }
 
@@ -178,7 +194,7 @@
         renderTasks();
       }
 
-      function executeMoveTask(id, status) {
+      async function executeMoveTask(id, status) {
         const now = new Date().toISOString();
         const tasks = getTasks().map(task => {
           if (task.id !== id) return task;
@@ -190,7 +206,7 @@
         });
         const movedTask = tasks.find(task => task.id === id);
         setTasks(tasks);
-        closeLinkedPetitionIfNeeded(movedTask, status);
+        await closeLinkedPetitionIfNeeded(movedTask, status);
         renderTasks();
       }
 
@@ -202,7 +218,7 @@
           title: "Cambiar estado de tarea",
           message: `¿Quieres cambiar el estado de ${title} a ${nextStatus}?`,
           confirmLabel: "Cambiar estado",
-          onConfirm: () => executeMoveTask(id, status)
+          onConfirm: async () => executeMoveTask(id, status)
         });
       }
 
@@ -476,7 +492,7 @@
         setTasks(mergedTasks);
         await window.waitForPendingSaves?.();
         console.info("[RRLL TASK] guardado fusionado completado", { id: activeTaskUpdateId });
-        closeLinkedPetitionIfNeeded(updatedTask, status);
+        await closeLinkedPetitionIfNeeded(updatedTask, status);
         await closeTaskUpdateModal();
         renderTasks();
       }
