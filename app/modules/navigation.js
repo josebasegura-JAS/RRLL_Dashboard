@@ -53,6 +53,24 @@ function toggleSidebarLeft() {
       "gestor-puntos-paritaria": { parent: "gestor-paritaria", section: "gestor-puntos-paritaria", menu: "paritaria" },
       "gestor-sesiones-paritaria": { parent: "gestor-paritaria", section: "gestor-sesiones-paritaria", menu: "paritaria" }
     };
+    const RRLL_SIDEBAR_GROUPS_BY_VIEW = Object.freeze({
+      "gestor-tareas": "gestion-diaria",
+      "gestor-peticiones": "gestion-diaria",
+      "gestor-comite": "gestion-diaria",
+      "gestor-puntos-comite": "gestion-diaria",
+      "gestor-sesiones-comite": "gestion-diaria",
+      "gestor-paritaria": "gestion-diaria",
+      "gestor-puntos-paritaria": "gestion-diaria",
+      "gestor-sesiones-paritaria": "gestion-diaria",
+      "gestor-actas": "gestion-diaria",
+      "gestor-teletrabajo": "personas",
+      "gestor-plantilla": "personas",
+      "gestor-vinculograma": "personas",
+      "gestor-licencias": "personas",
+      "gestor-ticket-restaurante": "calculos",
+      "gestor-sorteos": "calculos",
+      "gestor-criterios": "calculos"
+    });
     let rrllAccordionsReady = false;
     let rrllPhase4NavigationReady = false;
     let rrllPhase4CurrentView = null;
@@ -193,6 +211,34 @@ function toggleSidebarLeft() {
       setPhase4SideSubmenu(menuName, nextOpen);
     }
 
+    function collapseAllSidebarGroups() {
+      document.querySelectorAll(".sidebar-group-items.is-open").forEach(group => group.classList.remove("is-open"));
+      document.querySelectorAll(".sidebar-group-toggle.is-open").forEach(toggle => toggle.classList.remove("is-open"));
+    }
+
+    function toggleSidebarGroup(groupId) {
+      const group = document.getElementById(`sidebar-group-${groupId}`);
+      const toggle = document.querySelector(`.sidebar-group-toggle[data-group-toggle="${groupId}"]`);
+      if (!group || !toggle) return;
+      const shouldOpen = !group.classList.contains("is-open");
+      collapseAllSidebarGroups();
+      if (shouldOpen) {
+        group.classList.add("is-open");
+        toggle.classList.add("is-open");
+      }
+    }
+
+    function openSidebarGroupForView(viewId) {
+      const groupId = RRLL_SIDEBAR_GROUPS_BY_VIEW[viewId];
+      if (!groupId) return;
+      const group = document.getElementById(`sidebar-group-${groupId}`);
+      const toggle = document.querySelector(`.sidebar-group-toggle[data-group-toggle="${groupId}"]`);
+      if (!group || !toggle) return;
+      collapseAllSidebarGroups();
+      group.classList.add("is-open");
+      toggle.classList.add("is-open");
+    }
+
     function phase4OpenSubview(subviewId) {
       const cfg = RRLL_PHASE4_SUBVIEW_MAP[subviewId];
       if (!cfg) return false;
@@ -222,6 +268,7 @@ function toggleSidebarLeft() {
       });
       setPhase4SideSubmenu("comite", effectiveMain === "gestor-comite");
       setPhase4SideSubmenu("paritaria", effectiveMain === "gestor-paritaria");
+      openSidebarGroupForView(viewId);
     }
 
 
@@ -243,6 +290,7 @@ function toggleSidebarLeft() {
       document.body.classList.remove("phase4-view-module");
       rrllApplyModuleVisibility("home");
       phase4SetActiveNav("home");
+      collapseAllSidebarGroups();
       if (typeof renderHomeDashboard === "function") renderHomeDashboard();
     }
 
@@ -415,8 +463,13 @@ function toggleSidebarLeft() {
       } else if (RRLL_MAIN_GESTOR_IDS.includes(gestorId)) {
         openMainGestor(gestorId);
       } else if (!gestorId) {
-        // Fase 1: arranque estable y previsible. Si no hay hash, se entra siempre en Inicio.
-        // Evita que una vista guardada antigua abra un gestor inesperado al iniciar.
+        const persistedView = phase4ReadPersistedView();
+        if (persistedView && persistedView !== "home") {
+          if (RRLL_PHASE4_SUBVIEW_MAP[persistedView]) phase4OpenSubview(persistedView);
+          else if (RRLL_MAIN_GESTOR_IDS.includes(persistedView)) openMainGestor(persistedView);
+          else phase4ShowHome();
+          return;
+        }
         phase4ShowHome();
       } else {
         phase4ShowHome();
@@ -461,6 +514,9 @@ window.closeQuickCommitteeMenu = closeQuickCommitteeMenu;
 window.toggleQuickParitariaMenu = toggleQuickParitariaMenu;
 window.closeQuickParitariaMenu = closeQuickParitariaMenu;
 window.togglePhase4SideSubmenu = togglePhase4SideSubmenu;
+window.toggleSidebarGroup = toggleSidebarGroup;
+window.openSidebarGroupForView = openSidebarGroupForView;
+window.collapseAllSidebarGroups = collapseAllSidebarGroups;
 window.setupGestorAccordions = setupGestorAccordions;
 window.phase4RouteFromHash = phase4RouteFromHash;
 window.setupPhase4Navigation = setupPhase4Navigation;

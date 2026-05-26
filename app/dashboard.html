@@ -14,18 +14,7 @@
   </script>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .phase4-nav-section-label {
-      margin: 0.6rem 0.65rem 0.25rem;
-      padding-top: 0.45rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.62);
-      pointer-events: none;
-      user-select: none;
-    }
+    .phase4-nav-section-label { display: none; }
 
     .rrll-draws-table th,
     .rrll-draws-table td {
@@ -38,38 +27,43 @@
     <aside class="phase4-sidebar" aria-label="Navegación principal">
       <nav class="phase4-nav">
         <a href="#" class="phase4-nav-item active" data-view="home">⌂ <span>Inicio</span></a>
-
-        <div class="phase4-nav-section-label" aria-hidden="true">Gestión diaria</div>
-        <a href="#gestor-tareas" class="phase4-nav-item">✓ <span>Gestión de tareas</span></a>
-        <a href="#gestor-peticiones" class="phase4-nav-item">✉ <span>Peticiones</span></a>
-        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="phase4-nav-chevron">▾</strong></button>
-        <div class="phase4-nav-submenu" id="phase4-submenu-comite">
-          <a href="#gestor-puntos-comite" class="phase4-nav-subitem">• <span>Puntos de Comité</span></a>
-          <a href="#gestor-sesiones-comite" class="phase4-nav-subitem">• <span>Sesiones de Comité</span></a>
+        <button type="button" class="phase4-nav-item phase4-nav-button sidebar-group-toggle" data-group-toggle="gestion-diaria" onclick="toggleSidebarGroup('gestion-diaria')"><span>▸</span> <span>Gestión diaria</span><strong class="phase4-nav-chevron">▾</strong></button>
+        <div class="sidebar-group-items" id="sidebar-group-gestion-diaria">
+          <a href="#gestor-tareas" class="phase4-nav-item">✓ <span>Gestión de tareas</span></a>
+          <a href="#gestor-peticiones" class="phase4-nav-item">✉ <span>Peticiones</span></a>
+          <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="phase4-nav-chevron">▾</strong></button>
+          <div class="phase4-nav-submenu" id="phase4-submenu-comite">
+            <a href="#gestor-puntos-comite" class="phase4-nav-subitem">• <span>Puntos de Comité</span></a>
+            <a href="#gestor-sesiones-comite" class="phase4-nav-subitem">• <span>Sesiones de Comité</span></a>
+          </div>
+          <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="paritaria" onclick="togglePhase4SideSubmenu('paritaria')">⚖ <span>Paritaria</span><strong class="phase4-nav-chevron">▾</strong></button>
+          <div class="phase4-nav-submenu" id="phase4-submenu-paritaria">
+            <a href="#gestor-puntos-paritaria" class="phase4-nav-subitem">• <span>Puntos Paritaria</span></a>
+            <a href="#gestor-sesiones-paritaria" class="phase4-nav-subitem">• <span>Sesiones Paritaria</span></a>
+          </div>
+          <a href="#gestor-actas" class="phase4-nav-item">▣ <span>Actas</span></a>
         </div>
-        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="paritaria" onclick="togglePhase4SideSubmenu('paritaria')">⚖ <span>Paritaria</span><strong class="phase4-nav-chevron">▾</strong></button>
-        <div class="phase4-nav-submenu" id="phase4-submenu-paritaria">
-          <a href="#gestor-puntos-paritaria" class="phase4-nav-subitem">• <span>Puntos Paritaria</span></a>
-          <a href="#gestor-sesiones-paritaria" class="phase4-nav-subitem">• <span>Sesiones Paritaria</span></a>
+        <button type="button" class="phase4-nav-item phase4-nav-button sidebar-group-toggle" data-group-toggle="personas" onclick="toggleSidebarGroup('personas')"><span>▸</span> <span>Personas</span><strong class="phase4-nav-chevron">▾</strong></button>
+        <div class="sidebar-group-items" id="sidebar-group-personas">
+          <a href="#gestor-teletrabajo" class="phase4-nav-item">▤ <span>Teletrabajo</span></a>
+          <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
+          <a href="#gestor-vinculograma" class="phase4-nav-item">◇ <span>Vinculograma</span></a>
+          <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
         </div>
-        <a href="#gestor-actas" class="phase4-nav-item">▣ <span>Actas</span></a>
-
-        <div class="phase4-nav-section-label" aria-hidden="true">Personas</div>
-        <a href="#gestor-teletrabajo" class="phase4-nav-item">▤ <span>Teletrabajo</span></a>
-        <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
-        <a href="#gestor-vinculograma" class="phase4-nav-item">◇ <span>Vinculograma</span></a>
-        <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
-
-        <div class="phase4-nav-section-label" aria-hidden="true">Cálculos y herramientas</div>
-        <a href="#gestor-ticket-restaurante" class="phase4-nav-item">🍽 <span>Ticket Restaurante</span></a>
-        <a href="#gestor-sorteos" class="phase4-nav-item">🎲 <span>Sorteos</span></a>
-        <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
+        <button type="button" class="phase4-nav-item phase4-nav-button sidebar-group-toggle" data-group-toggle="calculos" onclick="toggleSidebarGroup('calculos')"><span>▸</span> <span>Cálculos y herramientas</span><strong class="phase4-nav-chevron">▾</strong></button>
+        <div class="sidebar-group-items" id="sidebar-group-calculos">
+          <a href="#gestor-ticket-restaurante" class="phase4-nav-item">🍽 <span>Ticket Restaurante</span></a>
+          <a href="#gestor-sorteos" class="phase4-nav-item">🎲 <span>Sorteos</span></a>
+          <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
+        </div>
       </nav>
       <nav class="phase4-nav phase4-nav-secondary" aria-label="Accesos rápidos">
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-folder-link" onclick="openRRLLFolderShortcut()" title="Abrir carpeta Relaciones Laborales">📁 <span>Relaciones Laborales</span></button>
-        <div class="phase4-nav-section-label" aria-hidden="true">Sistema</div>
-        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-trash-icon" onclick="openTrashModal()" title="Papelera" aria-label="Papelera">🗑 <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
-        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙</button>
+        <button type="button" class="phase4-nav-item phase4-nav-button sidebar-group-toggle" data-group-toggle="sistema" onclick="toggleSidebarGroup('sistema')"><span>▸</span> <span>Sistema</span><strong class="phase4-nav-chevron">▾</strong></button>
+        <div class="sidebar-group-items" id="sidebar-group-sistema">
+          <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-trash-icon" onclick="openTrashModal()" title="Papelera" aria-label="Papelera">🗑 <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
+          <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙</button>
+        </div>
       </nav>
       <div id="rrllFolderNotice" class="sidebar-folder-notice" aria-live="polite"></div>
       <div id="saveStatusWidget" class="save-status-widget synced phase5-sidebar-sync" aria-live="polite">
