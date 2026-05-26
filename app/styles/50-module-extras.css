@@ -2478,6 +2478,40 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 .phase4-nav-secondary .phase4-nav-settings-icon {
   grid-column: 3 !important;
 }
+.sidebar-group-toggle {
+  margin-top: 2px !important;
+  min-height: 30px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.sidebar-group-toggle .phase4-nav-chevron {
+  margin-left: auto;
+  transform: rotate(-90deg);
+}
+.sidebar-group-toggle.is-open .phase4-nav-chevron {
+  transform: rotate(0deg);
+}
+.sidebar-group-items {
+  display: none;
+  gap: 2px;
+  padding: 1px 0 3px 0;
+}
+.sidebar-group-items.is-open {
+  display: grid;
+}
+.sidebar-group-items .phase4-nav-item,
+.sidebar-group-items .phase4-nav-subitem {
+  min-height: 30px !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+}
+#dashboardLayout.sidebar-collapsed .sidebar-group-toggle > span:nth-child(2),
+#dashboardLayout.sidebar-collapsed .sidebar-group-toggle .phase4-nav-chevron {
+  display: none;
+}
 .sidebar-folder-notice {
   display: none;
   margin: 0 4px;
