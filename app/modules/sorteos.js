@@ -194,39 +194,51 @@
   }
 
   async function deleteDrawById(id) {
-    const draw = getDraws().find(d => d.id === id);
-    if (!draw) return;
-    const confirmedDelete = confirm('Vas a eliminar este sorteo del histórico. Esta acción no afecta a la plantilla. ¿Quieres continuar?');
-    if (!confirmedDelete) return;
+    try {
+      const draws = getDraws();
+      const draw = draws.find(d => d.id === id);
+      if (!draw) return;
 
-    const currentExclusions = getExclusions();
-    const winnerExclusions = currentExclusions.filter(e => e.motivo === 'Ganador sorteo' && e.drawId === id);
-    const canUnlinkSafely = winnerExclusions.length > 0;
+      const confirmedDelete = confirm('Vas a eliminar este sorteo del histórico. Esta acción no afecta a la plantilla. ¿Quieres continuar?');
+      if (!confirmedDelete) return;
 
-    let nextExclusions = currentExclusions;
-    if (canUnlinkSafely) {
-      const removeWinnerExclusions = confirm('¿Quieres quitar también de exclusiones a las personas ganadoras de este sorteo?');
-      if (removeWinnerExclusions) {
-        nextExclusions = currentExclusions.filter(e => !(e.motivo === 'Ganador sorteo' && e.drawId === id));
+      const currentExclusions = getExclusions();
+      const winnerExclusions = currentExclusions.filter(e => e.motivo === 'Ganador sorteo' && e.drawId === id);
+      const hasLinkedWinnerExclusions = winnerExclusions.length > 0;
+
+      let nextExclusions = currentExclusions;
+      if (hasLinkedWinnerExclusions) {
+        const removeWinnerExclusions = confirm('¿Quieres quitar también de exclusiones a las personas ganadoras de este sorteo?');
+        if (removeWinnerExclusions) {
+          nextExclusions = currentExclusions.filter(e => !(e.motivo === 'Ganador sorteo' && e.drawId === id));
+        }
+      } else {
+        alert('Este sorteo no tiene vínculo técnico con sus exclusiones. Se eliminará solo el histórico.');
       }
-    } else {
-      alert('Este sorteo no tiene vínculo técnico con sus exclusiones. Se eliminará solo el histórico.');
+
+      const nextDraws = draws.filter(d => d.id !== id);
+      setDraws(nextDraws);
+      if (nextExclusions !== currentExclusions) setExclusions(nextExclusions);
+
+      if (lastDrawResult && lastDrawResult.id === id) {
+        lastDrawResult = null;
+        renderDrawWinners(null);
+      }
+
+      if (typeof waitForPendingSaves === 'function') {
+        await waitForPendingSaves();
+      }
+
+      renderSorteos();
+    } catch (error) {
+      console.error('[RRLL DRAWS] error eliminando sorteo', error);
+      alert('No se pudo eliminar el sorteo. Revisa la consola para más detalle y vuelve a intentarlo.');
+      try {
+        renderSorteos();
+      } catch (_) {
+        // no-op
+      }
     }
-
-    const nextDraws = getDraws().filter(d => d.id !== id);
-    setDraws(nextDraws);
-    if (nextExclusions !== currentExclusions) setExclusions(nextExclusions);
-
-    if (lastDrawResult && lastDrawResult.id === id) {
-      lastDrawResult = null;
-      renderDrawWinners(null);
-    }
-
-    if (typeof waitForPendingSaves === 'function') {
-      await waitForPendingSaves();
-    }
-
-    renderSorteos();
   }
 
   function showDrawWinnersById(id) { const draw = getDraws().find(d => d.id === id); if (!draw) return; lastDrawResult = draw; renderDrawWinners(draw); }
