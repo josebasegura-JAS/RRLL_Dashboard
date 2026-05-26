@@ -52,6 +52,7 @@
   }
 
   function renderSorteos() {
+    ensureDrawSearchInputEditable();
     bindDrawSearchInput();
     const plantilla = getPlantillaItems();
     const exclusions = getExclusions();
@@ -76,6 +77,19 @@
 
     renderExclusionsTable();
     renderDrawHistory();
+  }
+
+
+  function ensureDrawSearchInputEditable() {
+    const input = document.getElementById('drawSearchInput');
+    if (!input) return null;
+    input.disabled = false;
+    input.readOnly = false;
+    input.removeAttribute('disabled');
+    input.removeAttribute('readonly');
+    input.style.pointerEvents = 'auto';
+    if (!input.hasAttribute('tabindex')) input.tabIndex = 0;
+    return input;
   }
 
   function runDrawSearch() {
@@ -226,10 +240,10 @@
   }
 
   function bindDrawSearchInput() {
-    if (drawSearchInputBound) return;
-    const input = document.getElementById('drawSearchInput');
-    if (!input) return;
+    const input = ensureDrawSearchInputEditable();
+    if (!input || drawSearchInputBound) return;
     input.addEventListener('input', runDrawSearch);
+    input.addEventListener('focus', runDrawSearch);
     drawSearchInputBound = true;
   }
 
