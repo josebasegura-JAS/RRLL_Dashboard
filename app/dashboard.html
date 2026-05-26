@@ -13,22 +13,30 @@
     }
   </script>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .phase4-nav-section-label {
+      margin: 0.6rem 0.65rem 0.25rem;
+      padding-top: 0.45rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.62);
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
 </head>
 <body class="phase4-view-home">
   <div class="phase4-shell">
     <aside class="phase4-sidebar" aria-label="Navegación principal">
       <nav class="phase4-nav">
         <a href="#" class="phase4-nav-item active" data-view="home">⌂ <span>Inicio</span></a>
+
+        <div class="phase4-nav-section-label" aria-hidden="true">Gestión diaria</div>
         <a href="#gestor-tareas" class="phase4-nav-item">✓ <span>Gestión de tareas</span></a>
         <a href="#gestor-peticiones" class="phase4-nav-item">✉ <span>Peticiones</span></a>
-        <a href="#gestor-actas" class="phase4-nav-item">▣ <span>Actas</span></a>
-        <a href="#gestor-teletrabajo" class="phase4-nav-item">▤ <span>Teletrabajo</span></a>
-        <a href="#gestor-vinculograma" class="phase4-nav-item">◇ <span>Vinculograma</span></a>
-        <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
-        <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
-        <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
-        <a href="#gestor-ticket-restaurante" class="phase4-nav-item">🍽 <span>Ticket Restaurante</span></a>
-        <a href="#gestor-sorteos" class="phase4-nav-item">🎲 <span>Sorteos</span></a>
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="phase4-nav-chevron">▾</strong></button>
         <div class="phase4-nav-submenu" id="phase4-submenu-comite">
           <a href="#gestor-puntos-comite" class="phase4-nav-subitem">• <span>Puntos de Comité</span></a>
@@ -39,9 +47,22 @@
           <a href="#gestor-puntos-paritaria" class="phase4-nav-subitem">• <span>Puntos Paritaria</span></a>
           <a href="#gestor-sesiones-paritaria" class="phase4-nav-subitem">• <span>Sesiones Paritaria</span></a>
         </div>
+        <a href="#gestor-actas" class="phase4-nav-item">▣ <span>Actas</span></a>
+
+        <div class="phase4-nav-section-label" aria-hidden="true">Personas</div>
+        <a href="#gestor-teletrabajo" class="phase4-nav-item">▤ <span>Teletrabajo</span></a>
+        <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
+        <a href="#gestor-vinculograma" class="phase4-nav-item">◇ <span>Vinculograma</span></a>
+        <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
+
+        <div class="phase4-nav-section-label" aria-hidden="true">Cálculos y herramientas</div>
+        <a href="#gestor-ticket-restaurante" class="phase4-nav-item">🍽 <span>Ticket Restaurante</span></a>
+        <a href="#gestor-sorteos" class="phase4-nav-item">🎲 <span>Sorteos</span></a>
+        <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
       </nav>
       <nav class="phase4-nav phase4-nav-secondary" aria-label="Accesos rápidos">
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-folder-link" onclick="openRRLLFolderShortcut()" title="Abrir carpeta Relaciones Laborales">📁 <span>Relaciones Laborales</span></button>
+        <div class="phase4-nav-section-label" aria-hidden="true">Sistema</div>
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-trash-icon" onclick="openTrashModal()" title="Papelera" aria-label="Papelera">🗑 <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙</button>
       </nav>
