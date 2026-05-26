@@ -396,6 +396,7 @@
           activeTaskUpdateId = null;
           resetTaskUpdateModalEditableState();
           console.info("[RRLL TASK] modal cerrado y lock liberado");
+          await window.waitForPendingSaves?.();
           await window.runPendingRemoteRefreshIfNeeded?.();
         } finally {
           isTaskModalClosing = false;

@@ -246,7 +246,7 @@ function getTodayKey() {
     function persistDatabaseCache() {
       if (!window.rrllDB || typeof window.rrllDB.saveAll !== "function") return;
       markSaveStarted();
-      enqueueDatabasePersist(() => window.rrllDB.saveAll(rrllDatabaseCache)
+      return enqueueDatabasePersist(() => window.rrllDB.saveAll(rrllDatabaseCache)
         .then(() => {
           if (window.rrllDB && typeof window.rrllDB.backupAll === "function") {
             return window.rrllDB.backupAll(rrllDatabaseCache);
@@ -259,11 +259,10 @@ function getTodayKey() {
 
     function persistDatabaseKey(key, value) {
       if (!window.rrllDB || typeof window.rrllDB.saveKey !== "function") {
-        persistDatabaseCache();
-        return;
+        return persistDatabaseCache();
       }
       markSaveStarted();
-      enqueueDatabasePersist(() => window.rrllDB.saveKey(key, value)
+      return enqueueDatabasePersist(() => window.rrllDB.saveKey(key, value)
         .then(() => {
           if (window.rrllDB && typeof window.rrllDB.backupAll === "function") {
             return window.rrllDB.backupAll(rrllDatabaseCache);
@@ -290,17 +289,27 @@ function getTodayKey() {
 function save(key, value) {
   if (window.rrllDB) {
     rrllDatabaseCache[key] = value;
-    persistDatabaseKey(key, value);
-  } else {
-    try {
-      markSaveStarted();
-      localStorage.setItem(key, JSON.stringify(value));
-      setSaveStatus("saved", `Guardado local: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`);
-    } catch (error) {
-      markSaveError(error);
-    }
+    return persistDatabaseKey(key, value);
   }
+
+  try {
+    markSaveStarted();
+    localStorage.setItem(key, JSON.stringify(value));
+    setSaveStatus("saved", `Guardado local: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`);
+  } catch (error) {
+    markSaveError(error);
+  }
+
+  return Promise.resolve();
 }
+
+window.waitForPendingSaves = async function () {
+  try {
+    await rrllPersistQueue.catch(() => {});
+  } catch (error) {
+    console.warn("Error esperando cola de persistencia:", error);
+  }
+};
 
     function attachmentNameFromPath(pathValue) {
       const parts = String(pathValue || "").split(/[/\\]/);
