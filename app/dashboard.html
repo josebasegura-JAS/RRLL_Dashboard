@@ -26,6 +26,11 @@
       pointer-events: none;
       user-select: none;
     }
+
+    .rrll-draws-table th,
+    .rrll-draws-table td {
+      text-align: left;
+    }
   </style>
 </head>
 <body class="phase4-view-home">
@@ -1469,25 +1474,25 @@
                 <span>Búsqueda</span>
                 <input id="drawSearchInput" type="search" placeholder="Buscar por nombre, apellidos, DNI o nº empleado…" />
               </label>
-              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Resultados</th></tr></thead><tbody id="drawSearchResults"></tbody></table></div>
+              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table rrll-draws-table"><thead><tr><th>Nº empleado</th><th>Nombre y apellidos</th><th>Acción</th></tr></thead><tbody id="drawSearchResults"></tbody></table></div>
             </div>
 
             <div class="rrll-pro-list-card">
               <div class="rrll-pro-list-toolbar"><div><h3><button type="button" class="secondary small" onclick="toggleDrawSection('exclusions')" id="drawExclusionsToggle">Exclusiones (0) ▾</button></h3></div></div>
               <div id="drawExclusionsBody">
-              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Persona</th><th>Motivo</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="drawExclusionsTable"></tbody></table></div>
+              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table rrll-draws-table"><thead><tr><th>Nº empleado</th><th>Nombre y apellidos</th><th>Motivo</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="drawExclusionsTable"></tbody></table></div>
             </div>
               </div>
 
             <div class="rrll-pro-list-card">
               <div class="rrll-pro-list-toolbar"><div><h3>Ganadores</h3></div><div class="rrll-pro-list-actions"><button type="button" class="rrll-pro-primary" style="background:#1f9d55;border-color:#1f9d55;" onclick="exportDrawWinners()">Exportar a Excel</button></div></div>
-              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Persona</th><th>Sorteo</th><th>Fecha</th></tr></thead><tbody id="drawWinnersTable"></tbody></table></div>
+              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table rrll-draws-table"><thead><tr><th>Posición</th><th>Nº empleado</th><th>Nombre y apellidos</th><th>Sorteo</th><th>Fecha</th></tr></thead><tbody id="drawWinnersTable"></tbody></table></div>
             </div>
 
             <div class="rrll-pro-list-card">
               <div class="rrll-pro-list-toolbar"><div><h3><button type="button" class="secondary small" onclick="toggleDrawSection('history')" id="drawHistoryToggle">Histórico de sorteos (0) ▾</button></h3></div></div>
               <div id="drawHistoryBody">
-              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table"><thead><tr><th>Sorteo</th><th>Fecha</th><th>Ganadores</th><th>Acciones</th></tr></thead><tbody id="drawHistoryTable"></tbody></table></div>
+              <div class="rrll-pro-table-wrap"><table class="rrll-pro-table rrll-draws-table"><thead><tr><th>Fecha</th><th>Sorteo</th><th>Ganadores</th><th>Acciones</th></tr></thead><tbody id="drawHistoryTable"></tbody></table></div>
               </div>
             </div>
           </div>

@@ -80,7 +80,7 @@
     const plantilla = getPlantillaItems();
     const exclusions = getExclusions();
     const excluded = new Set(exclusions.map(e => e.key));
-    if (!q) { rows.innerHTML = '<tr><td colspan="2" class="muted">Escribe para buscar por nº empleado, nombre o apellidos.</td></tr>'; return; }
+    if (!q) { rows.innerHTML = '<tr><td colspan="3" class="muted">Escribe para buscar por nº empleado, nombre o apellidos.</td></tr>'; return; }
 
     const matches = plantilla.filter(p => {
       const num = normalizedEmployeeNumber(p).toLowerCase();
@@ -88,10 +88,10 @@
       return num.includes(q) || name.includes(q);
     }).slice(0, 30);
 
-    if (!matches.length) { rows.innerHTML = '<tr><td colspan="2" class="muted">Sin coincidencias.</td></tr>'; return; }
+    if (!matches.length) { rows.innerHTML = '<tr><td colspan="3" class="muted">Sin coincidencias.</td></tr>'; return; }
     rows.innerHTML = matches.map(p => {
       const key = employeeKey(p);
-      return `<tr><td><b>${escapeHtml(normalizedEmployeeNumber(p))}</b> · ${escapeHtml(normalizedFullName(p))}</td><td><button type="button" class="secondary small" onclick="excludePersonFromDraw('${encodeURIComponent(key)}')" ${excluded.has(key) ? 'disabled' : ''}>Excluir</button></td></tr>`;
+      return `<tr><td><b>${escapeHtml(normalizedEmployeeNumber(p))}</b></td><td>${escapeHtml(normalizedFullName(p))}</td><td><button type="button" class="secondary small" onclick="excludePersonFromDraw('${encodeURIComponent(key)}')" ${excluded.has(key) ? 'disabled' : ''}>Excluir</button></td></tr>`;
     }).join('');
     window.__drawSearchMap = Object.fromEntries(matches.map(p => [employeeKey(p), p]));
   }
