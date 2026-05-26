@@ -161,7 +161,7 @@
     const nextExclusions = [...exclusions];
     winners.forEach(w => {
       const key = (String(w.employeeNumber || '').trim() || String(w.fullName || '').trim()).toLowerCase();
-      if (!nextExclusions.some(e => e.key === key)) nextExclusions.push({ key, employeeNumber: w.employeeNumber, fullName: w.fullName, motivo: 'Ganador sorteo', excludedAt: new Date().toISOString() });
+      if (!nextExclusions.some(e => e.key === key)) nextExclusions.push({ key, employeeNumber: w.employeeNumber, fullName: w.fullName, motivo: 'Ganador sorteo', drawId: draw.id, excludedAt: new Date().toISOString() });
     });
     setExclusions(nextExclusions);
 
@@ -190,7 +190,43 @@
     if (!el) return;
     const draws = getDraws();
     if (!draws.length) { el.innerHTML = '<tr><td colspan="4" class="muted">Sin histórico.</td></tr>'; return; }
-    el.innerHTML = draws.map(d => `<tr><td>${escapeHtml(d.date || '')}</td><td>${escapeHtml(d.title || '')}</td><td>${Number(d.winnersRequested || 0)}</td><td><button type="button" class="secondary small" onclick="showDrawWinnersById('${d.id}')">Ver ganadores</button> <button type="button" class="secondary small" onclick="exportDrawById('${d.id}')">Exportar</button></td></tr>`).join('');
+    el.innerHTML = draws.map(d => `<tr><td>${escapeHtml(d.date || '')}</td><td>${escapeHtml(d.title || '')}</td><td>${Number(d.winnersRequested || 0)}</td><td><button type="button" class="secondary small" onclick="showDrawWinnersById('${d.id}')">Ver ganadores</button> <button type="button" class="secondary small" onclick="exportDrawById('${d.id}')">Exportar</button> <button type="button" class="secondary small" onclick="deleteDrawById('${d.id}')">Eliminar</button></td></tr>`).join('');
+  }
+
+  async function deleteDrawById(id) {
+    const draw = getDraws().find(d => d.id === id);
+    if (!draw) return;
+    const confirmedDelete = confirm('Vas a eliminar este sorteo del histórico. Esta acción no afecta a la plantilla. ¿Quieres continuar?');
+    if (!confirmedDelete) return;
+
+    const currentExclusions = getExclusions();
+    const winnerExclusions = currentExclusions.filter(e => e.motivo === 'Ganador sorteo' && e.drawId === id);
+    const canUnlinkSafely = winnerExclusions.length > 0;
+
+    let nextExclusions = currentExclusions;
+    if (canUnlinkSafely) {
+      const removeWinnerExclusions = confirm('¿Quieres quitar también de exclusiones a las personas ganadoras de este sorteo?');
+      if (removeWinnerExclusions) {
+        nextExclusions = currentExclusions.filter(e => !(e.motivo === 'Ganador sorteo' && e.drawId === id));
+      }
+    } else {
+      alert('Este sorteo no tiene vínculo técnico con sus exclusiones. Se eliminará solo el histórico.');
+    }
+
+    const nextDraws = getDraws().filter(d => d.id !== id);
+    setDraws(nextDraws);
+    if (nextExclusions !== currentExclusions) setExclusions(nextExclusions);
+
+    if (lastDrawResult && lastDrawResult.id === id) {
+      lastDrawResult = null;
+      renderDrawWinners(null);
+    }
+
+    if (typeof waitForPendingSaves === 'function') {
+      await waitForPendingSaves();
+    }
+
+    renderSorteos();
   }
 
   function showDrawWinnersById(id) { const draw = getDraws().find(d => d.id === id); if (!draw) return; lastDrawResult = draw; renderDrawWinners(draw); }
@@ -218,5 +254,6 @@
   window.exportDrawWinners = () => exportDrawWinners();
   window.showDrawWinnersById = showDrawWinnersById;
   window.exportDrawById = exportDrawById;
+  window.deleteDrawById = deleteDrawById;
   window.toggleDrawSection = toggleDrawSection;
 })();
