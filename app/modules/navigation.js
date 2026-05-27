@@ -281,8 +281,23 @@ function toggleSidebarLeft() {
       rrllEnsureSingleVisibleModule();
     }
 
-    function phase4ShowHome() {
+    async function phase4ShowHome() {
       if (rrllPhase4CurrentView === "home" && document.body.classList.contains("phase4-view-home")) return;
+      let resetOk = true;
+      try {
+        if (typeof window.resetEditingSessionState === "function") {
+          resetOk = await window.resetEditingSessionState("home-navigation");
+        }
+      } catch (error) {
+        resetOk = false;
+      }
+      if (!resetOk) {
+        const shouldReload = window.confirm("No se ha podido limpiar la sesión de edición. ¿Quieres recargar la aplicación?");
+        if (shouldReload) {
+          window.location.reload();
+          return;
+        }
+      }
       phase4StartViewTransition();
       rrllPhase4CurrentView = "home";
       phase4PersistView("home");

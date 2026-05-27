@@ -435,7 +435,7 @@
           if (modal) modal.classList.remove("open");
           if (closingId) {
             window.clearEditingLockHeartbeat?.("tareas", closingId);
-            try { window.clearEditingLock?.("tareas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal:", error); }
+            try { await window.clearEditingLock?.("tareas", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal:", error); }
           }
           activeTaskUpdateId = null;
           activeTaskLoadedUpdatedAt = "";
