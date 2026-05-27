@@ -257,6 +257,30 @@ function buildTicketRestaurantAbsenceDailyKeys(row) {
   return dates.map(date => ticketRestaurantAbsenceUniqueKey(row, date)).filter(Boolean);
 }
 
+function ticketRestaurantRangesOverlap(leftFrom, leftTo, rightFrom, rightTo) {
+  const aFrom = parseTicketDate(leftFrom);
+  const aTo = parseTicketDate(leftTo || leftFrom) || aFrom;
+  const bFrom = parseTicketDate(rightFrom);
+  const bTo = parseTicketDate(rightTo || rightFrom) || bFrom;
+  if (!aFrom || !aTo || !bFrom || !bTo) return false;
+  return aFrom <= bTo && bFrom <= aTo;
+}
+
+function isExactTicketRestaurantAbsenceDuplicate(left, right) {
+  if (!left || !right) return false;
+  return normalizeTicketAbsenceIdentity(left) === normalizeTicketAbsenceIdentity(right)
+    && normalizeTicketAbsenceReason(left && left.reason) === normalizeTicketAbsenceReason(right && right.reason)
+    && parseTicketDate(left && left.from) === parseTicketDate(right && right.from)
+    && parseTicketDate((left && left.to) || (left && left.from)) === parseTicketDate((right && right.to) || (right && right.from));
+}
+
+function isTicketRestaurantAbsenceOverlapReplacement(existing, incoming) {
+  if (!existing || !incoming) return false;
+  if (normalizeTicketAbsenceIdentity(existing) !== normalizeTicketAbsenceIdentity(incoming)) return false;
+  if (normalizeTicketAbsenceReason(existing && existing.reason) !== normalizeTicketAbsenceReason(incoming && incoming.reason)) return false;
+  return ticketRestaurantRangesOverlap(existing && existing.from, existing && existing.to, incoming && incoming.from, incoming && incoming.to);
+}
+
 function isTicketRestaurantAbsenceDateComputable(date) {
   const iso = parseTicketDate(date);
   return Boolean(iso && iso >= TICKET_RESTAURANT_MIN_ABSENCE_DATE);
@@ -997,10 +1021,14 @@ async function importTicketRestaurantPeople() {
   showTicketRestaurantImportSummary("ticketRestaurantPeopleImportSummary", imported, updated, omitted, result.fileName);
 }
 
-function showTicketRestaurantImportSummary(id, imported, updated, omitted, fileName) {
+function showTicketRestaurantImportSummary(id, imported, updated, omitted, fileName, labels = null) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.innerHTML = `<strong>${escapeHtml(fileName || "Fichero")}</strong> · Importados: <b>${imported}</b> · Actualizados: <b>${updated}</b> · Omitidos: <b>${omitted}</b>`;
+  const resolved = labels && typeof labels === "object" ? labels : {};
+  const importedLabel = resolved.imported || "Importados";
+  const updatedLabel = resolved.updated || "Actualizados";
+  const omittedLabel = resolved.omitted || "Omitidos";
+  el.innerHTML = `<strong>${escapeHtml(fileName || "Fichero")}</strong> · ${escapeHtml(importedLabel)}: <b>${imported}</b> · ${escapeHtml(updatedLabel)}: <b>${updated}</b> · ${escapeHtml(omittedLabel)}: <b>${omitted}</b>`;
 }
 
 function ticketRestaurantNormalizePreviewDate(value) {
@@ -1424,11 +1452,14 @@ function saveTicketRestaurantAbsencePreviewRows() {
     return;
   }
   const now = new Date().toISOString();
+  const existingAbsences = getTicketRestaurantAbsences();
   const existingStats = getTicketRestaurantAbsenceStats();
-  const existingKeys = new Set(existingStats.existingKeys);
-  const importSeenKeys = new Set();
+  const existingById = new Map(existingAbsences.map(item => [item.id, item]));
+  const importSeenExact = new Set();
   const records = [];
-  let skippedDuplicates = 0;
+  let skippedExactDuplicates = 0;
+  let replacedByImport = 0;
+  const replacedIds = new Set();
   validation.rows.forEach(row => {
     const from = parseTicketDate(row.fromDate);
     const to = parseTicketDate(row.toDate) || from;
@@ -1440,15 +1471,14 @@ function saveTicketRestaurantAbsencePreviewRows() {
       reason: String(row.reason || "").trim(),
       computable: typeof row.computable === "boolean" ? row.computable : isTicketRestaurantAbsenceDateComputable(from)
     };
-    const dailyKeys = buildTicketRestaurantAbsenceDailyKeys(previewRecord);
-    const duplicated = dailyKeys.length && dailyKeys.some(key => existingKeys.has(key) || importSeenKeys.has(key));
-    dailyKeys.forEach(key => importSeenKeys.add(key));
-    if (duplicated) {
-      skippedDuplicates += 1;
+    const exactKey = `${normalizeTicketAbsenceIdentity(previewRecord)}|${parseTicketDate(from)}|${parseTicketDate(to)}|${normalizeTicketAbsenceReason(previewRecord.reason)}`;
+    if (importSeenExact.has(exactKey)) {
+      skippedExactDuplicates += 1;
       return;
     }
+    importSeenExact.add(exactKey);
     const period = ticketRestaurantMonthYearFromDate(from);
-    records.push({
+    const record = {
       id: `tr-absence-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       employeeNumber: previewRecord.employeeNumber,
       employeeName: previewRecord.employeeName,
@@ -1460,17 +1490,33 @@ function saveTicketRestaurantAbsencePreviewRows() {
       month: period.month,
       year: period.year,
       createdAt: now
+    };
+    const matchingExisting = existingAbsences.filter(item => isTicketRestaurantAbsenceOverlapReplacement(item, record));
+    if (matchingExisting.some(item => isExactTicketRestaurantAbsenceDuplicate(item, record))) {
+      skippedExactDuplicates += 1;
+      return;
+    }
+    matchingExisting.forEach(item => {
+      if (!item || !item.id || replacedIds.has(item.id)) return;
+      replacedIds.add(item.id);
+      replacedByImport += 1;
     });
+    records.push(record);
   });
-  saveTicketRestaurantAbsences([...getTicketRestaurantAbsences(), ...records]);
-  registerTicketRestaurantPendingDiscounts(records);
+  const keptExisting = existingAbsences.filter(item => !(item && item.id && replacedIds.has(item.id)));
+  saveTicketRestaurantAbsences([...keptExisting, ...records]);
+  ensureTicketRestaurantPendingDiscountLedgerFromAbsences();
   closeTicketRestaurantAbsencePreviewModal();
   renderTicketRestaurantAbsences();
   renderTicketRestaurantComputePreview();
   const invalidRows = Number(document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.ignoredRows || 0);
-  showTicketRestaurantImportSummary("ticketRestaurantAbsenceImportSummary", records.length, skippedDuplicates, invalidRows, document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.fileName || "Fichero");
+  showTicketRestaurantImportSummary("ticketRestaurantAbsenceImportSummary", records.length, replacedByImport, skippedExactDuplicates, document.getElementById("ticketRestaurantAbsencePreviewModal")?.dataset.fileName || "Fichero", {
+    imported: "Importadas nuevas",
+    updated: "Sustituidas por nueva importación",
+    omitted: "Ignoradas por duplicado exacto"
+  });
   const hiddenExisting = existingStats.hiddenDuplicates;
-  alert(`Importación de ausencias finalizada.\nNuevas importadas: ${records.length}.\nIgnoradas por duplicado: ${skippedDuplicates}.\nDuplicados existentes ocultados: ${hiddenExisting}.\nFilas no válidas/ignoradas: ${invalidRows}.`);
+  alert(`Importación de ausencias finalizada.\nImportadas nuevas: ${records.length}.\nSustituidas por nueva importación: ${replacedByImport}.\nIgnoradas por duplicado exacto: ${skippedExactDuplicates}.\nDuplicados existentes ocultados: ${hiddenExisting}.\nFilas no válidas/ignoradas: ${invalidRows}.`);
 }
 
 async function importTicketRestaurantAbsences() {
