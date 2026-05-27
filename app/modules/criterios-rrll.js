@@ -140,9 +140,39 @@
     };
   }
 
-  function validateCriteriaPayload(payload) {
-    if (!payload.date || !payload.subject || !payload.generalCriterion) {
+  function unlockCriteriaField(field) {
+    if (!field) return;
+    field.disabled = false;
+    field.readOnly = false;
+    field.removeAttribute('disabled');
+    field.removeAttribute('readonly');
+    field.style.pointerEvents = 'auto';
+  }
+
+  function unlockCriteriaForm(prefix) {
+    const subjectField = document.getElementById(`${prefix}CriteriaSubject`);
+    const dateField = document.getElementById(`${prefix}CriteriaDate`);
+    unlockCriteriaField(subjectField);
+    unlockCriteriaField(dateField);
+  }
+
+  function validateCriteriaPayload(payload, prefix) {
+    const requiredFieldIds = [
+      `${prefix}CriteriaDate`,
+      `${prefix}CriteriaSubject`,
+      `${prefix}CriteriaGeneral`
+    ];
+    const firstInvalidFieldId = requiredFieldIds.find(id => !criteriaValue(id));
+    if (firstInvalidFieldId) {
       alert('Fecha, Motivo / asunto y Criterio general son obligatorios.');
+      unlockCriteriaForm(prefix);
+      const saveButtonSelector = prefix === 'edit'
+        ? '#criteriaEditModal .rrll-pro-primary'
+        : '#criteriaCreateForm .rrll-pro-primary';
+      const saveButton = document.querySelector(saveButtonSelector);
+      if (saveButton) saveButton.disabled = false;
+      console.info('[RRLL CRITERIA] validación fallida, formulario desbloqueado');
+      document.getElementById(firstInvalidFieldId)?.focus();
       return false;
     }
     return true;
@@ -150,7 +180,7 @@
 
   function addCriteria() {
     const payload = buildCriteriaFromForm('new');
-    if (!validateCriteriaPayload(payload)) return;
+    if (!validateCriteriaPayload(payload, 'new')) return;
     const now = new Date().toISOString();
     const item = {
       id: crypto.randomUUID ? crypto.randomUUID() : `criteria-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -672,7 +702,7 @@
   function saveEditingCriteria() {
     if (!editingCriteriaId) return;
     const payload = buildCriteriaFromForm('edit');
-    if (!validateCriteriaPayload(payload)) return;
+    if (!validateCriteriaPayload(payload, 'edit')) return;
     const now = new Date().toISOString();
     const items = getCriteria().map(item => item.id === editingCriteriaId ? { ...item, ...payload, updatedAt: now } : item);
     setCriteria(items);
