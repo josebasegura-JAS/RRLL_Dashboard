@@ -384,8 +384,9 @@
                   <button id="task-filter-progress" type="button" onclick="setTaskViewFilter('progress')">En curso <span id="count-progress">0</span></button>
                   <button id="task-filter-closed" type="button" onclick="setTaskViewFilter('closed')">Cerradas <span id="count-closed">0</span></button>
                 </div>
-                <div class="rrll-pro-search-wrap">
-                  <input id="taskInlineSearch" placeholder="Buscar tareas..." oninput="renderTasks()" />
+                <div class="rrll-pro-search-wrap is-collapsed">
+                  <button id="taskSearchToggle" type="button" class="rrll-pro-search-toggle" aria-label="Mostrar búsqueda de tareas" aria-expanded="false" onclick="toggleTaskInlineSearch()">🔍</button>
+                  <input id="taskInlineSearch" type="search" placeholder="Buscar tarea…" oninput="renderTasks()" />
                 </div>
                 <div class="rrll-pro-list-actions">
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printModule('tasks')" title="Imprimir el filtro seleccionado" aria-label="Imprimir tareas">🖨️</button>

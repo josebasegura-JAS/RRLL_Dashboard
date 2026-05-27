@@ -477,13 +477,6 @@ function toggleSidebarLeft() {
       } else if (RRLL_MAIN_GESTOR_IDS.includes(gestorId)) {
         openMainGestor(gestorId);
       } else if (!gestorId) {
-        const persistedView = phase4ReadPersistedView();
-        if (persistedView && persistedView !== "home") {
-          if (RRLL_PHASE4_SUBVIEW_MAP[persistedView]) phase4OpenSubview(persistedView);
-          else if (RRLL_MAIN_GESTOR_IDS.includes(persistedView)) openMainGestor(persistedView);
-          else phase4ShowHome();
-          return;
-        }
         phase4ShowHome();
       } else {
         phase4ShowHome();

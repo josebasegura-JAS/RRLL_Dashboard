@@ -767,6 +767,33 @@
         });
       }
 
+
+      function taskPriorityDueOrder(task) {
+        const normalized = normalizePriority(task?.priority);
+        const raw = String(task?.priority || "").trim().toLowerCase();
+        if (normalized === "critical" || raw === "crítica" || raw === "critica") return 0;
+        if (normalized === "high" || raw === "alta") return 1;
+        if (normalized === "normal" || raw === "media" || raw === "normal") return 2;
+        if (normalized === "low" || raw === "baja") return 3;
+        return 4;
+      }
+
+      function taskDueSortValue(task) {
+        const dueDate = typeof normalizeDateInput === "function" ? normalizeDateInput(task?.dueDate || "") : (task?.dueDate || "");
+        if (!dueDate) return Number.POSITIVE_INFINITY;
+        const time = Date.parse(`${dueDate}T00:00:00`);
+        return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time;
+      }
+
+      function sortActiveTasksByPriorityAndDueDate(items) {
+        return [...items].sort((a, b) => {
+          const byPriority = taskPriorityDueOrder(a) - taskPriorityDueOrder(b);
+          if (byPriority) return byPriority;
+          const byDueDate = taskDueSortValue(a) - taskDueSortValue(b);
+          if (byDueDate) return byDueDate;
+          return String(a.title || "").localeCompare(String(b.title || ""), "es-ES", { numeric: true, sensitivity: "base" });
+        });
+      }
       function setTaskSort(field) {
         if (!field) return;
         if (taskSortField === field) {
@@ -792,13 +819,26 @@
         });
       }
 
+      function toggleTaskInlineSearch() {
+        const wrap = document.querySelector("#gestor-tareas .rrll-pro-search-wrap");
+        const input = document.getElementById("taskInlineSearch");
+        if (!wrap || !input) return;
+        const forceOpen = wrap.classList.contains("is-collapsed");
+        wrap.classList.toggle("is-collapsed", !forceOpen);
+        wrap.classList.toggle("is-expanded", forceOpen);
+        const button = document.getElementById("taskSearchToggle");
+        if (button) button.setAttribute("aria-expanded", forceOpen ? "true" : "false");
+        if (forceOpen) setTimeout(() => input.focus(), 0);
+      }
+
       function getVisibleTasks() {
         const query = (document.getElementById("taskInlineSearch")?.value || "").trim().toLowerCase();
         const filtered = getTasks()
           .filter(task => taskViewFilter === "closed" ? task.status === "closed" : task.status !== "closed")
           .filter(task => taskViewFilter === "all" || taskViewFilter === "closed" || task.status === taskViewFilter)
           .filter(task => taskMatchesQuery(task, query));
-        return sortTasks(filtered);
+        if (taskViewFilter === "closed") return sortTasks(filtered);
+        return sortActiveTasksByPriorityAndDueDate(filtered);
       }
 
       function renderTasks() {
@@ -887,6 +927,7 @@
   window.getVisibleTasks = getVisibleTasks;
   window.toggleTaskRowDetails = toggleTaskRowDetails;
   window.isClosedWithinLastMonth = isClosedWithinLastMonth;
+  window.toggleTaskInlineSearch = toggleTaskInlineSearch;
   window.updateQuickCounts = updateQuickCounts;
   window.applyAllClosedColumnStates = applyAllClosedColumnStates;
   window.toggleClosedColumn = toggleClosedColumn;
