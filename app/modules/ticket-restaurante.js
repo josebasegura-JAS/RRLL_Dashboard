@@ -1051,6 +1051,14 @@ function detectTicketRestaurantAbsenceFormat(rows) {
   return "unknown";
 }
 
+function normalizeTicketRestaurantAffectsTicket(value) {
+  const compact = normalizeTicketCompactText(value);
+  if (compact === "si" || compact === "s" || compact === "1" || compact === "true") return true;
+  if (compact === "no" || compact === "n" || compact === "0" || compact === "false") return false;
+  if (compact === "--" || compact === "") return null;
+  return null;
+}
+
 function normalizeTicketRestaurantAbsenceRow(row) {
   const employeeNumber = normalizeTicketEmployee(row && (row.employeeNumber ?? row["Nº empleado"] ?? row.empleado));
   const employeeName = String(row && (row.employeeName ?? row["Nombre y apellidos"] ?? row.nombreApellidos ?? row.nombreCompleto) || "").replace(/\s+/g, " ").trim();
@@ -1058,8 +1066,9 @@ function normalizeTicketRestaurantAbsenceRow(row) {
   const toDate = ticketRestaurantNormalizePreviewDate(row && (row.toDate ?? row.Hasta ?? row.hasta)) || fromDate;
   const reason = String(row && (row.reason ?? row.Motivo ?? row.motivo) || "").replace(/\s+/g, " ").trim();
   let totalDays = row && (row.totalDays ?? row["Total días"] ?? row.totalDias);
+  const affectsTicket = row && Object.prototype.hasOwnProperty.call(row, "affectsTicket") ? row.affectsTicket : normalizeTicketRestaurantAffectsTicket(row && (row.afectaTicket ?? row.J ?? row.j));
   if (String(totalDays ?? "").trim() === "") totalDays = ticketRestaurantInclusiveDateDays(fromDate, toDate) || "";
-  return { employeeNumber, employeeName, fromDate, toDate, reason, totalDays: String(totalDays ?? "").replace(",", ".").trim() };
+  return { employeeNumber, employeeName, fromDate, toDate, reason, totalDays: String(totalDays ?? "").replace(",", ".").trim(), affectsTicket };
 }
 
 function parseTicketRestaurantCleanAbsenceRows(rows) {
@@ -1114,23 +1123,39 @@ function ticketRestaurantDetectZerkosEmployee(row) {
 }
 
 function ticketRestaurantExtractZerkosAbsence(row, employeeNumber) {
-  const cells = (Array.isArray(row) ? row : []).map(cell => cell == null ? "" : cell).filter(cell => String(cell).trim() !== "");
+  const rawCells = Array.isArray(row) ? row : [];
+  const cells = rawCells.map(cell => cell == null ? "" : cell).filter(cell => String(cell).trim() !== "");
   const joined = cells.map(cell => String(cell)).join(" ");
   if (!cells.length || /total\s+d[ií]as/i.test(joined)) return null;
   const reasonIndex = cells.findIndex(cell => /^[A-ZÑ]{2,6}\.?$/i.test(String(cell).trim()) && !/^(AUS|AÑO|ANO|DESDE|HASTA|DIAS|DÍAS)$/i.test(String(cell).trim()));
   if (reasonIndex < 0) return null;
   const reason = String(cells[reasonIndex]).replace(".", "").trim().toUpperCase();
-  const dateCells = cells.slice(reasonIndex + 1).filter(ticketRestaurantLooksLikeDateCell);
-  if (dateCells.length < 1) return null;
-  const fromDate = ticketRestaurantNormalizePreviewDate(dateCells[0]);
-  const toDate = ticketRestaurantNormalizePreviewDate(dateCells[1] || dateCells[0]);
+  let fromDate = "";
+  let toDate = "";
+  let totalDays = "";
+  let affectsTicket = null;
+  const structured = rawCells.slice(reasonIndex, reasonIndex + 6);
+  if (structured.length >= 4 && ticketRestaurantLooksLikeDateCell(structured[2])) {
+    fromDate = ticketRestaurantNormalizePreviewDate(structured[2]);
+    toDate = ticketRestaurantNormalizePreviewDate(structured[3]) || fromDate;
+    totalDays = structured[4] == null ? "" : String(structured[4]).trim().replace(",", ".");
+    affectsTicket = normalizeTicketRestaurantAffectsTicket(structured[5]);
+  }
+  if (!fromDate) {
+    const dateCells = cells.slice(reasonIndex + 1).filter(ticketRestaurantLooksLikeDateCell);
+    if (dateCells.length < 1) return null;
+    fromDate = ticketRestaurantNormalizePreviewDate(dateCells[0]);
+    toDate = ticketRestaurantNormalizePreviewDate(dateCells[1] || dateCells[0]);
+  }
   if (!parseTicketDate(fromDate) || !parseTicketDate(toDate)) return null;
-  const dayCandidates = cells.slice(reasonIndex + 1).map(cell => String(cell).trim()).filter(text => {
-    const n = Number(text.replace(",", "."));
-    return Number.isFinite(n) && n > 0 && n < 367 && !/^20\d{2}$/.test(text) && !ticketRestaurantLooksLikeDateCell(text);
-  });
-  const totalDays = dayCandidates.length ? dayCandidates[dayCandidates.length - 1].replace(",", ".") : String(ticketRestaurantInclusiveDateDays(fromDate, toDate));
-  return normalizeTicketRestaurantAbsenceRow({ employeeNumber, fromDate, toDate, reason, totalDays });
+  if (!totalDays) {
+    const dayCandidates = cells.slice(reasonIndex + 1).map(cell => String(cell).trim()).filter(text => {
+      const n = Number(text.replace(",", "."));
+      return Number.isFinite(n) && n > 0 && n < 367 && !/^20\d{2}$/.test(text) && !ticketRestaurantLooksLikeDateCell(text);
+    });
+    totalDays = dayCandidates.length ? dayCandidates[dayCandidates.length - 1].replace(",", ".") : String(ticketRestaurantInclusiveDateDays(fromDate, toDate));
+  }
+  return normalizeTicketRestaurantAbsenceRow({ employeeNumber, fromDate, toDate, reason, totalDays, affectsTicket });
 }
 
 function parseTicketRestaurantZerkosAbsenceRows(rows) {
@@ -1421,7 +1446,8 @@ function saveTicketRestaurantAbsencePreviewRows() {
       from,
       to,
       reason: previewRecord.reason,
-      computable: previewRecord.computable,
+      affectsTicket: row.affectsTicket === false ? false : (row.affectsTicket === true ? true : undefined),
+      computable: row.affectsTicket === false ? false : previewRecord.computable,
       totalDays: parseTicketNumber(row.totalDays),
       month: period.month,
       year: period.year,
