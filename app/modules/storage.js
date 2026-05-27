@@ -48,7 +48,7 @@ function getTodayKey() {
     }
 
     function setEditingLocks(next) {
-      save(RRLL_EDITING_LOCKS_KEY, Array.isArray(next) ? next : []);
+      return save(RRLL_EDITING_LOCKS_KEY, Array.isArray(next) ? next : []);
     }
 
     function isExpiredLock(lock) {
@@ -70,6 +70,19 @@ function getTodayKey() {
       return active;
     }
 
+    async function purgeExpiredEditingLocksAsync() {
+      const locks = getEditingLocks();
+      const active = locks.filter(lock => {
+        const expired = isExpiredLock(lock);
+        if (expired) {
+          console.info("[RRLL LOCK] lock caducado purgado y persistido:", { module: lock?.module, recordId: lock?.recordId, editingBy: lock?.editingBy, expiresAt: lock?.expiresAt });
+        }
+        return !expired;
+      });
+      if (active.length !== locks.length) await setEditingLocks(active);
+      return active;
+    }
+
     function getActiveEditingLock(moduleName, recordId) {
       const module = String(moduleName || "").trim();
       const id = String(recordId || "").trim();
@@ -78,16 +91,16 @@ function getTodayKey() {
       return active.find(lock => String(lock.module) === module && String(lock.recordId) === id) || null;
     }
 
-    function clearEditingLock(moduleName, recordId) {
+    async function clearEditingLock(moduleName, recordId) {
       try {
         const module = String(moduleName || "").trim();
         const id = String(recordId || "").trim();
         if (!module || !id) return false;
-        const locks = purgeExpiredEditingLocks();
+        const locks = getEditingLocks();
         const next = locks.filter(lock => !(String(lock.module) === module && String(lock.recordId) === id));
         if (next.length !== locks.length) {
-          console.info("[RRLL LOCK] lock liberado:", { module, recordId: id });
-          setEditingLocks(next);
+          await setEditingLocks(next);
+          console.info("[RRLL LOCK] lock liberado y persistido:", { module, recordId: id });
         }
         return true;
       } catch (error) {
@@ -107,7 +120,7 @@ function getTodayKey() {
       const existing = existingIndex >= 0 ? locks[existingIndex] : null;
 
       if (existing && String(existing.editingBy || "").toLowerCase() !== currentUser.toLowerCase()) {
-        console.info("[RRLL LOCK] edición bloqueada por otro usuario:", { module, recordId: id, requestedBy: currentUser, lockedBy: existing.editingBy, editingAt: existing.editingAt });
+        console.info("[RRLL LOCK] edición bloqueada por otro usuario:", { module, recordId: id, requestedBy: currentUser, lockedBy: existing.editingBy, editingAt: existing.editingAt, expiresAt: existing.expiresAt });
         return { allowed: false, lock: existing };
       }
 
@@ -175,12 +188,14 @@ function getTodayKey() {
     async function clearEditingLocksForCurrentUser(reason) {
       try {
         const currentUser = await getCurrentWindowsUser();
-        const locks = purgeExpiredEditingLocks();
+        const locks = await purgeExpiredEditingLocksAsync();
         const next = locks.filter(lock => String(lock.editingBy || "").toLowerCase() !== currentUser.toLowerCase());
         if (next.length !== locks.length) {
-          console.info("[RRLL LOCK] liberando locks de sesión:", { reason: reason || "unknown", editingBy: currentUser, released: locks.length - next.length });
-          setEditingLocks(next);
+          const released = locks.length - next.length;
+          await setEditingLocks(next);
+          console.info("[RRLL LOCK] limpieza de locks del usuario persistida:", { reason: reason || "unknown", editingBy: currentUser, released });
         }
+        await window.waitForPendingSaves?.();
       } catch (error) {
         console.warn("No se pudieron liberar locks de sesión:", error);
       }
@@ -388,6 +403,42 @@ window.waitForPendingSaves = async function () {
     window.renderTaskAttachments = renderTaskAttachments;
     window.renderPetitionAttachments = renderPetitionAttachments;
 
+
+function clearAllEditingLockHeartbeats() {
+  Object.keys(rrllEditingHeartbeatTimers).forEach(key => {
+    clearInterval(rrllEditingHeartbeatTimers[key]);
+    delete rrllEditingHeartbeatTimers[key];
+    console.info("[RRLL LOCK] heartbeat detenido:", { key });
+  });
+  console.info("[RRLL LOCK] todos los heartbeats detenidos");
+}
+
+function hasAnyOpenModal() {
+  return !!document.querySelector('.modal.open, [role="dialog"].open, .overlay.open');
+}
+
+window.resetEditingSessionState = async function (reason) {
+  try {
+    clearAllEditingLockHeartbeats();
+    await clearEditingLocksForCurrentUser(reason || "manual");
+    await purgeExpiredEditingLocksAsync();
+    await window.waitForPendingSaves?.();
+    const stateKeys = [
+      "activeTaskUpdateId", "activePetitionUpdateId", "activeAgendaUpdateId", "activeParitariaUpdateId",
+      "activeActaUpdateId", "activeVinculogramaUpdateId", "activeLicenciaUpdateId", "activePlantillaUpdateId", "activeCriterioUpdateId"
+    ];
+    stateKeys.forEach(key => {
+      if (Object.prototype.hasOwnProperty.call(window, key)) window[key] = null;
+    });
+    if (!hasAnyOpenModal()) await window.runPendingRemoteRefreshIfNeeded?.();
+    console.info("[RRLL LOCK] sesión de edición reseteada", { reason: reason || "manual" });
+    return true;
+  } catch (error) {
+    console.warn("[RRLL LOCK] fallo al resetear sesión de edición:", error);
+    return false;
+  }
+};
+
 window.acquireEditingLock = acquireEditingLock;
 window.renewEditingLock = renewEditingLock;
 window.startEditingLockHeartbeat = startEditingLockHeartbeat;
@@ -396,16 +447,19 @@ window.showEditingLockBlockedMessage = showEditingLockBlockedMessage;
 window.getCurrentWindowsUser = getCurrentWindowsUser;
 
 window.purgeExpiredEditingLocks = purgeExpiredEditingLocks;
+window.purgeExpiredEditingLocksAsync = purgeExpiredEditingLocksAsync;
 window.getActiveEditingLock = getActiveEditingLock;
 window.clearEditingLock = clearEditingLock;
 window.clearEditingLocksForCurrentUser = clearEditingLocksForCurrentUser;
+window.clearAllEditingLockHeartbeats = clearAllEditingLockHeartbeats;
 
 window.addEventListener("beforeunload", () => {
-  clearEditingLocksForCurrentUser("beforeunload");
+  clearAllEditingLockHeartbeats();
+  purgeExpiredEditingLocks();
 });
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    purgeExpiredEditingLocks();
+    purgeExpiredEditingLocksAsync().catch(error => console.warn("No se pudieron purgar locks caducados al recuperar foco:", error));
   }
 });

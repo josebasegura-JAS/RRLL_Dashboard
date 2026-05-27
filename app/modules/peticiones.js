@@ -369,7 +369,7 @@
       activePetitionLoadedUpdatedAt = "";
       if (closingId) {
         window.clearEditingLockHeartbeat?.("peticiones", closingId);
-        try { window.clearEditingLock?.("peticiones", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de petición:", error); }
+        try { await window.clearEditingLock?.("peticiones", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de petición:", error); }
       }
       const modal = document.getElementById("petitionUpdateModal");
       if (modal) modal.classList.remove("open");
@@ -466,7 +466,7 @@
       console.info("[RRLL PETITION] guardado fusionado completado", { id: activePetitionUpdateId });
       if (activePetitionUpdateId) {
         window.clearEditingLockHeartbeat?.("peticiones", activePetitionUpdateId);
-        try { window.clearEditingLock?.("peticiones", activePetitionUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar petición:", error); }
+        try { await window.clearEditingLock?.("peticiones", activePetitionUpdateId); } catch (error) { console.warn("No se pudo liberar lock al guardar petición:", error); }
       }
       await closePetitionUpdateModal();
       renderPetitions();
