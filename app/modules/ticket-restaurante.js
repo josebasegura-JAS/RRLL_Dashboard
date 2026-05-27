@@ -1113,10 +1113,42 @@ function ticketRestaurantDetectZerkosEmployee(row) {
   return employee ? employee.employeeNumber : "";
 }
 
+function ticketRestaurantResolveZerkosComputableFlag(flagValue, fromDate) {
+  const flag = normalizeTicketCompactText(flagValue);
+  if (flag === "si" || flag === "s" || flag === "j") return true;
+  if (flag === "no" || flag === "n") return false;
+  return isTicketRestaurantAbsenceDateComputable(fromDate);
+}
+
 function ticketRestaurantExtractZerkosAbsence(row, employeeNumber) {
-  const cells = (Array.isArray(row) ? row : []).map(cell => cell == null ? "" : cell).filter(cell => String(cell).trim() !== "");
+  const originalCells = Array.isArray(row) ? row : [];
+  const cells = originalCells.map(cell => cell == null ? "" : cell).filter(cell => String(cell).trim() !== "");
   const joined = cells.map(cell => String(cell)).join(" ");
   if (!cells.length || /total\s+d[ií]as/i.test(joined)) return null;
+
+  const columnReason = originalCells[0];
+  const columnYear = String(originalCells[1] ?? "").trim();
+  const columnFrom = originalCells[2];
+  const columnTo = originalCells[3];
+  const columnDays = String(originalCells[4] ?? "").trim();
+  const columnAffectsTicket = originalCells[5];
+  const fixedReason = String(columnReason ?? "").replace(".", "").trim().toUpperCase();
+  const fixedFrom = ticketRestaurantNormalizePreviewDate(columnFrom);
+  const fixedTo = ticketRestaurantNormalizePreviewDate(columnTo || columnFrom);
+  const fixedHasReason = /^[A-ZÑ]{2,6}$/.test(fixedReason) && !/^(AUS|AÑO|ANO|DESDE|HASTA|DIAS|DÍAS)$/.test(fixedReason);
+  const fixedYearValid = /^20\d{2}$/.test(columnYear);
+  if (fixedHasReason && fixedYearValid && parseTicketDate(fixedFrom)) {
+    const normalized = normalizeTicketRestaurantAbsenceRow({
+      employeeNumber,
+      fromDate: fixedFrom,
+      toDate: parseTicketDate(fixedTo) ? fixedTo : fixedFrom,
+      reason: fixedReason,
+      totalDays: columnDays || String(ticketRestaurantInclusiveDateDays(fixedFrom, fixedTo || fixedFrom))
+    });
+    normalized.computable = ticketRestaurantResolveZerkosComputableFlag(columnAffectsTicket, parseTicketDate(normalized.fromDate));
+    return normalized;
+  }
+
   const reasonIndex = cells.findIndex(cell => /^[A-ZÑ]{2,6}\.?$/i.test(String(cell).trim()) && !/^(AUS|AÑO|ANO|DESDE|HASTA|DIAS|DÍAS)$/i.test(String(cell).trim()));
   if (reasonIndex < 0) return null;
   const reason = String(cells[reasonIndex]).replace(".", "").trim().toUpperCase();
@@ -1130,7 +1162,9 @@ function ticketRestaurantExtractZerkosAbsence(row, employeeNumber) {
     return Number.isFinite(n) && n > 0 && n < 367 && !/^20\d{2}$/.test(text) && !ticketRestaurantLooksLikeDateCell(text);
   });
   const totalDays = dayCandidates.length ? dayCandidates[dayCandidates.length - 1].replace(",", ".") : String(ticketRestaurantInclusiveDateDays(fromDate, toDate));
-  return normalizeTicketRestaurantAbsenceRow({ employeeNumber, fromDate, toDate, reason, totalDays });
+  const normalized = normalizeTicketRestaurantAbsenceRow({ employeeNumber, fromDate, toDate, reason, totalDays });
+  normalized.computable = ticketRestaurantResolveZerkosComputableFlag(cells[reasonIndex + 5], parseTicketDate(normalized.fromDate));
+  return normalized;
 }
 
 function parseTicketRestaurantZerkosAbsenceRows(rows) {
@@ -1404,7 +1438,7 @@ function saveTicketRestaurantAbsencePreviewRows() {
       from,
       to,
       reason: String(row.reason || "").trim(),
-      computable: isTicketRestaurantAbsenceDateComputable(from)
+      computable: typeof row.computable === "boolean" ? row.computable : isTicketRestaurantAbsenceDateComputable(from)
     };
     const dailyKeys = buildTicketRestaurantAbsenceDailyKeys(previewRecord);
     const duplicated = dailyKeys.length && dailyKeys.some(key => existingKeys.has(key) || importSeenKeys.has(key));
