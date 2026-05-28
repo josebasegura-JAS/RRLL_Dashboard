@@ -30,11 +30,22 @@
   }
 
   function getActiveRecipients() {
-    return getRecipients().filter(item => item && item.active && isValidEmail(item.email));
+    return getRecipients().filter(item => item && isValidEmail(item.email));
   }
 
-  function buildEspecialesSubject(evento) {
-    return `Servicio Especial ${String(evento || "").trim()}`.trim();
+  function buildEspecialesBullet(payload = {}) {
+    const evento = String(payload.evento || "").trim();
+    const fecha = String(payload.fecha || "").trim();
+    const hora = normalizeTimeInput(payload.hora || "");
+    const dateParts = getDateParts(fecha);
+    const year = dateParts.year || detectYearFromText(`${evento} ${fecha}`) || String(new Date().getFullYear());
+    const diaSemana = dateParts.weekDay || "[DIA_SEMANA]";
+    const fechaLarga = dateParts.longDate || "[FECHA_LARGA]";
+    return `BEC Concierto ${evento || "[EVENTO]"}, ${diaSemana} ${fechaLarga} de ${year} a las ${hora || "[HORA]"}h`;
+  }
+
+  function buildEspecialesSubject(payload = {}) {
+    return `Servicio Especial ${buildEspecialesBullet(payload)}`.trim();
   }
 
   function buildEspecialesHtmlBody(payload = {}) {
@@ -49,14 +60,16 @@
     const ruta = String(payload.ruta || "").trim() || buildTurnosPath(year);
 
     return [
+      '<div style="font-family: Verdana, Arial, sans-serif; font-size: 11pt;">',
       "<p>Kaixo,</p>",
       "<p>Adjunto acceso a los turnos de conducción de Servicio Especial donde ya están disponibles en la intranet los turnos de conducción de:</p>",
-      `<p>• BEC Concierto ${escapeHtml(evento || "[EVENTO]")}, ${escapeHtml(diaSemana)} ${escapeHtml(fechaLarga)} de ${escapeHtml(year)} a las ${escapeHtml(hora || "[HORA]")}h</p>`,
+      `<p><strong>• ${escapeHtml(buildEspecialesBullet(payload))}</strong></p>`,
       enlace ? `<p><a href="${escapeHtml(enlace)}">${escapeHtml(enlace)}</a></p>` : "<p>[ENLACE]</p>",
       `<p>Los turnos están en: Las personas -> turnos -> trenes -> Invierno -> Servicios Especiales -> ${escapeHtml(year)}</p>`,
       "<p>Así mismo, tenéis los turnos de MTEs en Excel con la tabla de % Parada SIN del servicio especial a realizar. Se encuentra en el siguiente directorio común que tenéis acceso:</p>",
       `<p>${escapeHtml(ruta)}</p>`,
-      "<p>Ondo izan</p>"
+      "<p>Ondo izan</p>",
+      "</div>"
     ].join("");
   }
 
@@ -83,7 +96,7 @@
   function getDraftAvailability() {
     const active = getActiveRecipients();
     const data = collectServiceData();
-    if (!active.length) return { ok: false, reason: "faltan destinatarios activos" };
+    if (!active.length) return { ok: false, reason: "faltan destinatarios con email válido" };
     if (!data.evento) return { ok: false, reason: "falta evento" };
     if (!window.rrllOutlook || typeof window.rrllOutlook.createDraft !== "function") return { ok: false, reason: "falta API Outlook" };
     return { ok: true, active, data };
@@ -110,11 +123,9 @@
   function resetRecipientForm() {
     const nameInput = document.getElementById("especialRecipientName");
     const emailInput = document.getElementById("especialRecipientEmail");
-    const activeInput = document.getElementById("especialRecipientActive");
     const button = document.getElementById("especialRecipientSubmitBtn");
     if (nameInput) nameInput.value = "";
     if (emailInput) emailInput.value = "";
-    if (activeInput) activeInput.checked = true;
     if (button) button.textContent = "Añadir destinatario";
     editingRecipientId = null;
   }
@@ -125,19 +136,10 @@
     editingRecipientId = id;
     const nameInput = document.getElementById("especialRecipientName");
     const emailInput = document.getElementById("especialRecipientEmail");
-    const activeInput = document.getElementById("especialRecipientActive");
     const button = document.getElementById("especialRecipientSubmitBtn");
     if (nameInput) nameInput.value = item.name || "";
     if (emailInput) emailInput.value = item.email || "";
-    if (activeInput) activeInput.checked = !!item.active;
     if (button) button.textContent = "Guardar cambios";
-  }
-
-  function toggleEspecialRecipient(id, active) {
-    const next = getRecipients().map(item => item && item.id === id ? { ...item, active: !!active } : item);
-    setRecipients(next);
-    renderEspecialesRecipients();
-    renderEspecialesPreview();
   }
 
   function renderEspecialesRecipients() {
@@ -150,13 +152,12 @@
       return `<tr>
         <td>${escapeHtml(item.name || "")}</td>
         <td>${escapeHtml(item.email || "")}</td>
-        <td><input type="checkbox" ${item.active ? "checked" : ""} onchange="toggleEspecialRecipient('${escapeHtml(itemId)}', this.checked)" aria-label="Activar destinatario"></td>
         <td>
           <button type="button" class="secondary small" onclick="editEspecialRecipient('${escapeHtml(itemId)}')">Editar</button>
           <button type="button" class="secondary small" onclick="deleteEspecialRecipient('${escapeHtml(itemId)}')">Eliminar</button>
         </td>
       </tr>`;
-    }).join("") : '<tr><td colspan="4" class="muted">Sin destinatarios.</td></tr>';
+    }).join("") : '<tr><td colspan="3" class="muted">Sin destinatarios.</td></tr>';
 
     syncDraftButtonState();
   }
@@ -164,7 +165,6 @@
   async function addEspecialRecipient() {
     const name = String(document.getElementById("especialRecipientName")?.value || "").trim();
     const email = String(document.getElementById("especialRecipientEmail")?.value || "").trim();
-    const active = !!document.getElementById("especialRecipientActive")?.checked;
 
     if (!name) return alert("Debes indicar un nombre.");
     if (!isValidEmail(email)) return alert("El email no tiene un formato válido.");
@@ -175,8 +175,8 @@
     if (duplicated) return alert("Ya existe un destinatario con ese email.");
 
     const next = editingRecipientId
-      ? items.map(item => item && item.id === editingRecipientId ? { ...item, name, email, active } : item)
-      : [...items, { id: createEspecialRecipientId(), name, email, active }];
+      ? items.map(item => item && item.id === editingRecipientId ? { ...item, name, email } : item)
+      : [...items, { id: createEspecialRecipientId(), name, email }];
 
     try {
       const saveResult = setRecipients(next);
@@ -222,7 +222,7 @@
       const payload = {
         to: availability.active.map(x => x.email).join(";"),
         cc: "",
-        subject: buildEspecialesSubject(availability.data.evento),
+        subject: buildEspecialesSubject(availability.data),
         htmlBody: buildEspecialesHtmlBody(availability.data)
       };
       setOutlookStatus("Llamando a Outlook...");

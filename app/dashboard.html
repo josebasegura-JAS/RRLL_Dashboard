@@ -1263,17 +1263,16 @@
             </div>
             <div class="section-gap">
               <h4>Destinatarios</h4>
-              <p id="especialesRecipientsWarning" class="muted">No hay destinatarios activos.</p>
+              <p id="especialesRecipientsWarning" class="muted">No hay destinatarios con email válido.</p>
               <div class="form-grid">
                 <label><span>Nombre</span><input id="especialRecipientName" /></label>
                 <label><span>Email</span><input id="especialRecipientEmail" /></label>
-                <label><span>Activo</span><input id="especialRecipientActive" type="checkbox" checked /></label>
               </div>
               <div class="module-toolbar section-gap">
                 <button id="especialRecipientSubmitBtn" type="button" class="secondary" onclick="addEspecialRecipient()">Añadir destinatario</button>
               </div>
               <table class="table module-table">
-                <thead><tr><th>Nombre</th><th>Email</th><th>Activo</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Nombre</th><th>Email</th><th>Acciones</th></tr></thead>
                 <tbody id="especialesRecipientsBody"></tbody>
               </table>
             </div>
