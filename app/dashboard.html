@@ -1261,10 +1261,6 @@
               <h4>Vista previa del correo</h4>
               <div id="especialesPreview" class="existing-updates-box"></div>
             </div>
-            <div class="module-toolbar section-gap">
-              <button id="especialesGenerateDraftBtn" type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
-              <button type="button" class="secondary" onclick="clearEspecialesForm()">Limpiar</button>
-            </div>
             <div class="section-gap">
               <h4>Destinatarios</h4>
               <p id="especialesRecipientsWarning" class="muted">No hay destinatarios activos.</p>
@@ -1280,6 +1276,10 @@
                 <thead><tr><th>Nombre</th><th>Email</th><th>Activo</th><th>Acciones</th></tr></thead>
                 <tbody id="especialesRecipientsBody"></tbody>
               </table>
+            </div>
+            <div class="module-toolbar section-gap">
+              <button id="especialesGenerateDraftBtn" type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
+              <button type="button" class="secondary" onclick="clearEspecialesForm()">Limpiar</button>
             </div>
           </div>
         </details>

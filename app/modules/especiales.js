@@ -272,16 +272,44 @@
   function decodeMimeWords(value) {
     let text = String(value || "");
     const normalized = text.replace(/=\?iso[\s_-]*8859[\s_-]*1\?/gi, "=?iso-8859-1?");
+
+    function decodeBytesToText(bytes, charset) {
+      const normalizedCharset = charset.includes("8859-1") ? "iso-8859-1" : "utf-8";
+      try {
+        return new TextDecoder(normalizedCharset).decode(bytes);
+      } catch (_e) {
+        return new TextDecoder("utf-8").decode(bytes);
+      }
+    }
+
+    function decodeQBytes(content) {
+      const replaced = String(content || "").replace(/_/g, " ");
+      const bytes = [];
+      for (let i = 0; i < replaced.length; i += 1) {
+        if (replaced[i] === "=" && /[0-9A-Fa-f]{2}/.test(replaced.slice(i + 1, i + 3))) {
+          bytes.push(parseInt(replaced.slice(i + 1, i + 3), 16));
+          i += 2;
+        } else {
+          bytes.push(replaced.charCodeAt(i) & 0xff);
+        }
+      }
+      return new Uint8Array(bytes);
+    }
+
+    function decodeBase64Bytes(content) {
+      const binary = atob(String(content || "").replace(/\s+/g, ""));
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i) & 0xff;
+      return bytes;
+    }
+
     text = normalized.replace(/=\?([^?]+)\?([bBqQ])\?([^?]*)\?=/g, (_all, charsetRaw, encRaw, contentRaw) => {
       const charset = String(charsetRaw || "").trim().toLowerCase().replace(/\s+/g, "").replace(/_/g, "-");
       const enc = String(encRaw || "").toUpperCase();
       const content = String(contentRaw || "");
       try {
-        if (enc === "Q") {
-          const qp = content.replace(/_/g, " ").replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
-          return Buffer.from(qp, "binary").toString(charset.includes("8859-1") ? "latin1" : "utf8");
-        }
-        if (enc === "B") return Buffer.from(content, "base64").toString(charset.includes("8859-1") ? "latin1" : "utf8");
+        if (enc === "Q") return decodeBytesToText(decodeQBytes(content), charset);
+        if (enc === "B") return decodeBytesToText(decodeBase64Bytes(content), charset);
       } catch (_e) {}
       return content.replace(/_/g, " ");
     });
