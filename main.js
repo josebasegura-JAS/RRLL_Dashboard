@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const { spawn } = require("child_process");
+const { MsgReader } = require("@kenjiuno/msgreader");
 
 let lastBackupAt = 0;
 let sqlReadyPromise = null;
@@ -1287,6 +1288,52 @@ async function createOutlookDraft(_event, payload = {}) {
     });
   });
 }
+
+function readMsgTextPayload(buffer) {
+  const latin1 = Buffer.from(buffer).toString("latin1");
+  const utf16 = Buffer.from(buffer).toString("utf16le");
+  return `${latin1}\n${utf16}`.replace(/\0/g, " ");
+}
+
+async function parseOutlookMsgInMain(_event, payload) {
+  try {
+    let buffer = null;
+    if (payload instanceof Uint8Array) buffer = Buffer.from(payload);
+    else if (payload instanceof ArrayBuffer) buffer = Buffer.from(new Uint8Array(payload));
+    else if (payload && payload.type === "Buffer" && Array.isArray(payload.data)) buffer = Buffer.from(payload.data);
+    if (!buffer || !buffer.length) return { ok: false, message: "Contenido .msg no válido." };
+
+    try {
+      const data = new MsgReader(new Uint8Array(buffer)).getFileData() || {};
+      return {
+        ok: true,
+        data: {
+          subject: String(data.subject || "").trim(),
+          body: String(data.body || "").trim(),
+          htmlBody: String(data.bodyHTML || data.html || "").trim(),
+          senderName: String(data.senderName || "").trim(),
+          senderEmail: String(data.senderEmail || "").trim(),
+          date: String(data.messageDeliveryTime || data.deliveryTime || data.creationTime || "").trim()
+        }
+      };
+    } catch (parseError) {
+      console.warn("Parser .msg avanzado falló, usando fallback básico:", parseError);
+      const text = readMsgTextPayload(buffer);
+      const subject = (text.match(/(?:subject|asunto)\s*[:=]\s*([^\r\n]{3,200})/i) || [])[1] || "";
+      const senderName = (text.match(/(?:from|de)\s*[:=]\s*([^\r\n<]{3,120})/i) || [])[1] || "";
+      const senderEmail = (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0] || "";
+      const date = (text.match(/(?:sent|fecha)\s*[:=]\s*([^\r\n]{4,80})/i) || [])[1] || "";
+      const body = text.slice(0, 10000);
+      return {
+        ok: !!(subject || body),
+        data: { subject: subject.trim(), body, htmlBody: "", senderName: senderName.trim(), senderEmail: senderEmail.trim(), date: String(date).trim() }
+      };
+    }
+  } catch (error) {
+    console.error("Error parseando .msg:", error);
+    return { ok: false, message: "No se ha podido importar el mensaje .msg." };
+  }
+}
 ipcMain.handle("db:loadAll", async () => loadAllData());
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
@@ -1317,6 +1364,7 @@ ipcMain.handle("attachments:selectFiles", selectAttachmentFiles);
 ipcMain.handle("attachments:openPath", openAttachmentPath);
 ipcMain.handle("attachments:openFolder", openAttachmentFolderPath);
 ipcMain.handle("outlook:createDraft", createOutlookDraft);
+ipcMain.handle("msg:parseOutlookMsg", parseOutlookMsgInMain);
 
 function createWindow() {
   Menu.setApplicationMenu(null);

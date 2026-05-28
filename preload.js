@@ -41,3 +41,7 @@ contextBridge.exposeInMainWorld("rrllAttachments", {
 contextBridge.exposeInMainWorld("rrllOutlook", {
   createDraft: payload => ipcRenderer.invoke("outlook:createDraft", payload)
 });
+
+contextBridge.exposeInMainWorld("rrllMsg", {
+  parseOutlookMsg: payload => ipcRenderer.invoke("msg:parseOutlookMsg", payload)
+});
