@@ -1237,17 +1237,18 @@
           <div class="card-body">
             <div class="form-grid">
               <label><span>Evento</span><input id="especialesEvento" oninput="renderEspecialesPreview()" placeholder="Nombre del evento" /></label>
-              <label><span>Fecha</span><input id="especialesFecha" oninput="renderEspecialesPreview()" placeholder="DD/MM/AAAA" /></label>
-              <label><span>Hora</span><input id="especialesHora" oninput="renderEspecialesPreview()" placeholder="HH:mm" /></label>
+              <label><span>Fecha</span><input id="especialesFecha" type="date" oninput="renderEspecialesPreview()" placeholder="DD/MM/AAAA" /></label>
+              <label><span>Hora</span><input id="especialesHora" type="time" oninput="renderEspecialesPreview()" placeholder="HH:mm" /></label>
               <label class="full"><span>Enlace intranet / información adicional</span><input id="especialesEnlace" oninput="renderEspecialesPreview()" placeholder="https://..." /></label>
               <label class="full"><span>Ruta común / ubicación de turnos</span><input id="especialesRuta" oninput="renderEspecialesPreview()" placeholder="\\servidor\carpeta\..." /></label>
+              <label class="full"><span>Observaciones internas (opcional)</span><textarea id="especialesObservaciones" rows="2" placeholder="Solo para uso interno"></textarea></label>
             </div>
             <div class="section-gap">
               <h4>Vista previa del correo</h4>
               <div id="especialesPreview" class="existing-updates-box"></div>
             </div>
             <div class="module-toolbar section-gap">
-              <button type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
+              <button id="especialesGenerateDraftBtn" type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
               <button type="button" class="secondary" onclick="clearEspecialesForm()">Limpiar</button>
             </div>
             <div class="section-gap">
@@ -1259,17 +1260,18 @@
                 <label><span>Activo</span><input id="especialRecipientActive" type="checkbox" checked /></label>
               </div>
               <div class="module-toolbar section-gap">
-                <button type="button" class="secondary" onclick="addEspecialRecipient()">Añadir destinatario</button>
+                <button id="especialRecipientSubmitBtn" type="button" class="secondary" onclick="addEspecialRecipient()">Añadir destinatario</button>
               </div>
               <table class="table module-table">
                 <thead><tr><th>Nombre</th><th>Email</th><th>Activo</th><th>Acciones</th></tr></thead>
                 <tbody id="especialesRecipientsBody"></tbody>
               </table>
             </div>
-            <div class="section-gap muted">
-              <h4>Próximamente: importar mensaje Outlook (.msg)</h4>
+            <fieldset class="section-gap muted" disabled>
+              <h4>IMPORTAR MENSAJE OUTLOOK (.msg)</h4>
+              <p>Próximamente disponible</p>
               <p>Guarda primero el mensaje como .msg y arrástralo aquí o selecciónalo manualmente.</p>
-            </div>
+            </fieldset>
           </div>
         </details>
 
