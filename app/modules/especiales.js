@@ -3,15 +3,26 @@
 
   const RECIPIENTS_KEY = "rrll_especiales_destinatarios";
   let editingRecipientId = null;
+  let editingRecipientType = "to";
   let selectedMsgFile = null;
+
+  function normalizeRecipientType(value) {
+    return value === "cc" ? "cc" : "to";
+  }
+
+  function normalizeRecipient(item = {}) {
+    return { ...item, type: normalizeRecipientType(item.type) };
+  }
 
   function getRecipients() {
     const value = load(RECIPIENTS_KEY, []);
-    return Array.isArray(value) ? value : [];
+    const items = Array.isArray(value) ? value : [];
+    return items.map(item => normalizeRecipient(item || {}));
   }
 
   function setRecipients(items) {
-    save(RECIPIENTS_KEY, Array.isArray(items) ? items : []);
+    const normalized = (Array.isArray(items) ? items : []).map(item => normalizeRecipient(item || {}));
+    save(RECIPIENTS_KEY, normalized);
   }
 
   function createEspecialRecipientId() {
@@ -29,8 +40,8 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
   }
 
-  function getActiveRecipients() {
-    return getRecipients().filter(item => item && isValidEmail(item.email));
+  function getActiveRecipients(type) {
+    return getRecipients().filter(item => item && isValidEmail(item.email) && (!type || normalizeRecipientType(item.type) === type));
   }
 
   function buildEspecialesBullet(payload = {}) {
@@ -94,12 +105,13 @@
   }
 
   function getDraftAvailability() {
-    const active = getActiveRecipients();
+    const toRecipients = getActiveRecipients("to");
+    const ccRecipients = getActiveRecipients("cc");
     const data = collectServiceData();
-    if (!active.length) return { ok: false, reason: "faltan destinatarios con email válido" };
+    if (!toRecipients.length) return { ok: false, reason: "falta al menos un destinatario válido en Para" };
     if (!data.evento) return { ok: false, reason: "falta evento" };
     if (!window.rrllOutlook || typeof window.rrllOutlook.createDraft !== "function") return { ok: false, reason: "falta API Outlook" };
-    return { ok: true, active, data };
+    return { ok: true, toRecipients, ccRecipients, data };
   }
 
   function syncDraftButtonState() {
@@ -126,8 +138,9 @@
     const button = document.getElementById("especialRecipientSubmitBtn");
     if (nameInput) nameInput.value = "";
     if (emailInput) emailInput.value = "";
-    if (button) button.textContent = "Añadir destinatario";
+    if (button) button.textContent = "Añadir a Para";
     editingRecipientId = null;
+    editingRecipientType = "to";
   }
 
   function editEspecialRecipient(id) {
@@ -139,15 +152,12 @@
     const button = document.getElementById("especialRecipientSubmitBtn");
     if (nameInput) nameInput.value = item.name || "";
     if (emailInput) emailInput.value = item.email || "";
+    editingRecipientType = normalizeRecipientType(item.type);
     if (button) button.textContent = "Guardar cambios";
   }
 
-  function renderEspecialesRecipients() {
-    const body = document.getElementById("especialesRecipientsBody");
-    if (!body) return;
-    const items = getRecipients();
-
-    body.innerHTML = items.length ? items.map(item => {
+  function renderRecipientRows(items) {
+    return items.length ? items.map(item => {
       const itemId = String(item.id || "");
       return `<tr>
         <td>${escapeHtml(item.name || "")}</td>
@@ -158,11 +168,25 @@
         </td>
       </tr>`;
     }).join("") : '<tr><td colspan="3" class="muted">Sin destinatarios.</td></tr>';
+  }
 
+  function renderEspecialesRecipients() {
+    const toBody = document.getElementById("especialesRecipientsToBody");
+    const ccBody = document.getElementById("especialesRecipientsCcBody");
+    if (!toBody || !ccBody) return;
+    const items = getRecipients();
+    const toItems = items.filter(item => normalizeRecipientType(item.type) === "to");
+    const ccItems = items.filter(item => normalizeRecipientType(item.type) === "cc");
+    toBody.innerHTML = renderRecipientRows(toItems);
+    ccBody.innerHTML = renderRecipientRows(ccItems);
+    const toCount = document.getElementById("especialesRecipientsToCount");
+    const ccCount = document.getElementById("especialesRecipientsCcCount");
+    if (toCount) toCount.textContent = String(toItems.length);
+    if (ccCount) ccCount.textContent = String(ccItems.length);
     syncDraftButtonState();
   }
 
-  async function addEspecialRecipient() {
+  async function addEspecialRecipient(type = "to") {
     const name = String(document.getElementById("especialRecipientName")?.value || "").trim();
     const email = String(document.getElementById("especialRecipientEmail")?.value || "").trim();
 
@@ -170,13 +194,17 @@
     if (!isValidEmail(email)) return alert("El email no tiene un formato válido.");
 
     const normalized = normalizeEmail(email);
+    const recipientType = normalizeRecipientType(editingRecipientId ? editingRecipientType : type);
     const items = getRecipients();
     const duplicated = items.find(item => item && normalizeEmail(item.email) === normalized && item.id !== editingRecipientId);
-    if (duplicated) return alert("Ya existe un destinatario con ese email.");
+    if (duplicated) {
+      const duplicateType = normalizeRecipientType(duplicated.type) === "to" ? "Para" : "CC";
+      return alert(`Este email ya existe en ${duplicateType}. No se permiten duplicados entre Para y CC.`);
+    }
 
     const next = editingRecipientId
-      ? items.map(item => item && item.id === editingRecipientId ? { ...item, name, email } : item)
-      : [...items, { id: createEspecialRecipientId(), name, email }];
+      ? items.map(item => item && item.id === editingRecipientId ? { ...item, name, email, type: recipientType } : item)
+      : [...items, { id: createEspecialRecipientId(), name, email, type: recipientType }];
 
     try {
       const saveResult = setRecipients(next);
@@ -220,8 +248,8 @@
     try {
       setOutlookStatus("Preparando borrador...");
       const payload = {
-        to: availability.active.map(x => x.email).join(";"),
-        cc: "",
+        to: availability.toRecipients.map(x => x.email).join("; "),
+        cc: availability.ccRecipients.map(x => x.email).join("; "),
         subject: buildEspecialesSubject(availability.data),
         htmlBody: buildEspecialesHtmlBody(availability.data)
       };
@@ -508,7 +536,6 @@
   window.addEspecialRecipient = addEspecialRecipient;
   window.deleteEspecialRecipient = deleteEspecialRecipient;
   window.editEspecialRecipient = editEspecialRecipient;
-  window.toggleEspecialRecipient = toggleEspecialRecipient;
   window.generateEspecialesDraft = generateEspecialesDraft;
   window.clearEspecialesForm = clearEspecialesForm;
   window.renderEspecialesPreview = renderEspecialesPreview;

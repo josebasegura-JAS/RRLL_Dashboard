@@ -1263,18 +1263,29 @@
             </div>
             <div class="section-gap">
               <h4>Destinatarios</h4>
-              <p id="especialesRecipientsWarning" class="muted">No hay destinatarios con email válido.</p>
-              <div class="form-grid">
+              <p id="especialesRecipientsWarning" class="muted">No disponible: falta al menos un destinatario válido en Para.</p>
+              <div class="existing-updates-box section-gap">
+                <h5 style="margin-top:0;">Para (<span id="especialesRecipientsToCount">0</span>)</h5>
+                <table class="table module-table">
+                  <thead><tr><th>Nombre</th><th>Email</th><th>Acciones</th></tr></thead>
+                  <tbody id="especialesRecipientsToBody"></tbody>
+                </table>
+              </div>
+              <div class="existing-updates-box section-gap">
+                <h5 style="margin-top:0;">Con copia (CC) (<span id="especialesRecipientsCcCount">0</span>)</h5>
+                <table class="table module-table">
+                  <thead><tr><th>Nombre</th><th>Email</th><th>Acciones</th></tr></thead>
+                  <tbody id="especialesRecipientsCcBody"></tbody>
+                </table>
+              </div>
+              <div class="form-grid section-gap">
                 <label><span>Nombre</span><input id="especialRecipientName" /></label>
                 <label><span>Email</span><input id="especialRecipientEmail" /></label>
               </div>
-              <div class="module-toolbar section-gap">
-                <button id="especialRecipientSubmitBtn" type="button" class="secondary" onclick="addEspecialRecipient()">Añadir destinatario</button>
+              <div class="module-toolbar">
+                <button id="especialRecipientSubmitBtn" type="button" class="secondary" onclick="addEspecialRecipient('to')">Añadir a Para</button>
+                <button type="button" class="secondary" onclick="addEspecialRecipient('cc')">Añadir a CC</button>
               </div>
-              <table class="table module-table">
-                <thead><tr><th>Nombre</th><th>Email</th><th>Acciones</th></tr></thead>
-                <tbody id="especialesRecipientsBody"></tbody>
-              </table>
             </div>
             <div class="module-toolbar section-gap">
               <button id="especialesGenerateDraftBtn" type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
