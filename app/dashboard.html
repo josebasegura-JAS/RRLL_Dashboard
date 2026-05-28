@@ -1267,10 +1267,18 @@
                 <tbody id="especialesRecipientsBody"></tbody>
               </table>
             </div>
-            <fieldset class="section-gap muted" disabled>
+            <fieldset class="section-gap">
               <h4>IMPORTAR MENSAJE OUTLOOK (.msg)</h4>
-              <p>Próximamente disponible</p>
-              <p>Guarda primero el mensaje como .msg y arrástralo aquí o selecciónalo manualmente.</p>
+              <p>Arrastra el archivo .msg, selecciónalo manualmente e impórtalo para autocompletar el formulario.</p>
+              <div id="especialesMsgDropZone" class="existing-updates-box" style="min-height:72px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--border-color,#666);">
+                Arrastra aquí un mensaje Outlook (.msg)
+              </div>
+              <div class="module-toolbar section-gap">
+                <button id="especialesMsgSelectBtn" type="button" class="secondary">Seleccionar mensaje</button>
+                <button id="especialesMsgImportBtn" type="button">Importar mensaje</button>
+              </div>
+              <input id="especialesMsgInput" type="file" accept=".msg" style="display:none" />
+              <p id="especialesMsgStatus" class="muted" aria-live="polite"></p>
             </fieldset>
           </div>
         </details>

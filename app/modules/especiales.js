@@ -3,6 +3,7 @@
 
   const RECIPIENTS_KEY = "rrll_especiales_destinatarios";
   let editingRecipientId = null;
+  let selectedMsgFile = null;
 
   function getRecipients() {
     const value = load(RECIPIENTS_KEY, []);
@@ -194,11 +195,138 @@
     resetRecipientForm();
     renderEspecialesPreview();
     renderEspecialesRecipients();
+    initMsgImport();
   }
 
-  function parseOutlookMsg(_file) {
-    // TODO(fase-futura): parseo real de mensaje .msg
-    return { ok: false, pending: true, message: "Próximamente disponible" };
+  function normalizeDateInput(raw) {
+    const v = String(raw || "").trim();
+    const m = v.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+    if (!m) return "";
+    const day = m[1].padStart(2, "0");
+    const month = m[2].padStart(2, "0");
+    const year = m[3].length === 2 ? `20${m[3]}` : m[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  function normalizeTimeInput(raw) {
+    const v = String(raw || "").trim().replace("h", "").replace(".", ":");
+    const m = v.match(/(\d{1,2}):(\d{2})/);
+    if (!m) return "";
+    return `${m[1].padStart(2, "0")}:${m[2]}`;
+  }
+
+  function detectAutoFields(text) {
+    const source = String(text || "");
+    const eventMatch = source.match(/(?:concierto|evento|bec)\s*[:\-]?\s*([^\n\r]{4,120})/i);
+    const dateMatch = source.match(/(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)?\s*(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})/i);
+    const timeMatch = source.match(/\b(\d{1,2}(?::|\.)\d{2}\s*h?)\b/i);
+    const urlMatch = source.match(/\bhttps?:\/\/[^\s<>"']+/i) || source.match(/\b(?:intranet|www\.)[^\s<>"']+/i);
+    const uncMatch = source.match(/(?:[A-Za-z]:\\|\\\\)[^\n\r;,"<>]+/);
+    return {
+      evento: eventMatch ? eventMatch[1].trim() : "",
+      fecha: dateMatch ? normalizeDateInput(dateMatch[1]) : "",
+      hora: timeMatch ? normalizeTimeInput(timeMatch[1]) : "",
+      enlace: urlMatch ? urlMatch[0].trim() : "",
+      ruta: uncMatch ? uncMatch[0].trim() : ""
+    };
+  }
+
+  function readMsgTextPayload(buffer) {
+    const latin1 = new TextDecoder("latin1").decode(buffer);
+    const utf16 = new TextDecoder("utf-16le").decode(buffer);
+    const merged = `${latin1}\n${utf16}`.replace(/\0/g, " ");
+    return merged;
+  }
+
+  async function parseOutlookMsg(file) {
+    if (!file || !/\.msg$/i.test(file.name || "")) {
+      return { ok: false, message: "Selecciona un archivo .msg válido." };
+    }
+    try {
+      const buffer = await file.arrayBuffer();
+      const text = readMsgTextPayload(buffer);
+      const subject = (text.match(/(?:subject|asunto)\s*[:=]\s*([^\r\n]{3,200})/i) || [])[1] || "";
+      const senderName = (text.match(/(?:from|de)\s*[:=]\s*([^\r\n<]{3,120})/i) || [])[1] || "";
+      const senderEmail = (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0] || "";
+      const date = (text.match(/(?:sent|fecha)\s*[:=]\s*([^\r\n]{4,80})/i) || [])[1] || "";
+      const body = text.slice(0, 10000);
+      const auto = detectAutoFields(`${subject}\n${body}`);
+      return {
+        ok: !!(subject || body),
+        partial: !(auto.evento && auto.fecha && auto.hora && (auto.enlace || auto.ruta)),
+        data: { subject: subject.trim(), body, senderName: senderName.trim(), senderEmail: senderEmail.trim(), date: date.trim(), ...auto }
+      };
+    } catch (error) {
+      console.error("Error parseando .msg:", error);
+      return { ok: false, message: "No se ha podido importar el mensaje .msg." };
+    }
+  }
+
+  function setMsgStatus(text, tone) {
+    const status = document.getElementById("especialesMsgStatus");
+    if (!status) return;
+    status.textContent = text || "";
+    status.className = tone === "error" ? "muted danger" : "muted";
+  }
+
+  async function importSelectedMsg() {
+    if (!selectedMsgFile) return setMsgStatus("Selecciona o arrastra primero un archivo .msg.", "error");
+    const parsed = await parseOutlookMsg(selectedMsgFile);
+    if (!parsed.ok) {
+      setMsgStatus(parsed.message || "No se ha podido interpretar completamente el mensaje", "error");
+      return;
+    }
+    const data = parsed.data || {};
+    const setValue = (id, value) => {
+      const input = document.getElementById(id);
+      if (input && value) input.value = value;
+    };
+    setValue("especialesEvento", data.evento || data.subject);
+    setValue("especialesFecha", data.fecha);
+    setValue("especialesHora", data.hora);
+    setValue("especialesEnlace", data.enlace);
+    setValue("especialesRuta", data.ruta);
+    renderEspecialesPreview();
+    setMsgStatus(parsed.partial ? "No se ha podido interpretar completamente el mensaje" : "Mensaje importado correctamente");
+  }
+
+  function initMsgImport() {
+    const input = document.getElementById("especialesMsgInput");
+    const selectBtn = document.getElementById("especialesMsgSelectBtn");
+    const importBtn = document.getElementById("especialesMsgImportBtn");
+    const dropZone = document.getElementById("especialesMsgDropZone");
+    if (!input || !selectBtn || !importBtn || !dropZone || dropZone.dataset.bound === "1") return;
+    dropZone.dataset.bound = "1";
+    selectBtn.addEventListener("click", () => input.click());
+    importBtn.addEventListener("click", () => { importSelectedMsg(); });
+    input.addEventListener("change", () => {
+      selectedMsgFile = input.files && input.files[0] ? input.files[0] : null;
+      setMsgStatus(selectedMsgFile ? `Archivo listo: ${selectedMsgFile.name}` : "");
+    });
+    ["dragenter", "dragover"].forEach(eventName => {
+      dropZone.addEventListener(eventName, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.style.opacity = "0.8";
+      });
+    });
+    ["dragleave", "drop"].forEach(eventName => {
+      dropZone.addEventListener(eventName, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.style.opacity = "1";
+      });
+    });
+    dropZone.addEventListener("drop", e => {
+      const files = e.dataTransfer && e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+      const file = files.find(x => /\.msg$/i.test(x.name || ""));
+      if (!file) {
+        setMsgStatus("Si el arrastre directo desde Outlook no funciona, guarda primero el correo como archivo .msg.", "error");
+        return;
+      }
+      selectedMsgFile = file;
+      setMsgStatus(`Archivo listo: ${file.name}`);
+    });
   }
 
   window.renderEspeciales = renderEspeciales;
