@@ -37,3 +37,7 @@ contextBridge.exposeInMainWorld("rrllAttachments", {
   openPath: filePath => ipcRenderer.invoke("attachments:openPath", filePath),
   openFolder: filePath => ipcRenderer.invoke("attachments:openFolder", filePath)
 });
+
+contextBridge.exposeInMainWorld("rrllOutlook", {
+  createDraft: payload => ipcRenderer.invoke("outlook:createDraft", payload)
+});
