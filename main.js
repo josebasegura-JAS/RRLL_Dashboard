@@ -1259,9 +1259,16 @@ async function createOutlookDraft(_event, payload = {}) {
   }
   const script = [
     "$ErrorActionPreference = 'Stop'",
-    "$outlookExe = 'C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE'",
-    "if (!(Get-Process OUTLOOK -ErrorAction SilentlyContinue) -and (Test-Path $outlookExe)) { Start-Process -FilePath $outlookExe | Out-Null; Start-Sleep -Seconds 1 }",
-    "$outlook = New-Object -ComObject Outlook.Application",
+    "if (!(Get-Process OUTLOOK -ErrorAction SilentlyContinue)) {",
+    "  Start-Process Outlook -ErrorAction SilentlyContinue | Out-Null",
+    "  Start-Sleep -Seconds 3",
+    "}",
+    "$outlook = $null",
+    "try { $outlook = New-Object -ComObject Outlook.Application } catch {",
+    "  Start-Process Outlook -ErrorAction SilentlyContinue | Out-Null",
+    "  Start-Sleep -Seconds 3",
+    "  $outlook = New-Object -ComObject Outlook.Application",
+    "}",
     "$mail = $outlook.CreateItem(0)",
     `$mail.To = ${psLiteral(to)}`,
     `$mail.CC = ${psLiteral(cc)}`,
@@ -1282,7 +1289,7 @@ async function createOutlookDraft(_event, payload = {}) {
       if (code === 0) return resolve({ ok: true });
       const details = stderr.trim();
       let message = details || `PowerShell finalizó con código ${code}.`;
-      if (/Outlook\.Application|Class not registered|COM/i.test(details)) message = "Outlook clásico no está disponible o no se puede usar COM en este equipo.";
+      if (/Outlook\.Application|Class not registered|COM/i.test(details)) message = "No se pudo abrir Outlook por COM. Verifica que Outlook clásico esté instalado y configurado.";
       if (/not recognized|cannot find/i.test(details)) message = "PowerShell no está disponible en el sistema o está bloqueado por políticas.";
       resolve({ ok: false, code: "powershell_error", message });
     });

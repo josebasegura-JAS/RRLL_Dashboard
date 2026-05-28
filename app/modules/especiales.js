@@ -33,19 +33,24 @@
   function buildEspecialesHtmlBody(payload = {}) {
     const evento = String(payload.evento || "").trim();
     const fecha = String(payload.fecha || "").trim();
-    const hora = String(payload.hora || "").trim();
+    const hora = normalizeTimeInput(payload.hora || "");
     const enlace = String(payload.enlace || "").trim();
-    const ruta = String(payload.ruta || "").trim();
-
-    const intro = `Se adjuntan los turnos de conducción correspondientes al servicio especial de ${escapeHtml(evento || "[EVENTO]")}, que tendrá lugar${fecha ? ` el ${escapeHtml(fecha)}` : ""}${hora ? ` a las ${escapeHtml(hora)}` : ""}.`;
+    const dateParts = getDateParts(fecha);
+    const year = dateParts.year || detectYearFromText(`${evento} ${fecha}`) || String(new Date().getFullYear());
+    const diaSemana = dateParts.weekDay || "[DIA_SEMANA]";
+    const fechaLarga = dateParts.longDate || "[FECHA_LARGA]";
+    const ruta = String(payload.ruta || "").trim() || buildTurnosPath(year);
 
     return [
-      "<p>Kaixo:</p>",
-      `<p>${intro}</p>`,
-      enlace ? `<p>La información también se encuentra disponible en la intranet:<br><a href="${escapeHtml(enlace)}">${escapeHtml(enlace)}</a></p>` : "",
-      ruta ? `<p>Los turnos están disponibles en la siguiente ruta:<br>${escapeHtml(ruta)}</p>` : "",
-      "<p>Agur bat.</p>"
-    ].filter(Boolean).join("");
+      "<p>Kaixo,</p>",
+      "<p>Adjunto acceso a los turnos de conducción de Servicio Especial donde ya están disponibles en la intranet los turnos de conducción de:</p>",
+      `<p>• BEC Concierto ${escapeHtml(evento || "[EVENTO]")}, ${escapeHtml(diaSemana)} ${escapeHtml(fechaLarga)} de ${escapeHtml(year)} a las ${escapeHtml(hora || "[HORA]")}h</p>`,
+      enlace ? `<p><a href="${escapeHtml(enlace)}">${escapeHtml(enlace)}</a></p>` : "<p>[ENLACE]</p>",
+      `<p>Los turnos están en: Las personas -> turnos -> trenes -> Invierno -> Servicios Especiales -> ${escapeHtml(year)}</p>`,
+      "<p>Así mismo, tenéis los turnos de MTEs en Excel con la tabla de % Parada SIN del servicio especial a realizar. Se encuentra en el siguiente directorio común que tenéis acceso:</p>",
+      `<p>${escapeHtml(ruta)}</p>`,
+      "<p>Ondo izan</p>"
+    ].join("");
   }
 
   function collectServiceData() {
@@ -222,12 +227,49 @@
     const year = longEs[3].length === 2 ? `20${longEs[3]}` : longEs[3];
     return `${year}-${month}-${day}`;
   }
+  function getDateParts(isoDate) {
+    const v = String(isoDate || "").trim();
+    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return { year: "", weekDay: "", longDate: "" };
+    const year = Number(m[1]); const month = Number(m[2]); const day = Number(m[3]);
+    const d = new Date(Date.UTC(year, month - 1, day));
+    const days = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
+    const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+    return { year: String(year), weekDay: days[d.getUTCDay()], longDate: `${String(day).padStart(2, "0")} DE ${months[month - 1]}` };
+  }
 
   function normalizeTimeInput(raw) {
-    const v = String(raw || "").trim().replace(/\s*h$/i, "").replace(".", ":");
-    const m = v.match(/\b(\d{1,2}):(\d{2})\b/);
+    const m = String(raw || "").trim().match(/\b(\d{1,2})\s*[:.]\s*(\d{2})\s*h?\b/i);
     if (!m) return "";
     return `${m[1].padStart(2, "0")}:${m[2]}`;
+  }
+  function detectYearFromText(text) {
+    const m = String(text || "").match(/\b(20\d{2})\b/);
+    if (m) return m[1];
+    const m2 = String(text || "").match(/\b\d{1,2}[\/.-]\d{1,2}[\/.-](\d{2})\b/);
+    return m2 ? `20${m2[1]}` : "";
+  }
+  function buildTurnosPath(year) {
+    const y = String(year || "").trim() || String(new Date().getFullYear());
+    return `G:\\DC\\PAS_TURNOS_RRLL\\${y}\\TURNOS`;
+  }
+  function decodeMimeWords(value) {
+    let text = String(value || "");
+    const normalized = text.replace(/=\?iso[\s_-]*8859[\s_-]*1\?/gi, "=?iso-8859-1?");
+    text = normalized.replace(/=\?([^?]+)\?([bBqQ])\?([^?]*)\?=/g, (_all, charsetRaw, encRaw, contentRaw) => {
+      const charset = String(charsetRaw || "").trim().toLowerCase().replace(/\s+/g, "").replace(/_/g, "-");
+      const enc = String(encRaw || "").toUpperCase();
+      const content = String(contentRaw || "");
+      try {
+        if (enc === "Q") {
+          const qp = content.replace(/_/g, " ").replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+          return Buffer.from(qp, "binary").toString(charset.includes("8859-1") ? "latin1" : "utf8");
+        }
+        if (enc === "B") return Buffer.from(content, "base64").toString(charset.includes("8859-1") ? "latin1" : "utf8");
+      } catch (_e) {}
+      return content.replace(/_/g, " ");
+    });
+    return text.replace(/\?=Q$/i, "").trim();
   }
 
   function stripHtmlToText(html) {
@@ -287,9 +329,9 @@
         return { ok: false, message: parsed && parsed.message ? parsed.message : "No se ha podido importar el mensaje .msg." };
       }
       const data = parsed.data || {};
-      const subject = String(data.subject || "").trim();
-      const body = String(data.body || "").trim();
-      const htmlBody = String(data.htmlBody || data.bodyHTML || data.html || "").trim();
+      const subject = decodeMimeWords(data.subject || "");
+      const body = decodeMimeWords(data.body || "");
+      const htmlBody = decodeMimeWords(data.htmlBody || data.bodyHTML || data.html || "");
       const senderName = String(data.senderName || "").trim();
       const senderEmail = String(data.senderEmail || "").trim();
       const date = normalizeDateInput(data.date || data.messageDeliveryTime || data.deliveryTime || data.creationTime || "");
@@ -330,9 +372,9 @@
     };
     setValue("especialesEvento", data.evento || data.subject);
     setValue("especialesFecha", data.fecha);
-    setValue("especialesHora", data.hora);
+    setValue("especialesHora", normalizeTimeInput(data.hora));
     setValue("especialesEnlace", data.enlace);
-    setValue("especialesRuta", data.ruta);
+    setValue("especialesRuta", data.ruta || buildTurnosPath(detectYearFromText(`${data.subject} ${data.fecha}`)));
     renderEspecialesPreview();
     if (parsed.hasMainData) {
       setMsgStatus("Mensaje importado correctamente");
