@@ -14,6 +14,13 @@
     save(RECIPIENTS_KEY, Array.isArray(items) ? items : []);
   }
 
+  function createEspecialRecipientId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    return `esp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
   function normalizeEmail(value) {
     return String(value || "").trim().toLowerCase();
   }
@@ -135,7 +142,7 @@
     syncDraftButtonState();
   }
 
-  function addEspecialRecipient() {
+  async function addEspecialRecipient() {
     const name = String(document.getElementById("especialRecipientName")?.value || "").trim();
     const email = String(document.getElementById("especialRecipientEmail")?.value || "").trim();
     const active = !!document.getElementById("especialRecipientActive")?.checked;
@@ -150,12 +157,21 @@
 
     const next = editingRecipientId
       ? items.map(item => item && item.id === editingRecipientId ? { ...item, name, email, active } : item)
-      : [...items, { id: crypto.randomUUID ? crypto.randomUUID() : `esp-${Date.now()}-${Math.random().toString(36).slice(2)}`, name, email, active }];
+      : [...items, { id: createEspecialRecipientId(), name, email, active }];
 
-    setRecipients(next);
-    resetRecipientForm();
-    renderEspecialesRecipients();
-    renderEspecialesPreview();
+    try {
+      const saveResult = setRecipients(next);
+      if (saveResult && typeof saveResult.then === "function") {
+        await saveResult;
+      }
+      resetRecipientForm();
+      renderEspecialesRecipients();
+      renderEspecialesPreview();
+      syncDraftButtonState();
+    } catch (error) {
+      console.error("Error guardando destinatario Especiales:", error);
+      alert("No se ha podido guardar el destinatario.");
+    }
   }
 
   function deleteEspecialRecipient(id) {
