@@ -1302,21 +1302,6 @@ async function createOutlookDraft(_event, payload = {}) {
     return { ok: false, code: "invalid_payload", message: "Faltan datos obligatorios para crear el borrador de Outlook." };
   }
 
-  const scriptMin = [
-    "$ErrorActionPreference = 'Stop'",
-    "$outlook = New-Object -ComObject Outlook.Application",
-    "$mail = $outlook.CreateItem(0)",
-    "$mail.Subject = 'Prueba Outlook RRLL'",
-    "$mail.Display()",
-    "Write-Output 'OK_MIN_DRAFT'"
-  ].join("\n");
-
-  const minResult = await runOutlookScript("prueba mínima", scriptMin);
-  if (!minResult.ok || !String(minResult.stdout || "").includes("OK_MIN_DRAFT")) {
-    const detail = String(minResult.stderr || "").trim() || `PowerShell finalizó con código ${minResult.code}.`;
-    return { ok: false, message: `Falló la prueba mínima de Outlook: ${detail}` };
-  }
-
   const scriptReal = [
     "$ErrorActionPreference = 'Stop'",
     "$outlook = New-Object -ComObject Outlook.Application",

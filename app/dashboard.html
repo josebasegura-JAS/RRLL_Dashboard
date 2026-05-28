@@ -20,6 +20,24 @@
     .rrll-draws-table td {
       text-align: left;
     }
+
+
+    #gestor-especiales .especiales-actions-top {
+      margin-bottom: 1rem;
+    }
+
+    #gestor-especiales .especiales-preview-section .existing-updates-box,
+    #gestor-especiales .especiales-recipient-card {
+      width: 100%;
+      max-width: none;
+    }
+
+    #gestor-especiales .especiales-recipient-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1rem;
+      width: 100%;
+    }
   </style>
 </head>
 <body class="phase4-view-home">
@@ -1235,6 +1253,10 @@
         
         <details class="card module-card rrll-pro-module" id="gestor-especiales"><summary><span class="module-title"><span class="module-icon">✉</span>Especiales</span><span class="summary-counts">Outlook · Borrador manual</span></summary>
           <div class="card-body">
+            <div class="module-toolbar especiales-actions-top">
+              <button id="especialesGenerateDraftBtn" type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
+              <button type="button" class="secondary" onclick="clearEspecialesForm()">Limpiar</button>
+            </div>
             <fieldset class="section-gap">
               <h4>Importar mensaje Outlook (.msg)</h4>
               <p>Arrastra el archivo .msg, selecciónalo manualmente e impórtalo para autocompletar el formulario.</p>
@@ -1257,26 +1279,28 @@
               <label class="full"><span>Ruta común / ubicación de turnos</span><input id="especialesRuta" oninput="renderEspecialesPreview()" placeholder="\\servidor\carpeta\..." /></label>
               <label class="full"><span>Observaciones internas (opcional)</span><textarea id="especialesObservaciones" rows="2" placeholder="Solo para uso interno"></textarea></label>
             </div>
-            <div class="section-gap">
+            <div class="section-gap especiales-preview-section">
               <h4>Vista previa del correo</h4>
               <div id="especialesPreview" class="existing-updates-box"></div>
             </div>
             <div class="section-gap">
               <h4>Destinatarios</h4>
               <p id="especialesRecipientsWarning" class="muted">No disponible: falta al menos un destinatario válido en Para.</p>
-              <div class="existing-updates-box section-gap">
+              <div class="especiales-recipient-grid section-gap">
+              <div class="existing-updates-box especiales-recipient-card">
                 <h5 style="margin-top:0;">Para (<span id="especialesRecipientsToCount">0</span>)</h5>
                 <table class="table module-table">
                   <thead><tr><th>Nombre</th><th>Email</th><th>Acciones</th></tr></thead>
                   <tbody id="especialesRecipientsToBody"></tbody>
                 </table>
               </div>
-              <div class="existing-updates-box section-gap">
+              <div class="existing-updates-box especiales-recipient-card">
                 <h5 style="margin-top:0;">Con copia (CC) (<span id="especialesRecipientsCcCount">0</span>)</h5>
                 <table class="table module-table">
                   <thead><tr><th>Nombre</th><th>Email</th><th>Acciones</th></tr></thead>
                   <tbody id="especialesRecipientsCcBody"></tbody>
                 </table>
+              </div>
               </div>
               <div class="form-grid section-gap">
                 <label><span>Nombre</span><input id="especialRecipientName" /></label>
@@ -1286,10 +1310,6 @@
                 <button id="especialRecipientSubmitBtn" type="button" class="secondary" onclick="addEspecialRecipient('to')">Añadir a Para</button>
                 <button type="button" class="secondary" onclick="addEspecialRecipient('cc')">Añadir a CC</button>
               </div>
-            </div>
-            <div class="module-toolbar section-gap">
-              <button id="especialesGenerateDraftBtn" type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
-              <button type="button" class="secondary" onclick="clearEspecialesForm()">Limpiar</button>
             </div>
             <p id="especialesOutlookStatus" class="muted" aria-live="polite"></p>
           </div>
