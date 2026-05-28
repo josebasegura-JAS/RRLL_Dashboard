@@ -188,6 +188,16 @@
 
     const data = collectServiceData();
     if (!data.evento) return alert("Debes indicar al menos el nombre del evento.");
+    if (!window.rrllOutlook || typeof window.rrllOutlook.createDraft !== "function") {
+      return alert("La integración con Outlook no está disponible.");
+    }
+
+    const button = document.getElementById("especialesGenerateDraftBtn");
+    const previousText = button ? button.textContent : "";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Generando borrador en Outlook...";
+    }
 
     try {
       const result = await window.rrllOutlook.createDraft({
@@ -201,6 +211,9 @@
     } catch (error) {
       console.error("Error creando borrador Outlook:", error);
       alert(`No se ha podido abrir Outlook.\nDetalle: ${error && error.message ? error.message : "error desconocido"}`);
+    } finally {
+      if (button) button.textContent = previousText || "Generar borrador en Outlook";
+      syncDraftButtonState();
     }
   }
 
