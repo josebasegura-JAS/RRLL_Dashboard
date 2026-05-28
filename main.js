@@ -1249,12 +1249,17 @@ function psLiteral(value) {
 }
 
 async function createOutlookDraft(_event, payload = {}) {
-  const to = String(payload.to || "");
-  const cc = String(payload.cc || "");
-  const subject = String(payload.subject || "");
-  const htmlBody = String(payload.htmlBody || "");
+  const to = String(payload.to || "").trim();
+  const cc = String(payload.cc || "").trim();
+  const subject = String(payload.subject || "").trim();
+  const htmlBody = String(payload.htmlBody || "").trim();
+  if (!to || !subject || !htmlBody) {
+    return { ok: false, code: "invalid_payload", message: "Faltan datos obligatorios para crear el borrador de Outlook." };
+  }
   const script = [
     "$ErrorActionPreference = 'Stop'",
+    "$outlookExe = 'C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE'",
+    "if (!(Get-Process OUTLOOK -ErrorAction SilentlyContinue) -and (Test-Path $outlookExe)) { Start-Process -FilePath $outlookExe | Out-Null; Start-Sleep -Seconds 1 }",
     "$outlook = New-Object -ComObject Outlook.Application",
     "$mail = $outlook.CreateItem(0)",
     `$mail.To = ${psLiteral(to)}`,
@@ -1274,7 +1279,11 @@ async function createOutlookDraft(_event, payload = {}) {
     });
     child.on("close", code => {
       if (code === 0) return resolve({ ok: true });
-      resolve({ ok: false, code: "powershell_error", message: stderr.trim() || `PowerShell finalizó con código ${code}.` });
+      const details = stderr.trim();
+      let message = details || `PowerShell finalizó con código ${code}.`;
+      if (/Outlook\.Application|Class not registered|COM/i.test(details)) message = "Outlook clásico no está disponible o no se puede usar COM en este equipo.";
+      if (/not recognized|cannot find/i.test(details)) message = "PowerShell no está disponible en el sistema o está bloqueado por políticas.";
+      resolve({ ok: false, code: "powershell_error", message });
     });
   });
 }
