@@ -203,10 +203,23 @@
     const iso = v.match(/\b(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})\b/);
     if (iso) return `${iso[1]}-${iso[2].padStart(2, "0")}-${iso[3].padStart(2, "0")}`;
     const es = v.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})\b/);
-    if (!es) return "";
-    const day = es[1].padStart(2, "0");
-    const month = es[2].padStart(2, "0");
-    const year = es[3].length === 2 ? `20${es[3]}` : es[3];
+    if (es) {
+      const day = es[1].padStart(2, "0");
+      const month = es[2].padStart(2, "0");
+      const year = es[3].length === 2 ? `20${es[3]}` : es[3];
+      return `${year}-${month}-${day}`;
+    }
+    const months = {
+      enero: "01", febrero: "02", marzo: "03", abril: "04", mayo: "05", junio: "06",
+      julio: "07", agosto: "08", septiembre: "09", setiembre: "09", octubre: "10", noviembre: "11", diciembre: "12"
+    };
+    const longEs = v.match(/(?:\b(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b\s+)?(\d{1,2})\s+de\s+([a-záéíóúñ]+)\s+de\s+(\d{2,4})/i);
+    if (!longEs) return "";
+    const day = longEs[1].padStart(2, "0");
+    const monthName = String(longEs[2] || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const month = months[monthName];
+    if (!month) return "";
+    const year = longEs[3].length === 2 ? `20${longEs[3]}` : longEs[3];
     return `${year}-${month}-${day}`;
   }
 
@@ -232,9 +245,11 @@
 
   function cleanEventFromSubject(subject) {
     return String(subject || "")
-      .replace(/\b(?:bec|servicio\s+especial|concierto)\b/gi, " ")
+      .replace(/^\s*bec\b/gi, " ")
+      .replace(/\b(?:servicio\s+especial|concierto|evento)\b/gi, " ")
       .replace(/\b(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b/gi, " ")
       .replace(/\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/g, " ")
+      .replace(/\b\d{1,2}\s+de\s+[a-záéíóúñ]+\s+de\s+\d{2,4}\b/gi, " ")
       .replace(/\b\d{1,2}(?::|\.)\d{2}\s*h?\b/gi, " ")
       .replace(/[|,\-–—]+/g, " ")
       .replace(/\s+/g, " ")
@@ -243,8 +258,8 @@
 
   function detectAutoFields(text, subject) {
     const source = String(text || "");
-    const eventMatch = source.match(/(?:servicio\s+especial|concierto|evento|bec)\s*[:\-]?\s*([^\n\r]{4,120})/i);
-    const dateMatch = source.match(/(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)?\s*(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})/i);
+    const eventMatch = source.match(/(?:servicio\s+especial|concierto|evento)\s*[:\-]?\s*([^\n\r]{4,120})/i);
+    const dateMatch = source.match(/(?:\b(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b\s*)?(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}|\d{1,2}\s+de\s+[a-záéíóúñ]+\s+de\s+\d{2,4})/i);
     const timeMatch = source.match(/\b(\d{1,2}(?::|\.)\d{2}\s*h?)\b/i);
     const urlMatch = source.match(/\bhttps?:\/\/[^\s<>"']+/i) || source.match(/\b(?:intranet|www\.)[^\s<>"']+/i);
     const uncMatch = source.match(/(?:[A-Za-z]:\\|\\\\)[^\n\r;,"<>]+/);
@@ -280,9 +295,12 @@
       const date = normalizeDateInput(data.date || data.messageDeliveryTime || data.deliveryTime || data.creationTime || "");
       const textForDetection = `${subject}\n${body}\n${stripHtmlToText(htmlBody)}`;
       const auto = detectAutoFields(textForDetection, subject);
+      const hasMainData = !!(auto.evento && auto.fecha && auto.hora);
+      const hasSomeMainData = [auto.evento, auto.fecha, auto.hora].filter(Boolean).length > 0;
       return {
         ok: !!(subject || body || htmlBody),
-        partial: !(auto.evento && auto.fecha && auto.hora && (auto.enlace || auto.ruta)),
+        hasMainData,
+        partial: !hasMainData && hasSomeMainData,
         data: { subject, body, htmlBody, senderName, senderEmail, date, ...auto }
       };
     } catch (error) {
@@ -302,7 +320,7 @@
     if (!selectedMsgFile) return setMsgStatus("Selecciona o arrastra primero un archivo .msg.", "error");
     const parsed = await parseOutlookMsg(selectedMsgFile);
     if (!parsed.ok) {
-      setMsgStatus(parsed.message || "No se ha podido interpretar completamente el mensaje", "error");
+      setMsgStatus(parsed.message || "No se ha podido interpretar el mensaje.", "error");
       return;
     }
     const data = parsed.data || {};
@@ -316,7 +334,13 @@
     setValue("especialesEnlace", data.enlace);
     setValue("especialesRuta", data.ruta);
     renderEspecialesPreview();
-    setMsgStatus(parsed.partial ? "No se ha podido interpretar completamente el mensaje" : "Mensaje importado correctamente");
+    if (parsed.hasMainData) {
+      setMsgStatus("Mensaje importado correctamente");
+    } else if (parsed.partial) {
+      setMsgStatus("Mensaje importado parcialmente. Revisa los campos antes de generar el borrador.", "error");
+    } else {
+      setMsgStatus("No se ha podido interpretar el mensaje.", "error");
+    }
   }
 
   function initMsgImport() {
