@@ -16,9 +16,11 @@
     "appId": "com.rrll.cuadromandodb",
     "productName": "Cuadro de Mando RRLL",
     "files": [
+      "package.json",
       "main.js",
       "preload.js",
-      "app/**/*"
+      "app/**/*",
+      "node_modules/**/*"
     ],
     "win": {
       "target": [
@@ -39,6 +41,6 @@
     "adm-zip": "^0.5.16",
     "@kenjiuno/msgreader": "^1.15.0"
   },
-  "description": "Cuadro de Mando RRLL - versión 1.0 estabilizada",
+  "description": "Cuadro de Mando RRLL - versi\u00f3n 1.0 estabilizada",
   "author": "Relaciones Laborales"
 }
