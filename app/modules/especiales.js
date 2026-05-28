@@ -1,6 +1,5 @@
 (function () {
   "use strict";
-  const { MsgReader } = require("@kenjiuno/msgreader");
 
   const RECIPIENTS_KEY = "rrll_especiales_destinatarios";
   let editingRecipientId = null;
@@ -259,26 +258,26 @@
     };
   }
 
-  function readMsgTextPayload(buffer) {
-    const latin1 = new TextDecoder("latin1").decode(buffer);
-    const utf16 = new TextDecoder("utf-16le").decode(buffer);
-    const merged = `${latin1}\n${utf16}`.replace(/\0/g, " ");
-    return merged;
-  }
-
   async function parseOutlookMsg(file) {
     if (!file || !/\.msg$/i.test(file.name || "")) {
       return { ok: false, message: "Selecciona un archivo .msg válido." };
     }
     try {
+      if (!window.rrllMsg || typeof window.rrllMsg.parseOutlookMsg !== "function") {
+        return { ok: false, message: "API de importación no disponible." };
+      }
       const buffer = await file.arrayBuffer();
-      const data = new MsgReader(new Uint8Array(buffer)).getFileData() || {};
+      const parsed = await window.rrllMsg.parseOutlookMsg(buffer);
+      if (!parsed || !parsed.ok) {
+        return { ok: false, message: parsed && parsed.message ? parsed.message : "No se ha podido importar el mensaje .msg." };
+      }
+      const data = parsed.data || {};
       const subject = String(data.subject || "").trim();
       const body = String(data.body || "").trim();
-      const htmlBody = String(data.bodyHTML || data.html || "").trim();
+      const htmlBody = String(data.htmlBody || data.bodyHTML || data.html || "").trim();
       const senderName = String(data.senderName || "").trim();
       const senderEmail = String(data.senderEmail || "").trim();
-      const date = normalizeDateInput(data.messageDeliveryTime || data.deliveryTime || data.creationTime || "");
+      const date = normalizeDateInput(data.date || data.messageDeliveryTime || data.deliveryTime || data.creationTime || "");
       const textForDetection = `${subject}\n${body}\n${stripHtmlToText(htmlBody)}`;
       const auto = detectAutoFields(textForDetection, subject);
       return {
@@ -286,26 +285,9 @@
         partial: !(auto.evento && auto.fecha && auto.hora && (auto.enlace || auto.ruta)),
         data: { subject, body, htmlBody, senderName, senderEmail, date, ...auto }
       };
-    } catch (parseError) {
-      console.warn("Parser .msg avanzado falló, usando fallback básico:", parseError);
-      try {
-        const buffer = await file.arrayBuffer();
-        const text = readMsgTextPayload(buffer);
-        const subject = (text.match(/(?:subject|asunto)\s*[:=]\s*([^\r\n]{3,200})/i) || [])[1] || "";
-        const senderName = (text.match(/(?:from|de)\s*[:=]\s*([^\r\n<]{3,120})/i) || [])[1] || "";
-        const senderEmail = (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0] || "";
-        const date = normalizeDateInput((text.match(/(?:sent|fecha)\s*[:=]\s*([^\r\n]{4,80})/i) || [])[1] || "");
-        const body = text.slice(0, 10000);
-        const auto = detectAutoFields(`${subject}\n${body}`, subject);
-        return {
-          ok: !!(subject || body),
-          partial: !(auto.evento && auto.fecha && auto.hora && (auto.enlace || auto.ruta)),
-          data: { subject: subject.trim(), body, htmlBody: "", senderName: senderName.trim(), senderEmail: senderEmail.trim(), date, ...auto }
-        };
-      } catch (error) {
-        console.error("Error parseando .msg:", error);
-        return { ok: false, message: "No se ha podido importar el mensaje .msg." };
-      }
+    } catch (error) {
+      console.error("Error parseando .msg:", error);
+      return { ok: false, message: "No se ha podido importar el mensaje .msg." };
     }
   }
 
