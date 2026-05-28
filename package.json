@@ -36,7 +36,8 @@
   },
   "dependencies": {
     "sql.js": "^1.10.3",
-    "adm-zip": "^0.5.16"
+    "adm-zip": "^0.5.16",
+    "@kenjiuno/msgreader": "^1.15.0"
   },
   "description": "Cuadro de Mando RRLL - versión 1.0 estabilizada",
   "author": "Relaciones Laborales"
