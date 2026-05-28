@@ -18,6 +18,7 @@
         "rrll_vinculogramas",
         "rrll_licencias_excedencias",
         "rrll_plantilla",
+        "rrll_especiales_destinatarios",
         "rrll_trash"
       ];
 
@@ -147,6 +148,7 @@
         if (typeof renderCriteria === "function") renderCriteria();
         if (typeof renderTicketRestaurant === "function") renderTicketRestaurant();
         if (typeof renderSorteos === "function") renderSorteos();
+        if (typeof renderEspeciales === "function") renderEspeciales();
         renderTrash();
         restoreAlertsPanelState();
         renderAlertsPanel();
@@ -186,6 +188,7 @@
           ["Papelera", countBackupArray(values, "rrll_trash")],
           ["Plantilla", countBackupArray(values, "rrll_plantilla")],
           ["Accesos parametrizables", countBackupArray(values, "rrll_links")]
+          ,["Destinatarios especiales", countBackupArray(values, "rrll_especiales_destinatarios")]
         ];
       }
 

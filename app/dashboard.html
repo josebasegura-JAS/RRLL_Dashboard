@@ -55,6 +55,7 @@
           <a href="#gestor-ticket-restaurante" class="phase4-nav-item">🍽 <span>Ticket Restaurante</span></a>
           <a href="#gestor-sorteos" class="phase4-nav-item">🎲 <span>Sorteos</span></a>
           <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
+          <a href="#gestor-especiales" class="phase4-nav-item">✉ <span>Especiales</span></a>
           <button type="button" class="phase4-nav-item phase4-nav-button" onclick="phase4ShowHome(); if (document.querySelector('.dashboard-search-collapsible')?.classList.contains('is-collapsed')) toggleDashboardSearch(); runDashboardSearch();">⌕ <span>Búsqueda</span></button>
         </div>
       </nav>
@@ -1231,6 +1232,47 @@
           </div>
         </details>
 
+        
+        <details class="card module-card rrll-pro-module" id="gestor-especiales"><summary><span class="module-title"><span class="module-icon">✉</span>Especiales</span><span class="summary-counts">Outlook · Borrador manual</span></summary>
+          <div class="card-body">
+            <div class="form-grid">
+              <label><span>Evento</span><input id="especialesEvento" oninput="renderEspecialesPreview()" placeholder="Nombre del evento" /></label>
+              <label><span>Fecha</span><input id="especialesFecha" oninput="renderEspecialesPreview()" placeholder="DD/MM/AAAA" /></label>
+              <label><span>Hora</span><input id="especialesHora" oninput="renderEspecialesPreview()" placeholder="HH:mm" /></label>
+              <label class="full"><span>Enlace intranet / información adicional</span><input id="especialesEnlace" oninput="renderEspecialesPreview()" placeholder="https://..." /></label>
+              <label class="full"><span>Ruta común / ubicación de turnos</span><input id="especialesRuta" oninput="renderEspecialesPreview()" placeholder="\\servidor\carpeta\..." /></label>
+            </div>
+            <div class="section-gap">
+              <h4>Vista previa del correo</h4>
+              <div id="especialesPreview" class="existing-updates-box"></div>
+            </div>
+            <div class="module-toolbar section-gap">
+              <button type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
+              <button type="button" class="secondary" onclick="clearEspecialesForm()">Limpiar</button>
+            </div>
+            <div class="section-gap">
+              <h4>Destinatarios</h4>
+              <p id="especialesRecipientsWarning" class="muted">No hay destinatarios activos.</p>
+              <div class="form-grid">
+                <label><span>Nombre</span><input id="especialRecipientName" /></label>
+                <label><span>Email</span><input id="especialRecipientEmail" /></label>
+                <label><span>Activo</span><input id="especialRecipientActive" type="checkbox" checked /></label>
+              </div>
+              <div class="module-toolbar section-gap">
+                <button type="button" class="secondary" onclick="addEspecialRecipient()">Añadir destinatario</button>
+              </div>
+              <table class="table module-table">
+                <thead><tr><th>Nombre</th><th>Email</th><th>Activo</th><th>Acciones</th></tr></thead>
+                <tbody id="especialesRecipientsBody"></tbody>
+              </table>
+            </div>
+            <div class="section-gap muted">
+              <h4>Próximamente: importar mensaje Outlook (.msg)</h4>
+              <p>Guarda primero el mensaje como .msg y arrástralo aquí o selecciónalo manualmente.</p>
+            </div>
+          </div>
+        </details>
+
         <details class="card module-card module-licencias rrll-pro-module" id="gestor-licencias"><summary><span class="module-title"><span class="module-icon"><svg viewBox="0 0 24 24"><path d="M8 3h8"></path><path d="M9 3v4a6 6 0 1 0 6 0V3"></path><path d="M9 15h6"></path></svg></span>Licencias sin sueldo y excedencias</span><span class="summary-counts" id="summary-count-licencias">0 aprobar · 0 firma · 0 vigentes</span><span class="summary-actions"><button class="summary-icon-button" type="button" onclick="event.preventDefault(); event.stopPropagation(); openModuleSearch('licencias')" title="Buscar en este gestor">🔍</button></span></summary>
           <div class="rrll-pro-task-shell rrll-pro-licencias-shell">
             <div class="rrll-pro-task-head">
@@ -2162,6 +2204,7 @@
   <script src="modules/criterios-rrll.js"></script>
   <script src="modules/ticket-restaurante.js"></script>
   <script src="modules/sorteos.js"></script>
+  <script src="modules/especiales.js"></script>
   <script src="modules/links-config.js"></script>
   <script src="modules/trash.js"></script>
   <script src="modules/search.js"></script>

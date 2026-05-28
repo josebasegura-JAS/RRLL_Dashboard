@@ -2,6 +2,7 @@ const { app, BrowserWindow, shell, ipcMain, Menu, dialog } = require("electron")
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
+const { spawn } = require("child_process");
 
 let lastBackupAt = 0;
 let sqlReadyPromise = null;
@@ -1242,6 +1243,41 @@ async function openAttachmentFolderPath(_event, filePath) {
   shell.showItemInFolder(safePath);
   return { ok: true };
 }
+
+function psLiteral(value) {
+  return `'${String(value || "").replace(/'/g, "''")}'`;
+}
+
+async function createOutlookDraft(_event, payload = {}) {
+  const to = String(payload.to || "");
+  const cc = String(payload.cc || "");
+  const subject = String(payload.subject || "");
+  const htmlBody = String(payload.htmlBody || "");
+  const script = [
+    "$ErrorActionPreference = 'Stop'",
+    "$outlook = New-Object -ComObject Outlook.Application",
+    "$mail = $outlook.CreateItem(0)",
+    `$mail.To = ${psLiteral(to)}`,
+    `$mail.CC = ${psLiteral(cc)}`,
+    `$mail.Subject = ${psLiteral(subject)}`,
+    `$mail.HTMLBody = ${psLiteral(htmlBody)}`,
+    "$mail.Display()"
+  ].join("\n");
+
+  return new Promise(resolve => {
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const child = spawn("powershell.exe", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded], { windowsHide: true });
+    let stderr = "";
+    child.stderr.on("data", chunk => { stderr += String(chunk || ""); });
+    child.on("error", error => {
+      resolve({ ok: false, code: "spawn_error", message: error && error.message ? error.message : "No se pudo ejecutar PowerShell." });
+    });
+    child.on("close", code => {
+      if (code === 0) return resolve({ ok: true });
+      resolve({ ok: false, code: "powershell_error", message: stderr.trim() || `PowerShell finalizó con código ${code}.` });
+    });
+  });
+}
 ipcMain.handle("db:loadAll", async () => loadAllData());
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
@@ -1271,6 +1307,7 @@ ipcMain.handle("ticketRestaurant:exportWorkbook", exportTicketRestaurantWorkbook
 ipcMain.handle("attachments:selectFiles", selectAttachmentFiles);
 ipcMain.handle("attachments:openPath", openAttachmentPath);
 ipcMain.handle("attachments:openFolder", openAttachmentFolderPath);
+ipcMain.handle("outlook:createDraft", createOutlookDraft);
 
 function createWindow() {
   Menu.setApplicationMenu(null);

@@ -46,7 +46,7 @@ function toggleSidebarLeft() {
     }
 
 
-    const RRLL_MAIN_GESTOR_IDS = ["gestor-tareas", "gestor-peticiones", "gestor-comite", "gestor-paritaria", "gestor-actas", "gestor-teletrabajo", "gestor-vinculograma", "gestor-licencias", "gestor-plantilla", "gestor-criterios", "gestor-ticket-restaurante", "gestor-sorteos"];
+    const RRLL_MAIN_GESTOR_IDS = ["gestor-tareas", "gestor-peticiones", "gestor-comite", "gestor-paritaria", "gestor-actas", "gestor-teletrabajo", "gestor-vinculograma", "gestor-licencias", "gestor-plantilla", "gestor-criterios", "gestor-especiales", "gestor-ticket-restaurante", "gestor-sorteos"];
     const RRLL_PHASE4_SUBVIEW_MAP = {
       "gestor-puntos-comite": { parent: "gestor-comite", section: "gestor-puntos-comite", menu: "comite" },
       "gestor-sesiones-comite": { parent: "gestor-comite", section: "gestor-sesiones-comite", menu: "comite" },
@@ -69,7 +69,8 @@ function toggleSidebarLeft() {
       "gestor-licencias": "personas",
       "gestor-ticket-restaurante": "calculos",
       "gestor-sorteos": "calculos",
-      "gestor-criterios": "calculos"
+      "gestor-criterios": "calculos",
+      "gestor-especiales": "calculos"
     });
     let rrllAccordionsReady = false;
     let rrllPhase4NavigationReady = false;
@@ -86,6 +87,7 @@ function toggleSidebarLeft() {
       "gestor-licencias": "◷",
       "gestor-plantilla": "▦",
       "gestor-criterios": "✦",
+      "gestor-especiales": "✉",
       "gestor-ticket-restaurante": "🍽",
       "gestor-sorteos": "🎲",
       "gestor-comite": "👥",
