@@ -71,13 +71,32 @@
     };
   }
 
+
+
+  function setOutlookStatus(message, tone) {
+    const status = document.getElementById("especialesOutlookStatus");
+    if (!status) return;
+    status.textContent = message || "";
+    status.className = tone === "error" ? "muted danger" : tone === "success" ? "muted ok" : "muted";
+  }
+
+  function getDraftAvailability() {
+    const active = getActiveRecipients();
+    const data = collectServiceData();
+    if (!active.length) return { ok: false, reason: "faltan destinatarios activos" };
+    if (!data.evento) return { ok: false, reason: "falta evento" };
+    if (!window.rrllOutlook || typeof window.rrllOutlook.createDraft !== "function") return { ok: false, reason: "falta API Outlook" };
+    return { ok: true, active, data };
+  }
+
   function syncDraftButtonState() {
     const button = document.getElementById("especialesGenerateDraftBtn");
     const warning = document.getElementById("especialesRecipientsWarning");
     if (!button || !warning) return;
-    const hasActive = getActiveRecipients().length > 0;
-    button.disabled = !hasActive;
-    warning.style.display = hasActive ? "none" : "block";
+    const availability = getDraftAvailability();
+    button.disabled = !availability.ok;
+    warning.style.display = availability.ok ? "none" : "block";
+    warning.textContent = availability.ok ? "" : `No disponible: ${availability.reason}.`;
   }
 
   function renderEspecialesPreview() {
@@ -183,13 +202,12 @@
   }
 
   async function generateEspecialesDraft() {
-    const active = getActiveRecipients();
-    if (!active.length) return alert("No hay destinatarios activos.");
-
-    const data = collectServiceData();
-    if (!data.evento) return alert("Debes indicar al menos el nombre del evento.");
-    if (!window.rrllOutlook || typeof window.rrllOutlook.createDraft !== "function") {
-      return alert("La integración con Outlook no está disponible.");
+    console.log("[Especiales] Click generar borrador");
+    const availability = getDraftAvailability();
+    if (!availability.ok) {
+      setOutlookStatus(`No se puede generar el borrador: ${availability.reason}.`, "error");
+      syncDraftButtonState();
+      return;
     }
 
     const button = document.getElementById("especialesGenerateDraftBtn");
@@ -200,17 +218,20 @@
     }
 
     try {
-      const result = await window.rrllOutlook.createDraft({
-        to: active.map(x => x.email).join(";"),
+      setOutlookStatus("Preparando borrador...");
+      const payload = {
+        to: availability.active.map(x => x.email).join(";"),
         cc: "",
-        subject: buildEspecialesSubject(data.evento),
-        htmlBody: buildEspecialesHtmlBody(data)
-      });
+        subject: buildEspecialesSubject(availability.data.evento),
+        htmlBody: buildEspecialesHtmlBody(availability.data)
+      };
+      setOutlookStatus("Llamando a Outlook...");
+      const result = await window.rrllOutlook.createDraft(payload);
       if (!result || !result.ok) throw new Error(result && result.message ? result.message : "Outlook no disponible");
-      alert("Se ha abierto el borrador en Outlook para revisión manual.");
+      setOutlookStatus("Borrador abierto en Outlook", "success");
     } catch (error) {
       console.error("Error creando borrador Outlook:", error);
-      alert(`No se ha podido abrir Outlook.\nDetalle: ${error && error.message ? error.message : "error desconocido"}`);
+      setOutlookStatus(`Error al abrir Outlook: ${error && error.message ? error.message : "error desconocido"}`, "error");
     } finally {
       if (button) button.textContent = previousText || "Generar borrador en Outlook";
       syncDraftButtonState();
