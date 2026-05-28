@@ -1,5 +1,6 @@
 (function () {
   "use strict";
+  const { MsgReader } = require("@kenjiuno/msgreader");
 
   const RECIPIENTS_KEY = "rrll_especiales_destinatarios";
   let editingRecipientId = null;
@@ -200,30 +201,57 @@
 
   function normalizeDateInput(raw) {
     const v = String(raw || "").trim();
-    const m = v.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
-    if (!m) return "";
-    const day = m[1].padStart(2, "0");
-    const month = m[2].padStart(2, "0");
-    const year = m[3].length === 2 ? `20${m[3]}` : m[3];
+    const iso = v.match(/\b(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})\b/);
+    if (iso) return `${iso[1]}-${iso[2].padStart(2, "0")}-${iso[3].padStart(2, "0")}`;
+    const es = v.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})\b/);
+    if (!es) return "";
+    const day = es[1].padStart(2, "0");
+    const month = es[2].padStart(2, "0");
+    const year = es[3].length === 2 ? `20${es[3]}` : es[3];
     return `${year}-${month}-${day}`;
   }
 
   function normalizeTimeInput(raw) {
-    const v = String(raw || "").trim().replace("h", "").replace(".", ":");
-    const m = v.match(/(\d{1,2}):(\d{2})/);
+    const v = String(raw || "").trim().replace(/\s*h$/i, "").replace(".", ":");
+    const m = v.match(/\b(\d{1,2}):(\d{2})\b/);
     if (!m) return "";
     return `${m[1].padStart(2, "0")}:${m[2]}`;
   }
 
-  function detectAutoFields(text) {
+  function stripHtmlToText(html) {
+    return String(html || "")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function cleanEventFromSubject(subject) {
+    return String(subject || "")
+      .replace(/\b(?:bec|servicio\s+especial|concierto)\b/gi, " ")
+      .replace(/\b(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b/gi, " ")
+      .replace(/\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/g, " ")
+      .replace(/\b\d{1,2}(?::|\.)\d{2}\s*h?\b/gi, " ")
+      .replace(/[|,\-–—]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function detectAutoFields(text, subject) {
     const source = String(text || "");
-    const eventMatch = source.match(/(?:concierto|evento|bec)\s*[:\-]?\s*([^\n\r]{4,120})/i);
+    const eventMatch = source.match(/(?:servicio\s+especial|concierto|evento|bec)\s*[:\-]?\s*([^\n\r]{4,120})/i);
     const dateMatch = source.match(/(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)?\s*(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})/i);
     const timeMatch = source.match(/\b(\d{1,2}(?::|\.)\d{2}\s*h?)\b/i);
     const urlMatch = source.match(/\bhttps?:\/\/[^\s<>"']+/i) || source.match(/\b(?:intranet|www\.)[^\s<>"']+/i);
     const uncMatch = source.match(/(?:[A-Za-z]:\\|\\\\)[^\n\r;,"<>]+/);
+    const fallbackEvent = cleanEventFromSubject(subject);
     return {
-      evento: eventMatch ? eventMatch[1].trim() : "",
+      evento: eventMatch ? cleanEventFromSubject(eventMatch[1]) : fallbackEvent,
       fecha: dateMatch ? normalizeDateInput(dateMatch[1]) : "",
       hora: timeMatch ? normalizeTimeInput(timeMatch[1]) : "",
       enlace: urlMatch ? urlMatch[0].trim() : "",
@@ -244,21 +272,40 @@
     }
     try {
       const buffer = await file.arrayBuffer();
-      const text = readMsgTextPayload(buffer);
-      const subject = (text.match(/(?:subject|asunto)\s*[:=]\s*([^\r\n]{3,200})/i) || [])[1] || "";
-      const senderName = (text.match(/(?:from|de)\s*[:=]\s*([^\r\n<]{3,120})/i) || [])[1] || "";
-      const senderEmail = (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0] || "";
-      const date = (text.match(/(?:sent|fecha)\s*[:=]\s*([^\r\n]{4,80})/i) || [])[1] || "";
-      const body = text.slice(0, 10000);
-      const auto = detectAutoFields(`${subject}\n${body}`);
+      const data = new MsgReader(new Uint8Array(buffer)).getFileData() || {};
+      const subject = String(data.subject || "").trim();
+      const body = String(data.body || "").trim();
+      const htmlBody = String(data.bodyHTML || data.html || "").trim();
+      const senderName = String(data.senderName || "").trim();
+      const senderEmail = String(data.senderEmail || "").trim();
+      const date = normalizeDateInput(data.messageDeliveryTime || data.deliveryTime || data.creationTime || "");
+      const textForDetection = `${subject}\n${body}\n${stripHtmlToText(htmlBody)}`;
+      const auto = detectAutoFields(textForDetection, subject);
       return {
-        ok: !!(subject || body),
+        ok: !!(subject || body || htmlBody),
         partial: !(auto.evento && auto.fecha && auto.hora && (auto.enlace || auto.ruta)),
-        data: { subject: subject.trim(), body, senderName: senderName.trim(), senderEmail: senderEmail.trim(), date: date.trim(), ...auto }
+        data: { subject, body, htmlBody, senderName, senderEmail, date, ...auto }
       };
-    } catch (error) {
-      console.error("Error parseando .msg:", error);
-      return { ok: false, message: "No se ha podido importar el mensaje .msg." };
+    } catch (parseError) {
+      console.warn("Parser .msg avanzado falló, usando fallback básico:", parseError);
+      try {
+        const buffer = await file.arrayBuffer();
+        const text = readMsgTextPayload(buffer);
+        const subject = (text.match(/(?:subject|asunto)\s*[:=]\s*([^\r\n]{3,200})/i) || [])[1] || "";
+        const senderName = (text.match(/(?:from|de)\s*[:=]\s*([^\r\n<]{3,120})/i) || [])[1] || "";
+        const senderEmail = (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0] || "";
+        const date = normalizeDateInput((text.match(/(?:sent|fecha)\s*[:=]\s*([^\r\n]{4,80})/i) || [])[1] || "");
+        const body = text.slice(0, 10000);
+        const auto = detectAutoFields(`${subject}\n${body}`, subject);
+        return {
+          ok: !!(subject || body),
+          partial: !(auto.evento && auto.fecha && auto.hora && (auto.enlace || auto.ruta)),
+          data: { subject: subject.trim(), body, htmlBody: "", senderName: senderName.trim(), senderEmail: senderEmail.trim(), date, ...auto }
+        };
+      } catch (error) {
+        console.error("Error parseando .msg:", error);
+        return { ok: false, message: "No se ha podido importar el mensaje .msg." };
+      }
     }
   }
 
@@ -302,6 +349,7 @@
     input.addEventListener("change", () => {
       selectedMsgFile = input.files && input.files[0] ? input.files[0] : null;
       setMsgStatus(selectedMsgFile ? `Archivo listo: ${selectedMsgFile.name}` : "");
+      if (selectedMsgFile) importSelectedMsg();
     });
     ["dragenter", "dragover"].forEach(eventName => {
       dropZone.addEventListener(eventName, e => {
@@ -326,6 +374,7 @@
       }
       selectedMsgFile = file;
       setMsgStatus(`Archivo listo: ${file.name}`);
+      importSelectedMsg();
     });
   }
 
