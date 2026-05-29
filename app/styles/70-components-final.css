@@ -2931,3 +2931,117 @@ html[data-theme="light"] :is(
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   RRLL Module Foundation — Especiales
+   ========================================================= */
+#gestor-especiales {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+#gestor-especiales :where(
+  .card-body,
+  fieldset,
+  .module-toolbar,
+  .section-gap,
+  .especiales-actions-top,
+  .especiales-preview-section,
+  .especiales-recipient-grid,
+  .especiales-recipient-card,
+  .existing-updates-box,
+  .module-table
+) {
+  box-sizing: border-box;
+  color: var(--rrll-theme-text-main);
+}
+
+#gestor-especiales :where(
+  fieldset,
+  .module-toolbar,
+  .existing-updates-box,
+  .especiales-recipient-card
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+}
+
+#gestor-especiales :where(
+  h4,
+  h5,
+  label,
+  .module-title,
+  .module-icon
+) {
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+#gestor-especiales :where(
+  p,
+  .muted,
+  .rrll-pro-subtitle,
+  #especialesMsgStatus,
+  #especialesOutlookStatus,
+  #especialesRecipientsWarning
+) {
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+}
+
+#gestor-especiales :where(
+  #especialesMsgDropZone,
+  #especialesPreview
+) {
+  background: var(--rrll-card-bg);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+#gestor-especiales :where(
+  #especialesMsgDropZone:hover,
+  #especialesMsgDropZone:focus-within
+) {
+  background: var(--rrll-theme-bg-hover);
+  color: var(--rrll-theme-text-main);
+}
+
+#gestor-especiales .especiales-recipient-grid {
+  gap: var(--rrll-space-xl);
+  box-sizing: border-box;
+}
+
+#gestor-especiales :where(
+  .form-grid,
+  .module-toolbar
+) {
+  gap: var(--rrll-space-md);
+  box-sizing: border-box;
+}
+
+#gestor-especiales :where(
+  .module-table,
+  .module-table thead,
+  .module-table tbody,
+  .module-table tr,
+  .module-table th,
+  .module-table td
+) {
+  background: var(--rrll-card-bg);
+  border-color: var(--rrll-border);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+#gestor-especiales .module-table :where(th) {
+  background: var(--rrll-theme-bg-hover);
+  color: var(--rrll-theme-text-secondary);
+}
