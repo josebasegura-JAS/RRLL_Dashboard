@@ -2753,3 +2753,79 @@ html[data-theme="light"] :is(
   gap: 8px !important;
   flex-wrap: wrap !important;
 }
+
+/* =========================================================
+   RRLL Screen Settings Foundation
+   ========================================================= */
+.rrll-screen-settings-foundation .screen-settings-grid {
+  display: grid;
+  gap: var(--rrll-space-md);
+  margin-top: var(--rrll-space-xl);
+}
+
+.rrll-screen-settings-foundation .screen-setting-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(160px, 1.2fr);
+  align-items: center;
+  gap: var(--rrll-space-md);
+  color: var(--rrll-theme-text-main);
+}
+
+.rrll-screen-settings-foundation .screen-setting-row-color {
+  grid-template-columns: minmax(150px, 1fr) var(--rrll-control-height) minmax(160px, 1.2fr);
+}
+
+.rrll-screen-settings-foundation .screen-setting-row > span:first-child {
+  color: var(--rrll-theme-text-secondary);
+  font-size: var(--rrll-font-sm);
+  font-weight: 700;
+}
+
+.rrll-screen-settings-foundation :is(input, select) {
+  min-height: var(--rrll-control-height);
+  width: 100%;
+}
+
+.rrll-screen-settings-foundation :is(input, select):disabled {
+  cursor: not-allowed;
+  opacity: .72;
+}
+
+.rrll-screen-settings-foundation .screen-setting-swatch {
+  width: var(--rrll-control-height);
+  height: var(--rrll-control-height);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-md);
+  box-shadow: inset 0 0 0 1px var(--rrll-border-strong);
+}
+
+.rrll-screen-settings-foundation .screen-setting-swatch-accent {
+  background: var(--rrll-theme-accent);
+}
+
+.rrll-screen-settings-foundation .screen-setting-swatch-app {
+  background: var(--rrll-theme-bg-app);
+}
+
+.rrll-screen-settings-foundation .screen-setting-swatch-card {
+  background: var(--rrll-theme-bg-card);
+}
+
+.rrll-screen-settings-foundation .screen-setting-swatch-text {
+  background: var(--rrll-theme-text-main);
+}
+
+.rrll-screen-settings-foundation .screen-setting-swatch-warning {
+  background: var(--rrll-theme-warning);
+}
+
+.rrll-screen-settings-foundation .screen-setting-swatch-danger {
+  background: var(--rrll-theme-danger);
+}
+
+@media (max-width: 620px) {
+  .rrll-screen-settings-foundation .screen-setting-row,
+  .rrll-screen-settings-foundation .screen-setting-row-color {
+    grid-template-columns: 1fr;
+  }
+}
