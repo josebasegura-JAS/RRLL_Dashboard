@@ -2755,6 +2755,44 @@ html[data-theme="light"] :is(
 }
 
 /* =========================================================
+   RRLL Settings / Configuration Foundation
+   ========================================================= */
+.config-section,
+.config-card,
+.config-panel,
+.settings-section,
+.settings-card,
+.rrll-theme-config,
+.rrll-screen-settings,
+.rrll-screen-settings-foundation {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+.rrll-config-grid,
+.config-grid,
+.settings-grid,
+.screen-settings-grid {
+  gap: var(--rrll-space-md);
+  box-sizing: border-box;
+}
+
+.config-section .muted,
+.config-card .muted,
+.config-panel .muted,
+.settings-section .muted,
+.settings-card .muted,
+.rrll-theme-config .muted,
+.rrll-screen-settings .muted,
+.rrll-screen-settings-foundation .muted {
+  color: var(--rrll-theme-text-secondary);
+}
+
+/* =========================================================
    RRLL Screen Settings Foundation
    ========================================================= */
 .rrll-screen-settings-foundation .screen-settings-grid {
@@ -2784,10 +2822,13 @@ html[data-theme="light"] :is(
 .rrll-screen-settings-foundation :is(input, select) {
   min-height: var(--rrll-control-height);
   width: 100%;
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
 }
 
 .rrll-screen-settings-foundation :is(input, select):disabled {
   cursor: not-allowed;
+  color: var(--rrll-theme-text-secondary);
   opacity: .72;
 }
 
