@@ -274,3 +274,16 @@
 - Sesiones de Comité y Sesiones de Paritaria: el formulario de alta queda oculto y se abre con “Nueva sesión”.
 - Añadidos botones de cancelar en los formularios desplegables para cerrar sin guardar.
 - Sin cambios en SQLite, Electron ni estructura de datos.
+
+## Versión estable v1.8.0-estable-bbdd-especiales — 2026-05-29
+
+- Se marca esta versión como estable antes de iniciar la revisión y limpieza CSS.
+- Módulo Especiales operativo.
+- Generación Outlook disponible.
+- Importación de archivos `.msg` disponible.
+- Backups optimizados.
+- Escritura atómica activa.
+- Espejo local disponible.
+- Estado BBDD dinámico.
+- No se modifica lógica funcional en este punto de estabilidad.
+- Siguiente restricción operativa: no tocar lógica funcional hasta terminar la revisión CSS.

@@ -1,6 +1,6 @@
 {
   "name": "cuadro-mando-rrll-db",
-  "version": "1.0.0",
+  "version": "1.8.0",
   "main": "main.js",
   "private": true,
   "scripts": {
@@ -31,16 +31,16 @@
           ]
         }
       ],
-      "artifactName": "Cuadro-de-Mando-RRLL-1.0.exe",
+      "artifactName": "Cuadro-de-Mando-RRLL-1.8.0.exe",
       "icon": "app/assets/icon.ico"
     },
-    "artifactName": "Cuadro-de-Mando-RRLL-1.0.exe"
+    "artifactName": "Cuadro-de-Mando-RRLL-1.8.0.exe"
   },
   "dependencies": {
     "sql.js": "^1.10.3",
     "adm-zip": "^0.5.16",
     "@kenjiuno/msgreader": "^1.15.0"
   },
-  "description": "Cuadro de Mando RRLL - versi\u00f3n 1.0 estabilizada",
+  "description": "Cuadro de Mando RRLL - v1.8.0 estable BBDD Especiales",
   "author": "Relaciones Laborales"
 }
