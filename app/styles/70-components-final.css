@@ -1446,6 +1446,283 @@ table tr:last-child td {
   color: var(--rrll-theme-success);
 }
 
+
+/* =========================================================
+   RRLL Module Foundation — Teletrabajo
+   ========================================================= */
+:where(
+  #gestor-teletrabajo,
+  .rrll-pro-telework-shell,
+  .rrll-telework-shell,
+  .teletrabajo-shell,
+  .remote-work-shell,
+  .work-from-home-shell,
+  [class^="teletrabajo-"],
+  [class*=" teletrabajo-"],
+  [class^="remote-work-"],
+  [class*=" remote-work-"],
+  [class^="work-from-home-"],
+  [class*=" work-from-home-"],
+  [class^="rrll-telework-"],
+  [class*=" rrll-telework-"]
+) {
+  box-sizing: border-box;
+  color: var(--rrll-theme-text-main);
+}
+
+:where(
+  #gestor-teletrabajo,
+  .rrll-pro-telework-shell,
+  .rrll-telework-shell,
+  .teletrabajo-shell,
+  .remote-work-shell,
+  .work-from-home-shell,
+  .telework-column,
+  .telework-request-card,
+  .telework-history-campaign,
+  .telework-form-section,
+  .telework-observation-history,
+  .telework-intake-note,
+  .telework-import-card,
+  .telework-catalog-box,
+  .telework-campaign-metric
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .rrll-pro-telework-form,
+  .telework-professional-form,
+  .telework-intake-form,
+  .telework-request-list,
+  .telework-history-list,
+  .telework-card-grid,
+  .telework-validation-summary,
+  .telework-template-actions,
+  .telework-catalog-actions,
+  .telework-actions-group,
+  .telework-card-actions,
+  .telework-days,
+  .rrll-pro-day-list,
+  .rrll-pro-checks,
+  .rrll-pro-inline-checks,
+  .rrll-pro-days-field
+) {
+  gap: var(--rrll-space-md);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .rrll-pro-telework-head,
+  .telework-header-actions,
+  .telework-campaign-picker,
+  .telework-campaign-summary,
+  .telework-list-actions,
+  .telework-catalog-toolbar,
+  .telework-import-head,
+  .telework-sticky-actions,
+  .telework-card-main
+) {
+  background: var(--rrll-surface-header);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  gap: var(--rrll-space-md);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .rrll-pro-telework-form,
+  .telework-professional-form,
+  .telework-intake-form,
+  .telework-form-section,
+  .telework-observations-section,
+  .telework-person-section,
+  .telework-request-section,
+  .telework-catalog-table-wrap,
+  .telework-table-wrap,
+  .telework-history-table-wrapper,
+  .history-table-wrapper,
+  .telework-request-list,
+  .telework-history-list,
+  .telework-import-grid,
+  .telework-catalog-table,
+  .telework-table
+) {
+  background: var(--rrll-surface-raised);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .telework-table,
+  .telework-catalog-table,
+  .telework-table thead,
+  .telework-table tr,
+  .telework-table th,
+  .telework-table td,
+  .telework-catalog-table thead,
+  .telework-catalog-table tr,
+  .telework-catalog-table th,
+  .telework-catalog-table td,
+  .telework-request-row,
+  .telework-history-row,
+  .telework-col-person,
+  .telework-col-status,
+  .telework-col-period,
+  .telework-col-type,
+  .telework-col-days,
+  .telework-col-created
+) {
+  border: 1px solid var(--rrll-table-border);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .telework-table thead,
+  .telework-table th,
+  .telework-catalog-table thead,
+  .telework-catalog-table th
+) {
+  background: var(--rrll-table-header-bg);
+  color: var(--rrll-theme-text-secondary);
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .telework-table td,
+  .telework-catalog-table td,
+  .telework-request-row,
+  .telework-history-row
+) {
+  background: var(--rrll-table-row-bg);
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .telework-card-grid > div,
+  .telework-campaign-metric,
+  .telework-campaign-summary span,
+  .telework-campaign-summary b,
+  .telework-observation-history,
+  .telework-history-entry,
+  .telework-observations-preview,
+  .telework-intake-note,
+  .telework-import-card,
+  .telework-catalog-count,
+  .telework-catalog-empty
+) {
+  background: var(--rrll-surface-hover);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-md);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .telework-card-grid strong,
+  .telework-history-campaign summary,
+  .telework-history-campaign summary strong,
+  .telework-person-text,
+  .telework-col-person,
+  .telework-col-period,
+  .telework-col-type,
+  .telework-col-days,
+  .telework-col-created
+) {
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .telework-campaign-picker,
+  .telework-campaign-picker select,
+  .telework-campaign-hint,
+  .telework-history-campaign summary span,
+  .telework-card-grid span,
+  .telework-observations-preview,
+  .telework-catalog-count,
+  .telework-import-head .muted,
+  .telework-import-card p,
+  .telework-intake-note span
+) {
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .telework-day
+) {
+  background: var(--rrll-surface-hover);
+  border: 1px solid currentColor;
+  border-radius: var(--rrll-radius-pill);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  .telework-validation-chip,
+  .rrll-status-pill.pending,
+  .rrll-status-pill.progress,
+  .rrll-status-pill.direction,
+  .rrll-status-pill.closed,
+  .rrll-status-pill.danger
+) {
+  border-radius: var(--rrll-radius-pill);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-teletrabajo
+) :where(
+  #newTeleworkType,
+  #editTeleworkType,
+  [id$="TeleworkDirectionValidation"],
+  [id$="TeleworkSecurity"],
+  [id$="TeleworkPrevention"],
+  [id$="TeleworkStatus"],
+  .telework-col-type .rrll-pro-source,
+  .telework-col-days .telework-day,
+  .rrll-pro-days-field label
+) {
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-pill);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  box-sizing: border-box;
+}
+
 /* =========================================================
    Refinamiento final de superficies dark corporativas.
    Capa de cierre: neutraliza negros heredados y suaviza
