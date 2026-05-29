@@ -23,6 +23,7 @@ function getTodayKey() {
     let rrllSidebarLastState = {
       info: null,
       backup: null,
+      mirror: null,
       save: { status: "saved", updatedAt: null, error: "" }
     };
     let rrllLastSyncOffline = false;
@@ -220,16 +221,18 @@ function getTodayKey() {
       return "BBDD local";
     }
 
-    function getSidebarStatusLabel(save, backup) {
+    function getSidebarStatusLabel(save, backup, mirror) {
       if (save && save.status === "saving") return "Guardando...";
       if (save && save.status === "error") return "Error al guardar";
+      if (mirror && mirror.mirrorError) return "Espejo local no actualizado";
       if (backup && backup.dirtySinceLastBackup) return "Cambios pendientes de backup";
       return "Guardado";
     }
 
-    function getSidebarVariant(info, save, backup) {
+    function getSidebarVariant(info, save, backup, mirror) {
       if (save && save.status === "error") return "error";
       if (save && save.status === "saving") return "saving";
+      if (mirror && mirror.mirrorError) return "pending";
       if ((info && info.fallbackLocal) || (backup && backup.dirtySinceLastBackup)) return "pending";
       if (info && info.mode === "shared" && !info.fallbackLocal) return "saved";
       return "local";
@@ -241,21 +244,23 @@ function getTodayKey() {
       const connectionEl = document.getElementById("dbConnectionDetail");
       const saveEl = document.getElementById("saveStatusDetail");
       const backupEl = document.getElementById("backupStatusDetail");
+      const mirrorEl = document.getElementById("mirrorStatusDetail");
       if (!widget || !label || !saveEl) return;
 
       const info = rrllSidebarLastState.info || {};
       const backup = rrllSidebarLastState.backup || {};
+      const mirror = rrllSidebarLastState.mirror || {};
       const save = rrllSidebarLastState.save || { status: "saved", updatedAt: null, error: "" };
       const modeLabel = getSidebarModeLabel(info);
-      const statusLabel = getSidebarStatusLabel(save, backup);
-      const variant = getSidebarVariant(info, save, backup);
+      const statusLabel = getSidebarStatusLabel(save, backup, mirror);
+      const variant = getSidebarVariant(info, save, backup, mirror);
 
       widget.classList.remove("saving", "saved", "synced", "offline", "error", "local", "pending");
       widget.classList.add(variant);
       if (variant === "saved" || variant === "local") widget.classList.add("synced");
       widget.title = save.status === "error" && save.error
         ? save.error
-        : `${modeLabel} · ${statusLabel}`;
+        : (mirror && mirror.mirrorError ? mirror.mirrorError : `${modeLabel} · ${statusLabel}`);
 
       label.textContent = (info && info.fallbackLocal) ? modeLabel : `${modeLabel} · ${statusLabel}`;
       if (connectionEl) {
@@ -265,18 +270,31 @@ function getTodayKey() {
         ? "Error al guardar"
         : `Último guardado: ${formatSidebarTime(save.updatedAt)}`;
       if (backupEl) backupEl.textContent = `Último backup: ${formatSidebarTime(backup.lastBackupAt || backup.createdAt)}`;
+      if (mirrorEl) {
+        if (mirror && mirror.mirrorError) {
+          mirrorEl.textContent = "Espejo local no actualizado";
+        } else if (mirror && (mirror.lastMirrorAt || mirror.updatedAt)) {
+          mirrorEl.textContent = `Espejo local actualizado: ${formatSidebarTime(mirror.lastMirrorAt || mirror.updatedAt)}`;
+        } else if (mirror && mirror.exists) {
+          mirrorEl.textContent = "Espejo local disponible";
+        } else {
+          mirrorEl.textContent = "Espejo local: --:--";
+        }
+      }
     }
 
     async function refreshSidebarDatabaseStatus(options = {}) {
       if (window.rrllDB) {
         try {
-          const [info, backup, save] = await Promise.all([
+          const [info, backup, mirror, save] = await Promise.all([
             typeof window.rrllDB.getInfo === "function" ? window.rrllDB.getInfo() : null,
             typeof window.rrllDB.getBackupStatus === "function" ? window.rrllDB.getBackupStatus() : null,
+            typeof window.rrllDB.getMirrorStatus === "function" ? window.rrllDB.getMirrorStatus() : null,
             typeof window.rrllDB.getLastSaveStatus === "function" ? window.rrllDB.getLastSaveStatus() : null
           ]);
           if (info) rrllSidebarLastState.info = info;
           if (backup) rrllSidebarLastState.backup = backup;
+          if (mirror) rrllSidebarLastState.mirror = mirror;
           if (save && !(options.preserveLocalSaving && rrllSidebarLastState.save.status === "saving")) {
             rrllSidebarLastState.save = save;
           }

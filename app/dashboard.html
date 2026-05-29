@@ -93,6 +93,7 @@
           <span id="dbConnectionDetail"></span>
           <span id="saveStatusDetail">Último guardado: --:--</span>
           <span id="backupStatusDetail">Último backup: --:--</span>
+          <span id="mirrorStatusDetail">Espejo local: --:--</span>
         </span>
         <button type="button" class="sync-now-button" onclick="reloadDatabaseFromDisk()" title="Sincronizar ahora" aria-label="Sincronizar ahora">↻</button>
       </div>
@@ -1734,6 +1735,7 @@
           <span>Última sinc.</span><b id="configDbSyncLabel">Cargando...</b>
           <span>Último cambio</span><b id="configDbUpdatedByLabel">Cargando...</b>
           <span>Último backup</span><b id="configBackupStatusLabel">Cargando...</b>
+          <span>Espejo local</span><b id="configMirrorStatusLabel">Cargando...</b>
         </div>
         <div class="config-actions">
           <button type="button" onclick="chooseSharedDatabaseFolder()">Usar carpeta compartida</button>
