@@ -69,6 +69,35 @@
 }
 
 /* =========================================================
+   RRLL Dashboard / Home Foundation
+   ========================================================= */
+:where(
+  .dashboard-card,
+  .widget-card,
+  .metric-card,
+  .phase4-dashboard-card,
+  .phase5-dashboard-card,
+  .home-widget,
+  .home-card
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  .metrics-grid,
+  .dashboard-grid,
+  .widgets-grid
+) {
+  gap: var(--rrll-space-xl);
+  box-sizing: border-box;
+}
+
+/* =========================================================
    RRLL Common Header Foundation
    ========================================================= */
 :where(
