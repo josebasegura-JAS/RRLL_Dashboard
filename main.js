@@ -12,6 +12,8 @@ let sqlReadyPromise = null;
 let SQLRef = null;
 let lastBackupMeta = null;
 let startupDbAlert = null;
+let isQuitting = false;
+let safeQuitInProgress = false;
 
 const DEFAULT_RRLL_FOLDER_PATH = "G:\\Capital Humano\\Relaciones Laborales";
 
@@ -326,9 +328,94 @@ async function openDatabase(dbPath) {
   return { db, existed: exists };
 }
 
+function getDbTempPrefix(dbPath) {
+  return `.rrll-${path.basename(dbPath)}-`;
+}
+
+function listDbTempFiles(dbPath) {
+  const dir = path.dirname(dbPath);
+  const prefix = getDbTempPrefix(dbPath);
+  try {
+    if (!fs.existsSync(dir)) return [];
+    return fs.readdirSync(dir)
+      .filter(name => name.startsWith(prefix) && name.endsWith(".tmp"))
+      .map(name => path.join(dir, name));
+  } catch {
+    return [];
+  }
+}
+
+function cleanupDbTempFiles(dbPath, keepPath = "") {
+  listDbTempFiles(dbPath).forEach(file => {
+    if (keepPath && file === keepPath) return;
+    try { fs.unlinkSync(file); } catch {}
+  });
+}
+
+function fsyncFileIfPossible(fd, label) {
+  try {
+    fs.fsyncSync(fd);
+  } catch (error) {
+    console.warn(`No se pudo fsync ${label}:`, error && error.message ? error.message : error);
+  }
+}
+
+function fsyncDirectoryIfPossible(dir) {
+  let fd = null;
+  try {
+    fd = fs.openSync(dir, "r");
+    fs.fsyncSync(fd);
+  } catch (error) {
+    console.warn("No se pudo fsync del directorio de BBDD:", error && error.message ? error.message : error);
+  } finally {
+    if (fd !== null) {
+      try { fs.closeSync(fd); } catch {}
+    }
+  }
+}
+
+function validatePersistedDb(dbPath) {
+  const stat = fs.statSync(dbPath);
+  if (!stat.isFile() || stat.size <= 0) throw new Error("La base de datos persistida está vacía o no existe.");
+
+  if (!SQLRef) return;
+  const validationDb = new SQLRef.Database(fs.readFileSync(dbPath));
+  try {
+    validationDb.exec("SELECT name FROM sqlite_master LIMIT 1");
+  } finally {
+    try { validationDb.close(); } catch {}
+  }
+}
+
 function persistDb(db, dbPath) {
-  const data = db.export();
-  fs.writeFileSync(dbPath, Buffer.from(data));
+  ensureParentDir(dbPath);
+  cleanupDbTempFiles(dbPath);
+
+  const dir = path.dirname(dbPath);
+  const tempPath = path.join(dir, `${getDbTempPrefix(dbPath)}${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`);
+  const data = Buffer.from(db.export());
+  let fd = null;
+
+  try {
+    fd = fs.openSync(tempPath, "wx");
+    fs.writeFileSync(fd, data);
+    fsyncFileIfPossible(fd, "del fichero temporal de BBDD");
+    fs.closeSync(fd);
+    fd = null;
+
+    validatePersistedDb(tempPath);
+    fs.renameSync(tempPath, dbPath);
+    fsyncDirectoryIfPossible(dir);
+    validatePersistedDb(dbPath);
+  } catch (error) {
+    if (fd !== null) {
+      try { fs.closeSync(fd); } catch {}
+    }
+    try { fs.unlinkSync(tempPath); } catch {}
+    throw error;
+  } finally {
+    cleanupDbTempFiles(dbPath);
+  }
 }
 
 function sleep(ms) {
@@ -562,52 +649,72 @@ async function createRobustBackup(reason, data, options = {}) {
 
   const criticalCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
   const suspicious = criticalCount < 3;
-  const localDir = ensureBackupsDir();
-  const networkDir = getNetworkBackupsDir();
-  if (networkDir && !fs.existsSync(networkDir)) fs.mkdirSync(networkDir, { recursive: true });
 
-  const getBackupPath = targetDir => {
-    let timestamp = new Date();
-    let filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
-    while (fs.existsSync(filePath)) {
-      timestamp = new Date(timestamp.getTime() + 1000);
-      filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
-    }
-    return filePath;
-  };
+  try {
+    return await withFileLock(info.path, async () => {
+      cleanupDbTempFiles(info.path);
+      if (listDbTempFiles(info.path).length) return { ok: false, skipped: "db_write_in_progress" };
+      if (!fs.existsSync(info.path)) return { ok: false, skipped: "missing_db" };
+      validatePersistedDb(info.path);
 
-  if (!fs.existsSync(info.path)) return { ok: false, skipped: "missing_db" };
+      const localDir = ensureBackupsDir();
+      const networkDir = getNetworkBackupsDir();
+      if (networkDir && !fs.existsSync(networkDir)) fs.mkdirSync(networkDir, { recursive: true });
 
-  const localFile = getBackupPath(localDir);
-  fs.copyFileSync(info.path, localFile);
+      const getBackupPath = targetDir => {
+        let timestamp = new Date();
+        let filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
+        while (fs.existsSync(filePath)) {
+          timestamp = new Date(timestamp.getTime() + 1000);
+          filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
+        }
+        return filePath;
+      };
 
-  let networkFile = "";
-  if (networkDir) {
-    networkFile = getBackupPath(networkDir);
-    fs.copyFileSync(info.path, networkFile);
+      const localFile = getBackupPath(localDir);
+      fs.copyFileSync(info.path, localFile);
+
+      let networkFile = "";
+      if (networkDir) {
+        networkFile = getBackupPath(networkDir);
+        fs.copyFileSync(info.path, networkFile);
+      }
+
+      pruneManagedSqliteBackups(localDir, 30);
+      if (networkDir) pruneManagedSqliteBackups(networkDir, 50);
+
+      lastBackupAt = Date.now();
+      clearDatabaseDirty();
+      const baseName = path.basename(localFile, ".db");
+      lastBackupMeta = {
+        ok: !suspicious,
+        suspicious,
+        createdAt: new Date(lastBackupAt).toISOString(),
+        reason,
+        localDir,
+        networkDir,
+        baseName,
+        dbPath: info.path,
+        dirtySinceLastBackup,
+        lastBackupAt: new Date(lastBackupAt).toISOString(),
+        localFile,
+        networkFile
+      };
+      return { ok: true, suspicious, keyCount, fileBase: baseName, localFile, networkFile };
+    });
+  } catch (error) {
+    console.error(`No se pudo crear backup (${reason}):`, error);
+    lastBackupMeta = {
+      ok: false,
+      createdAt: new Date().toISOString(),
+      reason,
+      dbPath: info.path,
+      dirtySinceLastBackup,
+      lastBackupAt: lastBackupAt ? new Date(lastBackupAt).toISOString() : null,
+      error: error && error.message ? error.message : String(error)
+    };
+    return { ok: false, error: error && error.message ? error.message : String(error) };
   }
-
-  pruneManagedSqliteBackups(localDir, 30);
-  if (networkDir) pruneManagedSqliteBackups(networkDir, 50);
-
-  lastBackupAt = Date.now();
-  clearDatabaseDirty();
-  const baseName = path.basename(localFile, ".db");
-  lastBackupMeta = {
-    ok: !suspicious,
-    suspicious,
-    createdAt: new Date(lastBackupAt).toISOString(),
-    reason,
-    localDir,
-    networkDir,
-    baseName,
-    dbPath: info.path,
-    dirtySinceLastBackup,
-    lastBackupAt: new Date(lastBackupAt).toISOString(),
-    localFile,
-    networkFile
-  };
-  return { ok: true, suspicious, keyCount, fileBase: baseName, localFile, networkFile };
 }
 
 async function runScheduledBackup() {
@@ -624,6 +731,12 @@ function startBackupScheduler() {
   if (backupScheduler) return;
   backupScheduler = setInterval(runScheduledBackup, 15 * 60 * 1000);
   if (typeof backupScheduler.unref === "function") backupScheduler.unref();
+}
+
+function stopBackupScheduler() {
+  if (!backupScheduler) return;
+  clearInterval(backupScheduler);
+  backupScheduler = null;
 }
 
 
@@ -1540,12 +1653,26 @@ app.whenReady().then(async () => {
   createWindow();
 });
 
-app.on("before-quit", async () => {
+async function performControlledQuit() {
+  stopBackupScheduler();
   try {
-    await createRobustBackup("app_close", await loadAllData());
+    if (dirtySinceLastBackup) {
+      await createRobustBackup("app_close", await loadAllData(), { throttleMs: 0 });
+    }
   } catch (error) {
     console.error("No se pudo crear backup al cerrar:", error);
+  } finally {
+    isQuitting = true;
+    app.quit();
   }
+}
+
+app.on("before-quit", event => {
+  if (isQuitting) return;
+  event.preventDefault();
+  if (safeQuitInProgress) return;
+  safeQuitInProgress = true;
+  performControlledQuit();
 });
 
 app.on("window-all-closed", () => {
