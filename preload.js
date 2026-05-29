@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld("rrllDB", {
   backupAll: data => ipcRenderer.invoke("db:backupAll", data),
   createBackup: payload => ipcRenderer.invoke("db:createBackup", payload),
   getBackupStatus: () => ipcRenderer.invoke("db:getBackupStatus"),
+  getLastSaveStatus: () => ipcRenderer.invoke("db:getLastSaveStatus"),
   openBackupsFolder: () => ipcRenderer.invoke("db:openBackupsFolder"),
   getInfo: () => ipcRenderer.invoke("db:getInfo"),
   getState: () => ipcRenderer.invoke("db:getState"),

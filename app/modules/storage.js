@@ -19,6 +19,12 @@ function getTodayKey() {
     let rrllIsApplyingRemoteRefresh = false;
     let rrllIsCheckingDatabaseUpdates = false;
     let rrllSaveStatusTimer = null;
+    let rrllSidebarStatusRefreshTimer = null;
+    let rrllSidebarLastState = {
+      info: null,
+      backup: null,
+      save: { status: "saved", updatedAt: null, error: "" }
+    };
     let rrllLastSyncOffline = false;
     let rrllPersistQueue = Promise.resolve();
     const RRLL_EDITING_LOCKS_KEY = "rrll_editing_locks";
@@ -202,36 +208,104 @@ function getTodayKey() {
     }
 
 
-    function setSaveStatus(status, detail) {
-      const widget = document.getElementById("saveStatusWidget");
-      const label = document.getElementById("saveStatusLabel");
-      const detailEl = document.getElementById("saveStatusDetail");
-      if (!widget || !label || !detailEl) return;
-
-      widget.classList.remove("saving", "saved", "synced", "offline", "error");
-      widget.classList.add(status || "synced");
-
-      const labels = {
-        saving: "OK",
-        saved: "OK",
-        synced: "OK",
-        offline: "Error",
-        error: "Error"
-      };
-
-      const currentLabel = labels[status] || "OK";
-      label.textContent = currentLabel;
-      if (currentLabel === "Error") {
-        detailEl.textContent = "";
-      } else {
-        const fallbackDetail = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-        detailEl.textContent = compactSidebarSyncDetail(detail || fallbackDetail);
-      }
+    function formatSidebarTime(value) {
+      const date = value ? new Date(value) : null;
+      if (!date || Number.isNaN(date.getTime())) return "--:--";
+      return date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
     }
 
-    function compactSidebarSyncDetail(detail) {
-      const timeMatch = String(detail || "").match(/\b\d{1,2}:\d{2}:\d{2}\b/);
-      return timeMatch ? timeMatch[0] : "";
+    function getSidebarModeLabel(info) {
+      if (info && info.mode === "shared" && info.fallbackLocal) return "BBDD local temporal";
+      if (info && info.mode === "shared") return "BBDD red";
+      return "BBDD local";
+    }
+
+    function getSidebarStatusLabel(save, backup) {
+      if (save && save.status === "saving") return "Guardando...";
+      if (save && save.status === "error") return "Error al guardar";
+      if (backup && backup.dirtySinceLastBackup) return "Cambios pendientes de backup";
+      return "Guardado";
+    }
+
+    function getSidebarVariant(info, save, backup) {
+      if (save && save.status === "error") return "error";
+      if (save && save.status === "saving") return "saving";
+      if ((info && info.fallbackLocal) || (backup && backup.dirtySinceLastBackup)) return "pending";
+      if (info && info.mode === "shared" && !info.fallbackLocal) return "saved";
+      return "local";
+    }
+
+    function renderSidebarDatabaseStatus() {
+      const widget = document.getElementById("saveStatusWidget");
+      const label = document.getElementById("saveStatusLabel");
+      const connectionEl = document.getElementById("dbConnectionDetail");
+      const saveEl = document.getElementById("saveStatusDetail");
+      const backupEl = document.getElementById("backupStatusDetail");
+      if (!widget || !label || !saveEl) return;
+
+      const info = rrllSidebarLastState.info || {};
+      const backup = rrllSidebarLastState.backup || {};
+      const save = rrllSidebarLastState.save || { status: "saved", updatedAt: null, error: "" };
+      const modeLabel = getSidebarModeLabel(info);
+      const statusLabel = getSidebarStatusLabel(save, backup);
+      const variant = getSidebarVariant(info, save, backup);
+
+      widget.classList.remove("saving", "saved", "synced", "offline", "error", "local", "pending");
+      widget.classList.add(variant);
+      if (variant === "saved" || variant === "local") widget.classList.add("synced");
+      widget.title = save.status === "error" && save.error
+        ? save.error
+        : `${modeLabel} · ${statusLabel}`;
+
+      label.textContent = (info && info.fallbackLocal) ? modeLabel : `${modeLabel} · ${statusLabel}`;
+      if (connectionEl) {
+        connectionEl.textContent = info && info.fallbackLocal ? "Sin conexión a red" : "";
+      }
+      saveEl.textContent = save.status === "error" && save.error
+        ? "Error al guardar"
+        : `Último guardado: ${formatSidebarTime(save.updatedAt)}`;
+      if (backupEl) backupEl.textContent = `Último backup: ${formatSidebarTime(backup.lastBackupAt || backup.createdAt)}`;
+    }
+
+    async function refreshSidebarDatabaseStatus(options = {}) {
+      if (window.rrllDB) {
+        try {
+          const [info, backup, save] = await Promise.all([
+            typeof window.rrllDB.getInfo === "function" ? window.rrllDB.getInfo() : null,
+            typeof window.rrllDB.getBackupStatus === "function" ? window.rrllDB.getBackupStatus() : null,
+            typeof window.rrllDB.getLastSaveStatus === "function" ? window.rrllDB.getLastSaveStatus() : null
+          ]);
+          if (info) rrllSidebarLastState.info = info;
+          if (backup) rrllSidebarLastState.backup = backup;
+          if (save && !(options.preserveLocalSaving && rrllSidebarLastState.save.status === "saving")) {
+            rrllSidebarLastState.save = save;
+          }
+        } catch (error) {
+          rrllSidebarLastState.save = { status: "error", updatedAt: rrllSidebarLastState.save?.updatedAt || null, error: error && error.message ? error.message : "No se pudo consultar el estado de BBDD." };
+        }
+      }
+      renderSidebarDatabaseStatus();
+    }
+
+    function scheduleSidebarStatusRefresh(delay = 0, options = {}) {
+      clearTimeout(rrllSidebarStatusRefreshTimer);
+      rrllSidebarStatusRefreshTimer = setTimeout(() => {
+        refreshSidebarDatabaseStatus(options).catch(error => console.warn("No se pudo refrescar estado BBDD sidebar:", error));
+      }, delay);
+    }
+
+    function setSaveStatus(status, detail) {
+      const normalizedStatus = status === "offline" ? "error" : (status || "saved");
+      const now = new Date().toISOString();
+      if (normalizedStatus === "saving") {
+        rrllSidebarLastState.save = { status: "saving", updatedAt: rrllSidebarLastState.save?.updatedAt || null, error: "" };
+      } else if (normalizedStatus === "error") {
+        rrllSidebarLastState.save = { status: "error", updatedAt: rrllSidebarLastState.save?.updatedAt || null, error: detail || "No se pudo guardar o sincronizar." };
+      } else {
+        rrllSidebarLastState.save = { status: "saved", updatedAt: now, error: "" };
+      }
+      renderSidebarDatabaseStatus();
+      if (window.rrllDB && normalizedStatus !== "saving") scheduleSidebarStatusRefresh(250);
     }
 
     function markSaveStarted() {
@@ -242,10 +316,8 @@ function getTodayKey() {
       const state = await updateSyncStatus("save");
       if (state && state.token) rrllLastKnownDbToken = state.token;
       setSaveStatus("saved", `Último guardado: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`);
+      scheduleSidebarStatusRefresh(0);
       clearTimeout(rrllSaveStatusTimer);
-      rrllSaveStatusTimer = setTimeout(() => {
-        setSaveStatus("synced", `Sincronizado: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`);
-      }, 1600);
     }
 
     function markSaveError(error) {
@@ -305,6 +377,9 @@ function save(key, value) {
 
   return Promise.resolve();
 }
+
+window.refreshSidebarDatabaseStatus = refreshSidebarDatabaseStatus;
+window.renderSidebarDatabaseStatus = renderSidebarDatabaseStatus;
 
 window.waitForPendingSaves = async function () {
   try {

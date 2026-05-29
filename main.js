@@ -11,6 +11,7 @@ let backupScheduler = null;
 let sqlReadyPromise = null;
 let SQLRef = null;
 let lastBackupMeta = null;
+let lastSaveStatus = { status: "saved", updatedAt: null, error: "" };
 let startupDbAlert = null;
 let isQuitting = false;
 let safeQuitInProgress = false;
@@ -81,6 +82,38 @@ function markDatabaseDirty() {
 
 function clearDatabaseDirty() {
   dirtySinceLastBackup = false;
+}
+
+function setLastSaveStatus(status, error = "") {
+  lastSaveStatus = {
+    status: status || "saved",
+    updatedAt: new Date().toISOString(),
+    error: error ? String(error) : ""
+  };
+}
+
+async function getLastSaveStatus() {
+  if (!lastSaveStatus.updatedAt) {
+    try {
+      const state = await getDbState();
+      if (state && state.lastUpdate) return { ...lastSaveStatus, updatedAt: state.lastUpdate };
+    } catch {}
+  }
+  return { ...lastSaveStatus };
+}
+
+function getBackupStatus() {
+  return {
+    ...(lastBackupMeta || {
+      ok: false,
+      createdAt: null,
+      reason: null,
+      dbPath: getActiveDbInfo().path,
+      lastBackupAt: lastBackupAt ? new Date(lastBackupAt).toISOString() : null
+    }),
+    dirtySinceLastBackup,
+    lastBackupAt: lastBackupAt ? new Date(lastBackupAt).toISOString() : null
+  };
 }
 
 function isPlainObject(value) {
@@ -579,8 +612,10 @@ async function loadAllData() {
 
 async function saveKeyData(key, value) {
   if (typeof key !== "string" || !key.startsWith("rrll_")) return false;
+  setLastSaveStatus("saving");
   const info = resolveDbAccessInfo();
-  return withFileLock(info.path, async () => {
+  try {
+    return await withFileLock(info.path, async () => {
     const { db } = await openDatabase(info.path);
     try {
       const now = new Date().toISOString();
@@ -592,17 +627,24 @@ async function saveKeyData(key, value) {
       touchDatabaseState(db);
       persistDb(db, info.path);
       markDatabaseDirty();
+      setLastSaveStatus("saved");
       return true;
     } finally {
       try { db.close(); } catch {}
     }
   });
+  } catch (error) {
+    setLastSaveStatus("error", error && error.message ? error.message : String(error));
+    throw error;
+  }
 }
 
 async function saveAllData(data) {
   const safe = isPlainObject(data) ? data : {};
+  setLastSaveStatus("saving");
   const info = resolveDbAccessInfo();
-  return withFileLock(info.path, async () => {
+  try {
+    return await withFileLock(info.path, async () => {
     const { db } = await openDatabase(info.path);
     try {
       const now = new Date().toISOString();
@@ -626,11 +668,16 @@ async function saveAllData(data) {
       }
       persistDb(db, info.path);
       markDatabaseDirty();
+      setLastSaveStatus("saved");
       return true;
     } finally {
       try { db.close(); } catch {}
     }
   });
+  } catch (error) {
+    setLastSaveStatus("error", error && error.message ? error.message : String(error));
+    throw error;
+  }
 }
 
 async function backupAllData(data) {
@@ -1540,7 +1587,8 @@ ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));
 ipcMain.handle("db:createBackup", async (_event, payload) => createRobustBackup(payload && payload.reason ? payload.reason : "manual", payload && payload.data ? payload.data : {}));
-ipcMain.handle("db:getBackupStatus", async () => lastBackupMeta || { ok: false, createdAt: null, reason: null, dbPath: getActiveDbInfo().path, dirtySinceLastBackup, lastBackupAt: lastBackupAt ? new Date(lastBackupAt).toISOString() : null });
+ipcMain.handle("db:getBackupStatus", async () => getBackupStatus());
+ipcMain.handle("db:getLastSaveStatus", async () => getLastSaveStatus());
 ipcMain.handle("db:openBackupsFolder", async () => {
   const folder = ensureBackupsDir();
   const error = await shell.openPath(folder);
