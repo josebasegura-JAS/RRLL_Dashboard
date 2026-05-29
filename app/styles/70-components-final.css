@@ -125,6 +125,71 @@
 }
 
 /* =========================================================
+   RRLL Common Forms Foundation
+   ========================================================= */
+.rrll-form,
+.rrll-field,
+.rrll-label,
+.rrll-form-grid,
+.rrll-form-actions {
+  font-family: var(--rrll-font-family);
+  font-size: var(--rrll-font-sm);
+  color: var(--rrll-theme-text-main);
+}
+
+.rrll-input,
+.rrll-select,
+.rrll-textarea,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea,
+.form-input,
+.form-select,
+.form-textarea,
+.rrll-pro-input,
+.rrll-pro-select,
+.rrll-pro-textarea {
+  font-family: var(--rrll-font-family);
+  font-size: var(--rrll-font-sm);
+  color: var(--rrll-theme-text-main);
+  background: var(--rrll-theme-bg-input);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  min-height: var(--rrll-control-height);
+  padding: calc(var(--rrll-font-sm) / 2) var(--rrll-font-sm);
+  outline: none;
+  transition: border-color .15s ease, background .15s ease, outline-color .15s ease;
+}
+
+.rrll-input::placeholder,
+.rrll-textarea::placeholder,
+input:not([type="checkbox"]):not([type="radio"])::placeholder,
+textarea::placeholder,
+.form-input::placeholder,
+.form-textarea::placeholder,
+.rrll-pro-input::placeholder,
+.rrll-pro-textarea::placeholder {
+  color: var(--rrll-theme-text-placeholder);
+}
+
+.rrll-input:focus-visible,
+.rrll-select:focus-visible,
+.rrll-textarea:focus-visible,
+input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible,
+.rrll-pro-input:focus-visible,
+.rrll-pro-select:focus-visible,
+.rrll-pro-textarea:focus-visible {
+  background: var(--rrll-theme-bg-input-focus);
+  border-color: var(--rrll-theme-accent);
+  outline: 2px solid var(--rrll-theme-accent);
+}
+
+/* =========================================================
    Formularios
    ========================================================= */
 .rrll-form,
