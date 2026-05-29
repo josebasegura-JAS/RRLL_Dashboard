@@ -282,6 +282,179 @@ textarea {
 }
 
 /* =========================================================
+   RRLL Common Buttons Foundation
+   ========================================================= */
+button,
+.btn,
+.rrll-btn,
+.rrll-button,
+.action-btn,
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.rrll-pro-btn,
+.rrll-pro-primary,
+.rrll-pro-secondary,
+.rrll-pro-danger {
+  font-family: var(--rrll-font-family);
+  font-size: var(--rrll-font-sm);
+  font-weight: 800;
+  min-height: var(--rrll-button-height);
+  padding: 0 var(--rrll-button-padding-x);
+  border-radius: var(--rrll-button-radius);
+  border: 1px solid var(--rrll-border);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--rrll-button-padding-x) / 2);
+}
+
+.rrll-button-primary,
+.rrll-btn-primary,
+.rrll-button.primary,
+.rrll-btn.primary,
+.btn-primary,
+.primary-btn,
+.rrll-pro-primary {
+  background: var(--rrll-theme-accent);
+  border-color: var(--rrll-theme-accent);
+  color: var(--rrll-theme-text-on-accent);
+}
+
+.rrll-button-primary:hover,
+.rrll-btn-primary:hover,
+.rrll-button.primary:hover,
+.rrll-btn.primary:hover,
+.btn-primary:hover,
+.primary-btn:hover,
+.rrll-pro-primary:hover {
+  background: var(--rrll-theme-accent-hover);
+  border-color: var(--rrll-theme-accent-hover);
+  color: var(--rrll-theme-text-on-accent);
+}
+
+.rrll-button-secondary,
+.rrll-btn-secondary,
+.rrll-button.secondary,
+.rrll-btn.secondary,
+.btn-secondary,
+.secondary-btn,
+.rrll-pro-secondary {
+  border-color: var(--rrll-border);
+}
+
+.rrll-button-secondary:hover,
+.rrll-btn-secondary:hover,
+.rrll-button.secondary:hover,
+.rrll-btn.secondary:hover,
+.btn-secondary:hover,
+.secondary-btn:hover,
+.rrll-pro-secondary:hover {
+  border-color: var(--rrll-theme-accent);
+}
+
+.rrll-button-danger,
+.rrll-btn-danger,
+.rrll-button.danger,
+.rrll-btn.danger,
+.btn-danger,
+.danger-btn,
+.rrll-pro-danger {
+  background: var(--rrll-theme-accent);
+  border-color: var(--rrll-theme-accent);
+  color: var(--rrll-theme-text-on-accent);
+}
+
+.rrll-button-danger:hover,
+.rrll-btn-danger:hover,
+.rrll-button.danger:hover,
+.rrll-btn.danger:hover,
+.btn-danger:hover,
+.danger-btn:hover,
+.rrll-pro-danger:hover {
+  background: var(--rrll-theme-accent-hover);
+  border-color: var(--rrll-theme-accent-hover);
+  color: var(--rrll-theme-text-on-accent);
+}
+
+.rrll-button-ghost,
+.rrll-btn-ghost,
+.rrll-button.ghost,
+.rrll-btn.ghost,
+.btn-ghost {
+  border-color: var(--rrll-border);
+}
+
+.rrll-button-ghost:hover,
+.rrll-btn-ghost:hover,
+.rrll-button.ghost:hover,
+.rrll-btn.ghost:hover,
+.btn-ghost:hover {
+  border-color: var(--rrll-theme-accent);
+}
+
+button:hover,
+.btn:hover,
+.rrll-btn:hover,
+.rrll-button:hover,
+.action-btn:hover,
+.primary-btn:hover,
+.secondary-btn:hover,
+.danger-btn:hover,
+.rrll-pro-btn:hover,
+.rrll-pro-primary:hover,
+.rrll-pro-secondary:hover,
+.rrll-pro-danger:hover {
+  border-color: var(--rrll-theme-accent);
+}
+
+button:focus-visible,
+.btn:focus-visible,
+.rrll-btn:focus-visible,
+.rrll-button:focus-visible,
+.action-btn:focus-visible,
+.primary-btn:focus-visible,
+.secondary-btn:focus-visible,
+.danger-btn:focus-visible,
+.rrll-pro-btn:focus-visible,
+.rrll-pro-primary:focus-visible,
+.rrll-pro-secondary:focus-visible,
+.rrll-pro-danger:focus-visible {
+  outline: 2px solid var(--rrll-theme-accent);
+  outline-offset: 2px;
+}
+
+button:disabled,
+button[disabled],
+.btn:disabled,
+.btn[disabled],
+.rrll-btn:disabled,
+.rrll-btn[disabled],
+.rrll-button:disabled,
+.rrll-button[disabled],
+.action-btn:disabled,
+.action-btn[disabled],
+.primary-btn:disabled,
+.primary-btn[disabled],
+.secondary-btn:disabled,
+.secondary-btn[disabled],
+.danger-btn:disabled,
+.danger-btn[disabled],
+.rrll-pro-btn:disabled,
+.rrll-pro-btn[disabled],
+.rrll-pro-primary:disabled,
+.rrll-pro-primary[disabled],
+.rrll-pro-secondary:disabled,
+.rrll-pro-secondary[disabled],
+.rrll-pro-danger:disabled,
+.rrll-pro-danger[disabled] {
+  cursor: not-allowed;
+  opacity: .62;
+}
+
+/* =========================================================
    Botones / acciones
    ========================================================= */
 .rrll-button,
