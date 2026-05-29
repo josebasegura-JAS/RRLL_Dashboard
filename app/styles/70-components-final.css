@@ -1724,6 +1724,382 @@ table tr:last-child td {
 }
 
 /* =========================================================
+   RRLL Module Foundation — Comité & Paritaria
+   ========================================================= */
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria,
+  .committee-main,
+  .paritaria-main,
+  .committee-subsection,
+  .paritaria-subsection,
+  .rrll-pro-committee-shell,
+  .rrll-pro-paritaria-shell,
+  .rrll-committee-shell,
+  .rrll-paritaria-shell
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria,
+  #agendaUpdateModal,
+  #committeeSessionSelectModal,
+  #committeeSessionOrderModal,
+  #committeeConfirmModal,
+  #committeeSessionCloseModal,
+  #committeeSessionAddPointModal,
+  #paritariaUpdateModal,
+  #paritariaSessionSelectModal,
+  #paritariaSessionOrderModal,
+  #paritariaConfirmModal,
+  #paritariaSessionCloseModal,
+  #paritariaSessionAddPointModal
+) :where(
+  [class^="committee-"],
+  [class*=" committee-"],
+  [class^="paritaria-"],
+  [class*=" paritaria-"],
+  [class^="session-"],
+  [class*=" session-"],
+  [class^="meeting-"],
+  [class*=" meeting-"],
+  [class^="agenda-"],
+  [class*=" agenda-"],
+  [class^="point-"],
+  [class*=" point-"],
+  [class^="rrll-committee-"],
+  [class*=" rrll-committee-"],
+  [class^="rrll-paritaria-"],
+  [class*=" rrll-paritaria-"]
+) {
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  .rrll-pro-task-shell,
+  .rrll-pro-committee-shell,
+  .rrll-pro-paritaria-shell,
+  .rrll-pro-list-card,
+  .session-panel,
+  .session-card,
+  .session-card.closed,
+  .session-item,
+  .session-year-block,
+  .session-select-option,
+  .committee-session-card,
+  .paritaria-session-card,
+  .parity-session-card,
+  .committee-card,
+  .paritaria-card,
+  .parity-card
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  summary,
+  .rrll-pro-task-head,
+  .rrll-pro-committee-head,
+  .rrll-pro-paritaria-head,
+  .rrll-session-create-head,
+  .rrll-pro-list-toolbar,
+  .rrll-pro-tabs,
+  .rrll-pro-search-wrap,
+  .column-header,
+  .session-card-toolbar,
+  .session-year-header,
+  .sessions-header,
+  .points-header,
+  .committee-header,
+  .paritaria-header,
+  .parity-header,
+  .committee-topbar,
+  .paritaria-topbar,
+  .parity-topbar
+) {
+  background: var(--rrll-surface-header);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  gap: var(--rrll-space-md);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  .rrll-pro-committee-form,
+  .rrll-pro-paritaria-form,
+  .agenda-form-v18,
+  .paritaria-form-v18,
+  .rrll-session-create-form,
+  .session-form,
+  .session-content,
+  .session-items,
+  .session-select-list,
+  .session-order-list
+) {
+  background: var(--rrll-surface-raised);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  gap: var(--rrll-space-md);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .rrll-pro-field input,
+  .rrll-pro-field select,
+  .rrll-pro-field textarea,
+  .rrll-pro-search-wrap input
+) {
+  background: var(--rrll-theme-bg-input);
+  border: 1px solid var(--rrll-border-strong);
+  border-radius: var(--rrll-button-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  .rrll-pro-table-wrap,
+  .rrll-pro-committee-table,
+  .rrll-pro-table,
+  .session-close-list
+) {
+  background: var(--rrll-table-row-bg);
+  border: 1px solid var(--rrll-table-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  .rrll-pro-table thead,
+  .rrll-pro-table thead tr,
+  .rrll-pro-table th,
+  .rrll-pro-committee-table thead,
+  .rrll-pro-committee-table thead tr,
+  .rrll-pro-committee-table th
+) {
+  background: var(--rrll-table-header-bg);
+  border: 1px solid var(--rrll-table-border);
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  .rrll-agenda-row,
+  .rrll-paritaria-row,
+  .rrll-pro-row,
+  .session-close-row,
+  .committee-session-add-point-row,
+  .paritaria-session-add-point-row,
+  .session-order-row
+) {
+  background: var(--rrll-table-row-bg);
+  border: 1px solid var(--rrll-table-border);
+  border-radius: var(--rrll-radius-md);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  button,
+  .btn,
+  .primary,
+  .secondary,
+  .danger,
+  .excel,
+  .black,
+  .summary-icon-button,
+  .session-card-icon,
+  .rrll-session-card-toggle,
+  .rrll-session-panel-toggle,
+  .rrll-pro-tool-button,
+  .rrll-pro-tabs button,
+  .session-select-option
+) {
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-button-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  gap: var(--rrll-space-sm);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-comite,
+  #gestor-paritaria,
+  #gestor-puntos-comite,
+  #gestor-puntos-paritaria,
+  #gestor-sesiones-comite,
+  #gestor-sesiones-paritaria
+) :where(
+  .summary-counts,
+  .committee-badge,
+  .paritaria-badge,
+  .rrll-pro-source,
+  .status-badge,
+  .state-badge,
+  .session-year-count,
+  .session-meta,
+  .session-item-meta,
+  .rrll-session-card-summary
+) {
+  border-radius: var(--rrll-radius-pill);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  box-sizing: border-box;
+}
+
+:where(
+  #agendaUpdateModal,
+  #committeeSessionSelectModal,
+  #committeeSessionOrderModal,
+  #committeeConfirmModal,
+  #committeeSessionCloseModal,
+  #committeeSessionAddPointModal,
+  #paritariaUpdateModal,
+  #paritariaSessionSelectModal,
+  #paritariaSessionOrderModal,
+  #paritariaConfirmModal,
+  #paritariaSessionCloseModal,
+  #paritariaSessionAddPointModal
+) :where(
+  .modal-box,
+  .modal-card,
+  .rrll-pro-modal-box,
+  .dialog-box,
+  .popup-box,
+  .session-close-modal-box,
+  .committee-session-add-point-box,
+  .paritaria-session-add-point-box
+) {
+  background: var(--rrll-modal-bg);
+  border: 1px solid var(--rrll-modal-border);
+  border-radius: var(--rrll-modal-radius);
+  box-shadow: var(--rrll-modal-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #agendaUpdateModal,
+  #committeeSessionSelectModal,
+  #committeeSessionOrderModal,
+  #committeeConfirmModal,
+  #committeeSessionCloseModal,
+  #committeeSessionAddPointModal,
+  #paritariaUpdateModal,
+  #paritariaSessionSelectModal,
+  #paritariaSessionOrderModal,
+  #paritariaConfirmModal,
+  #paritariaSessionCloseModal,
+  #paritariaSessionAddPointModal
+) :where(
+  .modal-header,
+  .modal-body,
+  .modal-footer,
+  .modal-actions,
+  .form-actions,
+  .session-select-list,
+  .session-order-list,
+  .session-close-list,
+  .committee-session-add-point-list,
+  .paritaria-session-add-point-list,
+  .committee-session-order-toolbar,
+  .paritaria-session-order-toolbar
+) {
+  background: var(--rrll-surface-raised);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  gap: var(--rrll-space-md);
+  box-sizing: border-box;
+}
+
+/* =========================================================
    Refinamiento final de superficies dark corporativas.
    Capa de cierre: neutraliza negros heredados y suaviza
    sombras/bordes sin cambiar estructura ni lógica.
