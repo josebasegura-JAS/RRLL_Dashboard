@@ -23,8 +23,9 @@
         phase4SetTexts(["dbPathLabel", "configDbPathLabel"], `${info.path} (red configurada: ${info.configuredSharedPath})`);
       }
       const backup = await (window.rrllDB.getBackupStatus ? window.rrllDB.getBackupStatus() : null);
-      const backupText = backup && backup.createdAt ? `${new Date(backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}` : "No configurado";
+      const backupText = backup && (backup.lastBackupAt || backup.createdAt) ? `${new Date(backup.lastBackupAt || backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}${backup.dirtySinceLastBackup ? " · cambios pendientes" : ""}` : "No configurado";
       phase4SetTexts(["configBackupStatusLabel"], backupText);
+      if (typeof window.refreshSidebarDatabaseStatus === "function") await window.refreshSidebarDatabaseStatus();
       const state = await updateSyncStatus("info");
       phase4SetTexts(["configDbUpdatedByLabel"], state ? "Conectado" : "Error");
     } catch (error) {
@@ -223,7 +224,11 @@
     if (rrllAutoSyncTimer) clearInterval(rrllAutoSyncTimer);
     console.info("[RRLL SYNC] Sincronización automática iniciada (intervalo: 12s).");
     checkDatabaseUpdatesSilently();
-    rrllAutoSyncTimer = setInterval(checkDatabaseUpdatesSilently, 12000);
+    if (typeof window.refreshSidebarDatabaseStatus === "function") window.refreshSidebarDatabaseStatus();
+    rrllAutoSyncTimer = setInterval(() => {
+      checkDatabaseUpdatesSilently();
+      if (typeof window.refreshSidebarDatabaseStatus === "function") window.refreshSidebarDatabaseStatus();
+    }, 12000);
     if (!startDatabaseAutoSync._listenersAttached) {
       window.addEventListener("focus", () => { checkDatabaseUpdatesSilently(); });
       document.addEventListener("visibilitychange", () => {
@@ -350,6 +355,7 @@
   window.createBackupNow = async function createBackupNow() {
     if (!window.rrllDB || typeof window.rrllDB.createBackup !== "function") return;
     await window.rrllDB.createBackup({ reason: "manual_ui", data: window.rrllDatabaseCache || {} });
+    if (typeof window.refreshSidebarDatabaseStatus === "function") await window.refreshSidebarDatabaseStatus();
     await refreshDatabaseInfo();
     alert("Backup creado correctamente.");
   };

@@ -86,11 +86,13 @@
         </div>
       </nav>
       <div id="rrllFolderNotice" class="sidebar-folder-notice" aria-live="polite"></div>
-      <div id="saveStatusWidget" class="save-status-widget synced phase5-sidebar-sync" aria-live="polite">
+      <div id="saveStatusWidget" class="save-status-widget synced phase5-sidebar-sync" aria-live="polite" title="Estado de la base de datos">
         <span class="save-status-dot"></span>
         <span class="save-status-text">
-          <b id="saveStatusLabel">Sinc. OK</b>
-          <span id="saveStatusDetail">00:00:00</span>
+          <b id="saveStatusLabel">BBDD local · Guardado</b>
+          <span id="dbConnectionDetail"></span>
+          <span id="saveStatusDetail">Último guardado: --:--</span>
+          <span id="backupStatusDetail">Último backup: --:--</span>
         </span>
         <button type="button" class="sync-now-button" onclick="reloadDatabaseFromDisk()" title="Sincronizar ahora" aria-label="Sincronizar ahora">↻</button>
       </div>
