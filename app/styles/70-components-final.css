@@ -19,6 +19,50 @@
 }
 
 /* =========================================================
+   RRLL Common Modals Foundation
+   ========================================================= */
+.rrll-modal,
+.rrll-modal-backdrop,
+.rrll-modal-box,
+.rrll-modal-header,
+.rrll-modal-body,
+.rrll-modal-footer,
+.modal-box,
+.modal-card,
+.rrll-pro-modal-box,
+.dialog-box,
+.popup-box,
+.config-modal-box,
+.module-search-box {
+  box-sizing: border-box;
+  color: var(--rrll-theme-text-main);
+}
+
+.rrll-modal-box,
+.modal-box,
+.modal-card,
+.rrll-pro-modal-box,
+.dialog-box,
+.popup-box,
+.config-modal-box,
+.module-search-box {
+  background: var(--rrll-modal-bg);
+  border: 1px solid var(--rrll-modal-border);
+  border-radius: var(--rrll-modal-radius);
+  box-shadow: var(--rrll-modal-shadow);
+}
+
+.rrll-modal-header,
+.rrll-modal-body,
+.rrll-modal-footer,
+.modal-header,
+.modal-body,
+.modal-footer {
+  box-sizing: border-box;
+  color: var(--rrll-theme-text-main);
+}
+
+/* =========================================================
    RRLL Common Cards Foundation
    ========================================================= */
 .rrll-card,
