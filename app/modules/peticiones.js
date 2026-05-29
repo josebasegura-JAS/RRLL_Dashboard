@@ -548,7 +548,7 @@
       const originHtml = petitionOriginBadgeHtml(petitionOriginValue(item));
 
       return `
-        <tr id="rrll-petition-${item.id}" class="rrll-pro-row rrll-petition-row status-${statusClass}" onclick="togglePetitionRowDetails(event, '${item.id}')" ondblclick="if (event.target && event.target.closest && event.target.closest('button, a, input, select, textarea, label')) return; event.preventDefault(); event.stopPropagation(); openPetitionUpdateModal('${item.id}')" title="Clic para desplegar detalle · Doble clic para editar">
+        <tr id="rrll-petition-${item.id}" class="rrll-pro-row rrll-petition-row status-${statusClass}" onclick="togglePetitionRowDetails(event, '${item.id}')" ondblclick="event.preventDefault(); event.stopPropagation(); openPetitionUpdateModal('${item.id}')" title="Clic para desplegar detalle · Doble clic para editar">
           <td class="rrll-pro-main-cell">
             <div class="rrll-pro-title">${escapeHtml(item.title || "Sin título")}</div>
             <div class="rrll-pro-subtitle">${escapeHtml(notes)}</div>
@@ -562,7 +562,6 @@
             ${item.status !== "petition-pending" ? `<button class="small secondary" onclick="movePetition('${item.id}', 'petition-pending')">Pendiente</button>` : ""}
             ${item.status !== "petition-progress" ? `<button class="small black" onclick="movePetition('${item.id}', 'petition-progress')">En curso</button>` : ""}
             ${item.status !== "petition-closed" ? `<button class="small" onclick="movePetition('${item.id}', 'petition-closed')">Cerrar</button>` : ""}
-            <button class="small secondary" onclick="createTaskFromPetition('${item.id}')">Crear tarea</button>
             <button class="small danger rrll-delete-icon-button" onclick="deletePetition('${item.id}')" title="Eliminar petición" aria-label="Eliminar petición"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
@@ -696,7 +695,6 @@
         tableBody.innerHTML = filtered.map(renderPetitionRow).join("");
         tableBody.querySelectorAll(".rrll-petition-row").forEach(row => {
           row.addEventListener("dblclick", event => {
-            if (event.defaultPrevented) return;
             if (event.target && event.target.closest && event.target.closest("button, a, input, select, textarea, label")) return;
             event.preventDefault();
             event.stopPropagation();
