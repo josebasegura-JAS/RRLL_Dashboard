@@ -695,6 +695,38 @@ table tr:last-child td {
 }
 
 /* =========================================================
+   RRLL Common Badges Foundation
+   ========================================================= */
+.rrll-badge,
+.badge,
+.status-badge,
+.state-badge,
+.priority-badge,
+.tag,
+.chip,
+.pill,
+.rrll-status-pill,
+.rrll-due-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rrll-space-xs);
+  font-size: var(--rrll-font-xs);
+  font-weight: 900;
+  line-height: 1;
+  border-radius: var(--rrll-radius-pill);
+  padding: var(--rrll-space-2xs) var(--rrll-space-md);
+  white-space: nowrap;
+}
+
+.rrll-badge-success,
+.rrll-badge-warning,
+.rrll-badge-danger,
+.rrll-badge-info,
+.rrll-badge-muted {
+}
+
+/* =========================================================
    Badges / estados
    ========================================================= */
 .rrll-badge,
