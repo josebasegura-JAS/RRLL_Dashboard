@@ -66,9 +66,9 @@
 .phase5-sidebar-sync.error { border-color: rgba(239,68,68,.24) !important; background: linear-gradient(180deg, rgba(54,38,44,.95), rgba(43,49,61,.98)) !important; }
 
 .phase5-useful-dashboard {
-  --dash-surface: #2b313d;
-  --dash-surface-2: #303746;
-  --dash-border: rgba(148,163,184,.18);
+  --dash-surface: var(--rrll-surface-card);
+  --dash-surface-2: var(--rrll-surface-raised);
+  --dash-border: var(--rrll-border);
 }
 .phase5-useful-dashboard .phase5-metric-grid {
   grid-template-columns: repeat(6, minmax(150px, 1fr)) !important;
