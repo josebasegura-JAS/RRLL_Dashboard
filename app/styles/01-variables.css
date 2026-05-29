@@ -322,3 +322,82 @@ html[data-theme="dark"] {
 
   color-scheme: dark;
 }
+
+/* =========================================================
+   Screen settings tokens — aliases for future configuration
+   ========================================================= */
+:root {
+  /* Preparación para futura Configuración > Pantalla; estos tokens aún no se usan directamente. */
+
+  /* Fondo / superficies */
+  --rrll-theme-bg-app: var(--rrll-bg-app);
+  --rrll-theme-bg-panel: var(--panel);
+  --rrll-theme-bg-card: var(--rrll-surface-card);
+  --rrll-theme-bg-elevated: var(--rrll-surface-raised);
+  --rrll-theme-bg-header: var(--rrll-surface-header);
+  --rrll-theme-bg-hover: var(--rrll-surface-hover);
+  --rrll-theme-bg-input: var(--rrll-field-bg);
+  --rrll-theme-bg-input-focus: var(--rrll-field-bg-focus);
+
+  /* Texto */
+  --rrll-theme-text-main: var(--rrll-text-main);
+  --rrll-theme-text-secondary: var(--rrll-text-soft);
+  --rrll-theme-text-muted: var(--rrll-text-muted);
+  --rrll-theme-text-placeholder: var(--rrll-text-muted);
+  --rrll-theme-text-on-accent: var(--rrll-text-on-dark-light);
+  --rrll-theme-text-on-dark: var(--rrll-text-on-dark-light);
+
+  /* Acento */
+  --rrll-theme-accent: var(--rrll-red-ui);
+  --rrll-theme-accent-hover: var(--rrll-red-hover);
+  --rrll-theme-accent-soft: var(--soft-red);
+  --rrll-theme-accent-border: var(--rrll-red-ui);
+
+  /* Estados */
+  --rrll-theme-success: var(--success);
+  --rrll-theme-success-bg: var(--rrll-surface-hover);
+  --rrll-theme-success-border: var(--success);
+  --rrll-theme-warning: var(--warning-color);
+  --rrll-theme-warning-bg: var(--rrll-surface-hover);
+  --rrll-theme-warning-border: var(--warning-color);
+  --rrll-theme-danger: var(--danger);
+  --rrll-theme-danger-bg: var(--rrll-surface-hover);
+  --rrll-theme-danger-border: var(--danger);
+  --rrll-theme-info: var(--info);
+  --rrll-theme-info-bg: var(--rrll-surface-hover);
+  --rrll-theme-info-border: var(--info);
+
+  /* Sombras */
+  --rrll-theme-shadow-xs: var(--rrll-shadow-soft);
+  --rrll-theme-shadow-sm: var(--rrll-shadow-soft);
+  --rrll-theme-shadow-md: var(--shadow);
+  --rrll-theme-shadow-lg: var(--shadow);
+  --rrll-theme-shadow-modal: var(--shadow);
+  --rrll-theme-shadow-focus: var(--rrll-shadow-red);
+
+  /* Componentes */
+  --rrll-card-bg: var(--rrll-surface-card);
+  --rrll-card-border: var(--rrll-border);
+  --rrll-card-radius: var(--rrll-radius-lg);
+  --rrll-card-padding: var(--rrll-space-2xl);
+  --rrll-card-shadow: var(--rrll-shadow-soft);
+
+  --rrll-button-height: var(--rrll-control-height);
+  --rrll-button-radius: var(--rrll-radius-md);
+  --rrll-button-padding-x: var(--rrll-control-padding-x);
+  --rrll-button-primary-bg: var(--rrll-red-ui);
+  --rrll-button-primary-bg-hover: var(--rrll-red-hover);
+  --rrll-button-secondary-bg: var(--rrll-surface-base);
+  --rrll-button-danger-bg: var(--danger);
+
+  --rrll-table-header-bg: var(--rrll-surface-header);
+  --rrll-table-row-bg: var(--rrll-surface-card);
+  --rrll-table-row-alt-bg: var(--rrll-surface-base);
+  --rrll-table-row-hover-bg: var(--rrll-surface-hover);
+  --rrll-table-border: var(--rrll-border);
+
+  --rrll-modal-bg: var(--rrll-surface-raised);
+  --rrll-modal-border: var(--rrll-border);
+  --rrll-modal-radius: var(--rrll-radius-xl);
+  --rrll-modal-shadow: var(--shadow);
+}
