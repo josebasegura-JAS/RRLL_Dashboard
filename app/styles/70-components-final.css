@@ -19,9 +19,35 @@
 }
 
 /* =========================================================
+   RRLL Common Cards Foundation
+   ========================================================= */
+.rrll-card,
+.rrll-panel {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+}
+
+.card,
+.dashboard-card,
+.widget-card,
+.panel-card,
+.module-card,
+.phase4-dashboard-card,
+.phase5-dashboard-card,
+.session-card {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+}
+
+/* =========================================================
    Cards / paneles
    ========================================================= */
 .rrll-card,
+.rrll-panel,
 .card,
 .dashboard-card,
 .widget-card,
@@ -36,10 +62,10 @@
 .licencias-column,
 .vinculograma-column,
 .column {
-  background: var(--rrll-component-bg) !important;
-  border: 1px solid var(--rrll-component-border) !important;
-  border-radius: var(--rrll-radius-lg) !important;
-  box-shadow: var(--rrll-component-shadow-soft) !important;
+  background: var(--rrll-card-bg) !important;
+  border: 1px solid var(--rrll-card-border) !important;
+  border-radius: var(--rrll-card-radius) !important;
+  box-shadow: var(--rrll-card-shadow) !important;
   color: var(--rrll-component-text) !important;
 }
 
