@@ -2100,6 +2100,297 @@ table tr:last-child td {
 }
 
 /* =========================================================
+   RRLL Module Foundation — Ticket Restaurante & Auxiliares
+   ========================================================= */
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla,
+  .ticket-restaurant-shell,
+  .module-licencias,
+  .module-vinculograma,
+  .module-plantilla,
+  .rrll-pro-license-shell,
+  .rrll-pro-vinc-shell,
+  .rrll-pro-plantilla-shell
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-panel,
+  .ticket-calendar-card,
+  .ticket-month-card,
+  .ticket-summary-card,
+  .licencias-column,
+  .licencias-history-card,
+  .licencias-collapsible-card,
+  .licencias-year,
+  .vinculograma-column,
+  .plantilla-list-card,
+  .rrll-pro-list-card,
+  .rrll-pro-task-shell,
+  .rrll-pro-form-shell,
+  .rrll-pro-empty-state
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+  gap: var(--rrll-space-xl);
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  summary,
+  .ticket-restaurant-tabs,
+  .ticket-calendar-toolbar,
+  .ticket-compute-toolbar,
+  .ticket-year-nav,
+  .ticket-month-navigator,
+  .ticket-compute-actions,
+  .licencias-toolbar,
+  .vinculograma-toolbar,
+  .vinculograma-toggle-toolbar,
+  .plantilla-toolbar,
+  .rrll-pro-task-head,
+  .rrll-pro-plantilla-head,
+  .rrll-pro-list-toolbar,
+  .rrll-pro-list-actions,
+  .rrll-pro-actions,
+  .table-actions
+) {
+  background: var(--rrll-surface-header);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+  gap: var(--rrll-space-md);
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-config-form,
+  .rrll-pro-licencias-form,
+  .rrll-pro-vinculograma-form,
+  .rrll-pro-plantilla-form,
+  .licencias-list,
+  .licencias-history-list,
+  .vinculograma-list,
+  .plantilla-electoral-view,
+  .plantilla-pagination
+) {
+  background: var(--rrll-surface-raised);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+  gap: var(--rrll-space-md);
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-restaurant-tab,
+  .ticket-sort-button,
+  .ticket-filter-row input,
+  .licencias-toolbar button,
+  .vinculograma-toolbar button,
+  .vinculograma-toggle-button,
+  .plantilla-pagination-btn,
+  .plantilla-text-action,
+  .rrll-pro-tool-button,
+  .summary-icon-button,
+  button.secondary
+) {
+  background: var(--rrll-button-secondary-bg);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-button-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+  gap: var(--rrll-space-sm);
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-restaurant-tab.active,
+  .plantilla-pagination-btn.active,
+  .vinculograma-toggle-button.active
+) {
+  background: var(--rrll-theme-accent-soft);
+  border: 1px solid var(--rrll-theme-accent-border);
+  color: var(--rrll-theme-accent);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-table,
+  .licencias-table,
+  .vinculograma-table,
+  .plantilla-table,
+  .rrll-pro-table,
+  .rrll-pro-table-wrap,
+  .table-wrap,
+  .table-wrapper
+) {
+  background: var(--rrll-table-row-bg);
+  border: 1px solid var(--rrll-table-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-table thead,
+  .ticket-table th,
+  .licencias-table thead,
+  .licencias-table th,
+  .vinculograma-table thead,
+  .vinculograma-table th,
+  .plantilla-table thead,
+  .plantilla-table th,
+  .ticket-filter-row th
+) {
+  background: var(--rrll-table-header-bg);
+  border: 1px solid var(--rrll-table-border);
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-table td,
+  .licencias-table td,
+  .vinculograma-table td,
+  .plantilla-table td,
+  .licencias-row,
+  .vinculograma-row,
+  .plantilla-item
+) {
+  background: var(--rrll-table-row-bg);
+  border: 1px solid var(--rrll-table-border);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-calendar-legend,
+  .ticket-compute-period,
+  .ticket-import-summary,
+  .ticket-summary-pill,
+  .ticket-person-autofill-notice,
+  .ticket-day,
+  .ticket-day-empty,
+  .licencias-year summary,
+  .licencias-year summary span,
+  .plantilla-import-summary,
+  .plantilla-pagination-info,
+  .summary-counts,
+  .badge,
+  .chip,
+  .pill,
+  .tag
+) {
+  background: var(--rrll-surface-hover);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-md);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+  gap: var(--rrll-space-xs);
+}
+
+:where(
+  #gestor-ticket-restaurante,
+  #gestor-licencias,
+  #gestor-vinculograma,
+  #gestor-plantilla
+) :where(
+  .ticket-summary-pill,
+  .summary-counts,
+  .badge,
+  .chip,
+  .pill,
+  .tag
+) {
+  border-radius: var(--rrll-radius-pill);
+}
+
+:where(
+  #ticketPersonModal,
+  #ticketRestaurantPersonFormModal,
+  #vinculogramaEditModal,
+  #plantillaEditModal
+) :where(
+  .modal-box,
+  .modal-card,
+  .modal-header,
+  .modal-body,
+  .modal-footer,
+  .modal-actions,
+  .form-actions
+) {
+  background: var(--rrll-modal-bg);
+  border: 1px solid var(--rrll-modal-border);
+  border-radius: var(--rrll-modal-radius);
+  box-shadow: var(--rrll-modal-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+  gap: var(--rrll-space-md);
+}
+
+/* =========================================================
    Refinamiento final de superficies dark corporativas.
    Capa de cierre: neutraliza negros heredados y suaviza
    sombras/bordes sin cambiar estructura ni lógica.
