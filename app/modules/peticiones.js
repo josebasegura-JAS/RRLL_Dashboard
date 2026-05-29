@@ -548,7 +548,7 @@
       const originHtml = petitionOriginBadgeHtml(petitionOriginValue(item));
 
       return `
-        <tr id="rrll-petition-${item.id}" class="rrll-pro-row rrll-petition-row status-${statusClass}" onclick="togglePetitionRowDetails(event, '${item.id}')" ondblclick="event.preventDefault(); event.stopPropagation(); openPetitionUpdateModal('${item.id}')" title="Clic para desplegar detalle · Doble clic para editar">
+        <tr id="rrll-petition-${item.id}" class="rrll-pro-row rrll-petition-row status-${statusClass}" onclick="togglePetitionRowDetails(event, '${item.id}')" title="Clic para desplegar detalle · Doble clic para editar">
           <td class="rrll-pro-main-cell">
             <div class="rrll-pro-title">${escapeHtml(item.title || "Sin título")}</div>
             <div class="rrll-pro-subtitle">${escapeHtml(notes)}</div>
@@ -558,12 +558,12 @@
           <td>${petitionPriorityBadgeHtml(item.priority)}</td>
           <td><span class="rrll-status-pill ${statusClass}">${escapeHtml(petitionStatusLabel(item.status))}</span></td>
           <td><span class="rrll-due-pill${due.className}" title="${escapeHtml(dueDetail)}">${escapeHtml(dueText)}</span></td>
-          <td class="rrll-pro-actions" onclick="event.stopPropagation()">
-            ${item.status !== "petition-pending" ? `<button class="small secondary" onclick="movePetition('${item.id}', 'petition-pending')">Pendiente</button>` : ""}
-            ${item.status !== "petition-progress" ? `<button class="small black" onclick="movePetition('${item.id}', 'petition-progress')">En curso</button>` : ""}
-            ${item.status !== "petition-closed" ? `<button class="small" onclick="movePetition('${item.id}', 'petition-closed')">Cerrar</button>` : ""}
-            <button class="small secondary" onclick="createTaskFromPetition('${item.id}')">Crear tarea</button>
-            <button class="small danger rrll-delete-icon-button" onclick="deletePetition('${item.id}')" title="Eliminar petición" aria-label="Eliminar petición"><span aria-hidden="true">🗑️</span></button>
+          <td class="rrll-pro-actions" onclick="event.stopPropagation()" ondblclick="event.preventDefault(); event.stopPropagation()">
+            ${item.status !== "petition-pending" ? `<button type="button" class="small secondary" onclick="event.stopPropagation(); movePetition('${item.id}', 'petition-pending')">Pendiente</button>` : ""}
+            ${item.status !== "petition-progress" ? `<button type="button" class="small black" onclick="event.stopPropagation(); movePetition('${item.id}', 'petition-progress')">En curso</button>` : ""}
+            ${item.status !== "petition-closed" ? `<button type="button" class="small" onclick="event.stopPropagation(); movePetition('${item.id}', 'petition-closed')">Cerrar</button>` : ""}
+            <button type="button" class="small secondary" onclick="event.stopPropagation(); createTaskFromPetition('${item.id}')">Crear tarea</button>
+            <button type="button" class="small danger rrll-delete-icon-button" onclick="event.stopPropagation(); deletePetition('${item.id}')" title="Eliminar petición" aria-label="Eliminar petición"><span aria-hidden="true">🗑️</span></button>
           </td>
         </tr>
       `;

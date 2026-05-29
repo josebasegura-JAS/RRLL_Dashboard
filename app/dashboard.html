@@ -79,11 +79,8 @@
       </nav>
       <nav class="phase4-nav phase4-nav-secondary" aria-label="Accesos rápidos">
         <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-folder-link" onclick="openRRLLFolderShortcut()" title="Abrir carpeta Relaciones Laborales">📁 <span>Relaciones Laborales</span></button>
-        <button type="button" class="phase4-nav-item phase4-nav-button sidebar-group-toggle" data-group-toggle="sistema" onclick="toggleSidebarGroup('sistema')"><span>▸</span> <span>Sistema</span><strong class="phase4-nav-chevron">▾</strong></button>
-        <div class="sidebar-group-items" id="sidebar-group-sistema">
-          <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-trash-icon" onclick="openTrashModal()" title="Papelera" aria-label="Papelera">🗑 <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
-          <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙</button>
-        </div>
+        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-trash-icon" onclick="openTrashModal()" title="Papelera" aria-label="Papelera">🗑 <span>Papelera</span> <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
+        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙ <span>Configuración</span></button>
       </nav>
       <div id="rrllFolderNotice" class="sidebar-folder-notice" aria-live="polite"></div>
       <div id="saveStatusWidget" class="save-status-widget synced phase5-sidebar-sync" aria-live="polite" title="Estado de la base de datos">

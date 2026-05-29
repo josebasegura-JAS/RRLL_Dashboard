@@ -156,15 +156,15 @@ let ticketRestaurantVisiblePreviewMonth = null;
 let ticketRestaurantAbsenceSort = { key: null, direction: null };
 
 function normalizeTicketMonth(month) {
-  const base = month || getPreviousSystemMonth();
+  const base = month || getNextSystemMonth();
   const date = new Date(Number(base.year), Number(base.month) - 1, 1);
   return { month: date.getMonth() + 1, year: date.getFullYear() };
 }
 
-function getPreviousSystemMonth() {
+function getNextSystemMonth() {
   const now = new Date();
-  const previous = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  return { month: previous.getMonth() + 1, year: previous.getFullYear() };
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return { month: next.getMonth() + 1, year: next.getFullYear() };
 }
 
 function addTicketMonths(month, delta) {
@@ -193,7 +193,7 @@ function formatTicketMonthLabel(month) {
 }
 
 function renderTicketMonthNavigator({ visibleMonth, onPrev, onNext, label = "" } = {}) {
-  const monthLabel = formatTicketMonthLabel(visibleMonth || getPreviousSystemMonth());
+  const monthLabel = formatTicketMonthLabel(visibleMonth || getNextSystemMonth());
   const safeLabel = label ? `<span class="muted">${escapeHtml(label)}</span>` : "";
   return `<div class="rrll-pro-list-toolbar ticket-month-navigator" style="justify-content:center;gap:12px;margin:8px 0;">
     ${safeLabel}
@@ -1274,7 +1274,7 @@ function ensureTicketRestaurantAbsencePreviewModal() {
 }
 
 function getTicketPreviewVisibleMonth() {
-  if (!ticketRestaurantVisiblePreviewMonth) ticketRestaurantVisiblePreviewMonth = getPreviousSystemMonth();
+  if (!ticketRestaurantVisiblePreviewMonth) ticketRestaurantVisiblePreviewMonth = getNextSystemMonth();
   return ticketRestaurantVisiblePreviewMonth;
 }
 
@@ -1404,7 +1404,7 @@ function openTicketRestaurantAbsencePreviewModal(parsedRows, meta = {}) {
   modal.dataset.fileName = meta.fileName || "";
   modal.dataset.ignoredRows = String(meta.ignoredRows || 0);
   const rows = (Array.isArray(parsedRows) ? parsedRows : []).map(normalizeTicketRestaurantAbsenceRow);
-  ticketRestaurantVisiblePreviewMonth = getPreviousSystemMonth();
+  ticketRestaurantVisiblePreviewMonth = getNextSystemMonth();
   ticketRestaurantAbsencePreviewRows = rows.map(row => {
     const period = ticketRestaurantMonthYearFromDate(row.fromDate);
     return { ...row, _previewMonth: period.month && period.year ? period : ticketRestaurantVisiblePreviewMonth };
@@ -1548,11 +1548,11 @@ async function importTicketRestaurantAbsences() {
 
 
 function getDefaultTicketAbsenceMonth() {
-  return getPreviousSystemMonth();
+  return getNextSystemMonth();
 }
 
 function getTicketAbsenceVisibleMonth() {
-  if (!ticketRestaurantVisibleAbsenceMonth) ticketRestaurantVisibleAbsenceMonth = getPreviousSystemMonth();
+  if (!ticketRestaurantVisibleAbsenceMonth) ticketRestaurantVisibleAbsenceMonth = getNextSystemMonth();
   return ticketRestaurantVisibleAbsenceMonth;
 }
 
@@ -1745,7 +1745,7 @@ function renderTicketRestaurantAbsences() {
 }
 
 function getTicketComputeVisibleMonth() {
-  if (!ticketRestaurantVisibleComputeMonth) ticketRestaurantVisibleComputeMonth = getPreviousSystemMonth();
+  if (!ticketRestaurantVisibleComputeMonth) ticketRestaurantVisibleComputeMonth = getNextSystemMonth();
   return ticketRestaurantVisibleComputeMonth;
 }
 
@@ -2307,7 +2307,7 @@ function printTicketRestaurantComputeVisible() {
 }
 
 function getTicketContributionVisibleMonth() {
-  if (!ticketRestaurantVisibleContributionMonth) ticketRestaurantVisibleContributionMonth = getPreviousSystemMonth();
+  if (!ticketRestaurantVisibleContributionMonth) ticketRestaurantVisibleContributionMonth = getNextSystemMonth();
   return ticketRestaurantVisibleContributionMonth;
 }
 

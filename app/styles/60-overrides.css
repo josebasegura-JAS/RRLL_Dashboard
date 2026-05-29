@@ -4856,3 +4856,33 @@ html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active 
   inset: 0;
   margin: auto;
 }
+
+/* Correcciones urgentes funcionales: acciones visibles y formularios/celdas clicables. */
+.rrll-petition-row:not(.expanded) .rrll-pro-actions {
+  display: flex !important;
+}
+
+body.phase4-view-module #gestor-peticiones .rrll-petition-row .rrll-pro-actions {
+  display: flex !important;
+  overflow: visible !important;
+}
+
+body.phase4-view-module #paritariaCreateForm:not(.rrll-create-form-collapsed) {
+  display: grid !important;
+  position: relative !important;
+  z-index: 2 !important;
+  pointer-events: auto !important;
+}
+
+body.phase4-view-module #paritariaCreateForm:not(.rrll-create-form-collapsed) :is(input, textarea, select, button, label) {
+  pointer-events: auto !important;
+}
+
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-actions-cell {
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+body.phase4-view-module #gestor-vinculograma .vinculograma-table .vinculograma-actions-cell .vinculograma-delete-btn {
+  margin-inline: auto !important;
+}
