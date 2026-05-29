@@ -19,6 +19,56 @@
 }
 
 /* =========================================================
+   RRLL Common Layout Foundation
+   ========================================================= */
+:where(
+  .rrll-shell,
+  .rrll-main,
+  .rrll-content,
+  .rrll-module-layout,
+  .rrll-grid,
+  .rrll-stack,
+  .phase4-shell,
+  .phase4-main,
+  .phase4-content,
+  .phase4-view,
+  .module-view,
+  .dashboard-grid,
+  .metrics-grid,
+  .cards-grid,
+  .widgets-grid
+) {
+  box-sizing: border-box;
+  font-family: var(--rrll-font-family);
+  color: var(--rrll-theme-text-main);
+}
+
+:where(
+  .rrll-shell,
+  .rrll-main,
+  .rrll-content,
+  .rrll-module-layout,
+  .phase4-shell,
+  .phase4-main,
+  .phase4-content,
+  .phase4-view,
+  .module-view
+) {
+  background: var(--rrll-theme-bg-app);
+}
+
+:where(
+  .rrll-grid,
+  .dashboard-grid,
+  .metrics-grid,
+  .cards-grid,
+  .widgets-grid
+) {
+  box-sizing: border-box;
+  gap: var(--rrll-space-xl);
+}
+
+/* =========================================================
    RRLL Common Header Foundation
    ========================================================= */
 :where(
