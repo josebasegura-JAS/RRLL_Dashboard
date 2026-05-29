@@ -510,14 +510,120 @@ function setMirrorStatusFromMeta(meta, overrides = {}) {
 function getMirrorStatus() {
   if (!lastMirrorMeta) setMirrorStatusFromMeta(readMirrorMeta());
   const meta = lastMirrorMeta || {};
+  const mirrorPath = getMirrorSqlitePath();
+  const exists = fs.existsSync(mirrorPath);
+  let sizeBytes = Number(meta.sizeBytes || 0);
+  if (exists) {
+    try { sizeBytes = fs.statSync(mirrorPath).size; } catch {}
+  }
   return {
     ...meta,
-    exists: fs.existsSync(getMirrorSqlitePath()),
-    mirrorPath: getMirrorSqlitePath(),
+    exists,
+    mirrorPath,
     metaPath: getMirrorMetaPath(),
-    mirrorOk: !!meta.mirrorOk,
+    sourcePath: meta.sourcePath || "",
+    sizeBytes,
+    mirrorOk: !!meta.mirrorOk && exists && !meta.mirrorError,
     mirrorError: meta.mirrorError || ""
   };
+}
+
+async function validateSqliteDatabaseFile(dbPath, label = "base de datos") {
+  if (!dbPath || typeof dbPath !== "string") throw new Error(`Ruta de ${label} no válida.`);
+  if (!fs.existsSync(dbPath)) throw new Error(`No existe el fichero de ${label}.`);
+  await getSQL();
+  validatePersistedDb(dbPath);
+  const db = new SQLRef.Database(fs.readFileSync(dbPath));
+  try {
+    const kvExists = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='kv_store'").length > 0;
+    if (!kvExists) throw new Error(`El fichero de ${label} no contiene la tabla kv_store.`);
+    db.exec("SELECT COUNT(*) FROM kv_store");
+  } finally {
+    try { db.close(); } catch {}
+  }
+  return true;
+}
+
+function getNextBackupPath(targetDir) {
+  let timestamp = new Date();
+  let filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
+  while (fs.existsSync(filePath)) {
+    timestamp = new Date(timestamp.getTime() + 1000);
+    filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
+  }
+  return filePath;
+}
+
+async function createLocalSqliteFileBackup(reason = "before_use_mirror_as_local") {
+  const localPath = getLocalSqlitePath();
+  if (!fs.existsSync(localPath)) return { ok: true, skipped: "missing_local_db", path: "" };
+  await validateSqliteDatabaseFile(localPath, "BBDD local actual");
+  const localDir = ensureBackupsDir();
+  const backupPath = getNextBackupPath(localDir);
+  fs.copyFileSync(localPath, backupPath, fs.constants.COPYFILE_EXCL);
+  await validateSqliteDatabaseFile(backupPath, "backup previo de BBDD local");
+  pruneManagedSqliteBackups(localDir, 30);
+  lastBackupAt = Date.now();
+  lastBackupMeta = {
+    ok: true,
+    suspicious: false,
+    createdAt: new Date(lastBackupAt).toISOString(),
+    reason,
+    localDir,
+    networkDir: "",
+    baseName: path.basename(backupPath, ".db"),
+    localFile: backupPath,
+    networkFile: "",
+    dbPath: localPath
+  };
+  return { ok: true, path: backupPath };
+}
+
+async function copyMirrorOverLocalAtomically() {
+  const mirrorPath = getMirrorSqlitePath();
+  const localPath = getLocalSqlitePath();
+  await validateSqliteDatabaseFile(mirrorPath, "espejo local");
+
+  return withFileLock(localPath, async () => {
+    await validateSqliteDatabaseFile(mirrorPath, "espejo local");
+    const backup = await createLocalSqliteFileBackup("before_use_mirror_as_local");
+    const localDir = path.dirname(localPath);
+    ensureParentDir(localPath);
+    const tempPath = path.join(localDir, `${getDbTempPrefix(localPath)}mirror-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`);
+    let fd = null;
+    try {
+      fs.copyFileSync(mirrorPath, tempPath, fs.constants.COPYFILE_EXCL);
+      fd = fs.openSync(tempPath, "r");
+      fsyncFileIfPossible(fd, "de la BBDD local temporal desde espejo");
+      fs.closeSync(fd);
+      fd = null;
+      await validateSqliteDatabaseFile(tempPath, "copia temporal del espejo");
+      fs.renameSync(tempPath, localPath);
+      fsyncDirectoryIfPossible(localDir);
+      await validateSqliteDatabaseFile(localPath, "BBDD local restaurada desde espejo");
+    } catch (error) {
+      if (fd !== null) {
+        try { fs.closeSync(fd); } catch {}
+      }
+      try { fs.unlinkSync(tempPath); } catch {}
+      throw error;
+    } finally {
+      cleanupDbTempFiles(localPath);
+    }
+
+    writeDbConfig({ mode: "local" });
+    clearDatabaseDirty();
+    setLastSaveStatus("saved");
+    return { ok: true, localPath, mirrorPath, backupPath: backup.path || "", backupSkipped: backup.skipped || "" };
+  });
+}
+
+async function useMirrorAsLocalDatabase() {
+  const status = getMirrorStatus();
+  if (!status.exists) throw new Error("No existe espejo local para usar como BBDD local.");
+  if (status.mirrorError) throw new Error(`El último estado del espejo es error: ${status.mirrorError}`);
+  await validateSqliteDatabaseFile(status.mirrorPath, "espejo local");
+  return copyMirrorOverLocalAtomically();
 }
 
 function cleanupOldMirrorTempFiles() {
@@ -955,22 +1061,12 @@ async function createRobustBackup(reason, data, options = {}) {
       const networkDir = getNetworkBackupsDir();
       if (networkDir && !fs.existsSync(networkDir)) fs.mkdirSync(networkDir, { recursive: true });
 
-      const getBackupPath = targetDir => {
-        let timestamp = new Date();
-        let filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
-        while (fs.existsSync(filePath)) {
-          timestamp = new Date(timestamp.getTime() + 1000);
-          filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
-        }
-        return filePath;
-      };
-
-      const localFile = getBackupPath(localDir);
+      const localFile = getNextBackupPath(localDir);
       fs.copyFileSync(info.path, localFile);
 
       let networkFile = "";
       if (networkDir) {
-        networkFile = getBackupPath(networkDir);
+        networkFile = getNextBackupPath(networkDir);
         fs.copyFileSync(info.path, networkFile);
       }
 
@@ -1837,6 +1933,14 @@ ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));
 ipcMain.handle("db:createBackup", async (_event, payload) => createRobustBackup(payload && payload.reason ? payload.reason : "manual", payload && payload.data ? payload.data : {}));
 ipcMain.handle("db:getBackupStatus", async () => getBackupStatus());
 ipcMain.handle("db:getMirrorStatus", async () => getMirrorStatus());
+ipcMain.handle("db:updateLocalMirror", async () => updateLocalMirror("manual_ui"));
+ipcMain.handle("db:useMirrorAsLocalDatabase", async () => useMirrorAsLocalDatabase());
+ipcMain.handle("db:openMirrorFolder", async () => {
+  const folder = path.dirname(getMirrorSqlitePath());
+  ensureParentDir(getMirrorSqlitePath());
+  const error = await shell.openPath(folder);
+  return { ok: !error, path: folder, error: error || null };
+});
 ipcMain.handle("db:getLastSaveStatus", async () => getLastSaveStatus());
 ipcMain.handle("db:openBackupsFolder", async () => {
   const folder = ensureBackupsDir();

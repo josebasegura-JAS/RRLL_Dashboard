@@ -1744,6 +1744,24 @@
           <button type="button" class="secondary" onclick="openBackupsFolder()">Abrir carpeta backups</button>
           <button type="button" class="secondary" onclick="createBackupNow()">Crear backup ahora</button>
         </div>
+
+        <div class="config-section nested-config-section">
+          <h4>Espejo local</h4>
+          <p class="muted">Copia local de recuperación de la BBDD compartida. No sincroniza cambios ni resuelve conflictos.</p>
+          <div class="db-info-grid config-db-grid">
+            <span>Existe</span><b id="configMirrorExistsLabel">Cargando...</b>
+            <span>Última actualización</span><b id="configMirrorUpdatedLabel">Cargando...</b>
+            <span>Ruta espejo</span><b id="configMirrorPathLabel">Cargando...</b>
+            <span>Ruta origen</span><b id="configMirrorSourcePathLabel">Cargando...</b>
+            <span>Tamaño</span><b id="configMirrorSizeLabel">Cargando...</b>
+            <span>Estado</span><b id="configMirrorOkLabel">Cargando...</b>
+          </div>
+          <div class="config-actions">
+            <button type="button" class="secondary" onclick="openLocalMirrorFolder()">Abrir carpeta del espejo</button>
+            <button type="button" class="secondary" onclick="updateLocalMirrorNow()">Actualizar espejo ahora</button>
+            <button type="button" class="warning" onclick="useMirrorAsLocalDatabaseMode()">Usar espejo como BBDD local</button>
+          </div>
+        </div>
       </div>
 
 
