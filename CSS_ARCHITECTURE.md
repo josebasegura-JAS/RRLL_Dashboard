@@ -1,6 +1,6 @@
 # Arquitectura CSS activa
 
-Este documento describe la arquitectura CSS actualmente activa del dashboard. Es solo una referencia operativa para evitar limpiezas accidentales de hojas de estilo todavía cargadas.
+Este documento describe la arquitectura CSS actualmente activa del dashboard y congela las reglas de trabajo para preparar limpiezas futuras sin cambios visuales accidentales.
 
 ## Punto de entrada principal
 
@@ -10,7 +10,7 @@ Este documento describe la arquitectura CSS actualmente activa del dashboard. Es
 
 ## Orden de carga
 
-El orden de carga activo es el orden declarado en `app/styles.css`:
+El orden de carga activo es el orden declarado en `app/styles.css` y no debe cambiarse todavía:
 
 1. `app/styles/00-base.css`
 2. `app/styles/01-variables.css`
@@ -23,6 +23,31 @@ El orden de carga activo es el orden declarado en `app/styles.css`:
 9. `app/styles/65-normalize.css`
 10. `app/styles/70-components-final.css`
 11. `app/styles/80-light-foundation.css`
+
+## Fuente principal de tokens
+
+`app/styles/01-variables.css` es la fuente principal de tokens CSS del proyecto.
+
+Al añadir o migrar estilos, se deben reutilizar los tokens existentes siempre que haya un equivalente semántico o visual razonable.
+
+No deben añadirse nuevos colores hardcodeados si ya existe un token equivalente.
+
+## Capas congeladas o restringidas
+
+`app/styles/60-overrides.css` queda congelado: no deben añadirse nuevos estilos ahí salvo emergencia justificada.
+
+`app/styles/90-print.css`, si existe o se reincorpora al grafo activo, no debe tocarse salvo pruebas específicas de impresión.
+
+`app/styles/65-normalize.css` y `app/styles/70-components-final.css` forman parte de capas sensibles de compatibilidad/finalización y no deben usarse para nuevas migraciones ordinarias.
+
+## Reglas para cambios futuros
+
+- No cambiar el orden de imports todavía.
+- No añadir nuevos `!important` salvo justificación explícita y localizada.
+- No introducir nuevos colores hardcodeados cuando exista un token equivalente en `01-variables.css`.
+- No hacer limpiezas masivas ni migraciones globales en una sola fase.
+- Los cambios visuales se harán por fases pequeñas, verificables y reversibles.
+- Las migraciones de aliases locales deben preservar la apariencia equivalente antes de sustituir usos internos o reglas de módulos.
 
 ## Nota sobre overrides
 
