@@ -17,12 +17,13 @@ El orden de carga activo es el orden declarado en `app/styles.css` y no debe cam
 3. `app/styles/10-layout.css`
 4. `app/styles/20-components.css`
 5. `app/styles/30-modules.css`
-6. `app/styles/40-theme.css`
-7. `app/styles/50-module-extras.css`
-8. `app/styles/60-overrides.css`
-9. `app/styles/65-normalize.css`
-10. `app/styles/70-components-final.css`
-11. `app/styles/80-light-foundation.css`
+6. `app/styles/40-theme-dark.css`
+7. `app/styles/41-theme-light.css`
+8. `app/styles/50-module-extras.css`
+9. `app/styles/60-overrides.css`
+10. `app/styles/65-normalize.css`
+11. `app/styles/70-components-final.css`
+12. `app/styles/90-print.css`
 
 ## Fuente principal de tokens
 
@@ -36,7 +37,7 @@ No deben añadirse nuevos colores hardcodeados si ya existe un token equivalente
 
 `app/styles/60-overrides.css` queda congelado: no deben añadirse nuevos estilos ahí salvo emergencia justificada.
 
-`app/styles/90-print.css`, si existe o se reincorpora al grafo activo, no debe tocarse salvo pruebas específicas de impresión.
+`app/styles/90-print.css` forma parte del grafo activo y no debe tocarse salvo pruebas específicas de impresión.
 
 `app/styles/65-normalize.css` y `app/styles/70-components-final.css` forman parte de capas sensibles de compatibilidad/finalización y no deben usarse para nuevas migraciones ordinarias.
 
