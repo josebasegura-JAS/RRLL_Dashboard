@@ -25,6 +25,12 @@
       const backup = await (window.rrllDB.getBackupStatus ? window.rrllDB.getBackupStatus() : null);
       const backupText = backup && (backup.lastBackupAt || backup.createdAt) ? `${new Date(backup.lastBackupAt || backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}${backup.dirtySinceLastBackup ? " · cambios pendientes" : ""}` : "No configurado";
       phase4SetTexts(["configBackupStatusLabel"], backupText);
+      const mirror = await (window.rrllDB.getMirrorStatus ? window.rrllDB.getMirrorStatus() : null);
+      const mirrorDate = mirror && (mirror.lastMirrorAt || mirror.updatedAt) ? new Date(mirror.lastMirrorAt || mirror.updatedAt).toLocaleString("es-ES") : "";
+      const mirrorText = mirror && mirror.mirrorError
+        ? "No actualizado"
+        : (mirrorDate ? `${mirrorDate}${mirror.exists ? "" : " · fichero no encontrado"}` : (mirror && mirror.exists ? "Disponible" : "No creado"));
+      phase4SetTexts(["configMirrorStatusLabel"], mirrorText);
       if (typeof window.refreshSidebarDatabaseStatus === "function") await window.refreshSidebarDatabaseStatus();
       const state = await updateSyncStatus("info");
       phase4SetTexts(["configDbUpdatedByLabel"], state ? "Conectado" : "Error");

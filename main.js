@@ -2,16 +2,22 @@ const { app, BrowserWindow, shell, ipcMain, Menu, dialog } = require("electron")
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
+const crypto = require("crypto");
 const { spawn } = require("child_process");
 const { MsgReader } = require("@kenjiuno/msgreader");
 
 let lastBackupAt = 0;
 let dirtySinceLastBackup = false;
 let backupScheduler = null;
+let mirrorScheduler = null;
+let mirrorDebounceTimer = null;
+let mirrorDirty = false;
+let mirrorUpdateInProgress = false;
 let sqlReadyPromise = null;
 let SQLRef = null;
 let lastBackupMeta = null;
 let lastSaveStatus = { status: "saved", updatedAt: null, error: "" };
+let lastMirrorMeta = null;
 let startupDbAlert = null;
 let isQuitting = false;
 let safeQuitInProgress = false;
@@ -29,6 +35,14 @@ function getLegacyJsonPath() {
 
 function getDbConfigPath() {
   return path.join(app.getPath("userData"), "rrll-db-config.json");
+}
+
+function getMirrorSqlitePath() {
+  return path.join(app.getPath("userData"), "rrll-dashboard-mirror.sqlite");
+}
+
+function getMirrorMetaPath() {
+  return path.join(app.getPath("userData"), "rrll-dashboard-mirror.meta.json");
 }
 
 function getRRLLFolderConfigPath() {
@@ -420,6 +434,237 @@ function validatePersistedDb(dbPath) {
   }
 }
 
+function readDbMetaValues(dbPath, keys) {
+  if (!SQLRef || !fs.existsSync(dbPath)) return {};
+  const db = new SQLRef.Database(fs.readFileSync(dbPath));
+  try {
+    const safeKeys = keys.filter(key => typeof key === "string" && key.length).map(key => `'${key.replace(/'/g, "''")}'`);
+    if (!safeKeys.length) return {};
+    const rows = db.exec(`SELECT key, value FROM meta WHERE key IN (${safeKeys.join(",")})`);
+    const result = {};
+    if (rows.length) {
+      rows[0].values.forEach(([key, value]) => { result[key] = value; });
+    }
+    return result;
+  } finally {
+    try { db.close(); } catch {}
+  }
+}
+
+function getDbLastUpdateToken(dbPath) {
+  try {
+    const meta = readDbMetaValues(dbPath, ["last_update_token"]);
+    return meta.last_update_token || null;
+  } catch (error) {
+    console.warn("No se pudo leer token de actualización de BBDD:", error && error.message ? error.message : error);
+    return null;
+  }
+}
+
+function calculateFileChecksum(filePath) {
+  const hash = crypto.createHash("sha256");
+  hash.update(fs.readFileSync(filePath));
+  return hash.digest("hex");
+}
+
+function readMirrorMeta() {
+  try {
+    const file = getMirrorMetaPath();
+    if (!fs.existsSync(file)) return null;
+    const parsed = JSON.parse(fs.readFileSync(file, "utf-8") || "{}");
+    return isPlainObject(parsed) ? parsed : null;
+  } catch (error) {
+    console.warn("No se pudo leer metadatos del espejo local:", error && error.message ? error.message : error);
+    return null;
+  }
+}
+
+function writeMirrorMeta(meta) {
+  const metaPath = getMirrorMetaPath();
+  ensureParentDir(metaPath);
+  const tempPath = `${metaPath}.${process.pid}-${Date.now()}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(meta, null, 2), "utf-8");
+  fs.renameSync(tempPath, metaPath);
+}
+
+function setMirrorStatusFromMeta(meta, overrides = {}) {
+  lastMirrorMeta = {
+    ok: !!(meta && meta.updatedAt),
+    updatedAt: meta && meta.updatedAt ? meta.updatedAt : null,
+    lastMirrorAt: meta && meta.updatedAt ? meta.updatedAt : null,
+    mirrorPath: getMirrorSqlitePath(),
+    metaPath: getMirrorMetaPath(),
+    sourcePath: meta && meta.sourcePath ? meta.sourcePath : "",
+    sourceMode: meta && meta.sourceMode ? meta.sourceMode : "",
+    sizeBytes: meta && Number.isFinite(Number(meta.sizeBytes)) ? Number(meta.sizeBytes) : 0,
+    lastUpdateToken: meta && meta.lastUpdateToken ? meta.lastUpdateToken : null,
+    checksum: meta && meta.checksum ? meta.checksum : "",
+    exists: fs.existsSync(getMirrorSqlitePath()),
+    mirrorOk: !!(meta && meta.updatedAt),
+    mirrorError: "",
+    ...overrides
+  };
+  return lastMirrorMeta;
+}
+
+function getMirrorStatus() {
+  if (!lastMirrorMeta) setMirrorStatusFromMeta(readMirrorMeta());
+  const meta = lastMirrorMeta || {};
+  return {
+    ...meta,
+    exists: fs.existsSync(getMirrorSqlitePath()),
+    mirrorPath: getMirrorSqlitePath(),
+    metaPath: getMirrorMetaPath(),
+    mirrorOk: !!meta.mirrorOk,
+    mirrorError: meta.mirrorError || ""
+  };
+}
+
+function cleanupOldMirrorTempFiles() {
+  const dir = app.getPath("userData");
+  const maxAgeMs = 24 * 60 * 60 * 1000;
+  const names = [path.basename(getMirrorSqlitePath()), path.basename(getMirrorMetaPath())];
+  try {
+    if (!fs.existsSync(dir)) return;
+    fs.readdirSync(dir).forEach(name => {
+      const isMirrorTemp = names.some(base => name.startsWith(`${base}.`) && name.endsWith(".tmp"))
+        || (name.startsWith(".rrll-dashboard-mirror-") && name.endsWith(".tmp"));
+      if (!isMirrorTemp) return;
+      const file = path.join(dir, name);
+      try {
+        const stat = fs.statSync(file);
+        if (Date.now() - stat.mtimeMs > maxAgeMs) fs.unlinkSync(file);
+      } catch {}
+    });
+  } catch (error) {
+    console.warn("No se pudieron limpiar temporales antiguos del espejo local:", error && error.message ? error.message : error);
+  }
+}
+
+function hasDbWriteArtifacts(dbPath) {
+  const lockPath = `${dbPath}.lock`;
+  if (fs.existsSync(lockPath)) return true;
+  return listDbTempFiles(dbPath).length > 0;
+}
+
+async function updateLocalMirror(reason = "manual") {
+  const info = resolveDbAccessInfo();
+  if (!(info.mode === "shared" && info.effectiveMode === "shared" && !info.fallbackLocal)) {
+    const meta = readMirrorMeta();
+    setMirrorStatusFromMeta(meta, {
+      ok: !!(meta && meta.updatedAt),
+      mirrorOk: !!(meta && meta.updatedAt),
+      sourceMode: info.effectiveMode || info.mode || "local",
+      skipped: "not_shared_active"
+    });
+    return { ok: false, skipped: "not_shared_active", ...getMirrorStatus() };
+  }
+
+  if (mirrorUpdateInProgress) return { ok: false, skipped: "in_progress", ...getMirrorStatus() };
+  mirrorUpdateInProgress = true;
+
+  try {
+    if (!fs.existsSync(info.path)) throw new Error("La base compartida no existe o no está accesible.");
+    if (hasDbWriteArtifacts(info.path)) {
+      const error = new Error("Base compartida bloqueada o con escritura en curso; espejo omitido.");
+      setMirrorStatusFromMeta(readMirrorMeta(), { ok: false, mirrorOk: false, mirrorError: error.message, sourcePath: info.path, sourceMode: info.effectiveMode });
+      return { ok: false, skipped: "db_write_in_progress", error: error.message, ...getMirrorStatus() };
+    }
+
+    validatePersistedDb(info.path);
+    const mirrorPath = getMirrorSqlitePath();
+    const mirrorDir = path.dirname(mirrorPath);
+    ensureParentDir(mirrorPath);
+    const tempPath = path.join(mirrorDir, `${path.basename(mirrorPath)}.${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`);
+    let fd = null;
+    try {
+      fs.copyFileSync(info.path, tempPath, fs.constants.COPYFILE_EXCL);
+      fd = fs.openSync(tempPath, "r");
+      fsyncFileIfPossible(fd, "del espejo local temporal");
+      fs.closeSync(fd);
+      fd = null;
+      validatePersistedDb(tempPath);
+      fs.renameSync(tempPath, mirrorPath);
+      fsyncDirectoryIfPossible(mirrorDir);
+      validatePersistedDb(mirrorPath);
+    } catch (error) {
+      if (fd !== null) {
+        try { fs.closeSync(fd); } catch {}
+      }
+      try { fs.unlinkSync(tempPath); } catch {}
+      throw error;
+    }
+
+    const stat = fs.statSync(mirrorPath);
+    const meta = {
+      updatedAt: new Date().toISOString(),
+      sourcePath: info.path,
+      sourceMode: info.effectiveMode,
+      sizeBytes: stat.size,
+      lastUpdateToken: getDbLastUpdateToken(mirrorPath),
+      checksum: calculateFileChecksum(mirrorPath),
+      reason
+    };
+    writeMirrorMeta(meta);
+    mirrorDirty = false;
+    setMirrorStatusFromMeta(meta, { ok: true, mirrorOk: true, mirrorError: "" });
+    console.info("[RRLL][DB] Espejo local actualizado", { mirrorPath, sourcePath: info.path, reason });
+    return { ok: true, ...getMirrorStatus() };
+  } catch (error) {
+    const message = error && error.message ? error.message : String(error);
+    console.error("[RRLL][DB] No se pudo actualizar el espejo local:", error);
+    setMirrorStatusFromMeta(readMirrorMeta(), { ok: false, mirrorOk: false, mirrorError: message, sourcePath: info.path, sourceMode: info.effectiveMode || info.mode });
+    return { ok: false, error: message, ...getMirrorStatus() };
+  } finally {
+    mirrorUpdateInProgress = false;
+  }
+}
+
+function scheduleMirrorUpdate(reason = "debounced_save", delayMs = 2500) {
+  mirrorDirty = true;
+  if (mirrorDebounceTimer) clearTimeout(mirrorDebounceTimer);
+  mirrorDebounceTimer = setTimeout(() => {
+    mirrorDebounceTimer = null;
+    updateLocalMirror(reason).catch(error => console.error("[RRLL][DB] Error en espejo local programado:", error));
+  }, delayMs);
+  if (typeof mirrorDebounceTimer.unref === "function") mirrorDebounceTimer.unref();
+}
+
+async function runScheduledMirrorUpdate() {
+  const info = resolveDbAccessInfo();
+  if (!(info.mode === "shared" && info.effectiveMode === "shared" && !info.fallbackLocal)) return { ok: false, skipped: "not_shared_active" };
+  let tokenChanged = false;
+  try {
+    if (fs.existsSync(info.path) && !hasDbWriteArtifacts(info.path)) {
+      const currentToken = getDbLastUpdateToken(info.path);
+      const previousToken = (lastMirrorMeta && lastMirrorMeta.lastUpdateToken) || (readMirrorMeta() || {}).lastUpdateToken || null;
+      tokenChanged = !!currentToken && currentToken !== previousToken;
+    }
+  } catch (error) {
+    console.warn("No se pudo comparar token para espejo local:", error && error.message ? error.message : error);
+  }
+  if (!mirrorDirty && !tokenChanged) return { ok: false, skipped: "clean" };
+  return updateLocalMirror(tokenChanged ? "scheduled_token_changed" : "scheduled_dirty");
+}
+
+function startMirrorScheduler() {
+  if (mirrorScheduler) return;
+  mirrorScheduler = setInterval(() => {
+    runScheduledMirrorUpdate().catch(error => console.error("[RRLL][DB] Error en espejo local temporizado:", error));
+  }, 10 * 60 * 1000);
+  if (typeof mirrorScheduler.unref === "function") mirrorScheduler.unref();
+}
+
+function stopMirrorScheduler() {
+  if (mirrorDebounceTimer) {
+    clearTimeout(mirrorDebounceTimer);
+    mirrorDebounceTimer = null;
+  }
+  if (!mirrorScheduler) return;
+  clearInterval(mirrorScheduler);
+  mirrorScheduler = null;
+}
+
 function persistDb(db, dbPath) {
   ensureParentDir(dbPath);
   cleanupDbTempFiles(dbPath);
@@ -627,6 +872,7 @@ async function saveKeyData(key, value) {
       touchDatabaseState(db);
       persistDb(db, info.path);
       markDatabaseDirty();
+      if (info.mode === "shared" && info.effectiveMode === "shared" && !info.fallbackLocal) scheduleMirrorUpdate("save_key");
       setLastSaveStatus("saved");
       return true;
     } finally {
@@ -668,6 +914,7 @@ async function saveAllData(data) {
       }
       persistDb(db, info.path);
       markDatabaseDirty();
+      if (info.mode === "shared" && info.effectiveMode === "shared" && !info.fallbackLocal) scheduleMirrorUpdate("save_all");
       setLastSaveStatus("saved");
       return true;
     } finally {
@@ -905,6 +1152,7 @@ async function setSharedDirectory(_event, directory, currentData, options = {}) 
     throw new Error("La base de red resultante tiene menos datos RRLL que la base local. Operación bloqueada por seguridad.");
   }
 
+  updateLocalMirror("set_shared_directory").catch(error => console.error("[RRLL][DB] No se pudo actualizar espejo tras conectar a red:", error));
   return { ...(await getDbInfo()), message: "Conectado a base compartida", inspection: { ...inspection, rrllKeyCount: postCount } };
 }
 
@@ -1588,6 +1836,7 @@ ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, valu
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));
 ipcMain.handle("db:createBackup", async (_event, payload) => createRobustBackup(payload && payload.reason ? payload.reason : "manual", payload && payload.data ? payload.data : {}));
 ipcMain.handle("db:getBackupStatus", async () => getBackupStatus());
+ipcMain.handle("db:getMirrorStatus", async () => getMirrorStatus());
 ipcMain.handle("db:getLastSaveStatus", async () => getLastSaveStatus());
 ipcMain.handle("db:openBackupsFolder", async () => {
   const folder = ensureBackupsDir();
@@ -1691,21 +1940,33 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   await getSQL();
+  cleanupOldMirrorTempFiles();
+  setMirrorStatusFromMeta(readMirrorMeta());
   const startupData = await loadAllData();
   try {
     await createRobustBackup("app_start", startupData);
   } catch (error) {
     console.error("No se pudo crear backup al abrir:", error);
   }
+  try {
+    await updateLocalMirror("app_start");
+  } catch (error) {
+    console.error("No se pudo actualizar espejo local al abrir:", error);
+  }
   startBackupScheduler();
+  startMirrorScheduler();
   createWindow();
 });
 
 async function performControlledQuit() {
   stopBackupScheduler();
+  stopMirrorScheduler();
   try {
     if (dirtySinceLastBackup) {
       await createRobustBackup("app_close", await loadAllData(), { throttleMs: 0 });
+    }
+    if (mirrorDirty) {
+      await updateLocalMirror("app_close");
     }
   } catch (error) {
     console.error("No se pudo crear backup al cerrar:", error);
