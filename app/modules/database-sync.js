@@ -31,6 +31,7 @@
         ? "No actualizado"
         : (mirrorDate ? `${mirrorDate}${mirror.exists ? "" : " · fichero no encontrado"}` : (mirror && mirror.exists ? "Disponible" : "No creado"));
       phase4SetTexts(["configMirrorStatusLabel"], mirrorText);
+      renderMirrorDetails(mirror);
       if (typeof window.refreshSidebarDatabaseStatus === "function") await window.refreshSidebarDatabaseStatus();
       const state = await updateSyncStatus("info");
       phase4SetTexts(["configDbUpdatedByLabel"], state ? "Conectado" : "Error");
@@ -38,6 +39,34 @@
       phase4SetTexts(["dbModeLabel", "configDbModeLabel"], "Error");
       phase4SetTexts(["dbPathLabel", "configDbPathLabel"], error && error.message ? error.message : "No se pudo leer la configuración.");
     }
+  }
+
+
+  function formatMirrorSize(sizeBytes) {
+    const size = Number(sizeBytes || 0);
+    if (!Number.isFinite(size) || size <= 0) return "No disponible";
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  }
+
+  function formatMirrorDate(value) {
+    const date = value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime()) ? date.toLocaleString("es-ES") : "Sin actualizaciones";
+  }
+
+  function renderMirrorDetails(mirror) {
+    const status = mirror || {};
+    const existsText = status.exists ? "Sí" : "No";
+    const errorText = status.mirrorError ? status.mirrorError : "Sin errores";
+    const okText = status.mirrorError ? "Error" : (status.exists && status.mirrorOk ? "OK" : (status.exists ? "Pendiente de validar" : "No disponible"));
+    phase4SetTexts(["configMirrorExistsLabel"], existsText);
+    phase4SetTexts(["configMirrorUpdatedLabel"], formatMirrorDate(status.lastMirrorAt || status.updatedAt));
+    phase4SetTexts(["configMirrorPathLabel"], status.mirrorPath || "Ruta no disponible");
+    phase4SetTexts(["configMirrorSourcePathLabel"], status.sourcePath || "Sin origen registrado");
+    phase4SetTexts(["configMirrorSizeLabel"], formatMirrorSize(status.sizeBytes));
+    phase4SetTexts(["configMirrorOkLabel"], `${okText}${status.mirrorError ? ` · ${errorText}` : ""}`);
   }
 
   async function updateSyncStatus(source) {
@@ -327,6 +356,70 @@
     }
   }
 
+
+  async function openLocalMirrorFolder() {
+    if (!window.rrllDB || typeof window.rrllDB.openMirrorFolder !== "function") {
+      alert("Esta función solo está disponible en la aplicación de escritorio.");
+      return;
+    }
+    const result = await window.rrllDB.openMirrorFolder();
+    if (!result || !result.ok) alert("No se pudo abrir la carpeta del espejo local.");
+  }
+
+  async function updateLocalMirrorNow() {
+    if (!window.rrllDB || typeof window.rrllDB.getInfo !== "function" || typeof window.rrllDB.updateLocalMirror !== "function") {
+      alert("Esta función solo está disponible en la aplicación de escritorio.");
+      return;
+    }
+
+    try {
+      const info = await window.rrllDB.getInfo();
+      if (!isSharedModeState(info)) {
+        alert("Para actualizar el espejo ahora, la BBDD compartida debe estar activa y accesible. La app está en modo local o en local temporal.");
+        await refreshDatabaseInfo();
+        return;
+      }
+
+      const result = await window.rrllDB.updateLocalMirror();
+      await refreshDatabaseInfo();
+      if (!result || !result.ok) {
+        const detail = result && (result.error || result.mirrorError || result.skipped) ? (result.error || result.mirrorError || result.skipped) : "motivo no disponible";
+        alert(`No se pudo actualizar el espejo local: ${detail}`);
+        return;
+      }
+      alert("Espejo local actualizado correctamente.");
+    } catch (error) {
+      console.error("Error al actualizar espejo local:", error);
+      alert(`No se pudo actualizar el espejo local. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
+    }
+  }
+
+  async function useMirrorAsLocalDatabaseMode() {
+    if (!window.rrllDB || typeof window.rrllDB.useMirrorAsLocalDatabase !== "function") {
+      alert("Esta función solo está disponible en la aplicación de escritorio.");
+      return;
+    }
+
+    const warning = "Esto no sincroniza cambios con la BBDD compartida. Solo usará la última copia espejo como BBDD local.";
+    const confirmed = confirm(`${warning}
+
+Se creará un backup previo de la BBDD local actual y después se sustituirá por el espejo. ¿Continuar?`);
+    if (!confirmed) return;
+
+    try {
+      const result = await window.rrllDB.useMirrorAsLocalDatabase();
+      await refreshDatabaseInfo();
+      alert(`Modo local activado usando el espejo. La aplicación se recargará ahora.${result && result.backupPath ? `
+
+Backup previo: ${result.backupPath}` : ""}`);
+      window.location.reload();
+    } catch (error) {
+      console.error("Error al usar espejo como BBDD local:", error);
+      alert(`No se ha tocado la BBDD local. No se pudo usar el espejo como BBDD local: ${error && error.message ? error.message : "error desconocido"}`);
+      await refreshDatabaseInfo();
+    }
+  }
+
   window.refreshDatabaseInfo = refreshDatabaseInfo;
   window.updateSyncStatus = updateSyncStatus;
   window.renderRemoteRefreshNotice = renderRemoteRefreshNotice;
@@ -336,6 +429,9 @@
   window.chooseSharedDatabaseFolder = chooseSharedDatabaseFolder;
   window.useLocalDatabaseMode = useLocalDatabaseMode;
   window.reloadDatabaseFromDisk = reloadDatabaseFromDisk;
+  window.openLocalMirrorFolder = openLocalMirrorFolder;
+  window.updateLocalMirrorNow = updateLocalMirrorNow;
+  window.useMirrorAsLocalDatabaseMode = useMirrorAsLocalDatabaseMode;
   window.retrySharedDatabaseConnection = async function retrySharedDatabaseConnection() {
     if (!window.rrllDB || typeof window.rrllDB.getInfo !== "function" || typeof window.rrllDB.setSharedDirectory !== "function") {
       await refreshDatabaseInfo();
