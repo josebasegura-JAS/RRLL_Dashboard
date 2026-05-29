@@ -320,47 +320,70 @@
     }
 
     let activePetitionUpdateId = null;
+    let isPetitionModalOpening = false;
     let activePetitionLoadedUpdatedAt = "";
 
     async function openPetitionUpdateModal(id) {
-      const lock = await window.acquireEditingLock?.("peticiones", id);
-      if (lock && lock.allowed === false) { window.showEditingLockBlockedMessage?.(lock.lock); return; }
-      const items = getPetitions();
-      const item = items.find(i => i.id === id);
-      if (!item) return;
+      if (isPetitionModalOpening) return;
+      isPetitionModalOpening = true;
+      try {
+        if (activePetitionUpdateId && activePetitionUpdateId !== id) {
+          await closePetitionUpdateModal();
+        }
 
-      activePetitionUpdateId = id;
-      activePetitionLoadedUpdatedAt = item.updatedAt || "";
-      window.startEditingLockHeartbeat?.("peticiones", id);
-      const sources = Array.isArray(item.sources) ? item.sources : [];
-      const titleEl = document.getElementById("petitionUpdateModalTitle");
-      if (titleEl) titleEl.textContent = item.title || "Petición sin título";
-      const titleInput = document.getElementById("petitionEditTitle");
-      const dueInput = document.getElementById("petitionEditDueDate");
-      const priorityInput = document.getElementById("petitionEditPriority");
-      const statusInput = document.getElementById("petitionEditStatus");
-      const notesInput = document.getElementById("petitionEditNotes");
-      const unionInput = document.getElementById("petitionEditUnion");
-      const companyInput = document.getElementById("petitionEditCompany");
-      const originInput = document.getElementById("petitionEditOrigin");
-      const updateInput = document.getElementById("petitionUpdateModalText");
+        const lock = await window.acquireEditingLock?.("peticiones", id);
+        if (lock && lock.allowed === false) {
+          window.showEditingLockBlockedMessage?.(lock.lock);
+          return;
+        }
 
-      if (titleInput) titleInput.value = item.title || "";
-      if (dueInput) dueInput.value = typeof normalizeDateInput === "function" ? (normalizeDateInput(item.dueDate) || "") : (item.dueDate || "");
-      if (priorityInput) priorityInput.value = normalizePriority(item.priority);
-      if (statusInput) statusInput.value = item.status || "petition-pending";
-      if (notesInput) notesInput.value = item.notes || "";
-      if (unionInput) unionInput.checked = sources.includes("Sindicato");
-      if (companyInput) companyInput.checked = sources.includes("Empresa");
-      if (originInput) originInput.innerHTML = petitionOriginOptionsHtml(petitionOriginValue(item), true);
-      if (originInput) originInput.value = petitionOriginValue(item);
-      if (updateInput) updateInput.value = "";
-      renderEditableUpdates("petitionExistingUpdates", item.updates || []);
-      window.__petitionDraftAttachments = Array.isArray(item.attachments) ? [...item.attachments] : [];
-      if (typeof renderPetitionAttachments === "function") renderPetitionAttachments("petitionAttachmentsList", window.__petitionDraftAttachments);
+        const items = getPetitions();
+        const item = items.find(i => i.id === id);
+        if (!item) return;
 
-      document.getElementById("petitionUpdateModal").classList.add("open");
-      setTimeout(() => (updateInput || titleInput)?.focus(), 0);
+        activePetitionUpdateId = id;
+        activePetitionLoadedUpdatedAt = item.updatedAt || "";
+        window.startEditingLockHeartbeat?.("peticiones", id);
+        const sources = Array.isArray(item.sources) ? item.sources : [];
+        const titleEl = document.getElementById("petitionUpdateModalTitle");
+        if (titleEl) titleEl.textContent = item.title || "Petición sin título";
+        const titleInput = document.getElementById("petitionEditTitle");
+        const dueInput = document.getElementById("petitionEditDueDate");
+        const priorityInput = document.getElementById("petitionEditPriority");
+        const statusInput = document.getElementById("petitionEditStatus");
+        const notesInput = document.getElementById("petitionEditNotes");
+        const unionInput = document.getElementById("petitionEditUnion");
+        const companyInput = document.getElementById("petitionEditCompany");
+        const originInput = document.getElementById("petitionEditOrigin");
+        const updateInput = document.getElementById("petitionUpdateModalText");
+
+        if (titleInput) titleInput.value = item.title || "";
+        if (dueInput) dueInput.value = typeof normalizeDateInput === "function" ? (normalizeDateInput(item.dueDate) || "") : (item.dueDate || "");
+        if (priorityInput) priorityInput.value = normalizePriority(item.priority);
+        if (statusInput) statusInput.value = item.status || "petition-pending";
+        if (notesInput) notesInput.value = item.notes || "";
+        if (unionInput) unionInput.checked = sources.includes("Sindicato");
+        if (companyInput) companyInput.checked = sources.includes("Empresa");
+        if (originInput) originInput.innerHTML = petitionOriginOptionsHtml(petitionOriginValue(item), true);
+        if (originInput) originInput.value = petitionOriginValue(item);
+        if (updateInput) updateInput.value = "";
+        renderEditableUpdates("petitionExistingUpdates", item.updates || []);
+        window.__petitionDraftAttachments = Array.isArray(item.attachments) ? [...item.attachments] : [];
+        if (typeof renderPetitionAttachments === "function") renderPetitionAttachments("petitionAttachmentsList", window.__petitionDraftAttachments);
+
+        const modal = document.getElementById("petitionUpdateModal");
+        if (!modal) {
+          console.warn("[PETITION DBLCLICK] petitionUpdateModal no encontrado");
+          return;
+        }
+
+        modal.classList.add("open");
+        setTimeout(() => (updateInput || titleInput)?.focus(), 0);
+      } catch (error) {
+        console.warn("Fallo al abrir modal de petición:", error);
+      } finally {
+        isPetitionModalOpening = false;
+      }
     }
 
     async function closePetitionUpdateModal() {
