@@ -214,9 +214,12 @@
         if (modal) modal.classList.remove("open");
       }
 
-      function confirmImportBackup() {
+      async function confirmImportBackup() {
         if (!pendingImportValues) return;
         try {
+          if (window.rrllDB && typeof window.rrllDB.createBackup === "function") {
+            await window.rrllDB.createBackup({ reason: "before_import_destructive", data: window.rrllDatabaseCache || {} });
+          }
           applyImportedValues(pendingImportValues);
           renderAfterImport();
           closeImportPreview();
