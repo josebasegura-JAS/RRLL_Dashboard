@@ -6,6 +6,8 @@ const { spawn } = require("child_process");
 const { MsgReader } = require("@kenjiuno/msgreader");
 
 let lastBackupAt = 0;
+let dirtySinceLastBackup = false;
+let backupScheduler = null;
 let sqlReadyPromise = null;
 let SQLRef = null;
 let lastBackupMeta = null;
@@ -47,23 +49,15 @@ function getNetworkBackupsDir() {
   return fs.existsSync(info.sharedDir) ? dir : "";
 }
 
-function sanitizeUserForFileName() {
-  return String(getWindowsUser() || "USUARIO")
-    .replace(/[\\/:*?"<>|]/g, "_")
-    .replace(/\s+/g, "_")
-    .toUpperCase();
-}
-
-function ts() {
-  const now = new Date();
+function backupTs(date = new Date()) {
   const pad = value => String(value).padStart(2, "0");
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
 }
 
-function listBackupFiles(dir, ext) {
+function listManagedSqliteBackups(dir) {
   if (!dir || !fs.existsSync(dir)) return [];
   return fs.readdirSync(dir)
-    .filter(name => name.startsWith("backup_") && name.endsWith(ext))
+    .filter(name => /^rrll-backup-\d{8}-\d{6}\.db$/.test(name))
     .map(name => {
       const file = path.join(dir, name);
       const stat = fs.statSync(file);
@@ -72,12 +66,19 @@ function listBackupFiles(dir, ext) {
     .sort((a, b) => b.mtimeMs - a.mtimeMs);
 }
 
-function pruneBackups(dir, ext, maxCount) {
-  const files = listBackupFiles(dir, ext);
-  files.slice(maxCount).forEach(({ file, name }) => {
-    if (name.includes("_SUSPECT")) return;
+function pruneManagedSqliteBackups(dir, maxCount) {
+  const files = listManagedSqliteBackups(dir);
+  files.slice(maxCount).forEach(({ file }) => {
     try { fs.unlinkSync(file); } catch {}
   });
+}
+
+function markDatabaseDirty() {
+  dirtySinceLastBackup = true;
+}
+
+function clearDatabaseDirty() {
+  dirtySinceLastBackup = false;
 }
 
 function isPlainObject(value) {
@@ -503,6 +504,7 @@ async function saveKeyData(key, value) {
       addAudit(db, "save_key", key, null);
       touchDatabaseState(db);
       persistDb(db, info.path);
+      markDatabaseDirty();
       return true;
     } finally {
       try { db.close(); } catch {}
@@ -512,7 +514,6 @@ async function saveKeyData(key, value) {
 
 async function saveAllData(data) {
   const safe = isPlainObject(data) ? data : {};
-  await createRobustBackup("before_massive_import_or_destructive", await loadAllData(), { throttleMs: 0 });
   const info = resolveDbAccessInfo();
   return withFileLock(info.path, async () => {
     const { db } = await openDatabase(info.path);
@@ -537,7 +538,7 @@ async function saveAllData(data) {
         throw error;
       }
       persistDb(db, info.path);
-      await createRobustBackup("after_important_save", safe, { throttleMs: 0 });
+      markDatabaseDirty();
       return true;
     } finally {
       try { db.close(); } catch {}
@@ -553,49 +554,78 @@ async function createRobustBackup(reason, data, options = {}) {
   const nowMs = Date.now();
   const throttleMs = Number(options.throttleMs || 0);
   if (throttleMs && nowMs - lastBackupAt < throttleMs) return { ok: false, skipped: "throttle" };
-  lastBackupAt = nowMs;
+
   const safe = isPlainObject(data) ? data : {};
   const info = resolveDbAccessInfo();
   const keyCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
   if (!keyCount) return { ok: false, skipped: "empty" };
+
   const criticalCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
   const suspicious = criticalCount < 3;
-  const suffix = suspicious ? "_SUSPECT" : "";
-  const baseName = `backup_${ts()}_${sanitizeUserForFileName()}${suffix}`;
   const localDir = ensureBackupsDir();
   const networkDir = getNetworkBackupsDir();
   if (networkDir && !fs.existsSync(networkDir)) fs.mkdirSync(networkDir, { recursive: true });
 
-  const payload = JSON.stringify({
-    app: "Cuadro de Mando de RRLL",
-    version: "2.0-backup",
-    createdAt: new Date().toISOString(),
-    reason,
-    databaseMode: info.mode,
-    databasePath: info.path,
-    user: getWindowsUser(),
-    keyCount,
-    suspicious,
-    values: safe
-  }, null, 2);
-
-  const writeTarget = targetDir => {
-    fs.writeFileSync(path.join(targetDir, `${baseName}.json`), payload, "utf-8");
-    if (fs.existsSync(info.path)) fs.copyFileSync(info.path, path.join(targetDir, `${baseName}.sqlite`));
+  const getBackupPath = targetDir => {
+    let timestamp = new Date();
+    let filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
+    while (fs.existsSync(filePath)) {
+      timestamp = new Date(timestamp.getTime() + 1000);
+      filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
+    }
+    return filePath;
   };
-  writeTarget(localDir);
-  if (networkDir) writeTarget(networkDir);
 
-  pruneBackups(localDir, ".json", 50);
-  pruneBackups(localDir, ".sqlite", 50);
+  if (!fs.existsSync(info.path)) return { ok: false, skipped: "missing_db" };
+
+  const localFile = getBackupPath(localDir);
+  fs.copyFileSync(info.path, localFile);
+
+  let networkFile = "";
   if (networkDir) {
-    pruneBackups(networkDir, ".json", 100);
-    pruneBackups(networkDir, ".sqlite", 100);
+    networkFile = getBackupPath(networkDir);
+    fs.copyFileSync(info.path, networkFile);
   }
 
-  lastBackupMeta = { ok: !suspicious, suspicious, createdAt: new Date().toISOString(), reason, localDir, networkDir, baseName, dbPath: info.path };
-  return { ok: true, suspicious, keyCount, fileBase: baseName };
+  pruneManagedSqliteBackups(localDir, 30);
+  if (networkDir) pruneManagedSqliteBackups(networkDir, 50);
+
+  lastBackupAt = Date.now();
+  clearDatabaseDirty();
+  const baseName = path.basename(localFile, ".db");
+  lastBackupMeta = {
+    ok: !suspicious,
+    suspicious,
+    createdAt: new Date(lastBackupAt).toISOString(),
+    reason,
+    localDir,
+    networkDir,
+    baseName,
+    dbPath: info.path,
+    dirtySinceLastBackup,
+    lastBackupAt: new Date(lastBackupAt).toISOString(),
+    localFile,
+    networkFile
+  };
+  return { ok: true, suspicious, keyCount, fileBase: baseName, localFile, networkFile };
 }
+
+async function runScheduledBackup() {
+  if (!dirtySinceLastBackup) return { ok: false, skipped: "clean" };
+  try {
+    return await createRobustBackup("scheduled_dirty", await loadAllData(), { throttleMs: 0 });
+  } catch (error) {
+    console.error("No se pudo crear backup automático temporizado:", error);
+    return { ok: false, error: error && error.message ? error.message : String(error) };
+  }
+}
+
+function startBackupScheduler() {
+  if (backupScheduler) return;
+  backupScheduler = setInterval(runScheduledBackup, 15 * 60 * 1000);
+  if (typeof backupScheduler.unref === "function") backupScheduler.unref();
+}
+
 
 async function getDbInfo() {
   const info = resolveDbAccessInfo();
@@ -1397,7 +1427,7 @@ ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));
 ipcMain.handle("db:createBackup", async (_event, payload) => createRobustBackup(payload && payload.reason ? payload.reason : "manual", payload && payload.data ? payload.data : {}));
-ipcMain.handle("db:getBackupStatus", async () => lastBackupMeta || { ok: false, createdAt: null, reason: null, dbPath: getActiveDbInfo().path });
+ipcMain.handle("db:getBackupStatus", async () => lastBackupMeta || { ok: false, createdAt: null, reason: null, dbPath: getActiveDbInfo().path, dirtySinceLastBackup, lastBackupAt: lastBackupAt ? new Date(lastBackupAt).toISOString() : null });
 ipcMain.handle("db:openBackupsFolder", async () => {
   const folder = ensureBackupsDir();
   const error = await shell.openPath(folder);
@@ -1501,7 +1531,12 @@ function createWindow() {
 app.whenReady().then(async () => {
   await getSQL();
   const startupData = await loadAllData();
-  await createRobustBackup("app_start", startupData);
+  try {
+    await createRobustBackup("app_start", startupData);
+  } catch (error) {
+    console.error("No se pudo crear backup al abrir:", error);
+  }
+  startBackupScheduler();
   createWindow();
 });
 

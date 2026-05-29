@@ -261,13 +261,7 @@ function getTodayKey() {
     function persistDatabaseCache() {
       if (!window.rrllDB || typeof window.rrllDB.saveAll !== "function") return;
       markSaveStarted();
-      return enqueueDatabasePersist(() => window.rrllDB.saveAll(rrllDatabaseCache)
-        .then(() => {
-          if (window.rrllDB && typeof window.rrllDB.backupAll === "function") {
-            return window.rrllDB.backupAll(rrllDatabaseCache);
-          }
-          return null;
-        }))
+      return enqueueDatabasePersist(() => window.rrllDB.saveAll(rrllDatabaseCache))
         .then(markSaveFinished)
         .catch(markSaveError);
     }
@@ -277,13 +271,7 @@ function getTodayKey() {
         return persistDatabaseCache();
       }
       markSaveStarted();
-      return enqueueDatabasePersist(() => window.rrllDB.saveKey(key, value)
-        .then(() => {
-          if (window.rrllDB && typeof window.rrllDB.backupAll === "function") {
-            return window.rrllDB.backupAll(rrllDatabaseCache);
-          }
-          return null;
-        }))
+      return enqueueDatabasePersist(() => window.rrllDB.saveKey(key, value))
         .then(markSaveFinished)
         .catch(markSaveError);
     }
