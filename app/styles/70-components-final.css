@@ -812,6 +812,53 @@ table tr:last-child td {
 }
 
 /* =========================================================
+   RRLL Common Toolbars Foundation
+   ========================================================= */
+.rrll-toolbar,
+.rrll-filterbar,
+.rrll-actions,
+.rrll-tabs,
+.rrll-toolbar-left,
+.rrll-toolbar-right,
+.professional-list-toolbar,
+.list-toolbar,
+.filter-toolbar,
+.table-toolbar,
+.modal-actions,
+.form-actions,
+.rrll-pro-list-toolbar,
+.rrll-pro-search-wrap,
+.rrll-pro-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--rrll-space-md);
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.rrll-toolbar-left,
+.rrll-toolbar-right {
+  gap: var(--rrll-space-sm);
+  width: auto;
+}
+
+.rrll-toolbar,
+.rrll-filterbar,
+.rrll-tabs,
+.professional-list-toolbar,
+.list-toolbar,
+.filter-toolbar,
+.table-toolbar,
+.rrll-pro-list-toolbar,
+.rrll-pro-tabs {
+  background: var(--rrll-surface-header);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  padding: var(--rrll-space-lg);
+}
+
+/* =========================================================
    Toolbars / tabs / filtros
    ========================================================= */
 .rrll-toolbar,
