@@ -804,6 +804,67 @@ button.danger {
 }
 
 /* =========================================================
+   RRLL Common Tables Foundation
+   ========================================================= */
+:where(
+  .rrll-table-wrap,
+  .rrll-table-actions
+) {
+  box-sizing: border-box;
+  font-family: var(--rrll-font-family);
+  font-size: var(--rrll-table-font);
+  color: var(--rrll-theme-text-main);
+}
+
+:where(
+  .rrll-table,
+  .rrll-table-compact,
+  .data-table,
+  .professional-table,
+  .rrll-pro-table,
+  .module-table,
+  .config-table,
+  table
+) {
+  --rrll-common-table-head-font: var(--rrll-table-head-font);
+  --rrll-common-table-header-bg: var(--rrll-table-header-bg);
+  box-sizing: border-box;
+  font-family: var(--rrll-font-family);
+  font-size: var(--rrll-table-font);
+  color: var(--rrll-theme-text-main);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+:where(
+  .rrll-table,
+  .rrll-table-compact,
+  .data-table,
+  .professional-table,
+  .rrll-pro-table,
+  .module-table,
+  .config-table,
+  table
+) :where(th, td) {
+  box-sizing: border-box;
+  color: var(--rrll-theme-text-main);
+  border-color: var(--rrll-table-border);
+}
+
+:where(
+  .rrll-table,
+  .rrll-table-compact,
+  .data-table,
+  .professional-table,
+  .rrll-pro-table,
+  .module-table,
+  .config-table,
+  table
+) :where(th) {
+  color: var(--rrll-theme-text-secondary);
+}
+
+/* =========================================================
    Tablas / listados
    ========================================================= */
 .rrll-table-wrap,
