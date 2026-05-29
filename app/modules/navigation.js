@@ -434,6 +434,7 @@ function toggleSidebarLeft() {
         "#gestor-licencias": "gestor-licencias",
         "#gestor-plantilla": "gestor-plantilla",
         "#gestor-criterios": "gestor-criterios",
+        "#gestor-especiales": "gestor-especiales",
         "#gestor-ticket-restaurante": "gestor-ticket-restaurante",
         "#gestor-sorteos": "gestor-sorteos",
         "#gestor-comite": "gestor-comite",
