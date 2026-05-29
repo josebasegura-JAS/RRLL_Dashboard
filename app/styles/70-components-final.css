@@ -19,6 +19,70 @@
 }
 
 /* =========================================================
+   RRLL Common Header Foundation
+   ========================================================= */
+:where(
+  .rrll-header,
+  .rrll-header-title,
+  .rrll-header-actions,
+  .rrll-header-status,
+  .phase4-header,
+  .phase4-topbar,
+  .phase4-header-title,
+  .phase4-header-actions,
+  .phase4-header-status,
+  .app-header,
+  .header-actions,
+  .quick-actions
+) {
+  box-sizing: border-box;
+  font-family: var(--rrll-font-family);
+  color: var(--rrll-theme-text-main);
+}
+
+:where(
+  .rrll-header,
+  .phase4-header,
+  .phase4-topbar,
+  .app-header
+) {
+  background: var(--rrll-theme-bg-header);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-md);
+}
+
+:where(
+  .rrll-header-actions,
+  .rrll-header-status,
+  .phase4-header-actions,
+  .phase4-header-status,
+  .header-actions,
+  .quick-actions
+) {
+  font-size: var(--rrll-font-sm);
+}
+
+:where(
+  .rrll-header-actions,
+  .rrll-header-status,
+  .phase4-header-actions,
+  .phase4-header-status,
+  .header-actions,
+  .quick-actions
+) {
+  background: var(--rrll-theme-bg-panel);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-md);
+}
+
+:where(
+  .rrll-header-status,
+  .phase4-header-status
+) {
+  color: var(--rrll-theme-text-secondary);
+}
+
+/* =========================================================
    RRLL Common Sidebar Foundation
    ========================================================= */
 .rrll-sidebar,
