@@ -1197,6 +1197,256 @@ table tr:last-child td {
 }
 
 /* =========================================================
+   RRLL Module Foundation — Tareas & Peticiones
+   ========================================================= */
+:where(
+  #gestor-tareas,
+  #gestor-peticiones,
+  .module-tasks,
+  .module-petitions
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-pro-task-shell,
+  .rrll-pro-petition-shell,
+  .rrll-pro-list-card,
+  .rrll-pro-task-form,
+  .rrll-pro-petition-form
+) {
+  background: var(--rrll-card-bg);
+  border: 1px solid var(--rrll-card-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+  gap: var(--rrll-space-xl);
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  summary,
+  .rrll-pro-task-head,
+  .rrll-pro-petition-head,
+  .rrll-pro-list-toolbar
+) {
+  background: var(--rrll-surface-header);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-shadow-soft);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+  gap: var(--rrll-space-xl);
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-pro-task-head p,
+  .rrll-pro-petition-head p,
+  .summary-counts,
+  .rrll-pro-subtitle,
+  .rrll-pro-created,
+  .rrll-pro-update
+) {
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-pro-tabs,
+  .rrll-pro-search-wrap,
+  .rrll-pro-list-actions,
+  .rrll-pro-actions,
+  .rrll-pro-form-actions
+) {
+  gap: var(--rrll-space-md);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-pro-tabs button,
+  .rrll-pro-tool-button,
+  .summary-icon-button
+) {
+  background: var(--rrll-button-secondary-bg);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-button-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-pro-tabs button.active,
+  .rrll-pro-tabs button:hover
+) {
+  background: var(--rrll-theme-accent-soft);
+  border: 1px solid var(--rrll-theme-accent-border);
+  color: var(--rrll-theme-accent);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-pro-search-wrap,
+  .rrll-pro-search-wrap input,
+  .rrll-pro-field input,
+  .rrll-pro-field select,
+  .rrll-pro-field textarea
+) {
+  background: var(--rrll-theme-bg-input);
+  border: 1px solid var(--rrll-border-strong);
+  border-radius: var(--rrll-button-radius);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-pro-table-wrap,
+  .rrll-pro-table,
+  .rrll-pro-table-tasks,
+  .rrll-pro-table-petitions
+) {
+  background: var(--rrll-table-row-bg);
+  border: 1px solid var(--rrll-table-border);
+  border-radius: var(--rrll-card-radius);
+  box-shadow: var(--rrll-card-shadow);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-pro-table thead,
+  .rrll-pro-table thead tr,
+  .rrll-pro-table th
+) {
+  background: var(--rrll-table-header-bg);
+  border: 1px solid var(--rrll-table-border);
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-task-row,
+  .rrll-petition-row,
+  .rrll-pro-row
+) {
+  background: var(--rrll-table-row-bg);
+  border: 1px solid var(--rrll-table-border);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-task-row.status-pending,
+  .rrll-petition-row.status-pending,
+  .rrll-task-row.status-progress,
+  .rrll-petition-row.status-progress,
+  .rrll-task-row.status-closed,
+  .rrll-petition-row.status-closed
+) {
+  background: var(--rrll-table-row-bg);
+  border: 1px solid var(--rrll-table-border);
+  color: var(--rrll-theme-text-main);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-status-pill.pending,
+  .rrll-status-pill.progress,
+  .rrll-status-pill.closed,
+  .status-badge.status-pending,
+  .status-badge.status-progress,
+  .status-badge.status-closed,
+  .state-badge.status-pending,
+  .state-badge.status-progress,
+  .state-badge.status-closed
+) {
+  background: var(--rrll-surface-hover);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-pill);
+  box-shadow: var(--rrll-theme-shadow-xs);
+  color: var(--rrll-theme-text-secondary);
+  box-sizing: border-box;
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-status-pill.pending,
+  .status-badge.status-pending,
+  .state-badge.status-pending
+) {
+  border: 1px solid var(--rrll-theme-warning-border);
+  color: var(--rrll-theme-warning);
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-status-pill.progress,
+  .status-badge.status-progress,
+  .state-badge.status-progress
+) {
+  border: 1px solid var(--rrll-theme-info-border);
+  color: var(--rrll-theme-info);
+}
+
+:where(
+  #gestor-tareas,
+  #gestor-peticiones
+) :where(
+  .rrll-status-pill.closed,
+  .status-badge.status-closed,
+  .state-badge.status-closed
+) {
+  border: 1px solid var(--rrll-theme-success-border);
+  color: var(--rrll-theme-success);
+}
+
+/* =========================================================
    Refinamiento final de superficies dark corporativas.
    Capa de cierre: neutraliza negros heredados y suaviza
    sombras/bordes sin cambiar estructura ni lógica.
