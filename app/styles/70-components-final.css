@@ -19,6 +19,68 @@
 }
 
 /* =========================================================
+   RRLL Common Sidebar Foundation
+   ========================================================= */
+.rrll-sidebar,
+.rrll-sidebar-section,
+.rrll-sidebar-title,
+.rrll-sidebar-item,
+.rrll-sidebar-status,
+.phase4-sidebar,
+.phase4-nav,
+.phase4-nav-section,
+.phase4-sidebar-section,
+.phase4-nav-item,
+.phase4-sidebar-status,
+.phase4-sidebar-footer {
+  box-sizing: border-box;
+  font-family: var(--rrll-font-family);
+  font-size: var(--rrll-font-sm);
+  color: var(--rrll-theme-text-main);
+}
+
+.rrll-sidebar,
+.phase4-sidebar {
+  background: var(--rrll-theme-bg-panel);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-md);
+}
+
+.rrll-sidebar-section,
+.rrll-sidebar-title,
+.phase4-nav-section,
+.phase4-sidebar-section,
+.phase4-sidebar-footer {
+  color: var(--rrll-theme-text-secondary);
+}
+
+.rrll-sidebar-item,
+.phase4-nav-item {
+  background: var(--rrll-theme-bg-panel);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-md);
+}
+
+.rrll-sidebar-item:hover,
+.phase4-nav-item:hover {
+  background: var(--rrll-theme-bg-hover);
+}
+
+.rrll-sidebar-item.active,
+.phase4-nav-item.active {
+  color: var(--rrll-theme-accent);
+  border: 1px solid var(--rrll-theme-accent);
+}
+
+.rrll-sidebar-status,
+.phase4-sidebar-status {
+  color: var(--rrll-theme-text-muted);
+  background: var(--rrll-theme-bg-panel);
+  border: 1px solid var(--rrll-border);
+  border-radius: var(--rrll-radius-md);
+}
+
+/* =========================================================
    RRLL Common Modals Foundation
    ========================================================= */
 .rrll-modal,
