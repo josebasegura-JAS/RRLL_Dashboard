@@ -1,0 +1,173 @@
+.phase5-useful-dashboard {
+  --dash-surface: var(--rrll-surface-card);
+  --dash-surface-2: var(--rrll-surface-raised);
+  --dash-border: var(--rrll-border);
+}
+.phase5-useful-dashboard .phase5-metric-grid {
+  grid-template-columns: repeat(6, minmax(150px, 1fr)) !important;
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+}
+.phase5-useful-dashboard .phase5-metric-card {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0,1fr) 42px !important;
+  grid-template-areas:
+    "icon label donut"
+    "icon value donut"
+    "icon sub donut"
+    "legend legend legend" !important;
+  align-items: center !important;
+  min-height: 126px !important;
+  padding: 12px 13px !important;
+  border-radius: 15px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(59,130,246,.10), transparent 34%),
+    linear-gradient(180deg, rgba(48,55,70,.92), rgba(43,49,61,.98)) !important;
+  border-color: var(--dash-border) !important;
+  box-shadow: 0 14px 30px rgba(17,24,39,.18) !important;
+}
+.phase5-useful-dashboard .phase5-metric-card .phase4-metric-icon { grid-area: icon !important; width: 32px !important; height: 32px !important; border-radius: 10px !important; }
+.phase5-useful-dashboard .phase5-metric-card span:not(.phase4-metric-icon) { grid-area: label !important; font-size: 10px !important; color: rgba(203,213,225,.72) !important; }
+.phase5-useful-dashboard .phase5-metric-card strong { grid-area: value !important; font-size: 22px !important; color: #f8fafc !important; }
+.phase5-useful-dashboard .phase5-metric-card small { grid-area: sub !important; min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; color: #aab3c2 !important; font-size: 11px !important; }
+.phase5-mini-donut {
+  grid-area: donut !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  place-self: center end !important;
+  background: conic-gradient(rgba(148,163,184,.26) 0 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 0 0 1px rgba(148,163,184,.12) !important;
+  position: relative !important;
+}
+.phase5-mini-donut::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  background: #2b313d;
+  box-shadow: inset 0 0 0 1px rgba(148,163,184,.08);
+}
+.phase5-metric-legend {
+  grid-area: legend !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px 8px !important;
+  margin-top: 10px !important;
+  padding-top: 9px !important;
+  border-top: 1px solid rgba(148,163,184,.10) !important;
+}
+.phase5-metric-legend-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  color: #cbd5e1 !important;
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+}
+.phase5-metric-legend-item i { width: 7px !important; height: 7px !important; border-radius: 99px !important; flex: 0 0 auto !important; }
+.phase5-metric-legend-item b { color: #f8fafc !important; font-size: 10px !important; font-weight: 850 !important; }
+.phase5-empty-legend { color: #94a3b8 !important; font-size: 11px !important; font-weight: 700 !important; }
+
+.phase5-useful-dashboard .phase5-dashboard-grid {
+  display: grid !important;
+  grid-template-columns: minmax(580px, 1.45fr) minmax(280px, .72fr) minmax(300px, .83fr) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+.phase5-useful-dashboard .phase5-dashboard-card {
+  min-height: 0 !important;
+  padding: 15px !important;
+  border-radius: 17px !important;
+  background: linear-gradient(180deg, rgba(48,55,70,.90), rgba(43,49,61,.98)) !important;
+  border-color: var(--dash-border) !important;
+  box-shadow: 0 16px 34px rgba(17,24,39,.18), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+.phase5-useful-dashboard .phase5-due-card { grid-column: span 1 !important; }
+.phase5-useful-dashboard .phase4-card-head { margin-bottom: 10px !important; padding-bottom: 10px !important; }
+.phase5-useful-dashboard .phase4-card-head h3 { font-size: 15px !important; }
+.phase5-useful-dashboard .phase4-card-head span { font-size: 11px !important; }
+.phase5-due-layout {
+  display: grid !important;
+  grid-template-columns: minmax(250px, 1fr) 255px !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+.phase5-useful-dashboard .phase4-list { max-height: 360px !important; overflow: auto !important; padding-right: 2px !important; }
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+  display: grid !important;
+  grid-template-columns: 72px 1fr auto !important;
+  gap: 3px 10px !important;
+  min-height: 48px !important;
+  padding: 8px 6px !important;
+  border-radius: 10px !important;
+  border-bottom: 1px solid rgba(148,163,184,.10) !important;
+  background: transparent !important;
+}
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row:hover { background: rgba(52,59,70,.56) !important; }
+.phase5-useful-dashboard .phase4-list-row span { color: #60a5fa !important; font-size: 11px !important; font-weight: 850 !important; }
+.phase5-useful-dashboard .phase4-list-row b { color: #e5e7eb !important; font-size: 12px !important; font-weight: 750 !important; }
+.phase5-useful-dashboard .phase4-list-row small { color: #aab3c2 !important; font-size: 11px !important; }
+.phase5-useful-dashboard .phase4-list-row em { color: #cbd5e1 !important; font-size: 11px !important; font-style: normal !important; font-weight: 750 !important; }
+.phase5-useful-dashboard .phase4-list-row.danger small { color: #f87171 !important; }
+.phase5-useful-dashboard .phase4-list-row.warning small { color: #fbbf24 !important; }
+.phase5-useful-dashboard .phase4-list-row.committee span { color: #60a5fa !important; }
+.phase5-useful-dashboard .phase4-list-row.paritaria span { color: #a78bfa !important; }
+
+.phase5-calendar-card {
+  padding: 12px !important;
+  border: 1px solid rgba(148,163,184,.15) !important;
+  border-radius: 15px !important;
+  background: rgba(36,42,54,.72) !important;
+}
+.phase5-calendar-head { display: flex !important; justify-content: space-between !important; gap: 10px !important; align-items: start !important; margin-bottom: 10px !important; }
+.phase5-calendar-head strong { color: #f8fafc !important; font-size: 13px !important; text-transform: capitalize !important; }
+.phase5-calendar-head small { color: #aab3c2 !important; font-size: 10px !important; text-align: right !important; }
+.phase5-calendar-weekdays,
+.phase5-calendar-grid { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 5px !important; }
+.phase5-calendar-weekdays { margin-bottom: 5px !important; }
+.phase5-calendar-weekdays span { color: rgba(203,213,225,.58) !important; font-size: 10px !important; font-weight: 800 !important; text-align: center !important; }
+.phase5-calendar-day {
+  min-width: 0 !important;
+  height: 31px !important;
+  padding: 3px !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(148,163,184,.10) !important;
+  background: rgba(48,55,70,.48) !important;
+  color: #dbe3ee !important;
+  display: grid !important;
+  grid-template-rows: 1fr 7px !important;
+  align-items: center !important;
+  justify-items: center !important;
+}
+.phase5-calendar-day.empty { visibility: hidden !important; }
+.phase5-calendar-day.today { border-color: rgba(59,130,246,.48) !important; box-shadow: inset 0 0 0 1px rgba(59,130,246,.18) !important; }
+.phase5-calendar-day.has-event { background: rgba(52,59,70,.82) !important; }
+.phase5-calendar-day b { font-size: 11px !important; font-weight: 750 !important; }
+.phase5-calendar-day span { display: flex !important; gap: 2px !important; align-items: center !important; justify-content: center !important; min-height: 5px !important; }
+.phase5-calendar-day i,
+.phase5-calendar-legend i { width: 5px !important; height: 5px !important; border-radius: 50% !important; display: inline-block !important; }
+.phase5-calendar-day i.cal-due, .phase5-calendar-legend i.cal-due { background: #f59e0b !important; }
+.phase5-calendar-day i.cal-expired, .phase5-calendar-legend i.cal-expired { background: #ef4444 !important; }
+.phase5-calendar-legend { display: flex !important; flex-wrap: wrap !important; gap: 6px 10px !important; margin-top: 10px !important; color: #aab3c2 !important; font-size: 10px !important; }
+.phase5-calendar-legend span { display: inline-flex !important; align-items: center !important; gap: 4px !important; }
+
+.db-sync-notice {
+  background: rgba(48,55,70,.88) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  border-left: 3px solid #3b82f6 !important;
+  border-radius: 12px !important;
+}
+
+@media (max-width: 1400px) {
+  .phase5-useful-dashboard .phase5-metric-grid { grid-template-columns: repeat(3, minmax(170px, 1fr)) !important; }
+  .phase5-useful-dashboard .phase5-dashboard-grid { grid-template-columns: 1fr 1fr !important; }
+  .phase5-useful-dashboard .phase5-due-card { grid-column: 1 / -1 !important; }
+}
+@media (max-width: 900px) {
+  .phase5-useful-dashboard .phase5-dashboard-grid,
+  .phase5-due-layout { grid-template-columns: 1fr !important; }
+  .phase5-useful-dashboard .phase5-metric-grid { grid-template-columns: 1fr 1fr !important; }
+}

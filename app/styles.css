@@ -14,6 +14,10 @@
 @import url("./styles/50-module-extras.css");
 @import url("./styles/features/50-vinculograma.css");
 @import url("./styles/features/50-ticket-restaurante.css");
+@import url("./styles/features/50-dashboard.css");
+@import url("./styles/features/50-calendar.css");
+@import url("./styles/features/50-dashboard-search.css");
+@import url("./styles/features/50-dashboard-timeline.css");
 @import url("./styles/60-overrides.css");
 @import url("./styles/65-normalize.css");
 @import url("./styles/70-components-final.css");

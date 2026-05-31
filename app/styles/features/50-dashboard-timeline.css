@@ -1,0 +1,229 @@
+/* Fase 2 Lupa global: timeline cronológico por asunto en Dashboard */
+.dashboard-timeline-card {
+  margin-top: 14px !important;
+  padding-top: 14px !important;
+  border-top: 1px solid rgba(148,163,184,.14) !important;
+}
+
+.dashboard-timeline-card .phase4-card-head {
+  margin-bottom: 10px !important;
+}
+
+.dashboard-timeline {
+  position: relative !important;
+  display: grid !important;
+  gap: 16px !important;
+  padding: 2px 0 2px 8px !important;
+}
+
+.dashboard-timeline::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 8px !important;
+  bottom: 8px !important;
+  left: 18px !important;
+  width: 1px !important;
+  background: linear-gradient(180deg, rgba(96,165,250,.08), rgba(148,163,184,.28), rgba(167,139,250,.08)) !important;
+}
+
+.dashboard-timeline-year {
+  position: relative !important;
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.dashboard-timeline-year h4 {
+  position: relative !important;
+  z-index: 1 !important;
+  width: fit-content !important;
+  margin: 0 0 2px 26px !important;
+  padding: 4px 9px !important;
+  border-radius: 999px !important;
+  color: #dbeafe !important;
+  background: rgba(15,23,42,.88) !important;
+  border: 1px solid rgba(148,163,184,.18) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-timeline-item {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  text-align: left !important;
+}
+
+.dashboard-timeline-item:hover .dashboard-timeline-content {
+  transform: translateY(-1px) !important;
+  border-color: rgba(147,197,253,.28) !important;
+  background: rgba(51,65,85,.58) !important;
+}
+
+.dashboard-timeline-node {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 11px !important;
+  height: 11px !important;
+  margin: 17px auto 0 !important;
+  border-radius: 999px !important;
+  background: #93c5fd !important;
+  border: 2px solid #101827 !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.16) !important;
+}
+
+.dashboard-timeline-content {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  padding: 11px 12px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  background: rgba(31,41,55,.46) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease !important;
+}
+
+.dashboard-timeline-content strong {
+  color: #f8fafc !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  line-height: 1.25 !important;
+}
+
+.dashboard-timeline-content small {
+  color: #aab3c2 !important;
+  font-size: 12px !important;
+  line-height: 1.38 !important;
+}
+
+.dashboard-timeline-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.dashboard-timeline-meta em {
+  font-style: normal !important;
+  color: #cbd5e1 !important;
+  background: rgba(15,23,42,.42) !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  border-radius: 999px !important;
+  padding: 4px 7px !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+.dashboard-timeline-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 76px !important;
+  padding: 5px 8px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+}
+
+.dashboard-timeline-badge--committee {
+  color: #bfdbfe !important;
+  background: rgba(37,99,235,.18) !important;
+  border: 1px solid rgba(96,165,250,.28) !important;
+}
+
+.dashboard-timeline-badge--paritaria {
+  color: #ddd6fe !important;
+  background: rgba(124,58,237,.18) !important;
+  border: 1px solid rgba(167,139,250,.28) !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-timeline {
+    padding-left: 0 !important;
+  }
+
+  .dashboard-timeline::before {
+    left: 10px !important;
+  }
+
+  .dashboard-timeline-year h4 {
+    margin-left: 22px !important;
+  }
+
+  .dashboard-timeline-item {
+    grid-template-columns: 20px minmax(0, 1fr) !important;
+  }
+}
+
+/* Dashboard: contención de alertas y timeline sin scroll horizontal */
+.phase5-useful-dashboard,
+.phase5-useful-dashboard .phase5-dashboard-grid,
+.phase5-useful-dashboard .phase5-dashboard-card,
+.phase5-useful-dashboard .phase4-list,
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row,
+.phase5-useful-dashboard .phase5-alert-list,
+.phase5-useful-dashboard .phase5-alert-row,
+.dashboard-search-card,
+.dashboard-search-body,
+.dashboard-timeline-card,
+.dashboard-timeline,
+.dashboard-timeline-item,
+.dashboard-timeline-content {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.phase5-useful-dashboard .phase5-dashboard-card *,
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row *,
+.dashboard-search-card *,
+.dashboard-timeline-card * {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+
+.phase5-useful-dashboard .phase5-dashboard-grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, .72fr) minmax(0, .83fr) !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+  grid-template-columns: minmax(0, 72px) minmax(0, 1fr) auto !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row b,
+.dashboard-timeline-content strong,
+.dashboard-timeline-content small {
+  white-space: normal !important;
+}
+
+.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row em {
+  justify-self: end !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1400px) {
+  .phase5-useful-dashboard .phase5-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .phase5-useful-dashboard .phase5-dashboard-grid,
+  .phase5-due-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+    grid-template-columns: minmax(0, 64px) minmax(0, 1fr) auto !important;
+  }
+}
