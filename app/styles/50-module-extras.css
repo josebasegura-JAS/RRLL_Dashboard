@@ -469,9 +469,6 @@
 .vinculograma-column {
   min-width: 0;
 }
-.vinculograma-toolbar {
-  align-items: center;
-}
 .vinculograma-toolbar h3 {
   margin: 0 0 4px;
   font-size: 16px;
@@ -535,9 +532,6 @@
 .licencias-column,
 .licencias-history-card {
   min-width: 0;
-}
-.licencias-toolbar {
-  align-items: center;
 }
 .licencias-toolbar h3 {
   margin: 0 0 4px;
