@@ -108,13 +108,13 @@ async function showStartupDbFallbackAlert() {
   if (existing) existing.remove();
   const modal = document.createElement("div");
   modal.id = "dbStartupFallbackModal";
-  modal.className = "db-startup-modal open";
+  modal.className = "modal-backdrop db-startup-modal open";
   modal.innerHTML = `
-    <div class="db-startup-modal-card">
+    <div class="modal-box db-startup-modal-card">
       <h3>Base de datos de red no disponible</h3>
       <p>No se ha podido acceder a la base de datos compartida. La aplicación se ha abierto con los datos locales de este equipo. Cuando recuperes conexión, puedes reintentar desde Configuración.</p>
       <p class="muted">Ruta configurada: ${escapeHtml(alertInfo.configuredPath || "No disponible")}</p>
-      <div class="db-startup-modal-actions">
+      <div class="modal-actions db-startup-modal-actions">
         <button type="button" class="warning" id="dbStartupRetryBtn">Reintentar</button>
         <button type="button" class="secondary" id="dbStartupConfigBtn">Ir a configuración</button>
         <button type="button" id="dbStartupContinueBtn">Continuar en local</button>
