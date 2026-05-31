@@ -267,17 +267,6 @@
   color: var(--rrll-theme-text-main);
 }
 
-/* =========================================================
-   RRLL Common Cards Foundation
-   ========================================================= */
-.rrll-card,
-.rrll-panel {
-  background: var(--rrll-card-bg);
-  border: 1px solid var(--rrll-card-border);
-  border-radius: var(--rrll-card-radius);
-  box-shadow: var(--rrll-card-shadow);
-}
-
 .card,
 .dashboard-card,
 .widget-card,
