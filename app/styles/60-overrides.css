@@ -190,58 +190,13 @@ textarea:focus {
   border-color: rgba(59,130,246,.55) !important;
   box-shadow: 0 0 0 3px rgba(59,130,246,.13) !important;
 }
-input::placeholder,
-textarea::placeholder,
-.rrll-pro-search-wrap input::placeholder {
-  color: rgba(203,213,225,.58) !important;
-}
-select option {
-  background: #303746 !important;
-  color: #e5e7eb !important;
-}
-
 /* Tablas y filas compactas: sin fondos negros profundos. */
-.rrll-pro-table,
-.professional-table,
-.data-table,
-table:not(.print-frame table) {
-  background: #2b313d !important;
-  color: #e5e7eb !important;
-}
-.rrll-pro-table thead th,
-.professional-table thead th,
-.data-table thead th,
-table:not(.print-frame table) thead th {
-  background: #343b46 !important;
-  color: rgba(229,231,235,.92) !important;
-  border-color: rgba(148,163,184,.15) !important;
-}
-.rrll-pro-table tbody tr,
-.professional-table tbody tr,
-.data-table tbody tr,
-table:not(.print-frame table) tbody tr {
-  background: rgba(43,49,61,.88) !important;
-}
-.rrll-pro-table tbody tr:nth-child(even),
-.professional-table tbody tr:nth-child(even),
-.data-table tbody tr:nth-child(even),
-table:not(.print-frame table) tbody tr:nth-child(even) {
-  background: rgba(48,55,70,.68) !important;
-}
 .rrll-pro-table tbody tr:hover,
 .professional-table tbody tr:hover,
 .data-table tbody tr:hover,
 table:not(.print-frame table) tbody tr:hover {
   background: rgba(57,65,80,.86) !important;
 }
-.rrll-pro-table td,
-.professional-table td,
-.data-table td,
-table:not(.print-frame table) td {
-  color: rgba(229,231,235,.90) !important;
-  border-color: rgba(148,163,184,.12) !important;
-}
-
 /* Filas desplegadas: azul discreto, no negro. */
 .rrll-task-row.expanded,
 .rrll-petition-row.expanded,
@@ -267,16 +222,6 @@ button.black:hover,
 button.secondary:hover,
 .small.secondary:hover {
   background: #3b4452 !important;
-}
-
-/* El área inferior/acciones de formularios no debe aparecer como parche oscuro. */
-.rrll-pro-form-actions,
-.form-actions,
-.modal-actions,
-.professional-actions,
-.footer-actions {
-  background: rgba(52,59,70,.72) !important;
-  border-color: rgba(148,163,184,.14) !important;
 }
 
 /* =========================================================
@@ -4825,8 +4770,7 @@ html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active 
   border-collapse: collapse !important;
 }
 
-#gestor-teletrabajo .telework-table thead,
-#gestor-teletrabajo .telework-table tbody {
+#gestor-teletrabajo .telework-table thead {
   display: table-header-group;
 }
 
