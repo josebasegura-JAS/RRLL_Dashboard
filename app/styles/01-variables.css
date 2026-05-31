@@ -1,7 +1,8 @@
 /*
-  Fase 2 CSS — design tokens.
+  Design tokens compartidos.
   Centraliza tipografía, espaciado, radios, bordes y alturas de controles.
-  Se importa después del legado para sobreescribir variables sin romper cascada.
+  Se carga al inicio de la cascada para que las capas posteriores reutilicen tokens
+  sin romper la compatibilidad con variables heredadas.
 */
 
 /* ═══════════════════════════════════════════════════════════════════════════
