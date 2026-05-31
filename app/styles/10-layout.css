@@ -679,9 +679,6 @@ body.phase4-view-home .sidebar-left,
 body.phase4-view-home .content-right {
   display: none;
 }
-body.phase4-view-home #dashboardLayout {
-  display: none !important;
-}
 body.phase4-view-module .quick-top.compact-quick-panel {
   display: none !important;
 }
@@ -881,9 +878,6 @@ body.phase4-view-module .content-right {
   padding: 0;
 }
 
-body.phase4-view-module .content-right > .module-card {
-  display: none !important;
-}
 
 body.phase4-view-module .content-right > .module-card.phase4-active-module {
   display: block !important;
