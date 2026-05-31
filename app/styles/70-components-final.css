@@ -710,13 +710,8 @@ button,
   align-items: center;
   justify-content: center;
   gap: var(--rrll-space-sm);
-  min-height: var(--rrll-control-height-sm);
-  padding: 0 var(--rrll-space-xl);
-  border-radius: var(--rrll-radius-md) !important;
   border: 1px solid var(--rrll-component-border);
-  font-size: var(--rrll-button-font) !important;
   font-weight: 800;
-  line-height: var(--rrll-line-tight);
   cursor: pointer;
   text-decoration: none;
   transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
