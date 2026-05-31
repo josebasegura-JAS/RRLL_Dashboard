@@ -988,16 +988,7 @@ table tr:last-child td {
 /* =========================================================
    RRLL Common Badges Foundation
    ========================================================= */
-.rrll-badge,
-.badge,
-.status-badge,
-.state-badge,
-.priority-badge,
-.tag,
-.chip,
-.pill,
-.rrll-status-pill,
-.rrll-due-pill {
+.priority-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1008,13 +999,6 @@ table tr:last-child td {
   border-radius: var(--rrll-radius-pill);
   padding: var(--rrll-space-2xs) var(--rrll-space-md);
   white-space: nowrap;
-}
-
-.rrll-badge-success,
-.rrll-badge-warning,
-.rrll-badge-danger,
-.rrll-badge-info,
-.rrll-badge-muted {
 }
 
 /* =========================================================
@@ -1152,10 +1136,7 @@ table tr:last-child td {
 /* =========================================================
    Toolbars / tabs / filtros
    ========================================================= */
-.rrll-toolbar,
 .rrll-filter,
-.rrll-pro-tabs,
-.rrll-pro-search-wrap,
 .summary-counts,
 .session-select-list {
   display: flex;
