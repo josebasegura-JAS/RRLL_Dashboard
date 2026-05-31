@@ -515,9 +515,6 @@ textarea:focus,
   box-shadow: 0 0 0 3px rgba(239, 43, 45, .14) !important;
 }
 
-textarea {
-  resize: vertical;
-}
 
 .check-option,
 .telework-day,

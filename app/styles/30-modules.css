@@ -1074,10 +1074,6 @@ body.phase4-view-module #gestor-paritaria > summary,
   box-shadow: 0 18px 45px rgba(0,0,0,.28) !important;
 }
 
-.print-preview-content * {
-  color: var(--rrll-text-main-light) !important;
-}
-
 .print-preview-content th {
   background: var(--rrll-text-main-light) !important;
   color: #ffffff !important;

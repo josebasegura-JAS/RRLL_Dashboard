@@ -311,14 +311,10 @@
   box-shadow: none !important;
   background-image: none !important;
 }
-.phase5-calendar-day i.cal-due,
-.phase5-calendar-legend i.cal-due { background: #f59e0b !important; }
 .phase5-calendar-day i.cal-committee,
 .phase5-calendar-legend i.cal-committee { background: #3b82f6 !important; }
 .phase5-calendar-day i.cal-paritaria,
 .phase5-calendar-legend i.cal-paritaria { background: #8b5cf6 !important; }
-.phase5-calendar-day i.cal-expired,
-.phase5-calendar-legend i.cal-expired { background: #ef4444 !important; }
 .phase5-calendar-day.has-event { cursor: pointer !important; }
 .phase5-calendar-day.has-event:hover {
   background: #343b46 !important;
