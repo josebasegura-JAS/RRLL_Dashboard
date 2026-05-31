@@ -642,13 +642,6 @@
 }
 
 /* Fase 5.10 - pulido: cabeceras nuevas, listas compactas y modal de licencias editable */
-#gestor-vinculograma > summary,
-#gestor-licencias > summary {
-  background: linear-gradient(135deg, #2b313d 0%, #303746 100%) !important;
-  color: var(--text-main, #e5e7eb) !important;
-  border: 1px solid rgba(148, 163, 184, .18) !important;
-  box-shadow: 0 14px 36px rgba(15, 23, 42, .22) !important;
-}
 #gestor-vinculograma > summary .module-title,
 #gestor-licencias > summary .module-title,
 #gestor-vinculograma > summary .summary-counts,
