@@ -367,7 +367,7 @@
         if (originInput) originInput.innerHTML = petitionOriginOptionsHtml(petitionOriginValue(item), true);
         if (originInput) originInput.value = petitionOriginValue(item);
         if (updateInput) updateInput.value = "";
-        renderEditableUpdates("petitionExistingUpdates", item.updates || []);
+        renderPetitionEditableUpdates("petitionExistingUpdates", item.updates || []);
         window.__petitionDraftAttachments = Array.isArray(item.attachments) ? [...item.attachments] : [];
         if (typeof renderPetitionAttachments === "function") renderPetitionAttachments("petitionAttachmentsList", window.__petitionDraftAttachments);
 
@@ -438,7 +438,7 @@
       console.info("[RRLL PETITION] merge-on-save iniciado", { id: activePetitionUpdateId });
       const currentPetition = getPetitions().find(item => item.id === activePetitionUpdateId);
       if (!currentPetition) return;
-      const editedUpdates = collectEditableUpdates("petitionExistingUpdates", currentPetition.updates || []);
+      const editedUpdates = collectPetitionEditableUpdates("petitionExistingUpdates", currentPetition.updates || []);
       const updates = updateText ? [...editedUpdates, { text: updateText, createdAt: now }] : editedUpdates;
       const editedPetition = {
         ...currentPetition,
