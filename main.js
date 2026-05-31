@@ -1977,7 +1977,7 @@ function createWindow() {
     minWidth: 1100,
     minHeight: 750,
     title: "Cuadro de Mando de RRLL",
-    icon: path.join(__dirname, "app", "assets", "icon.png"),
+    icon: path.join(__dirname, "app", "assets", "icon.ico"),
     backgroundColor: "#f5f5f5",
     autoHideMenuBar: true,
     webPreferences: {
