@@ -1,0 +1,90 @@
+.phase5-sidebar-sync.save-status-widget {
+  grid-template-columns: 9px minmax(0, 1fr) 30px !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 4px 2px 6px !important;
+  padding: 7px 8px !important;
+  border-radius: 12px !important;
+}
+.phase5-sidebar-sync .save-status-dot {
+  width: 8px !important;
+  height: 8px !important;
+  margin-top: 0 !important;
+}
+.phase5-sidebar-sync .save-status-text {
+  grid-column: 2 !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+.phase5-sidebar-sync .save-status-text b {
+  display: inline !important;
+  font-size: 11px !important;
+}
+.phase5-sidebar-sync .save-status-text span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 11px !important;
+}
+.phase5-sidebar-sync .sync-now-button {
+  grid-column: 3 !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+.phase5-sidebar-sync.offline .save-status-dot,
+.phase5-sidebar-sync.error .save-status-dot {
+  background: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239,68,68,.13) !important;
+}
+/* Fase 2.5: estado dinámico compacto de BBDD en sidebar. */
+.phase5-sidebar-sync.save-status-widget {
+  grid-template-columns: 9px minmax(0, 1fr) 30px !important;
+  align-items: start !important;
+}
+.phase5-sidebar-sync .save-status-text {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 1px !important;
+  align-items: start !important;
+  line-height: 1.18 !important;
+}
+.phase5-sidebar-sync .save-status-text b,
+.phase5-sidebar-sync .save-status-text span {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.phase5-sidebar-sync #dbConnectionDetail:empty,
+.phase5-sidebar-sync #backupStatusDetail:empty { display: none !important; }
+.phase5-sidebar-sync.local .save-status-dot {
+  background: #60a5fa !important;
+  box-shadow: 0 0 0 4px rgba(96,165,250,.13) !important;
+}
+.phase5-sidebar-sync.pending .save-status-dot,
+.phase5-sidebar-sync.saving .save-status-dot {
+  background: #f59e0b !important;
+  box-shadow: 0 0 0 4px rgba(245,158,11,.14) !important;
+}
+.phase5-sidebar-sync.pending {
+  border-color: rgba(245,158,11,.26) !important;
+  background: linear-gradient(180deg, rgba(64,52,30,.96), rgba(43,49,61,.98)) !important;
+}
+.phase5-sidebar-sync.error .save-status-dot,
+.phase5-sidebar-sync.offline .save-status-dot {
+  background: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239,68,68,.14) !important;
+}
+html[data-theme="light"] .phase5-sidebar-sync.pending {
+  border-color: rgba(245,158,11,.36) !important;
+  background: rgba(255,251,235,.96) !important;
+}

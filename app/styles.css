@@ -12,6 +12,10 @@
 @import url("./styles/40-theme-dark.css");
 @import url("./styles/41-theme-light.css");
 @import url("./styles/50-module-extras.css");
+@import url("./styles/features/50-sidebar-sync.css");
+@import url("./styles/layout/50-sidebar.css");
+@import url("./styles/features/50-rrll-folder.css");
+@import url("./styles/features/50-sidebar-sync-compact.css");
 @import url("./styles/features/50-vinculograma.css");
 @import url("./styles/features/50-ticket-restaurante.css");
 @import url("./styles/features/50-dashboard.css");
