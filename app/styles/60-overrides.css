@@ -1218,11 +1218,6 @@ html[data-theme="light"] .paritaria-subsection label {
   letter-spacing: -.01em;
 }
 
-html[data-theme="light"] input::placeholder,
-html[data-theme="light"] textarea::placeholder,
-html[data-theme="light"] .rrll-pro-search-wrap input::placeholder {
-  color: rgba(18, 24, 32, .76) !important;
-}
 
 html[data-theme="light"] .rrll-pro-table,
 html[data-theme="light"] .professional-table,
@@ -1263,10 +1258,6 @@ html[data-theme="light"] .rrll-pro-tabs span {
   border-color: var(--rrll-border) !important;
 }
 
-html[data-theme="light"] select option {
-  background: var(--rrll-field-bg) !important;
-  color: var(--rrll-text-main) !important;
-}
 
 /* Fase 5.28 - Autocompletado Plantilla en Teletrabajo */
 .rrll-autocomplete-field {
@@ -3645,16 +3636,6 @@ html[data-theme="light"] .row-warning {
 }
 
 /* ── 12. Scrollbar en modo claro ── */
-html[data-theme="light"] * {
-  scrollbar-color: rgba(100,130,140,.40) rgba(210,228,230,.60) !important;
-}
-html[data-theme="light"] *::-webkit-scrollbar-track {
-  background: rgba(210,228,230,.60) !important;
-}
-html[data-theme="light"] *::-webkit-scrollbar-thumb {
-  background: rgba(100,130,140,.40) !important;
-  border-color: rgba(210,228,230,.90) !important;
-}
 
 /* ── 13. Preview de impresión en claro ── */
 html[data-theme="light"] .print-preview-content {
