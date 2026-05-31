@@ -1,0 +1,243 @@
+/* Fase 5.9 - Licencias sin sueldo y excedencias */
+.module-licencias .rrll-pro-task-shell {
+  gap: 18px;
+}
+.rrll-pro-licencias-form {
+  grid-template-columns: minmax(120px, .7fr) minmax(190px, 1.2fr) minmax(140px, .8fr) minmax(170px, 1fr) minmax(140px, .8fr) minmax(140px, .8fr) auto;
+  align-items: end;
+}
+.rrll-pro-licencias-form .rrll-pro-form-actions {
+  min-height: 62px;
+  align-items: end;
+}
+.rrll-pro-licencias-form .rrll-pro-primary {
+  min-height: 40px;
+  padding-inline: 20px;
+  white-space: nowrap;
+}
+.licencias-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.licencias-priority-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.licencias-column,
+.licencias-history-card {
+  min-width: 0;
+}
+.licencias-toolbar h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--text-main, #e5e7eb);
+}
+.licencias-table th,
+.licencias-table td {
+  vertical-align: top;
+}
+.licencias-table th:first-child,
+.licencias-table td:first-child {
+  width: 72px;
+  white-space: nowrap;
+}
+.licencias-table .rrll-pro-main-cell,
+.licencias-table .rrll-pro-title {
+  white-space: normal;
+}
+.licencias-row {
+  cursor: pointer;
+}
+.licencias-row:hover td {
+  background: rgba(59,130,246,.08) !important;
+}
+.licencias-row td:first-child {
+  border-left: 3px solid rgba(59,130,246,.65);
+}
+
+.licencias-collapsible-card {
+  margin-top: 12px;
+}
+.licencias-collapsible-card > summary.licencias-toolbar {
+  list-style: none;
+  cursor: pointer;
+}
+.licencias-collapsible-card > summary.licencias-toolbar::-webkit-details-marker {
+  display: none;
+}
+.licencias-collapsible-card > summary.licencias-toolbar h3::before {
+  content: '▸';
+  margin-right: 8px;
+  color: var(--text-secondary, #94a3b8);
+  display: inline-block;
+  transform: translateY(-1px);
+}
+.licencias-collapsible-card[open] > summary.licencias-toolbar h3::before {
+  content: '▾';
+}
+.licencias-history-card {
+  margin-top: 2px;
+}
+.licencias-history-list {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+.licencias-year {
+  border: 1px solid rgba(148,163,184,.16);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(43,49,61,.58);
+}
+.licencias-year summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 13px;
+  background: rgba(52,59,70,.65);
+  color: var(--text-main, #e5e7eb);
+  font-weight: 800;
+}
+.licencias-year summary span {
+  color: var(--text-secondary, #aab3c2);
+  font-size: 12px;
+  font-weight: 700;
+}
+#licenseUpdateModal .modal-actions {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+#licenseUpdateModal .existing-updates-box {
+  max-height: 180px;
+  overflow: auto;
+}
+@media (max-width: 1500px) {
+  .rrll-pro-licencias-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .rrll-pro-licencias-form .rrll-pro-form-actions {
+    justify-content: stretch;
+  }
+  .rrll-pro-licencias-form .rrll-pro-primary {
+    width: 100%;
+  }
+}
+@media (max-width: 1250px) {
+  .licencias-columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 900px) {
+  .rrll-pro-licencias-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fase 5.10 - pulido: cabeceras nuevas, listas compactas y modal de licencias editable */
+#gestor-vinculograma > summary .module-title,
+#gestor-licencias > summary .module-title,
+#gestor-vinculograma > summary .summary-counts,
+#gestor-licencias > summary .summary-counts {
+  color: var(--text-main, #e5e7eb) !important;
+  opacity: 1 !important;
+}
+#gestor-vinculograma > summary .summary-counts,
+#gestor-licencias > summary .summary-counts {
+  color: var(--text-secondary, #aab3c2) !important;
+}
+#gestor-vinculograma > summary .summary-icon-button,
+#gestor-licencias > summary .summary-icon-button {
+  background: #343b46 !important;
+  border-color: rgba(148, 163, 184, .20) !important;
+}
+
+.license-edit-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.license-edit-grid label span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary, #aab3c2);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+.license-edit-grid .full {
+  grid-column: 1 / -1;
+}
+.modal-actions .danger {
+  background: rgba(239, 68, 68, .14) !important;
+  color: #fecaca !important;
+  border: 1px solid rgba(239, 68, 68, .35) !important;
+  box-shadow: none !important;
+}
+.modal-actions .danger:hover {
+  background: rgba(239, 68, 68, .22) !important;
+}
+
+
+/* Licencias (solo modo claro): eliminar herencia oscura sin tocar listado principal */
+html[data-theme="light"] #gestor-licencias {
+  background: #f4f6f8 !important;
+}
+html[data-theme="light"] #gestor-licencias > summary {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .08) !important;
+}
+html[data-theme="light"] #gestor-licencias > summary :is(.module-title, .summary-counts) {
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias > summary .summary-icon-button {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #dbe2ea !important;
+}
+html[data-theme="light"] #gestor-licencias :is(.rrll-pro-task-shell, .licencias-column, .licencias-history-card, .rrll-pro-task-head, .rrll-pro-list, .rrll-pro-list-card, .rrll-pro-form-shell, .rrll-pro-licencias-form, .rrll-pro-empty-state) {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-toolbar h3 {
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias :is(.rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update, .rrll-pro-muted, .summary-counts) {
+  color: #4b5563 !important;
+}
+html[data-theme="light"] #gestor-licencias :is(input, select, textarea) {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-color: #dbe2ea !important;
+}
+html[data-theme="light"] #gestor-licencias :is(input, select, textarea)::placeholder {
+  color: #6b7280 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year {
+  background: #fbfbfc !important;
+  border-color: #e5e7eb !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year > summary {
+  background: #f1f5f9 !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #gestor-licencias .licencias-year > summary span {
+  color: #4b5563 !important;
+}
+html[data-theme="light"] #licenseUpdateModal :is(.modal-header, .rrll-modal-header) {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+html[data-theme="light"] #licenseUpdateModal :is(.modal-body, .rrll-modal-body) {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+html[data-theme="light"] #licenseUpdateModal .existing-updates-box {
+  background: #f8fafc !important;
+  border: 1px solid #e5e7eb !important;
+}
