@@ -216,8 +216,6 @@
 .phase5-calendar-day i,
 .phase5-calendar-legend i { width: 5px !important; height: 5px !important; border-radius: 50% !important; display: inline-block !important; }
 .phase5-calendar-day i.cal-due, .phase5-calendar-legend i.cal-due { background: #f59e0b !important; }
-.phase5-calendar-day i.cal-committee, .phase5-calendar-legend i.cal-committee { background: #3b82f6 !important; }
-.phase5-calendar-day i.cal-paritaria, .phase5-calendar-legend i.cal-paritaria { background: #8b5cf6 !important; }
 .phase5-calendar-day i.cal-expired, .phase5-calendar-legend i.cal-expired { background: #ef4444 !important; }
 .phase5-calendar-legend { display: flex !important; flex-wrap: wrap !important; gap: 6px 10px !important; margin-top: 10px !important; color: #aab3c2 !important; font-size: 10px !important; }
 .phase5-calendar-legend span { display: inline-flex !important; align-items: center !important; gap: 4px !important; }

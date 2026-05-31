@@ -2482,10 +2482,6 @@ body.phase4-view-module #gestor-vinculograma .vinculograma-table td {
   white-space: normal !important;
 }
 
-body.phase4-view-module #gestor-vinculograma .vinculograma-table th:nth-child(1),
-body.phase4-view-module #gestor-vinculograma .vinculograma-table td:nth-child(1) {
-  width: 12% !important;
-}
 
 body.phase4-view-module #gestor-vinculograma .vinculograma-table th:nth-child(2),
 body.phase4-view-module #gestor-vinculograma .vinculograma-table td:nth-child(2) {
@@ -2630,8 +2626,6 @@ body.phase4-view-module #gestor-actas .rrll-pro-minutes-table td:nth-child(2) { 
 body.phase4-view-module #gestor-actas .rrll-pro-minutes-table th:nth-child(3),
 body.phase4-view-module #gestor-actas .rrll-pro-minutes-table td:nth-child(3) { width: 18% !important; }
 
-body.phase4-view-module #gestor-actas .rrll-pro-minutes-table th:nth-child(4),
-body.phase4-view-module #gestor-actas .rrll-pro-minutes-table td:nth-child(4) { width: 10% !important; }
 
 body.phase4-view-module #gestor-actas .rrll-pro-minutes-table th:nth-child(5),
 body.phase4-view-module #gestor-actas .rrll-pro-minutes-table td:nth-child(5) { width: 20% !important; }
@@ -3149,18 +3143,8 @@ body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rr
 
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table th:nth-child(1),
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table td:nth-child(1) { width: 29% !important; }
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table th:nth-child(2),
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table td:nth-child(2) { width: 12% !important; }
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table th:nth-child(3),
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table td:nth-child(3) { width: 10% !important; }
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table th:nth-child(4),
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table td:nth-child(4) { width: 11% !important; }
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table th:nth-child(5),
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table td:nth-child(5) { width: 13% !important; }
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table th:nth-child(6),
 body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table td:nth-child(6) { width: 13% !important; }
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table th:nth-child(7),
-body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table td:nth-child(7) { width: 12% !important; }
 
 html[data-theme="light"] body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-committee-table tbody tr {
   background: var(--rrll-cp-row-light) !important;
