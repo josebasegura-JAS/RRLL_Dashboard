@@ -1,19 +1,13 @@
 /*
-  LEGACY — overrides históricos.
-  Este archivo se conserva sólo por compatibilidad con correcciones visuales y de
-  layout ya existentes. La capa final vigente para saneamiento claro es
-  app/styles/80-light-foundation.css; no añadir aquí nuevos parches de color si
-  pueden resolverse con tokens o en esa capa final.
+  LEGACY — deuda técnica congelada.
+  Este archivo conserva overrides históricos por compatibilidad con correcciones
+  visuales y de layout ya existentes. No añadir aquí nuevos parches: consultar
+  CSS_AUDIT.md y CSS_OWNERSHIP_MAP.md antes de migrar reglas a su owner futuro.
 
-  Auditoría Fase 2:
-  - Eliminado el sub-bloque light-only "Fase 5.99" de body/shell, cards home,
-    superficies generales, cabeceras, inputs, botones y tablas porque lo cubre
-    80-light-foundation.css con selectores finales y tokens claros.
-  - Se mantienen en LEGACY los bloques con impacto potencial en visibilidad,
-    modales, navegación, tablas dinámicas o layout compacto.
-  - Pendiente: migrar con pruebas visuales los parches de sesiones Comité/
-    Paritaria, cajas auxiliares con IDs, alertas, scrollbars, previsualización
-    de impresión y ajustes compactos por módulo.
+  Se mantienen en LEGACY los bloques con impacto potencial en visibilidad,
+  modales, navegación, tablas dinámicas o layout compacto. Requieren pruebas
+  visuales los parches de sesiones Comité/Paritaria, cajas auxiliares con IDs,
+  alertas, scrollbars, previsualización de impresión y ajustes por módulo.
 */
 
 
@@ -2423,7 +2417,7 @@ body.phase4-view-module .top-strip .brand-mark {
 }
 
 
-/* Tareas y Peticiones: columnas, acciones y responsive se estabilizan en 80-light-foundation.css. */
+/* Tareas y Peticiones: conservar estos ajustes legacy hasta migrarlos con validación visual. */
 
 /* Corrección global de tablas/listados: evitar desalineación y scroll horizontal innecesario */
 body.phase4-view-module .rrll-pro-table-wrap,
@@ -2565,7 +2559,7 @@ body.phase4-view-module #gestor-vinculograma .rrll-pro-actions {
 }
 
 
-/* Tareas y Peticiones: la estabilización visual común se centraliza en 80-light-foundation.css. */
+/* Tareas y Peticiones: conservar la estabilización legacy hasta asignarla a su owner futuro. */
 
 /* Actas: toolbar compacta y columnas estables por estado */
 body.phase4-view-module #gestor-actas .rrll-pro-list-toolbar {
@@ -3609,20 +3603,11 @@ body.phase4-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rr
 
 
 /* =========================================================
-   Fase 5.99 — Parche modo claro: neutraliza residuos oscuros
-   Envuelve los colores hardcodeados de 40-theme.css que
-   se aplicaban globalmente sin scoping de tema.
-   NO toca layout, sólo colores y superficies.
+   LEGACY — parche de modo claro para neutralizar residuos oscuros.
+   Conserva únicamente excepciones con IDs, sesiones, alertas, scrollbars y
+   previsualización de impresión que requieren validación manual antes de migrar.
+   Consultar CSS_AUDIT.md y CSS_OWNERSHIP_MAP.md.
    ========================================================= */
-
-/*
-   Fase 2: sub-bloques 1–2 y 4–8 retirados.
-   Motivo: eran reglas light-only de color/superficie para shell, dashboard,
-   cards, cabeceras, campos, botones y tablas; quedan cubiertas por la capa
-   final app/styles/80-light-foundation.css, cargada después de 70-components-final.css.
-   No se retiran desde aquí los bloques 3 y 9–14 porque incluyen IDs, sesiones,
-   alertas, scrollbars y previsualización de impresión que requieren validación manual.
-*/
 
 /* ── 3. Gestores: sesiones de comité y paritaria ──
    Pendiente LEGACY: conserva selectores con IDs de sesiones y bordes internos;
