@@ -230,10 +230,11 @@ function getTodayKey() {
     }
 
     function getSidebarVariant(info, save, backup, mirror) {
+      if (info && info.fallbackLocal) return "pending";
       if (save && save.status === "error") return "error";
       if (save && save.status === "saving") return "saving";
       if (mirror && mirror.mirrorError) return "pending";
-      if ((info && info.fallbackLocal) || (backup && backup.dirtySinceLastBackup)) return "pending";
+      if (backup && backup.dirtySinceLastBackup) return "pending";
       if (info && info.mode === "shared" && !info.fallbackLocal) return "saved";
       return "local";
     }
@@ -258,14 +259,22 @@ function getTodayKey() {
       widget.classList.remove("saving", "saved", "synced", "offline", "error", "local", "pending");
       widget.classList.add(variant);
       if (variant === "saved" || variant === "local") widget.classList.add("synced");
+      if (info && info.fallbackLocal) {
+        widget.title = "La BBDD compartida no está accesible. Se usa una copia local temporal. Los cambios podrían no sincronizarse automáticamente. Contacta con Sistemas o espera la recuperación antes de realizar cambios críticos.";
+        label.textContent = "⚠ BBDD compartida no accesible";
+        if (connectionEl) connectionEl.textContent = "Usando copia local temporal.";
+        saveEl.textContent = "Los cambios podrían no sincronizarse automáticamente.";
+        if (backupEl) backupEl.textContent = "Evita cambios críticos hasta recuperar la red.";
+        if (mirrorEl) mirrorEl.textContent = "Contacta con Sistemas o espera la recuperación.";
+        return;
+      }
+
       widget.title = save.status === "error" && save.error
         ? save.error
         : (mirror && mirror.mirrorError ? mirror.mirrorError : `${modeLabel} · ${statusLabel}`);
 
-      label.textContent = (info && info.fallbackLocal) ? modeLabel : `${modeLabel} · ${statusLabel}`;
-      if (connectionEl) {
-        connectionEl.textContent = info && info.fallbackLocal ? "Sin conexión a red" : "";
-      }
+      label.textContent = `${modeLabel} · ${statusLabel}`;
+      if (connectionEl) connectionEl.textContent = "";
       saveEl.textContent = save.status === "error" && save.error
         ? "Error al guardar"
         : `Último guardado: ${formatSidebarTime(save.updatedAt)}`;
