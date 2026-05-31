@@ -3339,12 +3339,6 @@ textarea,
   min-height: 82px !important;
 }
 
-input[type="search"],
-.rrll-pro-search-wrap input,
-.module-search-input {
-  min-height: var(--rrll-visual-control-height) !important;
-}
-
 /* Botones: jerarquía común sin alterar callbacks ni estructura. */
 :is(button, .btn, .rrll-button, .primary, .secondary, .danger, .excel, .black, .icon-button, .summary-icon-button, .rrll-pro-tool-button, .quick-link-icon, .sync-now-button, .session-order-edit, .primary-button, .btn-primary, .btn-secondary, .action-btn) {
   min-height: var(--rrll-visual-control-height) !important;
