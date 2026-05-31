@@ -442,68 +442,6 @@
 .phase5-calendar-modal-item.cal-expired span i { background: #ef4444 !important; }
 .phase5-calendar-modal-item.cal-expired small { color: #f87171 !important; }
 
-/* Fase 5.8 - Vinculograma */
-.module-vinculograma .rrll-pro-task-shell {
-  gap: 18px;
-}
-.rrll-pro-vinculograma-form {
-  grid-template-columns: minmax(150px, .8fr) minmax(220px, 1.4fr) minmax(160px, .9fr) minmax(160px, .9fr) auto;
-  align-items: end;
-}
-.rrll-pro-vinculograma-form .rrll-pro-form-actions {
-  display: flex;
-  align-items: end;
-  justify-content: flex-end;
-  min-height: 62px;
-}
-.rrll-pro-vinculograma-form .rrll-pro-primary {
-  min-height: 40px;
-  padding-inline: 22px;
-  white-space: nowrap;
-}
-.vinculograma-columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 18px;
-}
-.vinculograma-column {
-  min-width: 0;
-}
-.vinculograma-toolbar h3 {
-  margin: 0 0 4px;
-  font-size: 16px;
-  line-height: 1.2;
-  color: var(--text-main, #e5e7eb);
-}
-.vinculograma-table th,
-.vinculograma-table td {
-  white-space: nowrap;
-}
-.vinculograma-table .rrll-pro-main-cell,
-.vinculograma-table .rrll-pro-title {
-  white-space: normal;
-}
-.vinculograma-row.status-danger td:first-child {
-  border-left: 3px solid var(--danger, #ef4444);
-}
-.vinculograma-row.status-closed td:first-child {
-  border-left: 3px solid var(--success, #22c55e);
-}
-@media (max-width: 1350px) {
-  .rrll-pro-vinculograma-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .rrll-pro-vinculograma-form .rrll-pro-form-actions {
-    justify-content: stretch;
-  }
-  .rrll-pro-vinculograma-form .rrll-pro-primary {
-    width: 100%;
-  }
-  .vinculograma-columns {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* Fase 5.9 - Licencias sin sueldo y excedencias */
 .module-licencias .rrll-pro-task-shell {
   gap: 18px;
@@ -2569,56 +2507,6 @@ body.phase4-view-module #gestor-teletrabajo .telework-future-campaign {
 }
 .rrll-folder-config-message.success { color: #86efac !important; }
 .rrll-folder-config-message.error { color: #fecaca !important; }
-
-/* Ticket Restaurante */
-.ticket-restaurant-shell { gap: 16px; }
-.ticket-restaurant-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
-.ticket-restaurant-tab { border: 1px solid var(--border-color, rgba(148, 163, 184, .28)); background: var(--card-bg, rgba(255,255,255,.08)); color: inherit; border-radius: 999px; padding: 9px 14px; font-weight: 700; cursor: pointer; }
-.ticket-restaurant-tab.active { background: var(--accent, #2563eb); color: #fff; border-color: transparent; }
-.ticket-calendar-toolbar, .ticket-compute-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-.ticket-year-nav { display: inline-flex; align-items: center; gap: 12px; }
-.ticket-year-nav strong { min-width: 70px; text-align: center; font-size: 1.2rem; }
-.ticket-calendar-legend { display: flex; gap: 8px; flex-wrap: wrap; font-size: .82rem; color: var(--muted-color, #64748b); }
-.ticket-calendar-legend span { border-radius: 999px; padding: 5px 9px; border: 1px solid rgba(148, 163, 184, .28); background: rgba(148, 163, 184, .12); }
-.ticket-calendar-legend .weekend { background: rgba(96, 165, 250, .16); border-color: rgba(96, 165, 250, .28); color: var(--muted-color, #64748b); }
-.ticket-calendar-legend .no-ticket { background: #7f1d1d; border-color: #991b1b; color: #fff; }
-.ticket-calendar-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.ticket-month-card { border: 1px solid var(--border-color, rgba(148, 163, 184, .22)); border-radius: 16px; padding: 10px; background: rgba(148, 163, 184, .06); }
-.ticket-month-card h4 { margin: 0 0 8px; text-transform: capitalize; font-size: .95rem; }
-.ticket-weekdays, .ticket-days-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-.ticket-weekdays span { text-align: center; font-size: .72rem; color: var(--muted-color, #64748b); font-weight: 800; }
-.ticket-day { width: 100%; min-width: 0; min-height: 28px; padding: 0; border: 1px solid rgba(148, 163, 184, .22); border-radius: 8px; background: rgba(148, 163, 184, .10); color: inherit; font-size: .78rem; cursor: pointer; pointer-events: auto; transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .15s ease; }
-.ticket-day:hover { transform: translateY(-1px); border-color: rgba(148, 163, 184, .42); }
-.ticket-day--weekend { background: rgba(96, 165, 250, .16); border-color: rgba(96, 165, 250, .28); color: var(--muted-color, #64748b); }
-.ticket-day--today { border-color: rgba(37, 99, 235, .55); box-shadow: inset 0 0 0 1px rgba(37, 99, 235, .25); }
-.ticket-day--no-ticket { background: #7f1d1d; border-color: #991b1b; color: #fff; font-weight: 800; }
-.ticket-day-empty { min-height: 28px; pointer-events: none; cursor: default; }
-.ticket-person-autofill-notice { margin-top: 4px; padding: 8px 10px; border: 1px solid rgba(148, 163, 184, .28); border-radius: 10px; background: rgba(148, 163, 184, .10); color: var(--muted-color, #64748b); font-size: .86rem; }
-.ticket-person-autofill-notice[data-type="success"] { border-color: rgba(34, 197, 94, .30); background: rgba(34, 197, 94, .10); color: #86efac; }
-.ticket-person-autofill-notice[data-type="warning"] { border-color: rgba(245, 158, 11, .32); background: rgba(245, 158, 11, .10); color: #fbbf24; }
-.ticket-table th, .ticket-table td { white-space: nowrap; }
-.ticket-table .table-actions { display: flex; gap: 6px; }
-.ticket-import-summary { margin-top: 10px; font-size: .9rem; color: var(--muted-color, #64748b); }
-.ticket-compute-period { margin: 0 0 10px; color: var(--muted-color, #64748b); font-weight: 700; }
-.ticket-compute-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 10px 0 16px; }
-.ticket-summary-pill { border: 1px solid rgba(148, 163, 184, .24); border-radius: 14px; padding: 12px; background: rgba(148, 163, 184, .08); display: grid; gap: 4px; }
-.ticket-summary-pill strong { font-size: 1.5rem; }
-.ticket-summary-pill small { color: var(--muted-color, #64748b); }
-.ticket-compute-notice { margin: -4px 0 14px; padding: 9px 11px; border: 1px solid rgba(245, 158, 11, .32); border-radius: 12px; background: rgba(245, 158, 11, .10); color: #fbbf24; font-size: .88rem; }
-
-#gestor-ticket-restaurante .ticket-compute-actions { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
-.ticket-row-warning td { background: rgba(245, 158, 11, .08); }
-.ticket-config-form label { display: grid; gap: 4px; font-size: .85rem; font-weight: 700; }
-@media (max-width: 1280px) { .ticket-calendar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 900px) { .ticket-calendar-grid, .ticket-compute-summary { grid-template-columns: 1fr; } }
-#gestor-ticket-restaurante .rrll-icon-only { min-width: 34px; width: 34px; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; }
-#gestor-ticket-restaurante .ticket-sort-button { width: 100%; min-width: 0; border: 0; background: transparent; color: inherit; padding: 0; display: inline-flex; align-items: center; justify-content: flex-start; gap: 4px; font: inherit; font-weight: inherit; text-align: left; cursor: pointer; }
-#gestor-ticket-restaurante .ticket-sort-button:hover { color: var(--accent, #2563eb); }
-#gestor-ticket-restaurante .ticket-sort-indicator { display: inline-block; min-width: .75em; font-size: .78em; line-height: 1; opacity: .82; }
-#gestor-ticket-restaurante .ticket-filter-row th { padding: 5px 6px; background: rgba(15, 23, 42, .22); }
-#gestor-ticket-restaurante .ticket-filter-row input { width: 100%; min-width: 72px; height: 28px; border: 1px solid rgba(148, 163, 184, .24); border-radius: 8px; background: rgba(15, 23, 42, .34); color: inherit; padding: 4px 7px; font-size: .78rem; }
-#gestor-ticket-restaurante .ticket-filter-row input::placeholder { color: var(--muted-color, #64748b); }
-#gestor-ticket-restaurante .ticket-monthly-quote-panel { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(148, 163, 184, .24); }
 
 /* Fase 2.5: estado dinámico compacto de BBDD en sidebar. */
 .phase5-sidebar-sync.save-status-widget {

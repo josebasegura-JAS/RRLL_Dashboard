@@ -1,0 +1,61 @@
+/* Fase 5.8 - Vinculograma */
+.module-vinculograma .rrll-pro-task-shell {
+  gap: 18px;
+}
+.rrll-pro-vinculograma-form {
+  grid-template-columns: minmax(150px, .8fr) minmax(220px, 1.4fr) minmax(160px, .9fr) minmax(160px, .9fr) auto;
+  align-items: end;
+}
+.rrll-pro-vinculograma-form .rrll-pro-form-actions {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  min-height: 62px;
+}
+.rrll-pro-vinculograma-form .rrll-pro-primary {
+  min-height: 40px;
+  padding-inline: 22px;
+  white-space: nowrap;
+}
+.vinculograma-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+}
+.vinculograma-column {
+  min-width: 0;
+}
+.vinculograma-toolbar h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--text-main, #e5e7eb);
+}
+.vinculograma-table th,
+.vinculograma-table td {
+  white-space: nowrap;
+}
+.vinculograma-table .rrll-pro-main-cell,
+.vinculograma-table .rrll-pro-title {
+  white-space: normal;
+}
+.vinculograma-row.status-danger td:first-child {
+  border-left: 3px solid var(--danger, #ef4444);
+}
+.vinculograma-row.status-closed td:first-child {
+  border-left: 3px solid var(--success, #22c55e);
+}
+@media (max-width: 1350px) {
+  .rrll-pro-vinculograma-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rrll-pro-vinculograma-form .rrll-pro-form-actions {
+    justify-content: stretch;
+  }
+  .rrll-pro-vinculograma-form .rrll-pro-primary {
+    width: 100%;
+  }
+  .vinculograma-columns {
+    grid-template-columns: 1fr;
+  }
+}
