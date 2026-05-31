@@ -123,7 +123,8 @@
           }
         });
 
-        if (window.rrllDB) persistDatabaseCache();
+        if (window.rrllDB) return persistDatabaseCache({ rejectOnError: true });
+        return Promise.resolve();
       }
 
       function renderAfterImport() {
@@ -220,9 +221,16 @@
           if (window.rrllDB && typeof window.rrllDB.createBackup === "function") {
             await window.rrllDB.createBackup({ reason: "before_import_destructive", data: window.rrllDatabaseCache || {} });
           }
-          applyImportedValues(pendingImportValues);
-          renderAfterImport();
+          try {
+            await applyImportedValues(pendingImportValues);
+            await window.waitForPendingSaves?.();
+          } catch (error) {
+            console.error("Error al guardar copia RRLL importada:", error);
+            alert(`No se pudo completar la importación porque no se pudieron guardar los datos. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
+            return;
+          }
           closeImportPreview();
+          renderAfterImport();
           pendingImportValues = null;
           pendingImportMeta = null;
           alert("Datos importados correctamente.");

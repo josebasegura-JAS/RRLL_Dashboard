@@ -348,12 +348,15 @@ function getTodayKey() {
       return rrllPersistQueue;
     }
 
-    function persistDatabaseCache() {
+    function persistDatabaseCache({ rejectOnError = false } = {}) {
       if (!window.rrllDB || typeof window.rrllDB.saveAll !== "function") return;
       markSaveStarted();
       return enqueueDatabasePersist(() => window.rrllDB.saveAll(rrllDatabaseCache))
         .then(markSaveFinished)
-        .catch(markSaveError);
+        .catch(error => {
+          markSaveError(error);
+          if (rejectOnError) throw error;
+        });
     }
 
     function persistDatabaseKey(key, value) {
