@@ -35,9 +35,7 @@ html[data-theme="dark"] .rrll-main .top-strip,
 html[data-theme="dark"] .top-strip,
 html[data-theme="dark"] .app-header,
 html[data-theme="dark"] .header,
-html[data-theme="dark"] .brand-panel,
-html[data-theme="dark"] .phase4-sidebar-brand,
-html[data-theme="dark"] .phase4-sidebar-footer {
+html[data-theme="dark"] .brand-panel {
   background: linear-gradient(180deg, #242b36 0%, var(--rrll-bg-app-dark) 100%) !important;
   color: var(--rrll-text) !important;
   border-color: var(--rrll-border) !important;

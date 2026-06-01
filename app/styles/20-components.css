@@ -84,29 +84,6 @@ body {
   box-shadow: 18px 0 38px rgba(0,0,0,.32) !important;
 }
 
-.phase4-sidebar-brand {
-  border-bottom: 1px solid var(--border) !important;
-}
-
-.phase4-sidebar-brand strong,
-.phase4-sidebar-brand span,
-.phase4-sidebar-footer,
-.phase4-sidebar-section {
-  color: var(--text) !important;
-}
-
-.phase4-sidebar-brand span,
-.phase4-sidebar-footer,
-.phase4-sidebar-section {
-  color: var(--muted) !important;
-}
-
-.phase4-sidebar-logo {
-  background: linear-gradient(135deg, #ef2b2d, #9f171b) !important;
-  color: #fff !important;
-  box-shadow: 0 16px 30px rgba(239,43,45,.24) !important;
-}
-
 .phase4-nav-item,
 .phase4-nav-subitem,
 .phase4-nav-button {

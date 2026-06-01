@@ -13,7 +13,6 @@
 
 
 /* El bloque superior de marca en la barra lateral se elimina para ganar altura útil. */
-.phase4-sidebar-brand,
 .sidebar-brand,
 .app-sidebar-brand,
 .brand-box,
@@ -726,8 +725,6 @@ html[data-theme="dark"] .phase4-nav-button.open {
   border-color: rgba(239, 68, 68, .42) !important;
 }
 
-html[data-theme="light"] .phase4-sidebar-section,
-html[data-theme="dark"] .phase4-sidebar-section,
 html[data-theme="light"] .muted,
 html[data-theme="dark"] .muted,
 html[data-theme="light"] small,

@@ -94,12 +94,10 @@ button:not(.phase4-metric-card):not(.phase5-metric-card):not(.quick-card) {
 /* Menú lateral */
 .phase4-nav-item,
 .phase4-nav-subitem,
-.phase4-sidebar-section,
 .phase4-nav-pill {
   font-size: var(--rrll-sidebar-font);
 }
 
-.phase4-sidebar-section,
 .phase4-nav-pill,
 .badge,
 .status-badge,

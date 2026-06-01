@@ -154,10 +154,7 @@
 .rrll-sidebar-status,
 .phase4-nav,
 .phase4-nav-section,
-.phase4-sidebar-section,
-.phase4-nav-item,
-.phase4-sidebar-status,
-.phase4-sidebar-footer {
+.phase4-nav-item {
   box-sizing: border-box;
   font-family: var(--rrll-font-family);
   font-size: var(--rrll-font-sm);
@@ -172,9 +169,7 @@
 
 .rrll-sidebar-section,
 .rrll-sidebar-title,
-.phase4-nav-section,
-.phase4-sidebar-section,
-.phase4-sidebar-footer {
+.phase4-nav-section {
   color: var(--rrll-theme-text-secondary);
 }
 
@@ -196,8 +191,7 @@
   border: 1px solid var(--rrll-theme-accent);
 }
 
-.rrll-sidebar-status,
-.phase4-sidebar-status {
+.rrll-sidebar-status {
   color: var(--rrll-theme-text-muted);
   background: var(--rrll-theme-bg-panel);
   border: 1px solid var(--rrll-border);

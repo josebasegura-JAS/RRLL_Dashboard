@@ -1102,10 +1102,6 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
   padding: 5px 8px !important;
   border-radius: 8px !important;
 }
-.phase4-sidebar-section {
-  margin: 8px 8px 1px !important;
-  letter-spacing: .075em !important;
-}
 .phase4-nav-secondary {
   display: grid !important;
   grid-template-columns: 34px 34px minmax(0, 1fr) !important;
@@ -1219,9 +1215,6 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
     min-height: 25px !important;
     padding-top: 4px !important;
     padding-bottom: 4px !important;
-  }
-  .phase4-sidebar-section {
-    margin-top: 6px !important;
   }
   .rrll-sidebar-sync.save-status-widget {
     margin-bottom: 8px !important;
@@ -1682,11 +1675,11 @@ html[data-theme="light"] :is(.rrll-sidebar, .sidebar:not(.sidebar-left)) {
   box-shadow: 6px 0 24px rgba(15, 23, 42, .18) !important;
 }
 
-html[data-theme="light"] :is(.phase4-sidebar-section, .phase4-nav-item, .nav-item, .phase4-nav-subitem, .phase4-nav-button, .phase4-nav-chevron, .sidebar-folder-notice, .save-status-detail) {
+html[data-theme="light"] :is(.phase4-nav-item, .nav-item, .phase4-nav-subitem, .phase4-nav-button, .phase4-nav-chevron, .sidebar-folder-notice, .save-status-detail) {
   color: var(--rrll-sidebar-muted) !important;
 }
 
-html[data-theme="light"] :is(.phase4-sidebar-brand strong, .phase4-nav-item span, .phase4-nav-subitem span, .phase4-nav-item, .phase4-nav-subitem) {
+html[data-theme="light"] :is(.phase4-nav-item span, .phase4-nav-subitem span, .phase4-nav-item, .phase4-nav-subitem) {
   color: var(--rrll-sidebar-text) !important;
 }
 

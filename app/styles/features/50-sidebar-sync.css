@@ -1,8 +1,6 @@
 /* =========================================================
    Fase 5.5 — Dashboard útil + sincronización integrada
    ========================================================= */
-.phase4-sidebar-footer { display: none !important; }
-
 .rrll-sidebar-sync.save-status-widget {
   position: static !important;
   z-index: auto !important;
