@@ -90,14 +90,32 @@
     }
   }
 
-  function renderRemoteRefreshNotice(state) {
+  function renderDatabaseNotice(message, duration = 3500) {
     const el = document.getElementById("dbRemoteRefreshNotice");
     if (!el) return;
-    const user = state && state.lastUpdateBy ? state.lastUpdateBy : "otro usuario";
-    el.textContent = `Datos actualizados desde base compartida (${user})`;
+    el.textContent = message;
     el.classList.add("visible");
-    clearTimeout(renderRemoteRefreshNotice._timer);
-    renderRemoteRefreshNotice._timer = setTimeout(() => el.classList.remove("visible"), 3500);
+    clearTimeout(renderDatabaseNotice._timer);
+    renderDatabaseNotice._timer = setTimeout(() => el.classList.remove("visible"), duration);
+  }
+
+  function renderRemoteRefreshNotice(state) {
+    const user = state && state.lastUpdateBy ? state.lastUpdateBy : "otro usuario";
+    renderDatabaseNotice(`Datos actualizados desde base compartida (${user})`);
+  }
+
+  async function applyReconnectedSharedRefresh(state) {
+    rrllIsApplyingRemoteRefresh = true;
+    const scrollSnapshots = preserveScrollPositions();
+    rrllDatabaseCache = await window.rrllDB.loadAll();
+    rrllLastKnownDbToken = state && state.token ? state.token : null;
+    rrllPendingRemoteRefresh = false;
+    renderAfterImport();
+    restoreScrollPositions(scrollSnapshots);
+    await refreshDatabaseInfo();
+    renderDatabaseNotice("Conexión recuperada: se ha refrescado la BBDD compartida. Los cambios realizados en la copia local temporal no se reconcilian automáticamente.", 9000);
+    console.info("[RRLL SYNC] Reconexión correcta: caché refrescada desde base compartida sin reconciliación automática.");
+    setSaveStatus("synced", "Reconectado y refrescado desde la base compartida.");
   }
 
 
@@ -215,13 +233,13 @@
         return;
       }
 
+      const state = await window.rrllDB.getState();
       if (rrllLastSyncOffline) {
         rrllLastSyncOffline = false;
-        console.info("[RRLL SYNC] Reconexión correcta con base compartida.");
-        setSaveStatus("synced", "Reconectado a la base compartida.");
+        await applyReconnectedSharedRefresh(state);
+        return;
       }
 
-      const state = await window.rrllDB.getState();
       const token = state && state.token;
       if (!token) return;
 
