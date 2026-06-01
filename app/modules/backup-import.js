@@ -196,7 +196,13 @@
         if (!pendingImportValues) return;
         try {
           if (window.rrllDB && typeof window.rrllDB.createBackup === "function") {
-            await window.rrllDB.createBackup({ reason: "before_import_destructive", data: window.rrllDatabaseCache || {} });
+            const backupResult = await window.rrllDB.createBackup({ reason: "before_import_destructive", data: window.rrllDatabaseCache || {} });
+            if (!backupResult || backupResult.ok !== true) {
+              const backupErrorDetail = backupResult && (backupResult.error || backupResult.reason || backupResult.code);
+              console.error("Importación RRLL cancelada: no se pudo crear el backup previo:", backupResult);
+              alert(`Importación cancelada: no se pudo crear el backup previo. Detalle: ${backupErrorDetail || "error desconocido"}`);
+              return;
+            }
           }
           try {
             await applyImportedValues(pendingImportValues);
