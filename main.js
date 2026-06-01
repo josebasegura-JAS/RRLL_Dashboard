@@ -2,9 +2,18 @@ const { app, BrowserWindow, shell, ipcMain, Menu, dialog } = require("electron")
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
-const crypto = require("crypto");
 const { spawn } = require("child_process");
 const { MsgReader } = require("@kenjiuno/msgreader");
+const {
+  getNextBackupPath,
+  pruneManagedSqliteBackups
+} = require("./main/backup-helpers");
+const {
+  calculateFileChecksum,
+  cleanupOldMirrorTempFiles,
+  readMirrorMeta,
+  writeMirrorMeta
+} = require("./main/mirror-helpers");
 
 let lastBackupAt = 0;
 let dirtySinceLastBackup = false;
@@ -64,30 +73,6 @@ function getNetworkBackupsDir() {
   if (!info.sharedDir) return "";
   const dir = path.join(info.sharedDir, "backups-red");
   return fs.existsSync(info.sharedDir) ? dir : "";
-}
-
-function backupTs(date = new Date()) {
-  const pad = value => String(value).padStart(2, "0");
-  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
-}
-
-function listManagedSqliteBackups(dir) {
-  if (!dir || !fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
-    .filter(name => /^rrll-backup-\d{8}-\d{6}\.db$/.test(name))
-    .map(name => {
-      const file = path.join(dir, name);
-      const stat = fs.statSync(file);
-      return { file, name, mtimeMs: stat.mtimeMs };
-    })
-    .sort((a, b) => b.mtimeMs - a.mtimeMs);
-}
-
-function pruneManagedSqliteBackups(dir, maxCount) {
-  const files = listManagedSqliteBackups(dir);
-  files.slice(maxCount).forEach(({ file }) => {
-    try { fs.unlinkSync(file); } catch {}
-  });
 }
 
 function markDatabaseDirty() {
@@ -477,32 +462,6 @@ function getDbLastUpdateToken(dbPath) {
   }
 }
 
-function calculateFileChecksum(filePath) {
-  const hash = crypto.createHash("sha256");
-  hash.update(fs.readFileSync(filePath));
-  return hash.digest("hex");
-}
-
-function readMirrorMeta() {
-  try {
-    const file = getMirrorMetaPath();
-    if (!fs.existsSync(file)) return null;
-    const parsed = JSON.parse(fs.readFileSync(file, "utf-8") || "{}");
-    return isPlainObject(parsed) ? parsed : null;
-  } catch (error) {
-    console.warn("No se pudo leer metadatos del espejo local:", error && error.message ? error.message : error);
-    return null;
-  }
-}
-
-function writeMirrorMeta(meta) {
-  const metaPath = getMirrorMetaPath();
-  ensureParentDir(metaPath);
-  const tempPath = `${metaPath}.${process.pid}-${Date.now()}.tmp`;
-  fs.writeFileSync(tempPath, JSON.stringify(meta, null, 2), "utf-8");
-  fs.renameSync(tempPath, metaPath);
-}
-
 function setMirrorStatusFromMeta(meta, overrides = {}) {
   lastMirrorMeta = {
     ok: !!(meta && meta.updatedAt),
@@ -524,7 +483,7 @@ function setMirrorStatusFromMeta(meta, overrides = {}) {
 }
 
 function getMirrorStatus() {
-  if (!lastMirrorMeta) setMirrorStatusFromMeta(readMirrorMeta());
+  if (!lastMirrorMeta) setMirrorStatusFromMeta(readMirrorMeta(getMirrorMetaPath()));
   const meta = lastMirrorMeta || {};
   const mirrorPath = getMirrorSqlitePath();
   const exists = fs.existsSync(mirrorPath);
@@ -558,16 +517,6 @@ async function validateSqliteDatabaseFile(dbPath, label = "base de datos") {
     try { db.close(); } catch {}
   }
   return true;
-}
-
-function getNextBackupPath(targetDir) {
-  let timestamp = new Date();
-  let filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
-  while (fs.existsSync(filePath)) {
-    timestamp = new Date(timestamp.getTime() + 1000);
-    filePath = path.join(targetDir, `rrll-backup-${backupTs(timestamp)}.db`);
-  }
-  return filePath;
 }
 
 async function createLocalSqliteFileBackup(reason = "before_use_mirror_as_local") {
@@ -642,27 +591,6 @@ async function useMirrorAsLocalDatabase() {
   return copyMirrorOverLocalAtomically();
 }
 
-function cleanupOldMirrorTempFiles() {
-  const dir = app.getPath("userData");
-  const maxAgeMs = 24 * 60 * 60 * 1000;
-  const names = [path.basename(getMirrorSqlitePath()), path.basename(getMirrorMetaPath())];
-  try {
-    if (!fs.existsSync(dir)) return;
-    fs.readdirSync(dir).forEach(name => {
-      const isMirrorTemp = names.some(base => name.startsWith(`${base}.`) && name.endsWith(".tmp"))
-        || (name.startsWith(".rrll-dashboard-mirror-") && name.endsWith(".tmp"));
-      if (!isMirrorTemp) return;
-      const file = path.join(dir, name);
-      try {
-        const stat = fs.statSync(file);
-        if (Date.now() - stat.mtimeMs > maxAgeMs) fs.unlinkSync(file);
-      } catch {}
-    });
-  } catch (error) {
-    console.warn("No se pudieron limpiar temporales antiguos del espejo local:", error && error.message ? error.message : error);
-  }
-}
-
 function hasDbWriteArtifacts(dbPath) {
   const lockPath = `${dbPath}.lock`;
   if (fs.existsSync(lockPath)) return true;
@@ -672,7 +600,7 @@ function hasDbWriteArtifacts(dbPath) {
 async function updateLocalMirror(reason = "manual") {
   const info = resolveDbAccessInfo();
   if (!(info.mode === "shared" && info.effectiveMode === "shared" && !info.fallbackLocal)) {
-    const meta = readMirrorMeta();
+    const meta = readMirrorMeta(getMirrorMetaPath());
     setMirrorStatusFromMeta(meta, {
       ok: !!(meta && meta.updatedAt),
       mirrorOk: !!(meta && meta.updatedAt),
@@ -690,7 +618,7 @@ async function updateLocalMirror(reason = "manual") {
     if (hasDbWriteArtifacts(info.path)) {
       const error = new Error("Base compartida bloqueada o con escritura en curso; espejo omitido.");
       console.warn("[RRLL][DB] Espejo local no actualizado:", error.message);
-      setMirrorStatusFromMeta(readMirrorMeta(), { ok: false, mirrorOk: false, mirrorError: error.message, sourcePath: info.path, sourceMode: info.effectiveMode });
+      setMirrorStatusFromMeta(readMirrorMeta(getMirrorMetaPath()), { ok: false, mirrorOk: false, mirrorError: error.message, sourcePath: info.path, sourceMode: info.effectiveMode });
       return { ok: false, skipped: "db_write_in_progress", error: error.message, ...getMirrorStatus() };
     }
 
@@ -728,7 +656,7 @@ async function updateLocalMirror(reason = "manual") {
       checksum: calculateFileChecksum(mirrorPath),
       reason
     };
-    writeMirrorMeta(meta);
+    writeMirrorMeta(getMirrorMetaPath(), meta);
     mirrorDirty = false;
     setMirrorStatusFromMeta(meta, { ok: true, mirrorOk: true, mirrorError: "" });
     console.info("[RRLL][DB] Espejo local actualizado", { mirrorPath, sourcePath: info.path, reason });
@@ -736,7 +664,7 @@ async function updateLocalMirror(reason = "manual") {
   } catch (error) {
     const message = error && error.message ? error.message : String(error);
     console.error("[RRLL][DB] No se pudo actualizar el espejo local:", error);
-    setMirrorStatusFromMeta(readMirrorMeta(), { ok: false, mirrorOk: false, mirrorError: message, sourcePath: info.path, sourceMode: info.effectiveMode || info.mode });
+    setMirrorStatusFromMeta(readMirrorMeta(getMirrorMetaPath()), { ok: false, mirrorOk: false, mirrorError: message, sourcePath: info.path, sourceMode: info.effectiveMode || info.mode });
     return { ok: false, error: message, ...getMirrorStatus() };
   } finally {
     mirrorUpdateInProgress = false;
@@ -760,7 +688,7 @@ async function runScheduledMirrorUpdate() {
   try {
     if (fs.existsSync(info.path) && !hasDbWriteArtifacts(info.path)) {
       const currentToken = getDbLastUpdateToken(info.path);
-      const previousToken = (lastMirrorMeta && lastMirrorMeta.lastUpdateToken) || (readMirrorMeta() || {}).lastUpdateToken || null;
+      const previousToken = (lastMirrorMeta && lastMirrorMeta.lastUpdateToken) || (readMirrorMeta(getMirrorMetaPath()) || {}).lastUpdateToken || null;
       tokenChanged = !!currentToken && currentToken !== previousToken;
     }
   } catch (error) {
@@ -2061,8 +1989,8 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   await getSQL();
-  cleanupOldMirrorTempFiles();
-  setMirrorStatusFromMeta(readMirrorMeta());
+  cleanupOldMirrorTempFiles(app.getPath("userData"), getMirrorSqlitePath(), getMirrorMetaPath());
+  setMirrorStatusFromMeta(readMirrorMeta(getMirrorMetaPath()));
   const startupData = await loadAllData();
   try {
     const startupBackup = await createRobustBackup("app_start", startupData);
