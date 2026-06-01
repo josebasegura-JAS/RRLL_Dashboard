@@ -3,7 +3,7 @@
    ========================================================= */
 .phase4-sidebar-footer { display: none !important; }
 
-.phase5-sidebar-sync.save-status-widget {
+.rrll-sidebar-sync.save-status-widget {
   position: static !important;
   z-index: auto !important;
   display: grid !important;
@@ -20,7 +20,7 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 12px 28px rgba(17,24,39,.20) !important;
   color: #e5e7eb !important;
 }
-.phase5-sidebar-sync .save-status-dot {
+.rrll-sidebar-sync .save-status-dot {
   grid-column: 1 !important;
   grid-row: 1 !important;
   width: 9px !important;
@@ -29,22 +29,22 @@
   border-radius: 50% !important;
   box-shadow: 0 0 0 4px rgba(148,163,184,.08) !important;
 }
-.phase5-sidebar-sync .save-status-text {
+.rrll-sidebar-sync .save-status-text {
   grid-column: 2 !important;
   display: grid !important;
   gap: 4px !important;
 }
-.phase5-sidebar-sync .save-status-text b {
+.rrll-sidebar-sync .save-status-text b {
   color: #f8fafc !important;
   font-size: 12px !important;
   font-weight: 800 !important;
 }
-.phase5-sidebar-sync .save-status-text span {
+.rrll-sidebar-sync .save-status-text span {
   color: #aab3c2 !important;
   font-size: 11px !important;
   line-height: 1.35 !important;
 }
-.phase5-sidebar-sync .sync-now-button {
+.rrll-sidebar-sync .sync-now-button {
   grid-column: 1 / -1 !important;
   margin-top: 6px !important;
   padding: 8px 10px !important;
@@ -55,10 +55,10 @@
   font-size: 12px !important;
   font-weight: 750 !important;
 }
-.phase5-sidebar-sync .sync-now-button:hover { background: rgba(59,130,246,.16) !important; border-color: rgba(59,130,246,.34) !important; }
-.phase5-sidebar-sync.synced .save-status-dot,
-.phase5-sidebar-sync.saved .save-status-dot { background: #22c55e !important; box-shadow: 0 0 0 4px rgba(34,197,94,.13) !important; }
-.phase5-sidebar-sync.saving .save-status-dot { background: #f59e0b !important; box-shadow: 0 0 0 4px rgba(245,158,11,.14) !important; animation: savePulse 0.8s ease-in-out infinite alternate; }
-.phase5-sidebar-sync.offline .save-status-dot { background: #94a3b8 !important; box-shadow: 0 0 0 4px rgba(148,163,184,.14) !important; }
-.phase5-sidebar-sync.error .save-status-dot { background: #ef4444 !important; box-shadow: 0 0 0 4px rgba(239,68,68,.14) !important; }
-.phase5-sidebar-sync.error { border-color: rgba(239,68,68,.24) !important; background: linear-gradient(180deg, rgba(54,38,44,.95), rgba(43,49,61,.98)) !important; }
+.rrll-sidebar-sync .sync-now-button:hover { background: rgba(59,130,246,.16) !important; border-color: rgba(59,130,246,.34) !important; }
+.rrll-sidebar-sync.synced .save-status-dot,
+.rrll-sidebar-sync.saved .save-status-dot { background: #22c55e !important; box-shadow: 0 0 0 4px rgba(34,197,94,.13) !important; }
+.rrll-sidebar-sync.saving .save-status-dot { background: #f59e0b !important; box-shadow: 0 0 0 4px rgba(245,158,11,.14) !important; animation: savePulse 0.8s ease-in-out infinite alternate; }
+.rrll-sidebar-sync.offline .save-status-dot { background: #94a3b8 !important; box-shadow: 0 0 0 4px rgba(148,163,184,.14) !important; }
+.rrll-sidebar-sync.error .save-status-dot { background: #ef4444 !important; box-shadow: 0 0 0 4px rgba(239,68,68,.14) !important; }
+.rrll-sidebar-sync.error { border-color: rgba(239,68,68,.24) !important; background: linear-gradient(180deg, rgba(54,38,44,.95), rgba(43,49,61,.98)) !important; }

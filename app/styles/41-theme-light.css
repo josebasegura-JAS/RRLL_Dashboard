@@ -1146,7 +1146,7 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
   line-height: 1 !important;
   box-shadow: 0 0 0 2px var(--rrll-sidebar-bg-active) !important;
 }
-.phase5-sidebar-sync.save-status-widget {
+.rrll-sidebar-sync.save-status-widget {
   grid-template-columns: 8px minmax(0, 1fr) 28px !important;
   align-items: center !important;
   gap: 6px !important;
@@ -1154,12 +1154,12 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
   padding: 6px 8px !important;
   border-radius: 11px !important;
 }
-.phase5-sidebar-sync .save-status-dot {
+.rrll-sidebar-sync .save-status-dot {
   width: 8px !important;
   height: 8px !important;
   margin-top: 0 !important;
 }
-.phase5-sidebar-sync .save-status-text {
+.rrll-sidebar-sync .save-status-text {
   grid-column: 2 !important;
   display: flex !important;
   align-items: baseline !important;
@@ -1168,21 +1168,21 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
   white-space: nowrap !important;
   overflow: hidden !important;
 }
-.phase5-sidebar-sync .save-status-text b,
-.phase5-sidebar-sync .save-status-text span {
+.rrll-sidebar-sync .save-status-text b,
+.rrll-sidebar-sync .save-status-text span {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   font-size: 11px !important;
   line-height: 1 !important;
 }
-.phase5-sidebar-sync .save-status-text b {
+.rrll-sidebar-sync .save-status-text b {
   flex: 0 0 auto !important;
 }
-.phase5-sidebar-sync .save-status-text span {
+.rrll-sidebar-sync .save-status-text span {
   flex: 0 1 auto !important;
 }
-.phase5-sidebar-sync .sync-now-button {
+.rrll-sidebar-sync .sync-now-button {
   grid-column: 3 !important;
   grid-row: 1 !important;
   width: 28px !important;
@@ -1195,8 +1195,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
   font-size: 15px !important;
   line-height: 1 !important;
 }
-.phase5-sidebar-sync.offline .save-status-dot,
-.phase5-sidebar-sync.error .save-status-dot {
+.rrll-sidebar-sync.offline .save-status-dot,
+.rrll-sidebar-sync.error .save-status-dot {
   background: #ef4444 !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, .14) !important;
 }
@@ -1223,11 +1223,11 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
   .phase4-sidebar-section {
     margin-top: 6px !important;
   }
-  .phase5-sidebar-sync.save-status-widget {
+  .rrll-sidebar-sync.save-status-widget {
     margin-bottom: 8px !important;
     padding: 6px 8px !important;
   }
-  .phase5-sidebar-sync .save-status-text b {
+  .rrll-sidebar-sync .save-status-text b {
     display: inline !important;
   }
 }
@@ -1708,18 +1708,18 @@ html[data-theme="light"] :is(.phase4-nav-item.active, .nav-item.active, .phase4-
   box-shadow: inset 3px 0 0 #fee2e2 !important;
 }
 
-html[data-theme="light"] :is(.save-status-widget, .phase5-sidebar-sync.save-status-widget) {
+html[data-theme="light"] :is(.save-status-widget, .rrll-sidebar-sync.save-status-widget) {
   background: rgba(15, 23, 42, .26) !important;
   border: 1px solid rgba(226, 232, 240, .20) !important;
   color: var(--phase4-sidebar-text) !important;
   box-shadow: none !important;
 }
 
-html[data-theme="light"] :is(.save-status-text b, .save-status-text span, .phase5-sidebar-sync .save-status-text b, .phase5-sidebar-sync .save-status-text span) {
+html[data-theme="light"] :is(.save-status-text b, .save-status-text span, .rrll-sidebar-sync .save-status-text b, .rrll-sidebar-sync .save-status-text span) {
   color: var(--phase4-sidebar-text) !important;
 }
 
-html[data-theme="light"] .phase5-sidebar-sync .sync-now-button {
+html[data-theme="light"] .rrll-sidebar-sync .sync-now-button {
   background: rgba(226, 232, 240, .16) !important;
   border-color: rgba(226, 232, 240, .30) !important;
   color: var(--phase4-sidebar-text) !important;
