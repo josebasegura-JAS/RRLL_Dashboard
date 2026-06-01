@@ -201,14 +201,14 @@ function toggleSidebarLeft() {
     }
 
     function setPhase4SideSubmenu(menuName, open) {
-      const submenu = document.getElementById(`phase4-submenu-${menuName}`);
-      const parent = document.querySelector(`.phase4-nav-parent[data-menu="${menuName}"]`);
+      const submenu = document.getElementById(`rrll-submenu-${menuName}`);
+      const parent = document.querySelector(`.rrll-nav-parent[data-menu="${menuName}"]`);
       if (submenu) submenu.classList.toggle("open", !!open);
       if (parent) parent.classList.toggle("open", !!open);
     }
 
     function togglePhase4SideSubmenu(menuName) {
-      const submenu = document.getElementById(`phase4-submenu-${menuName}`);
+      const submenu = document.getElementById(`rrll-submenu-${menuName}`);
       const nextOpen = !(submenu && submenu.classList.contains("open"));
       setPhase4SideSubmenu(menuName, nextOpen);
     }
@@ -257,14 +257,14 @@ function toggleSidebarLeft() {
     function phase4SetActiveNav(viewId) {
       const subview = RRLL_PHASE4_SUBVIEW_MAP[viewId];
       const effectiveMain = subview ? subview.parent : viewId;
-      document.querySelectorAll(".phase4-nav-item").forEach(item => {
+      document.querySelectorAll(".rrll-nav-item").forEach(item => {
         const href = item.getAttribute("href") || "";
         const dataView = item.getAttribute("data-view") || "";
         const menu = item.getAttribute("data-menu") || "";
         const isParentActive = subview && menu === subview.menu;
         item.classList.toggle("active", dataView === viewId || href === `#${viewId}` || href === `#${effectiveMain}` || !!isParentActive);
       });
-      document.querySelectorAll(".phase4-nav-subitem").forEach(item => {
+      document.querySelectorAll(".rrll-nav-subitem").forEach(item => {
         const href = item.getAttribute("href") || "";
         item.classList.toggle("active", href === `#${viewId}`);
       });
@@ -424,7 +424,7 @@ function toggleSidebarLeft() {
       rrllSetupVisibilityGuard();
       if (rrllPhase4NavigationReady) return;
       rrllPhase4NavigationReady = true;
-      const links = Array.from(document.querySelectorAll(".phase4-nav-item, .phase4-nav-subitem"));
+      const links = Array.from(document.querySelectorAll(".rrll-nav-item, .rrll-nav-subitem"));
       const gestorMap = {
         "#gestor-tareas": "gestor-tareas",
         "#gestor-peticiones": "gestor-peticiones",
@@ -451,15 +451,15 @@ function toggleSidebarLeft() {
             return;
           }
           const href = link.getAttribute("href") || "";
-          if (link.classList.contains("phase4-nav-parent")) {
+          if (link.classList.contains("rrll-nav-parent")) {
             event.preventDefault();
             return;
           }
           const view = link.getAttribute("data-view") || "";
           const hasNavigationTarget = !!href || !!view;
-          const isActionButton = link.classList.contains("phase4-nav-trash-icon")
-            || link.classList.contains("phase4-nav-settings-icon")
-            || link.classList.contains("phase4-nav-folder-link")
+          const isActionButton = link.classList.contains("rrll-nav-trash-icon")
+            || link.classList.contains("rrll-nav-settings-icon")
+            || link.classList.contains("rrll-nav-folder-link")
             || (!href && !view);
           if (!hasNavigationTarget || isActionButton) {
             event.preventDefault();

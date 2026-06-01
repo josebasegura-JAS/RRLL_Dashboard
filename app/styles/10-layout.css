@@ -24,13 +24,13 @@
   z-index: 30;
 }
 
-.phase4-nav {
+.rrll-nav {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.phase4-nav-item {
+.rrll-nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -44,13 +44,13 @@
   transition: background 0.15s ease, color 0.15s ease, transform 0.05s ease;
 }
 
-.phase4-nav-item:hover,
-.phase4-nav-item.active {
+.rrll-nav-item:hover,
+.rrll-nav-item.active {
   background: rgba(255, 255, 255, 0.13);
   color: white;
 }
 
-.phase4-nav-item:active {
+.rrll-nav-item:active {
   transform: translateY(1px);
 }
 
@@ -117,7 +117,7 @@
     padding-bottom: 10px;
   }
 
-  .phase4-nav {
+  .rrll-nav {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
@@ -378,21 +378,21 @@ body {
 }
 .rrll-sidebar::-webkit-scrollbar { width: 8px; }
 .rrll-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.22); border-radius: 999px; }
-.phase4-nav-item {
+.rrll-nav-item {
   border: 1px solid transparent;
   line-height: 1.15;
 }
-.phase4-nav-item:hover {
+.rrll-nav-item:hover {
   border-color: rgba(255,255,255,.13);
   transform: translateX(1px);
 }
-.phase4-nav-item.active {
+.rrll-nav-item.active {
   background: rgba(255,255,255,.18);
   border-color: rgba(255,255,255,.18);
   box-shadow: inset 3px 0 0 #e30613;
 }
-.phase4-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.phase4-nav-secondary .phase4-nav-item { min-height: 34px; font-size: 13px; opacity: .92; }
+.rrll-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rrll-nav-secondary .rrll-nav-item { min-height: 34px; font-size: 13px; opacity: .92; }
 
 .rrll-main .top-strip {
   background: rgba(255,255,255,.92);
@@ -440,7 +440,7 @@ button,
 button:focus-visible,
 .launch-button:focus-visible,
 .summary-icon-button:focus-visible,
-.phase4-nav-item:focus-visible,
+.rrll-nav-item:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
@@ -575,7 +575,7 @@ label { color: #334155; font-weight: 750; }
 @media (max-width: 1280px) {
   .rrll-shell { grid-template-columns: 230px minmax(0, 1fr); }
   .rrll-sidebar { width: 230px; }
-  .phase4-nav-item { font-size: 13px; }
+  .rrll-nav-item { font-size: 13px; }
   .rrll-main main { padding-left: 16px; padding-right: 16px; }
 }
 
@@ -701,7 +701,7 @@ body:is(.rrll-view-module, .phase4-view-module) .rrll-main main {
 }
 
 /* Fase 4 - Configuración */
-.phase4-nav-button {
+.rrll-nav-button {
   width: 100%;
   border: 0;
   background: transparent;
@@ -735,13 +735,13 @@ body:is(.rrll-view-module, .phase4-view-module) .rrll-main main {
 }
 
 /* Fase 4 - submenús laterales para Comité y Paritaria */
-.phase4-nav-parent {
+.rrll-nav-parent {
   width: 100%;
   justify-content: flex-start;
   gap: 10px;
 }
 
-.phase4-nav-chevron {
+.rrll-nav-chevron {
   margin-left: auto;
   font-size: 11px;
   line-height: 1;
@@ -749,23 +749,23 @@ body:is(.rrll-view-module, .phase4-view-module) .rrll-main main {
   transition: transform .16s ease;
 }
 
-.phase4-nav-parent.open .phase4-nav-chevron {
+.rrll-nav-parent.open .rrll-nav-chevron {
   transform: rotate(180deg);
 }
 
-.phase4-nav-submenu {
+.rrll-nav-submenu {
   display: none;
   margin: -2px 0 6px 28px;
   padding-left: 10px;
   border-left: 1px solid rgba(255,255,255,.18);
 }
 
-.phase4-nav-submenu.open {
+.rrll-nav-submenu.open {
   display: grid;
   gap: 4px;
 }
 
-.phase4-nav-subitem {
+.rrll-nav-subitem {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -778,13 +778,13 @@ body:is(.rrll-view-module, .phase4-view-module) .rrll-main main {
   text-decoration: none;
 }
 
-.phase4-nav-subitem:hover,
-.phase4-nav-subitem.active {
+.rrll-nav-subitem:hover,
+.rrll-nav-subitem.active {
   background: rgba(255,255,255,.12);
   color: #fff;
 }
 
-.phase4-nav-subitem.active {
+.rrll-nav-subitem.active {
   box-shadow: inset 3px 0 0 var(--accent-red, #e52b24);
 }
 
@@ -963,7 +963,7 @@ body:is(.rrll-view-module, .phase4-view-module) textarea {
   background: #fff;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) button:not(.phase4-nav-item):not(.summary-icon-button) {
+body:is(.rrll-view-module, .phase4-view-module) button:not(.rrll-nav-item):not(.summary-icon-button) {
   border-radius: 12px;
 }
 
@@ -1144,29 +1144,29 @@ body:is(.rrll-view-module, .phase4-view-module) .telework-form {
   box-shadow: 4px 0 18px rgba(0, 0, 0, 0.18);
 }
 
-.phase4-nav-item,
-.phase4-nav-button,
-.phase4-nav-subitem {
+.rrll-nav-item,
+.rrll-nav-button,
+.rrll-nav-subitem {
   color: rgba(229, 231, 235, 0.88) !important;
 }
 
-.phase4-nav-item:hover,
-.phase4-nav-button:hover,
-.phase4-nav-subitem:hover {
+.rrll-nav-item:hover,
+.rrll-nav-button:hover,
+.rrll-nav-subitem:hover {
   background: var(--rrll-sidebar-hover) !important;
   color: #ffffff !important;
   border-color: rgba(229, 231, 235, 0.10) !important;
 }
 
-.phase4-nav-item.active,
-.phase4-nav-subitem.active {
+.rrll-nav-item.active,
+.rrll-nav-subitem.active {
   background: var(--rrll-sidebar-active-soft) !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: inset 3px 0 0 #e30613 !important;
 }
 
-.phase4-nav-submenu {
+.rrll-nav-submenu {
   border-left-color: rgba(229, 231, 235, 0.16) !important;
 }
 
@@ -1643,27 +1643,27 @@ body:is(.rrll-view-module, .phase4-view-module) .summary-icon-button {
   border-right: 1px solid rgba(255,255,255,.08) !important;
 }
 
-.phase4-nav-item,
-.phase4-nav-subitem,
-.phase4-nav-button {
+.rrll-nav-item,
+.rrll-nav-subitem,
+.rrll-nav-button {
   color: #e5e7eb !important;
 }
 
-.phase4-nav-item:hover,
-.phase4-nav-subitem:hover,
-.phase4-nav-button:hover {
+.rrll-nav-item:hover,
+.rrll-nav-subitem:hover,
+.rrll-nav-button:hover {
   background: #3a3f48 !important;
 }
 
-.phase4-nav-item.active,
-.phase4-nav-subitem.active,
-.phase4-nav-parent.active {
+.rrll-nav-item.active,
+.rrll-nav-subitem.active,
+.rrll-nav-parent.active {
   background: linear-gradient(90deg, #7d1f1f 0%, #a72722 100%) !important;
   color: #ffffff !important;
 }
 
 /* Papelera integrada en menú nuevo */
-.phase4-nav-pill {
+.rrll-nav-pill {
   margin-left: auto;
   min-width: 20px;
   height: 20px;

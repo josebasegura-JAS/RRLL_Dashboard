@@ -84,33 +84,33 @@ body {
   box-shadow: 18px 0 38px rgba(0,0,0,.32) !important;
 }
 
-.phase4-nav-item,
-.phase4-nav-subitem,
-.phase4-nav-button {
+.rrll-nav-item,
+.rrll-nav-subitem,
+.rrll-nav-button {
   color: #d7dee8 !important;
   border: 1px solid transparent !important;
   border-radius: 12px !important;
   background: transparent !important;
 }
 
-.phase4-nav-item:hover,
-.phase4-nav-subitem:hover,
-.phase4-nav-button:hover {
+.rrll-nav-item:hover,
+.rrll-nav-subitem:hover,
+.rrll-nav-button:hover {
   background: rgba(255,255,255,.06) !important;
   border-color: rgba(255,255,255,.08) !important;
   color: #fff !important;
 }
 
-.phase4-nav-item.active,
-.phase4-nav-subitem.active,
-.phase4-nav-parent.active {
+.rrll-nav-item.active,
+.rrll-nav-subitem.active,
+.rrll-nav-parent.active {
   background: linear-gradient(90deg, rgba(239,43,45,.78), rgba(134,24,28,.70)) !important;
   color: #fff !important;
   border-color: rgba(255,255,255,.10) !important;
   box-shadow: 0 10px 24px rgba(239,43,45,.18) !important;
 }
 
-.phase4-nav-pill,
+.rrll-nav-pill,
 .badge {
   background: rgba(239,43,45,.92) !important;
   color: #fff !important;

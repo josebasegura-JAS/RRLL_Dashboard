@@ -41,8 +41,8 @@ html[data-theme="dark"] .brand-panel {
   border-color: var(--rrll-border) !important;
 }
 
-html[data-theme="dark"] .phase4-nav-item,
-html[data-theme="dark"] .phase4-nav-subitem,
+html[data-theme="dark"] .rrll-nav-item,
+html[data-theme="dark"] .rrll-nav-subitem,
 html[data-theme="dark"] .sidebar-link,
 html[data-theme="dark"] .nav-item,
 html[data-theme="dark"] .quick-menu-trigger {
@@ -51,19 +51,19 @@ html[data-theme="dark"] .quick-menu-trigger {
   border-color: transparent !important;
 }
 
-html[data-theme="dark"] .phase4-nav-item:hover,
-html[data-theme="dark"] .phase4-nav-subitem:hover,
+html[data-theme="dark"] .rrll-nav-item:hover,
+html[data-theme="dark"] .rrll-nav-subitem:hover,
 html[data-theme="dark"] .sidebar-link:hover,
 html[data-theme="dark"] .nav-item:hover {
   background: #2b313d !important;
   color: #f8fafc !important;
 }
 
-html[data-theme="dark"] .phase4-nav-item.active,
-html[data-theme="dark"] .phase4-nav-subitem.active,
+html[data-theme="dark"] .rrll-nav-item.active,
+html[data-theme="dark"] .rrll-nav-subitem.active,
 html[data-theme="dark"] .sidebar-link.active,
 html[data-theme="dark"] .nav-item.active,
-html[data-theme="dark"] .phase4-nav-parent.open {
+html[data-theme="dark"] .rrll-nav-parent.open {
   background: linear-gradient(90deg, rgba(239,68,68,.30), rgba(48,55,70,.92)) !important;
   color: #f8fafc !important;
   border-color: rgba(239,68,68,.42) !important;
