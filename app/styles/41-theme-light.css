@@ -65,9 +65,9 @@ html[data-theme="light"] {
   --rrll-component-border: var(--rrll-border);
   --rrll-component-text: var(--rrll-text-main);
   --rrll-component-muted: var(--rrll-text-muted);
-  --phase4-sidebar-bg: #3b4556;
-  --phase4-sidebar-bg-2: #334155;
-  --phase4-sidebar-hover: #475569;
+  --rrll-sidebar-bg: #3b4556;
+  --rrll-sidebar-bg-active: #334155;
+  --rrll-sidebar-hover: #475569;
   --phase4-sidebar-active: #c24141;
   --phase4-sidebar-text: var(--rrll-light-input-bg);
   --phase4-sidebar-muted: #cbd5e1;
@@ -1143,7 +1143,7 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
   justify-content: center !important;
   font-size: 10px !important;
   line-height: 1 !important;
-  box-shadow: 0 0 0 2px var(--phase4-sidebar-bg-2) !important;
+  box-shadow: 0 0 0 2px var(--rrll-sidebar-bg-active) !important;
 }
 .phase5-sidebar-sync.save-status-widget {
   grid-template-columns: 8px minmax(0, 1fr) 28px !important;
@@ -1676,7 +1676,7 @@ html[data-theme="light"] :is(p, small, .muted, .card-meta, .module-meta, .item-m
 }
 
 html[data-theme="light"] :is(.phase4-sidebar, .sidebar:not(.sidebar-left)) {
-  background: linear-gradient(180deg, var(--phase4-sidebar-bg) 0%, var(--phase4-sidebar-bg-2) 100%) !important;
+  background: linear-gradient(180deg, var(--rrll-sidebar-bg) 0%, var(--rrll-sidebar-bg-active) 100%) !important;
   border-right: 1px solid rgba(255, 255, 255, .08) !important;
   box-shadow: 6px 0 24px rgba(15, 23, 42, .18) !important;
 }
@@ -1695,7 +1695,7 @@ html[data-theme="light"] :is(.phase4-nav-item, .nav-item, .phase4-nav-subitem, .
 }
 
 html[data-theme="light"] :is(.phase4-nav-item:hover, .nav-item:hover, .phase4-nav-subitem:hover, .phase4-nav-button:hover) {
-  background: var(--phase4-sidebar-hover) !important;
+  background: var(--rrll-sidebar-hover) !important;
   color: var(--rrll-light-input-bg) !important;
   transform: translateX(1px);
 }

@@ -59,9 +59,9 @@
   --phase4-navy-2:        #0b315f;
   --phase4-surface:       #ffffff;
   --phase4-soft:          #f8fafc;
-  --phase4-sidebar-bg:    #2b2f36;
-  --phase4-sidebar-bg-2:  #23272e;
-  --phase4-sidebar-hover: #3a3f48;
+  --rrll-sidebar-bg:    #2b2f36;
+  --rrll-sidebar-bg-active:  #23272e;
+  --rrll-sidebar-hover: #3a3f48;
 
   color-scheme: light;
 }
