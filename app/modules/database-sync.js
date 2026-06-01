@@ -1,4 +1,4 @@
-// Fase 2.7: sincronización y configuración de base de datos.
+// Sincronización y configuración de base de datos.
 // Mantiene las mismas funciones globales para no romper llamadas inline ni app.js.
 (function () {
   async function refreshDatabaseInfo() {

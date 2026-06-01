@@ -1,4 +1,4 @@
-// Fase 3.5: Gestor de Teletrabajo encapsulado como módulo independiente.
+// Gestor de Teletrabajo encapsulado como módulo independiente.
 // Mantiene wrappers globales por compatibilidad con los onclick existentes del HTML.
 (function () {
   'use strict';

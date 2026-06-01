@@ -1,7 +1,6 @@
 /**
  * Dashboard inicial: métricas útiles, calendario y actividad.
- * Fase 5.5: sustituye resumen/carga genéricos por tarjetas con mini-donut,
- * próximos vencimientos + calendario y alertas compactas.
+ * Tarjetas con mini-donut, próximos vencimientos, calendario y alertas compactas.
  */
 
 let phase5CalendarEventsByDay = new Map();

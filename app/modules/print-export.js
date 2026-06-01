@@ -1,6 +1,5 @@
 /**
  * Impresión y exportación Excel/HTML.
- * Extraído en Fase 2 sin cambiar comportamiento funcional.
  */
 
 function htmlEscapeForPrint(value) { return window.escapeHtml(value || ""); }

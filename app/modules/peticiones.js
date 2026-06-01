@@ -1,9 +1,7 @@
-// Fase 3.3: Gestor de Peticiones encapsulado como módulo independiente.
+// Gestor de Peticiones encapsulado como módulo independiente.
 // Mantiene wrappers globales por compatibilidad con los onclick existentes del HTML.
 (function () {
   'use strict';
-
-  // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
     const DEFAULT_PETITION_ORIGINS = ["ELA", "CCOO", "SEMAF", "CIM", "EGIE", "USO", "LAB", "EMPRESA"];
     const PETITION_ORIGINS_STORAGE_KEY = "rrll_petition_origins";
@@ -870,7 +868,7 @@
 
   window.PeticionesModule = api;
 
-  // Compatibilidad temporal con HTML/app.js mientras se completa Fase 3.
+  // Exposición global para compatibilidad con HTML inline y otros módulos.
   window.getPetitions = getPetitions;
   window.setPetitions = setPetitions;
   window.addPetition = addPetition;

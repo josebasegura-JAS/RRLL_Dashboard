@@ -1,4 +1,4 @@
-// Fase 2.8: navegación extraída desde app.js sin cambiar comportamiento.
+// Navegación principal y compatibilidad con HTML inline.
 // Mantiene funciones globales para compatibilidad con HTML inline y otros módulos.
 
 function toggleSidebarLeft() {

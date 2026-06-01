@@ -1,9 +1,7 @@
-// Fase 3.6: Comité de Empresa encapsulado como módulo independiente.
+// Comité de Empresa encapsulado como módulo independiente.
 // Mantiene wrappers globales por compatibilidad con los onclick existentes del HTML y app.js.
 (function () {
   'use strict';
-
-// Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
 
     function ensureCommitteeConfirmModal() {
@@ -1721,6 +1719,6 @@
 
   window.ComiteModule = api;
 
-  // Compatibilidad temporal con HTML/app.js mientras se completa Fase 3.
+  // Exposición global para compatibilidad con HTML inline y otros módulos.
   Object.assign(window, api);
 })();

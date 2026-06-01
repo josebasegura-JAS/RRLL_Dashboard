@@ -1,7 +1,6 @@
 /**
- * Fase 2.6 - Backup e importación.
+ * Backup e importación.
  *
- * Extraído desde app.js sin cambiar comportamiento.
  * Mantiene funciones globales para botones inline y llamadas existentes.
  */
 (function () {

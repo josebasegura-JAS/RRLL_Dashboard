@@ -1,9 +1,7 @@
-// Fase 3.7: Comisión Paritaria encapsulada como módulo independiente.
+// Comisión Paritaria encapsulada como módulo independiente.
 // Mantiene wrappers globales por compatibilidad con los onclick existentes del HTML y app.js.
 (function () {
   'use strict';
-
-// Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
 
     function ensureParitariaConfirmModal() {
@@ -1680,6 +1678,6 @@
 
   window.ParitariaModule = api;
 
-  // Compatibilidad temporal con HTML/app.js mientras se completa Fase 3.
+  // Exposición global para compatibilidad con HTML inline y otros módulos.
   Object.assign(window, api);
 })();

@@ -1,6 +1,5 @@
 /**
  * Capa de persistencia y estado de sincronización.
- * Extraído en Fase 2 sin cambiar comportamiento funcional.
  */
 
 function getTodayKey() {
