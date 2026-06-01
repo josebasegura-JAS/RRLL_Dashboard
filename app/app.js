@@ -12,19 +12,7 @@ const DEFAULT_LINKS = [
     };
 
 
-    // Fase 3: los gestores principales se han extraído a app/modules/*.js
-    // Este archivo conserva navegación, utilidades, búsqueda, backup, sincronización e inicialización.
-
-
-
-    // Navegación extraída a app/modules/navigation.js en Fase 2.8.
-
-
-    // Dashboard inicial extraído a app/modules/home-dashboard.js en Fase 2.9.
-
-    // Fase 2.5: accesos rápidos/configuración movidos a app/modules/links-config.js.
-
-    // Utilidades puras cargadas desde app/modules/utils-candidate.js en Fase 2.3.
+    // Funciones compartidas que aún coordinan alertas y sesiones de Comité.
 
     function toggleAlertsPanel() {
       const panel = document.getElementById("alertsPanel");
@@ -114,17 +102,6 @@ const DEFAULT_LINKS = [
     }
 
 
-    // Fase 2.5: papelera movida a app/modules/trash.js.
-
-    // Búsqueda extraída a modules/search.js en Fase 2.6.
-
-// Backup/importación extraídos a modules/backup-import.js en Fase 2.6.
-
-// Funciones de impresión/exportación extraídas a modules/print-export.js
-
-
-    // Sincronización/configuración de base de datos extraída a modules/database-sync.js en Fase 2.7.
-
     function committeeSessionMinuteTitle(session) {
       const code = session.code || session.title || "sin código";
       return `Acta Comité de Empresa ${code}`;
@@ -171,7 +148,3 @@ const DEFAULT_LINKS = [
 
       if (incoming.length) setMinutes([...incoming, ...minutes]);
     }
-
-    // Arranque final extraído a app/modules/bootstrap.js en Fase 2.10.
-
-// Exposición explícita movida a app/modules/bootstrap.js en Fase 2.10.

@@ -1,10 +1,8 @@
 /**
- * Fase 2.4 - Utilidades puras extraídas.
+ * Utilidades puras compartidas.
  *
- * Cambio controlado:
  * - Se carga desde dashboard.html antes de app.js y de los gestores.
  * - Expone funciones globales ya usadas por el código existente.
- * - No toca navegación, dashboard, SQLite, CSS ni renderizados.
  */
 (function () {
   function escapeHtml(value) {

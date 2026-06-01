@@ -1,7 +1,5 @@
-// Fase 2.10: arranque, render central y eventos globales.
-// Mantiene el mismo orden lógico de inicialización que app.js para evitar cambios funcionales.
-// Fase 5.12: hardening estable. Los renderizados se aíslan para que un fallo puntual
-// de un módulo no deje la aplicación completa en blanco.
+// Arranque, render central y eventos globales.
+// Los renderizados se aíslan para que un fallo puntual de un módulo no deje la aplicación completa en blanco.
 
 function rrllSafeCall(label, fn) {
   try {
@@ -78,7 +76,7 @@ function rrllSafeCall(label, fn) {
 
 
 
-// Última beta: los <summary> de gestores ya no actúan como desplegables.
+// Los <summary> de gestores ya no actúan como desplegables.
 // Se conservan como cabecera visual y se evita el cierre accidental del módulo.
 function preventLegacySummaryToggle() {
   document.querySelectorAll('details.module-card > summary, details.committee-subsection > summary, details.paritaria-subsection > summary').forEach(summary => {
@@ -185,7 +183,7 @@ async function showStartupDbFallbackAlert() {
       else alert("No se pudo iniciar la aplicación. Revisa la consola.");
     });
 
-// Exposición explícita para módulos y botones inline de Fase 4.
+// Exposición explícita para módulos y botones inline del HTML.
 window.renderHomeDashboard = window.renderHomeDashboard || (typeof renderHomeDashboard === "function" ? renderHomeDashboard : undefined);
 window.openPhase4DashboardTarget = openPhase4DashboardTarget;
 window.phase4ShowHome = phase4ShowHome;

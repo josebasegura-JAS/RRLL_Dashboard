@@ -1,9 +1,7 @@
-// Fase 3.2: Gestor de Tareas encapsulado como módulo independiente.
+// Gestor de Tareas encapsulado como módulo independiente.
 // Mantiene wrappers globales por compatibilidad con los onclick existentes del HTML.
 (function () {
   'use strict';
-
-  // Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
 
       function ensureDangerConfirmModal() {
@@ -910,7 +908,7 @@
   window.TareasModule = api;
   window.confirmDangerAction = confirmDangerAction;
 
-  // Compatibilidad temporal con HTML/app.js mientras se completa Fase 3.
+  // Exposición global para compatibilidad con HTML inline y otros módulos.
   window.getTasks = getTasks;
   window.setTasks = setTasks;
   window.addTask = addTask;

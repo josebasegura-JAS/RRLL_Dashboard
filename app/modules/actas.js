@@ -1,9 +1,7 @@
-// Fase 3.4: Gestor de Actas encapsulado como módulo independiente.
+// Gestor de Actas encapsulado como módulo independiente.
 // Mantiene wrappers globales por compatibilidad con los onclick existentes del HTML.
 (function () {
   'use strict';
-
-// Fase 3: módulo extraído desde app.js sin cambiar funcionalidad.
 
     function getMinutes() {
       return load("rrll_minutes", []);
@@ -554,7 +552,7 @@
 
   window.ActasModule = api;
 
-  // Compatibilidad temporal con HTML/app.js mientras se completa Fase 3.
+  // Exposición global para compatibilidad con HTML inline y otros módulos.
   window.getMinutes = getMinutes;
   window.setMinutes = setMinutes;
   window.getAllegationUnions = getAllegationUnions;

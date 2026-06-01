@@ -1,4 +1,4 @@
-// Fase 2.5: papelera extraída desde app.js.
+// Papelera de registros.
 // Mantiene funciones globales para compatibilidad con gestores y botones inline.
 
 const TRASH_MODULES = {

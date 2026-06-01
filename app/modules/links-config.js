@@ -1,4 +1,4 @@
-// Fase 2.5: accesos rápidos y configuración de enlaces extraídos desde app.js.
+// Accesos rápidos y configuración de enlaces.
 // Mantiene funciones globales para compatibilidad con botones inline y arranque existente.
 
 const RRLL_DEFAULT_LINKS_FALLBACK = [{ name: "Firma Digital", url: "https://apps.docusign.com/send" }];

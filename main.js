@@ -12,6 +12,7 @@ const {
   writeMirrorMeta
 } = require("./main/mirror-helpers");
 const { createSqlitePersistenceHelpers } = require("./main/sqlite-persistence-helpers");
+const { writeJsonAtomically } = require("./main/config-persistence-helpers");
 const {
   buildOutlookDraftPowerShellScript,
   runOutlookDraftVbs,
@@ -213,7 +214,7 @@ function readDbConfig() {
 }
 
 function writeDbConfig(config) {
-  fs.writeFileSync(getDbConfigPath(), JSON.stringify(config, null, 2), "utf-8");
+  writeJsonAtomically(getDbConfigPath(), config);
 }
 
 function getActiveDbInfo() {
