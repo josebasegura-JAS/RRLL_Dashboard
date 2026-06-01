@@ -1,14 +1,14 @@
 /* Accesos inferiores compactos del sidebar + carpeta RRLL */
-.phase4-sidebar {
+.rrll-sidebar {
   padding: 12px 10px !important;
   gap: 8px !important;
   overflow-x: hidden !important;
   scrollbar-width: thin !important;
   scrollbar-color: rgba(148,163,184,.34) transparent !important;
 }
-.phase4-sidebar::-webkit-scrollbar { width: 5px !important; height: 0 !important; }
-.phase4-sidebar::-webkit-scrollbar-track { background: transparent !important; }
-.phase4-sidebar::-webkit-scrollbar-thumb { background: rgba(148,163,184,.28) !important; border-radius: 999px !important; }
+.rrll-sidebar::-webkit-scrollbar { width: 5px !important; height: 0 !important; }
+.rrll-sidebar::-webkit-scrollbar-track { background: transparent !important; }
+.rrll-sidebar::-webkit-scrollbar-thumb { background: rgba(148,163,184,.28) !important; border-radius: 999px !important; }
 .phase4-nav { gap: 4px !important; }
 .phase4-nav-item {
   min-height: 34px !important;

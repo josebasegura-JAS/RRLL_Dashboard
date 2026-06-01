@@ -12,9 +12,9 @@ html[data-theme="dark"] body {
 }
 
 html[data-theme="dark"] body,
-html[data-theme="dark"] .phase4-shell,
-html[data-theme="dark"] .phase4-main,
-html[data-theme="dark"] .phase4-main main,
+html[data-theme="dark"] .rrll-shell,
+html[data-theme="dark"] .rrll-main,
+html[data-theme="dark"] .rrll-main main,
 html[data-theme="dark"] main,
 html[data-theme="dark"] .dashboard-layout,
 html[data-theme="dark"] .content-right,
@@ -27,10 +27,10 @@ html[data-theme="dark"] .app-main {
 }
 
 /* Sidebar y cabecera: gris profundo, no negro */
-html[data-theme="dark"] .phase4-sidebar,
+html[data-theme="dark"] .rrll-sidebar,
 html[data-theme="dark"] .sidebar-left,
 html[data-theme="dark"] .sidebar-inner,
-html[data-theme="dark"] .phase4-main .top-strip,
+html[data-theme="dark"] .rrll-main .top-strip,
 html[data-theme="dark"] .top-strip,
 html[data-theme="dark"] .app-header,
 html[data-theme="dark"] .header,
@@ -852,7 +852,7 @@ html[data-theme="dark"] html,
 html[data-theme="dark"] body,
 html[data-theme="dark"] .app,
 html[data-theme="dark"] .dashboard-layout,
-html[data-theme="dark"] .phase4-main,
+html[data-theme="dark"] .rrll-main,
 html[data-theme="dark"] .content-right,
 html[data-theme="dark"] body.phase4-view-module .content-right {
   background:

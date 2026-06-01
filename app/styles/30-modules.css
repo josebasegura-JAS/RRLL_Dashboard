@@ -1275,8 +1275,8 @@ body.phase4-view-module #gestor-sesiones-paritaria .session-year-block {
 
 html,
 body,
-.phase4-shell,
-.phase4-main,
+.rrll-shell,
+.rrll-main,
 main,
 .content-right,
 .dashboard-layout,
@@ -1289,14 +1289,14 @@ body.phase4-view-home {
   color: var(--text) !important;
 }
 
-.phase4-main .top-strip,
+.rrll-main .top-strip,
 .top-strip {
   background: rgba(36,42,54,.86) !important;
   border-bottom: 1px solid rgba(148,163,184,.18) !important;
   box-shadow: 0 1px 0 rgba(255,255,255,.035) inset !important;
 }
 
-.phase4-sidebar {
+.rrll-sidebar {
   background: linear-gradient(180deg, #202734 0%, #1e2430 54%, #1b212b 100%) !important;
   border-right: 1px solid rgba(148,163,184,.20) !important;
   box-shadow: 18px 0 48px rgba(3,7,18,.18) !important;
@@ -1592,7 +1592,7 @@ button.ghost,
 .badge,
 .counter-badge,
 .count-pill,
-.phase4-sidebar .badge {
+.rrll-sidebar .badge {
   border: 1px solid rgba(148,163,184,.20) !important;
   background: rgba(48,56,69,.82) !important;
   color: rgba(229,231,235,.92) !important;
