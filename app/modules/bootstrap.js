@@ -94,8 +94,8 @@ function preventLegacySummaryToggle() {
 }
 
 function forceActiveDetailsOpen() {
-  document.querySelectorAll('details.module-card.phase4-active-module').forEach(d => { d.open = true; });
-  document.querySelectorAll('#gestor-comite.phase4-active-module details.committee-subsection[open], #gestor-paritaria.phase4-active-module details.paritaria-subsection[open]').forEach(d => { d.open = true; });
+  document.querySelectorAll('details.module-card.rrll-active-module').forEach(d => { d.open = true; });
+  document.querySelectorAll('#gestor-comite.rrll-active-module details.committee-subsection[open], #gestor-paritaria.rrll-active-module details.paritaria-subsection[open]').forEach(d => { d.open = true; });
 }
 
 async function showStartupDbFallbackAlert() {

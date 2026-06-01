@@ -1,3 +1,4 @@
+/* Compatibilidad temporal: aliases phase4 conservados durante la migración de estados globales RRLL. */
 /* Calendario, vinculograma, licencias, vistas compactas y homogeneidad final de gestores. */
 
 /* Fase 5.6: acciones de impresión/exportación junto al listado y no en cabecera */
@@ -241,27 +242,27 @@ textarea[id^="newParitariaSession"] {
 }
 
 /* Todas las vistas de gestor deben seguir el patrón Vinculograma/Licencias: gris-carbón, sin negro profundo. */
-body.phase4-view-module .content-right {
+body:is(.rrll-view-module, .phase4-view-module) .content-right {
   background: linear-gradient(135deg, var(--rrll-bg-app-dark) 0%, #242b36 56%, var(--rrll-bg-app-dark) 100%) !important;
 }
-body.phase4-view-module .content-right > details.module-card.phase4-active-module,
-body.phase4-view-module .module-card.phase4-active-module,
-body.phase4-view-module .rrll-pro-module.phase4-active-module,
-body.phase4-view-module #gestor-tareas.phase4-active-module,
-body.phase4-view-module #gestor-peticiones.phase4-active-module,
-body.phase4-view-module #gestor-actas.phase4-active-module,
-body.phase4-view-module #gestor-teletrabajo.phase4-active-module,
-body.phase4-view-module #gestor-comite.phase4-active-module,
-body.phase4-view-module #gestor-paritaria.phase4-active-module {
+body:is(.rrll-view-module, .phase4-view-module) .content-right > details.module-card:is(.rrll-active-module, .phase4-active-module),
+body:is(.rrll-view-module, .phase4-view-module) .module-card:is(.rrll-active-module, .phase4-active-module),
+body:is(.rrll-view-module, .phase4-view-module) .rrll-pro-module:is(.rrll-active-module, .phase4-active-module),
+body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas:is(.rrll-active-module, .phase4-active-module),
+body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones:is(.rrll-active-module, .phase4-active-module),
+body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module),
+body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo:is(.rrll-active-module, .phase4-active-module),
+body:is(.rrll-view-module, .phase4-view-module) #gestor-comite:is(.rrll-active-module, .phase4-active-module),
+body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria:is(.rrll-active-module, .phase4-active-module) {
   background: linear-gradient(180deg, rgba(36,42,54,.98), rgba(34,41,54,.98)) !important;
   border: 1px solid var(--rrll-border-soft) !important;
   box-shadow: 0 18px 46px rgba(15,23,42,.22) !important;
 }
 
-body.phase4-view-module .content-right > details.module-card.phase4-active-module > summary,
-body.phase4-view-module .module-card.phase4-active-module > summary,
-body.phase4-view-module details.committee-subsection > summary,
-body.phase4-view-module details.paritaria-subsection > summary,
+body:is(.rrll-view-module, .phase4-view-module) .content-right > details.module-card:is(.rrll-active-module, .phase4-active-module) > summary,
+body:is(.rrll-view-module, .phase4-view-module) .module-card:is(.rrll-active-module, .phase4-active-module) > summary,
+body:is(.rrll-view-module, .phase4-view-module) details.committee-subsection > summary,
+body:is(.rrll-view-module, .phase4-view-module) details.paritaria-subsection > summary,
 .module-header,
 .professional-header {
   background: linear-gradient(135deg, rgba(52,59,70,.98), rgba(48,55,70,.96)) !important;
@@ -485,7 +486,7 @@ select option {
 }
 
 /* Menos salto visual entre cabecera superior y gestores sin tocar layout base. */
-body.phase4-view-module .rrll-main main {
+body:is(.rrll-view-module, .phase4-view-module) .rrll-main main {
   padding-top: 22px !important;
 }
 

@@ -132,8 +132,8 @@ function toggleSidebarLeft() {
       rrllGetMainModulePanels().forEach(panel => {
         const isActive = !isHome && panel.id === activeId;
         panel.dataset.rrllActive = isActive ? "true" : "false";
-        panel.classList.toggle("phase4-active-module", isActive);
-        panel.classList.toggle("phase4-inactive-module", !isActive);
+        panel.classList.toggle("rrll-active-module", isActive);
+        panel.classList.toggle("rrll-inactive-module", !isActive);
         panel.hidden = !isActive;
         panel.setAttribute("aria-hidden", isActive ? "false" : "true");
         if (isActive) {
@@ -168,7 +168,7 @@ function toggleSidebarLeft() {
       if (rrllVisibilityGuardReady) return;
       rrllVisibilityGuardReady = true;
       const rerun = () => {
-        if (document.body.classList.contains("phase4-view-module") || document.body.dataset.activeModule) rrllEnsureSingleVisibleModule();
+        if (document.body.classList.contains("rrll-view-module") || document.body.dataset.activeModule) rrllEnsureSingleVisibleModule();
       };
       window.addEventListener("scroll", rerun, { passive: true });
       window.addEventListener("resize", rerun, { passive: true });
@@ -184,9 +184,9 @@ function toggleSidebarLeft() {
     }
 
     function phase4StartViewTransition() {
-      document.body.classList.add("phase4-transitioning");
+      document.body.classList.add("rrll-transitioning");
       if (rrllPhase4ViewTimer) clearTimeout(rrllPhase4ViewTimer);
-      rrllPhase4ViewTimer = setTimeout(() => document.body.classList.remove("phase4-transitioning"), 140);
+      rrllPhase4ViewTimer = setTimeout(() => document.body.classList.remove("rrll-transitioning"), 140);
     }
 
     function isDetailsElement(element) {
@@ -277,14 +277,14 @@ function toggleSidebarLeft() {
     function rrllApplyModuleVisibility(activeId) {
       const isHome = !activeId || activeId === "home";
       document.body.dataset.activeModule = isHome ? "home" : activeId;
-      document.body.classList.toggle("phase4-view-home", isHome);
-      document.body.classList.toggle("phase4-view-module", !isHome);
+      document.body.classList.toggle("rrll-view-home", isHome);
+      document.body.classList.toggle("rrll-view-module", !isHome);
       rrllNormalizeModulePanels();
       rrllEnsureSingleVisibleModule();
     }
 
     async function phase4ShowHome() {
-      if (rrllPhase4CurrentView === "home" && document.body.classList.contains("phase4-view-home")) return;
+      if (rrllPhase4CurrentView === "home" && document.body.classList.contains("rrll-view-home")) return;
       let resetOk = true;
       try {
         if (typeof window.resetEditingSessionState === "function") {
@@ -303,8 +303,8 @@ function toggleSidebarLeft() {
       phase4StartViewTransition();
       rrllPhase4CurrentView = "home";
       phase4PersistView("home");
-      document.body.classList.add("phase4-view-home");
-      document.body.classList.remove("phase4-view-module");
+      document.body.classList.add("rrll-view-home");
+      document.body.classList.remove("rrll-view-module");
       rrllApplyModuleVisibility("home");
       phase4SetActiveNav("home");
       collapseAllSidebarGroups();
@@ -317,11 +317,11 @@ function toggleSidebarLeft() {
         phase4ShowHome();
         return false;
       }
-      if (rrllPhase4CurrentView !== gestorId || !gestor.classList.contains("phase4-active-module")) phase4StartViewTransition();
+      if (rrllPhase4CurrentView !== gestorId || !gestor.classList.contains("rrll-active-module")) phase4StartViewTransition();
       rrllPhase4CurrentView = gestorId;
       phase4PersistView(gestorId);
-      document.body.classList.add("phase4-view-module");
-      document.body.classList.remove("phase4-view-home");
+      document.body.classList.add("rrll-view-module");
+      document.body.classList.remove("rrll-view-home");
       rrllApplyModuleVisibility(gestorId);
       gestor.open = true;
       closeOtherMainGestors(gestor);
@@ -356,12 +356,12 @@ function toggleSidebarLeft() {
         if (!isDetailsElement(gestor)) return;
         gestor.addEventListener("toggle", () => {
           if (gestor.open) {
-            if (document.body.classList.contains("phase4-view-module") && rrllPhase4CurrentView !== id) {
+            if (document.body.classList.contains("rrll-view-module") && rrllPhase4CurrentView !== id) {
               phase4ShowModule(id);
               return;
             }
             closeOtherMainGestors(gestor);
-            if (document.body.classList.contains("phase4-view-module")) rrllApplyModuleVisibility(id);
+            if (document.body.classList.contains("rrll-view-module")) rrllApplyModuleVisibility(id);
           }
         });
       });
