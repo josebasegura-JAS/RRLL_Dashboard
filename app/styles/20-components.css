@@ -15,15 +15,15 @@ body {
 }
 
 /* Shell principal */
-.phase4-shell {
+.rrll-shell {
   background: transparent !important;
 }
 
-.phase4-main {
+.rrll-main {
   background: linear-gradient(180deg, #090e14 0%, #070b10 100%) !important;
 }
 
-.phase4-main main {
+.rrll-main main {
   max-width: none !important;
   padding: 18px 24px 28px !important;
 }
@@ -77,7 +77,7 @@ body {
 }
 
 /* Sidebar */
-.phase4-sidebar {
+.rrll-sidebar {
   background: linear-gradient(180deg, #0f141b 0%, #080d13 100%) !important;
   border-right: 1px solid var(--border) !important;
   box-shadow: 18px 0 38px rgba(0,0,0,.32) !important;
@@ -607,7 +607,7 @@ body.phase4-view-module .session-columns {
 }
 
 @media (max-width: 1100px) {
-  .phase4-main main {
+  .rrll-main main {
     padding: 12px !important;
   }
 

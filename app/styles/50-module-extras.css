@@ -230,7 +230,7 @@ textarea[id^="newParitariaSession"] {
 
 /* Fase 5.15 - homogeneidad final gris-carbón y sidebar sin logo */
 
-.phase4-sidebar {
+.rrll-sidebar {
   padding-top: 14px !important;
 }
 .phase4-sidebar-brand {
@@ -485,7 +485,7 @@ select option {
 }
 
 /* Menos salto visual entre cabecera superior y gestores sin tocar layout base. */
-body.phase4-view-module .phase4-main main {
+body.phase4-view-module .rrll-main main {
   padding-top: 22px !important;
 }
 

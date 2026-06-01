@@ -26,7 +26,7 @@
   border: 0 !important;
   overflow: hidden !important;
 }
-.phase4-sidebar {
+.rrll-sidebar {
   padding-top: 12px !important;
   background: linear-gradient(180deg, #242b36 0%, var(--rrll-bg-app-dark) 100%) !important;
 }
@@ -36,7 +36,7 @@
 
 /* Fondos generales de módulos: mismo patrón que Vinculograma/Licencias. */
 body.phase4-view-module,
-body.phase4-view-module .phase4-main,
+body.phase4-view-module .rrll-main,
 body.phase4-view-module .content-right,
 body.phase4-view-module main {
   background: linear-gradient(135deg, var(--rrll-bg-app-dark) 0%, #242b36 54%, var(--rrll-bg-app-dark) 100%) !important;
@@ -231,8 +231,8 @@ button.secondary:hover,
 
 /* Área de trabajo de gestores: nunca negro profundo. */
 html body.phase4-view-module,
-html body.phase4-view-module .phase4-main,
-html body.phase4-view-module .phase4-main main,
+html body.phase4-view-module .rrll-main,
+html body.phase4-view-module .rrll-main main,
 html body.phase4-view-module .content-right,
 html body.phase4-view-module .dashboard-layout,
 html body.phase4-view-module .content-right > details.module-card.phase4-active-module {
@@ -681,10 +681,10 @@ html[data-theme="light"],
 
 html[data-theme="light"] body,
 html[data-theme="dark"] body,
-html[data-theme="light"] .phase4-shell,
-html[data-theme="dark"] .phase4-shell,
-html[data-theme="light"] .phase4-main,
-html[data-theme="dark"] .phase4-main,
+html[data-theme="light"] .rrll-shell,
+html[data-theme="dark"] .rrll-shell,
+html[data-theme="light"] .rrll-main,
+html[data-theme="dark"] .rrll-main,
 html[data-theme="light"] .content-right,
 html[data-theme="dark"] .content-right {
   background: var(--rrll-bg-app) !important;
@@ -693,8 +693,8 @@ html[data-theme="dark"] .content-right {
 
 html[data-theme="light"] .top-strip,
 html[data-theme="dark"] .top-strip,
-html[data-theme="light"] .phase4-sidebar,
-html[data-theme="dark"] .phase4-sidebar,
+html[data-theme="light"] .rrll-sidebar,
+html[data-theme="dark"] .rrll-sidebar,
 html[data-theme="light"] .save-status-widget,
 html[data-theme="dark"] .save-status-widget {
   background: linear-gradient(135deg, var(--rrll-surface-base), var(--rrll-surface-card)) !important;
@@ -1044,8 +1044,8 @@ html[data-theme="dark"] .config-section {
    ========================================================= */
 
 html[data-theme="light"] body,
-html[data-theme="light"] .phase4-shell,
-html[data-theme="light"] .phase4-main,
+html[data-theme="light"] .rrll-shell,
+html[data-theme="light"] .rrll-main,
 html[data-theme="light"] .content-right {
   background:
     radial-gradient(circle at 22% 0%, rgba(255, 251, 239, .55), transparent 34%),
@@ -1054,7 +1054,7 @@ html[data-theme="light"] .content-right {
 }
 
 html[data-theme="light"] .top-strip,
-html[data-theme="light"] .phase4-sidebar,
+html[data-theme="light"] .rrll-sidebar,
 html[data-theme="light"] .save-status-widget {
   background: linear-gradient(135deg, rgba(250, 252, 248, .84), rgba(218, 232, 234, .88)) !important;
   color: var(--rrll-text-main) !important;
@@ -1062,7 +1062,7 @@ html[data-theme="light"] .save-status-widget {
   box-shadow: var(--rrll-shadow-soft) !important;
 }
 
-html[data-theme="light"] .phase4-sidebar {
+html[data-theme="light"] .rrll-sidebar {
   backdrop-filter: blur(18px) saturate(1.05);
 }
 
@@ -2198,7 +2198,7 @@ body.phase4-view-module :is(.committee-main, .paritaria-main) > :is(.committee-s
    - Mantiene una cabecera compacta y homogénea
    ========================================================= */
 
-body.phase4-view-module .phase4-main main {
+body.phase4-view-module .rrll-main main {
   padding-top: 4px !important;
   padding-left: 10px !important;
   padding-right: 10px !important;
@@ -4719,27 +4719,27 @@ html[data-theme="light"] body.phase4-view-module :is(#gestor-tareas, #gestor-pet
 }
 
 /* Sidebar submenu Comité/Paritaria en light: mantener superficie oscura de navegación. */
-html[data-theme="light"] .phase4-sidebar .phase4-nav-submenu,
+html[data-theme="light"] .rrll-sidebar .phase4-nav-submenu,
 html[data-theme="light"] .sidebar .phase4-nav-submenu,
-html[data-theme="light"] .phase4-sidebar .nav-submenu,
+html[data-theme="light"] .rrll-sidebar .nav-submenu,
 html[data-theme="light"] .sidebar .nav-submenu {
   background: #2d3645 !important;
   border-color: rgba(255, 255, 255, .10) !important;
   color: #e5e7eb !important;
 }
 
-html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem),
+html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-subitem, .nav-subitem),
 html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem) {
   color: #e5e7eb !important;
 }
 
-html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem):hover,
+html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-subitem, .nav-subitem):hover,
 html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem):hover {
   background: rgba(255, 255, 255, .08) !important;
   color: #ffffff !important;
 }
 
-html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-subitem, .nav-subitem).active,
+html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-subitem, .nav-subitem).active,
 html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active {
   background: rgba(227, 6, 19, .18) !important;
   color: #ffffff !important;

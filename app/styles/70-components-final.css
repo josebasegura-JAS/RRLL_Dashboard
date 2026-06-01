@@ -28,8 +28,6 @@
   .rrll-module-layout,
   .rrll-grid,
   .rrll-stack,
-  .phase4-shell,
-  .phase4-main,
   .phase4-content,
   .phase4-view,
   .module-view,
@@ -48,8 +46,6 @@
   .rrll-main,
   .rrll-content,
   .rrll-module-layout,
-  .phase4-shell,
-  .phase4-main,
   .phase4-content,
   .phase4-view,
   .module-view
@@ -169,7 +165,6 @@
 .rrll-sidebar-title,
 .rrll-sidebar-item,
 .rrll-sidebar-status,
-.phase4-sidebar,
 .phase4-nav,
 .phase4-nav-section,
 .phase4-sidebar-section,
@@ -182,8 +177,7 @@
   color: var(--rrll-theme-text-main);
 }
 
-.rrll-sidebar,
-.phase4-sidebar {
+.rrll-sidebar {
   background: var(--rrll-theme-bg-panel);
   border: 1px solid var(--rrll-border);
   border-radius: var(--rrll-radius-md);
@@ -2370,7 +2364,7 @@ html[data-theme="dark"] {
 html[data-theme="dark"] body,
 html[data-theme="dark"] body.phase4-view-home,
 html[data-theme="dark"] body.phase4-view-module,
-html[data-theme="dark"] .phase4-main,
+html[data-theme="dark"] .rrll-main,
 html[data-theme="dark"] main,
 html[data-theme="dark"] .content-right,
 html[data-theme="dark"] .dashboard-layout {
@@ -2379,7 +2373,7 @@ html[data-theme="dark"] .dashboard-layout {
 }
 
 html[data-theme="dark"] .top-strip,
-html[data-theme="dark"] .phase4-sidebar,
+html[data-theme="dark"] .rrll-sidebar,
 html[data-theme="dark"] .phase4-nav-submenu,
 html[data-theme="dark"] .save-status-widget {
   background: linear-gradient(180deg, var(--rrll-surface-base), var(--rrll-bg-app)) !important;
@@ -2770,14 +2764,14 @@ html[data-theme="light"] {
   color-scheme: light;
 }
 
-html[data-theme="light"] :is(body, body.phase4-view-home, body.phase4-view-module, .phase4-shell, .phase4-main, main, .content-right, .dashboard-layout) {
+html[data-theme="light"] :is(body, body.phase4-view-home, body.phase4-view-module, .rrll-shell, .rrll-main, main, .content-right, .dashboard-layout) {
   background:
     radial-gradient(circle at 18% 0%, rgba(255, 255, 255, .88), transparent 34%),
     linear-gradient(135deg, #f7fafc 0%, var(--rrll-bg-app) 52%, #e2edf3 100%) !important;
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] :is(.top-strip, .phase4-sidebar, .phase4-nav-submenu, .save-status-widget) {
+html[data-theme="light"] :is(.top-strip, .rrll-sidebar, .phase4-nav-submenu, .save-status-widget) {
   background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(241, 245, 249, .94)) !important;
   border-color: var(--rrll-border) !important;
   box-shadow: var(--rrll-shadow-soft) !important;
@@ -3168,8 +3162,8 @@ html[data-theme="light"] *::-webkit-scrollbar-thumb {
 
 html,
 body,
-.phase4-shell,
-.phase4-main,
+.rrll-shell,
+.rrll-main,
 .content-right,
 .dashboard-layout,
 .module-card,
@@ -3190,7 +3184,7 @@ body,
 }
 
 body,
-.phase4-main,
+.rrll-main,
 .content-right {
   overflow-x: hidden;
 }

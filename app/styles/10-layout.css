@@ -1,14 +1,14 @@
 /* Layout fase 4, navegación, sidebar, shell y ajustes de vistas. */
 
 /* Fase 4 - Bloque 1: estructura visual base (sin cambios funcionales) */
-.phase4-shell {
+.rrll-shell {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   min-height: 100vh;
   background: #f4f6fa;
 }
 
-.phase4-sidebar {
+.rrll-sidebar {
   position: sticky;
   top: 0;
   height: 100vh;
@@ -103,11 +103,11 @@
   font-size: 12px;
 }
 
-.phase4-main {
+.rrll-main {
   min-width: 0;
 }
 
-.phase4-main .top-strip {
+.rrll-main .top-strip {
   position: sticky;
   top: 0;
   z-index: 20;
@@ -117,49 +117,49 @@
   box-shadow: 0 5px 18px rgba(12, 29, 54, 0.07);
 }
 
-.phase4-main .brand-mark {
+.rrll-main .brand-mark {
   width: 48px;
   height: 34px;
   border-width: 3px;
 }
 
-.phase4-main .brand-mark::before,
-.phase4-main .brand-mark::after {
+.rrll-main .brand-mark::before,
+.rrll-main .brand-mark::after {
   width: 48px;
   height: 34px;
   border-width: 3px;
   top: -3px;
 }
 
-.phase4-main .brand-mark::before { left: -11px; }
-.phase4-main .brand-mark::after { left: 11px; }
+.rrll-main .brand-mark::before { left: -11px; }
+.rrll-main .brand-mark::after { left: 11px; }
 
-.phase4-main .brand-text {
+.rrll-main .brand-text {
   font-size: 20px;
 }
 
-.phase4-main .top-title h1 {
+.rrll-main .top-title h1 {
   font-size: 22px;
 }
 
-.phase4-main main {
+.rrll-main main {
   max-width: none;
   margin: 0;
   padding: 20px 22px 28px;
 }
 
-.phase4-main .quick-top,
-.phase4-main .alerts-card,
-.phase4-main .dashboard-layout {
+.rrll-main .quick-top,
+.rrll-main .alerts-card,
+.rrll-main .dashboard-layout {
   max-width: 1560px;
 }
 
 @media (max-width: 980px) {
-  .phase4-shell {
+  .rrll-shell {
     grid-template-columns: 1fr;
   }
 
-  .phase4-sidebar {
+  .rrll-sidebar {
     position: relative;
     height: auto;
     display: block;
@@ -175,7 +175,7 @@
     display: none;
   }
 
-  .phase4-main .top-strip {
+  .rrll-main .top-strip {
     position: static;
   }
 }
@@ -423,14 +423,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-.phase4-sidebar {
+.rrll-sidebar {
   width: 260px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,.28) transparent;
 }
-.phase4-sidebar::-webkit-scrollbar { width: 8px; }
-.phase4-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.22); border-radius: 999px; }
+.rrll-sidebar::-webkit-scrollbar { width: 8px; }
+.rrll-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.22); border-radius: 999px; }
 .phase4-sidebar-brand {
   position: sticky;
   top: 0;
@@ -455,14 +455,14 @@ body {
 .phase4-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .phase4-nav-secondary .phase4-nav-item { min-height: 34px; font-size: 13px; opacity: .92; }
 
-.phase4-main .top-strip {
+.rrll-main .top-strip {
   background: rgba(255,255,255,.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--phase4-line);
 }
-.phase4-main .top-title h1 { color: var(--phase4-text); letter-spacing: -0.02em; }
-.phase4-main .top-title p { color: var(--phase4-muted); }
-.phase4-main main { padding-top: 18px; }
+.rrll-main .top-title h1 { color: var(--phase4-text); letter-spacing: -0.02em; }
+.rrll-main .top-title p { color: var(--phase4-muted); }
+.rrll-main main { padding-top: 18px; }
 
 .phase4-home-hero,
 .phase4-dashboard-card,
@@ -634,23 +634,23 @@ label { color: #334155; font-weight: 750; }
 ::-webkit-scrollbar-track { background: transparent; }
 
 @media (max-width: 1280px) {
-  .phase4-shell { grid-template-columns: 230px minmax(0, 1fr); }
-  .phase4-sidebar { width: 230px; }
+  .rrll-shell { grid-template-columns: 230px minmax(0, 1fr); }
+  .rrll-sidebar { width: 230px; }
   .phase4-nav-item { font-size: 13px; }
-  .phase4-main main { padding-left: 16px; padding-right: 16px; }
+  .rrll-main main { padding-left: 16px; padding-right: 16px; }
 }
 
 @media (max-width: 980px) {
-  .phase4-sidebar { width: 100%; height: auto; max-height: none; }
+  .rrll-sidebar { width: 100%; height: auto; max-height: none; }
   .phase4-sidebar-brand { position: static; }
-  .phase4-main .top-strip { flex-wrap: wrap; gap: 10px; }
-  .phase4-main .top-title { width: 100%; text-align: left; margin-left: 0; }
+  .rrll-main .top-strip { flex-wrap: wrap; gap: 10px; }
+  .rrll-main .top-title { width: 100%; text-align: left; margin-left: 0; }
   body.phase4-view-module .content-right > .module-card.phase4-active-module > summary { position: static; }
   .summary-counts { white-space: normal; }
 }
 
 @media (max-width: 680px) {
-  .phase4-main main { padding: 12px; }
+  .rrll-main main { padding: 12px; }
   .phase4-home-hero { padding: 16px; border-radius: 18px; }
   .phase4-dashboard-card, .phase4-metric-card, .card { border-radius: 16px; }
   .summary-actions { width: 100%; justify-content: flex-start; }
@@ -705,17 +705,17 @@ body.phase4-view-module .quick-top.compact-quick-panel {
   min-width: 0;
 }
 @media (max-width: 1366px) {
-  .phase4-main main { padding-left: 14px; padding-right: 14px; }
+  .rrll-main main { padding-left: 14px; padding-right: 14px; }
   .phase4-metric-grid { grid-template-columns: repeat(3, minmax(150px, 1fr)); }
   .phase4-dashboard-card { min-height: 210px; }
 }
 
 /* Fase 4 - bugfix integración visual: Inicio limpio y gestores a ancho completo */
-.phase4-main .quick-top,
-.phase4-main .alerts-card {
+.rrll-main .quick-top,
+.rrll-main .alerts-card {
   display: none !important;
 }
-.phase4-main #dashboardLayout {
+.rrll-main #dashboardLayout {
   display: none !important;
 }
 body.phase4-view-home .phase4-home-dashboard {
@@ -724,7 +724,7 @@ body.phase4-view-home .phase4-home-dashboard {
 body.phase4-view-module .phase4-home-dashboard {
   display: none !important;
 }
-body.phase4-view-module .phase4-main #dashboardLayout {
+body.phase4-view-module .rrll-main #dashboardLayout {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) !important;
   width: 100% !important;
@@ -758,7 +758,7 @@ body.phase4-view-module .content-right > .module-card.phase4-active-module > sum
   align-items: center;
   gap: 10px;
 }
-body.phase4-view-module .phase4-main main {
+body.phase4-view-module .rrll-main main {
   overflow-x: hidden;
 }
 
@@ -852,9 +852,9 @@ body.phase4-view-module .phase4-main main {
 
 
 /* Fase 4 - integración visual final: un único layout moderno */
-.phase4-main .compact-quick-panel,
-.phase4-main #alertsPanel,
-.phase4-main .sidebar-left {
+.rrll-main .compact-quick-panel,
+.rrll-main #alertsPanel,
+.rrll-main .sidebar-left {
   display: none !important;
 }
 
@@ -1073,17 +1073,17 @@ body.phase4-view-module #alertsPanel {
 
 
 /* Fase 4.1 - cierre visual real: gestores a ancho completo y sin controles de plegado legacy */
-.phase4-main main {
+.rrll-main main {
   padding: 10px 14px 18px;
 }
-.phase4-main .top-strip {
+.rrll-main .top-strip {
   min-height: 54px;
   padding: 8px 18px;
 }
-.phase4-main .top-title h1 {
+.rrll-main .top-title h1 {
   font-size: 20px;
 }
-.phase4-main .top-title p {
+.rrll-main .top-title p {
   margin: 2px 0 0;
 }
 body.phase4-view-module .dashboard-layout {
@@ -1200,7 +1200,7 @@ body.phase4-view-module .telework-form {
 
 /* Ajuste visual solicitado: sidebar gris oscuro coherente con la app */
 
-.phase4-sidebar {
+.rrll-sidebar {
   background: linear-gradient(180deg, var(--rrll-sidebar-bg) 0%, var(--rrll-sidebar-bg-active) 100%) !important;
   color: var(--phase4-sidebar-text) !important;
   box-shadow: 4px 0 18px rgba(0, 0, 0, 0.18);
@@ -1243,7 +1243,7 @@ body.phase4-view-module .telework-form {
   border-left-color: rgba(229, 231, 235, 0.16) !important;
 }
 
-.phase4-sidebar::-webkit-scrollbar-thumb {
+.rrll-sidebar::-webkit-scrollbar-thumb {
   background: rgba(229, 231, 235, .24) !important;
 }
 
@@ -1593,17 +1593,17 @@ body.phase4-view-module #gestor-paritaria.phase4-active-module .paritaria-subsec
 }
 
 /* Reducir hueco superior y aprovechar pantalla */
-.phase4-main main {
+.rrll-main main {
   padding-top: 12px !important;
 }
 
-.phase4-main .top-strip {
+.rrll-main .top-strip {
   min-height: 54px !important;
   padding-top: 8px !important;
   padding-bottom: 8px !important;
 }
 
-body.phase4-view-module .phase4-main main {
+body.phase4-view-module .rrll-main main {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
@@ -1711,7 +1711,7 @@ body.phase4-view-module .summary-icon-button {
 }
 
 /* Sidebar definitivo gris/antracita */
-.phase4-sidebar {
+.rrll-sidebar {
   background: linear-gradient(180deg, #2b2f36 0%, #22262d 100%) !important;
   border-right: 1px solid rgba(255,255,255,.08) !important;
 }

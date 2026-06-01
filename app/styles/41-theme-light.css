@@ -999,7 +999,7 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
 /* Header: logo corporativo horizontal de Relaciones Laborales.
    Regla única para inicio y módulos: evita que al cambiar de vista reaparezca
    el logo grande y reduce el tamaño del dashboard alrededor de un 10%. */
-.phase4-main .top-strip,
+.rrll-main .top-strip,
 .top-strip {
   min-width: 0 !important;
   overflow: hidden !important;
@@ -1054,25 +1054,25 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
 }
 
 /* Compactación específica del sidebar principal para portátiles de 14". */
-.phase4-sidebar {
+.rrll-sidebar {
   gap: 9px !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   scrollbar-width: thin !important;
   scrollbar-color: rgba(203, 213, 225, .24) transparent !important;
 }
-.phase4-sidebar::-webkit-scrollbar {
+.rrll-sidebar::-webkit-scrollbar {
   width: 5px !important;
   height: 5px !important;
 }
-.phase4-sidebar::-webkit-scrollbar-track {
+.rrll-sidebar::-webkit-scrollbar-track {
   background: transparent !important;
 }
-.phase4-sidebar::-webkit-scrollbar-thumb {
+.rrll-sidebar::-webkit-scrollbar-thumb {
   background: rgba(203, 213, 225, .22) !important;
   border-radius: 999px !important;
 }
-.phase4-sidebar::-webkit-scrollbar-thumb:hover {
+.rrll-sidebar::-webkit-scrollbar-thumb:hover {
   background: rgba(203, 213, 225, .32) !important;
 }
 .phase4-nav {
@@ -1201,7 +1201,7 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
 }
 
 @media (max-height: 820px) {
-  .phase4-sidebar {
+  .rrll-sidebar {
     gap: 7px !important;
     padding-top: 10px !important;
     padding-bottom: 10px !important;
@@ -1234,11 +1234,11 @@ body.phase4-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { wi
 /* Dashboard/Home density pass for 14" laptop screens.
    Scope is intentionally limited to the Home dashboard so modules, tables,
    sidebar, modals and navigation keep their established sizing. */
-body.phase4-view-home .phase4-main main {
+body.phase4-view-home .rrll-main main {
   padding: 10px 18px 22px !important;
 }
 
-body.phase4-view-home .phase4-main .top-strip,
+body.phase4-view-home .rrll-main .top-strip,
 body.phase4-view-home .top-strip {
   min-height: 48px !important;
   padding-top: 6px !important;
@@ -1464,7 +1464,7 @@ body.phase4-view-home .dashboard-search-header {
 }
 
 @media (max-width: 900px) {
-  body.phase4-view-home .phase4-main main {
+  body.phase4-view-home .rrll-main main {
     padding-inline: 14px !important;
   }
 
@@ -1649,12 +1649,12 @@ html[data-theme="light"] body {
   -webkit-font-smoothing: antialiased;
 }
 
-html[data-theme="light"] :is(body.phase4-view-home, body.phase4-view-module, .phase4-shell, .phase4-main, main, .content-right, .dashboard-layout, .main-content, .dashboard-home) {
+html[data-theme="light"] :is(body.phase4-view-home, body.phase4-view-module, .rrll-shell, .rrll-main, main, .content-right, .dashboard-layout, .main-content, .dashboard-home) {
   background: linear-gradient(180deg, #f7f8fa 0%, var(--bg-primary) 34%, var(--rrll-light-table-hover) 100%) !important;
   color: var(--text-primary) !important;
 }
 
-html[data-theme="light"] .phase4-main main {
+html[data-theme="light"] .rrll-main main {
   padding-top: 18px;
 }
 
@@ -1675,7 +1675,7 @@ html[data-theme="light"] :is(p, small, .muted, .card-meta, .module-meta, .item-m
   color: var(--text-muted) !important;
 }
 
-html[data-theme="light"] :is(.phase4-sidebar, .sidebar:not(.sidebar-left)) {
+html[data-theme="light"] :is(.rrll-sidebar, .sidebar:not(.sidebar-left)) {
   background: linear-gradient(180deg, var(--rrll-sidebar-bg) 0%, var(--rrll-sidebar-bg-active) 100%) !important;
   border-right: 1px solid rgba(255, 255, 255, .08) !important;
   box-shadow: 6px 0 24px rgba(15, 23, 42, .18) !important;
@@ -1734,13 +1734,13 @@ html[data-theme="light"] :is(.phase4-nav-item:hover, .phase4-nav-subitem:hover, 
   color: var(--rrll-light-surface) !important;
 }
 
-html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-pill, .badge) {
+html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-pill, .badge) {
   background: rgba(226, 232, 240, .18) !important;
   color: var(--phase4-sidebar-text) !important;
   border: 1px solid rgba(226, 232, 240, .26) !important;
 }
 
-html[data-theme="light"] .phase4-sidebar :is(.phase4-nav-item.active .phase4-nav-pill, .phase4-nav-subitem.active .phase4-nav-pill, .phase4-nav-item.active .badge, .phase4-nav-subitem.active .badge) {
+html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-item.active .phase4-nav-pill, .phase4-nav-subitem.active .phase4-nav-pill, .phase4-nav-item.active .badge, .phase4-nav-subitem.active .badge) {
   background: rgba(255, 255, 255, .24) !important;
   color: var(--rrll-light-surface) !important;
 }
