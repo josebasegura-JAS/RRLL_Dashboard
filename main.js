@@ -1,9 +1,6 @@
 const { app, BrowserWindow, shell, ipcMain, Menu, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const os = require("os");
-const { spawn } = require("child_process");
-const { MsgReader } = require("@kenjiuno/msgreader");
 const {
   getNextBackupPath,
   pruneManagedSqliteBackups
@@ -15,6 +12,12 @@ const {
   writeMirrorMeta
 } = require("./main/mirror-helpers");
 const { createSqlitePersistenceHelpers } = require("./main/sqlite-persistence-helpers");
+const {
+  buildOutlookDraftPowerShellScript,
+  runOutlookDraftVbs,
+  runOutlookScript
+} = require("./main/outlook-helpers");
+const { parseOutlookMsgBuffer } = require("./main/msg-parser-helpers");
 
 let lastBackupAt = 0;
 let dirtySinceLastBackup = false;
@@ -1628,46 +1631,6 @@ async function openAttachmentFolderPath(_event, filePath) {
   return { ok: true };
 }
 
-function psLiteral(value) {
-  return `'${String(value || "").replace(/'/g, "''")}'`;
-}
-
-async function runOutlookScript(label, script, timeoutMs = 15000) {
-  console.log(`[OutlookDraft] ${label}: inicio PowerShell`);
-  return new Promise(resolve => {
-    const encoded = Buffer.from(script, "utf16le").toString("base64");
-    const child = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded], { windowsHide: true });
-    let settled = false;
-    let stdout = "";
-    let stderr = "";
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      child.kill();
-      console.error(`[OutlookDraft] ${label}: timeout`);
-      resolve({ ok: false, code: "timeout", message: "Outlook no respondió al intentar crear el borrador." });
-    }, timeoutMs);
-    child.stdout.on("data", chunk => { stdout += String(chunk || ""); });
-    child.stderr.on("data", chunk => { stderr += String(chunk || ""); });
-    child.on("error", error => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      console.error(`[OutlookDraft] ${label}: spawn error`, error);
-      resolve({ ok: false, code: "spawn_error", message: error && error.message ? error.message : "No se pudo ejecutar PowerShell." });
-    });
-    child.on("close", code => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      console.log(`[OutlookDraft] ${label}: stdout`, stdout.trim());
-      console.log(`[OutlookDraft] ${label}: stderr`, stderr.trim());
-      console.log(`[OutlookDraft] ${label}: código de salida`, code);
-      resolve({ ok: code === 0, code, stdout, stderr });
-    });
-  });
-}
-
 async function createOutlookDraft(_event, payload = {}) {
   console.log("[OutlookDraft] Entrada handler IPC");
   console.log("[OutlookDraft] Payload recibido", {
@@ -1685,55 +1648,19 @@ async function createOutlookDraft(_event, payload = {}) {
     return { ok: false, code: "invalid_payload", message: "Faltan datos obligatorios para crear el borrador de Outlook." };
   }
 
-  const scriptReal = [
-    "$ErrorActionPreference = 'Stop'",
-    "$outlook = New-Object -ComObject Outlook.Application",
-    "$mail = $outlook.CreateItem(0)",
-    `$mail.To = ${psLiteral(to)}`,
-    `$mail.CC = ${psLiteral(cc)}`,
-    `$mail.Subject = ${psLiteral(subject)}`,
-    `$mail.HTMLBody = ${psLiteral(htmlBody)}`,
-    "$mail.Display()",
-    "Write-Output 'OK_DRAFT_DISPLAYED'"
-  ].join("\n");
+  const scriptReal = buildOutlookDraftPowerShellScript({ to, cc, subject, htmlBody });
 
   const realResult = await runOutlookScript("payload real", scriptReal);
   if (realResult.ok && String(realResult.stdout || "").includes("OK_DRAFT_DISPLAYED")) return { ok: true };
 
   console.warn("[OutlookDraft] PowerShell falló, intentando fallback VBS");
   try {
-    const tempVbs = path.join(os.tmpdir(), `rrll_outlook_${Date.now()}.vbs`);
-    const esc = value => String(value || "").replace(/"/g, '""');
-    const vbs = [
-      "Set OutlookApp = CreateObject(\"Outlook.Application\")",
-      "Set Mail = OutlookApp.CreateItem(0)",
-      `Mail.To = "${esc(to)}"`,
-      `Mail.Subject = "${esc(subject)}"`,
-      `Mail.HTMLBody = "${esc(htmlBody)}"`,
-      cc ? `Mail.CC = "${esc(cc)}"` : "",
-      "Mail.Display"
-    ].filter(Boolean).join("\r\n");
-    fs.writeFileSync(tempVbs, vbs, "utf8");
-
-    const vbsResult = await new Promise(resolve => {
-      const child = spawn("cscript.exe", ["//NoLogo", tempVbs], { windowsHide: true });
-      let stderr = "";
-      child.stderr.on("data", chunk => { stderr += String(chunk || ""); });
-      child.on("close", code => resolve({ code, stderr }));
-      child.on("error", error => resolve({ code: -1, stderr: error && error.message ? error.message : "error ejecutando VBS" }));
-    });
-    try { fs.unlinkSync(tempVbs); } catch {}
+    const vbsResult = await runOutlookDraftVbs({ to, cc, subject, htmlBody });
     if (vbsResult.code === 0) return { ok: true };
     return { ok: false, message: `Falló PowerShell y fallback VBS: ${String(vbsResult.stderr || "").trim() || `cscript código ${vbsResult.code}`}` };
   } catch (error) {
     return { ok: false, message: `Falló PowerShell y fallback VBS: ${error && error.message ? error.message : "error desconocido"}` };
   }
-}
-
-function readMsgTextPayload(buffer) {
-  const latin1 = Buffer.from(buffer).toString("latin1");
-  const utf16 = Buffer.from(buffer).toString("utf16le");
-  return `${latin1}\n${utf16}`.replace(/\0/g, " ");
 }
 
 async function parseOutlookMsgInMain(_event, payload) {
@@ -1744,32 +1671,7 @@ async function parseOutlookMsgInMain(_event, payload) {
     else if (payload && payload.type === "Buffer" && Array.isArray(payload.data)) buffer = Buffer.from(payload.data);
     if (!buffer || !buffer.length) return { ok: false, message: "Contenido .msg no válido." };
 
-    try {
-      const data = new MsgReader(new Uint8Array(buffer)).getFileData() || {};
-      return {
-        ok: true,
-        data: {
-          subject: String(data.subject || "").trim(),
-          body: String(data.body || "").trim(),
-          htmlBody: String(data.bodyHTML || data.html || "").trim(),
-          senderName: String(data.senderName || "").trim(),
-          senderEmail: String(data.senderEmail || "").trim(),
-          date: String(data.messageDeliveryTime || data.deliveryTime || data.creationTime || "").trim()
-        }
-      };
-    } catch (parseError) {
-      console.warn("Parser .msg avanzado falló, usando fallback básico:", parseError);
-      const text = readMsgTextPayload(buffer);
-      const subject = (text.match(/(?:subject|asunto)\s*[:=]\s*([^\r\n]{3,200})/i) || [])[1] || "";
-      const senderName = (text.match(/(?:from|de)\s*[:=]\s*([^\r\n<]{3,120})/i) || [])[1] || "";
-      const senderEmail = (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0] || "";
-      const date = (text.match(/(?:sent|fecha)\s*[:=]\s*([^\r\n]{4,80})/i) || [])[1] || "";
-      const body = text.slice(0, 10000);
-      return {
-        ok: !!(subject || body),
-        data: { subject: subject.trim(), body, htmlBody: "", senderName: senderName.trim(), senderEmail: senderEmail.trim(), date: String(date).trim() }
-      };
-    }
+    return parseOutlookMsgBuffer(buffer);
   } catch (error) {
     console.error("Error parseando .msg:", error);
     return { ok: false, message: "No se ha podido importar el mensaje .msg." };
