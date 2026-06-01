@@ -7,6 +7,15 @@
  * - No toca navegación, dashboard, SQLite, CSS ni renderizados.
  */
 (function () {
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
   function normalizePriority(value) {
     return ["normal", "high", "critical"].includes(value) ? value : "normal";
   }
@@ -155,6 +164,7 @@
     return new Date(value).toLocaleString("es-ES");
   }
 
+  window.escapeHtml = escapeHtml;
   window.normalizePriority = normalizePriority;
   window.priorityLabel = priorityLabel;
   window.priorityBadgeHtml = priorityBadgeHtml;
