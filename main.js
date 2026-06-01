@@ -240,7 +240,7 @@ function resolveDbAccessInfo() {
     }
     startupDbAlert = {
       title: "Base de datos de red no disponible",
-      message: "No se ha podido acceder a la base de datos compartida. La aplicación se ha abierto con los datos locales de este equipo. Cuando recuperes conexión, puedes reintentar desde Configuración.",
+      message: "No se ha podido acceder a la base de datos compartida. La aplicación se ha abierto con una copia local temporal. Los cambios podrían no sincronizarse automáticamente. Contacta con Sistemas o espera la recuperación antes de realizar cambios críticos. Cuando recuperes conexión, puedes reintentar desde Configuración.",
       configuredPath: config.sharedDbPath
     };
     const info = { mode: "shared", effectiveMode: "local", path: localPath, sharedDir, configuredSharedPath: config.sharedDbPath, user, localPath, fallbackLocal: true };
