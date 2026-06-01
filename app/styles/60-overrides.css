@@ -735,8 +735,8 @@ html[data-theme="dark"] small {
 /* Superficies de dashboard, módulos, formularios, listados y columnas */
 html[data-theme="light"] .phase4-metric-card,
 html[data-theme="dark"] .phase4-metric-card,
-html[data-theme="light"] .phase5-dashboard-card,
-html[data-theme="dark"] .phase5-dashboard-card,
+html[data-theme="light"] .rrll-dashboard-panel,
+html[data-theme="dark"] .rrll-dashboard-panel,
 html[data-theme="light"] .rrll-pro-module,
 html[data-theme="dark"] .rrll-pro-module,
 html[data-theme="light"] details.module-card,
@@ -1079,7 +1079,7 @@ html[data-theme="light"] .rrll-nav-button.open {
 }
 
 html[data-theme="light"] .phase4-metric-card,
-html[data-theme="light"] .phase5-dashboard-card,
+html[data-theme="light"] .rrll-dashboard-panel,
 html[data-theme="light"] .rrll-pro-module,
 html[data-theme="light"] details.module-card,
 html[data-theme="light"] .rrll-pro-task-shell,

@@ -109,7 +109,7 @@ function phase5SetMetricDonut(id, segments) {
   if (!total) {
     el.style.background = "conic-gradient(rgba(148,163,184,.22) 0 100%)";
     el.title = "Sin asuntos activos";
-    if (legend) legend.innerHTML = `<span class="phase5-empty-legend">Sin asuntos activos</span>`;
+    if (legend) legend.innerHTML = `<span class="rrll-empty-legend">Sin asuntos activos</span>`;
     return;
   }
 
@@ -126,7 +126,7 @@ function phase5SetMetricDonut(id, segments) {
 
   if (legend) {
     legend.innerHTML = normalized.filter(segment => segment.value > 0).map(segment => `
-      <span class="phase5-metric-legend-item">
+      <span class="rrll-metric-legend-item">
         <i style="background:${segment.color}"></i>
         <span>${escapeHtml(segment.label)}</span>
         <b>${segment.value}</b>
@@ -536,7 +536,7 @@ function phase5RenderCalendarLegend(events) {
   legend.innerHTML = order
     .filter(className => counts[className] > 0)
     .map(className => `<span><i class="${className}"></i> ${labels[className]} <b>${counts[className]}</b></span>`)
-    .join("") || `<span class="phase5-empty-legend">Sin eventos activos</span>`;
+    .join("") || `<span class="rrll-empty-legend">Sin eventos activos</span>`;
 }
 
 function phase5RenderCalendar(events) {
@@ -696,7 +696,7 @@ function renderHomeDashboard() {
     dueList.innerHTML = agendaItems.slice(0, 9).map(item => {
       const days = item.days;
       const level = days < 0 ? "danger" : days <= 2 ? "warning" : item.type;
-      return `<button type="button" class="phase4-list-row phase5-dashboard-row phase5-agenda-row ${level}" onclick="openPhase4DashboardTarget('${item.target}')"><span>${escapeHtml(item.module)}</span><b>${escapeHtml(item.title)}</b><small>${phase4DueLabel(item.date)}</small><em>${escapeHtml(phase4ShortDate(item.date))}</em></button>`;
+      return `<button type="button" class="phase4-list-row rrll-dashboard-row rrll-agenda-row ${level}" onclick="openPhase4DashboardTarget('${item.target}')"><span>${escapeHtml(item.module)}</span><b>${escapeHtml(item.title)}</b><small>${phase4DueLabel(item.date)}</small><em>${escapeHtml(phase4ShortDate(item.date))}</em></button>`;
     }).join("") || `<div class="phase4-empty">Sin asuntos activos con fecha.</div>`;
   }
 
@@ -709,7 +709,7 @@ function renderHomeDashboard() {
   if (alertsList) {
     alertsList.innerHTML = alerts.slice(0, 7).map(item => {
       const level = item.days < 0 ? "danger" : item.days <= 2 ? "warning" : "info";
-      return `<button type="button" class="phase4-list-row phase5-dashboard-row phase5-alert-row ${level}" onclick="openPhase4DashboardTarget('${item.target}')"><span>${escapeHtml(item.module)}</span><b>${escapeHtml(item.title)}</b><small>${phase4DueLabel(item.date)}</small><em>${escapeHtml(phase4ShortDate(item.date))}</em></button>`;
+      return `<button type="button" class="phase4-list-row rrll-dashboard-row rrll-alert-row ${level}" onclick="openPhase4DashboardTarget('${item.target}')"><span>${escapeHtml(item.module)}</span><b>${escapeHtml(item.title)}</b><small>${phase4DueLabel(item.date)}</small><em>${escapeHtml(phase4ShortDate(item.date))}</em></button>`;
     }).join("") || `<div class="phase4-empty">Sin alertas de asuntos activos.</div>`;
   }
 
@@ -725,7 +725,7 @@ function renderHomeDashboard() {
   recent.sort((a, b) => b.ts - a.ts);
   const recentList = document.getElementById("homeRecentList");
   if (recentList) {
-    recentList.innerHTML = recent.slice(0, 8).map(item => `<button type="button" class="phase4-list-row phase5-dashboard-row phase5-recent-row" onclick="openPhase4DashboardTarget('${item.target}')"><span>${escapeHtml(item.module)}</span><b>${escapeHtml(item.title)}</b><small>${item.date ? phase4FormatDate(item.date) : "Sin fecha"}</small><em>›</em></button>`).join("") || `<div class="phase4-empty">Sin actividad activa reciente.</div>`;
+    recentList.innerHTML = recent.slice(0, 8).map(item => `<button type="button" class="phase4-list-row rrll-dashboard-row rrll-recent-row" onclick="openPhase4DashboardTarget('${item.target}')"><span>${escapeHtml(item.module)}</span><b>${escapeHtml(item.title)}</b><small>${item.date ? phase4FormatDate(item.date) : "Sin fecha"}</small><em>›</em></button>`).join("") || `<div class="phase4-empty">Sin actividad activa reciente.</div>`;
   }
 }
 
