@@ -29,7 +29,6 @@
   .rrll-module-layout,
   .rrll-grid,
   .rrll-stack,
-  .phase4-content,
   .phase4-view,
   .module-view,
   .dashboard-grid,
@@ -47,7 +46,6 @@
   .rrll-main,
   .rrll-content,
   .rrll-module-layout,
-  .phase4-content,
   .phase4-view,
   .module-view
 ) {
@@ -102,11 +100,6 @@
   .rrll-header-title,
   .rrll-header-actions,
   .rrll-header-status,
-  .phase4-header,
-  .phase4-topbar,
-  .phase4-header-title,
-  .phase4-header-actions,
-  .phase4-header-status,
   .app-header,
   .header-actions,
   .quick-actions
@@ -118,8 +111,6 @@
 
 :where(
   .rrll-header,
-  .phase4-header,
-  .phase4-topbar,
   .app-header
 ) {
   background: var(--rrll-theme-bg-header);
@@ -130,8 +121,6 @@
 :where(
   .rrll-header-actions,
   .rrll-header-status,
-  .phase4-header-actions,
-  .phase4-header-status,
   .header-actions,
   .quick-actions
 ) {
@@ -141,8 +130,6 @@
 :where(
   .rrll-header-actions,
   .rrll-header-status,
-  .phase4-header-actions,
-  .phase4-header-status,
   .header-actions,
   .quick-actions
 ) {
@@ -152,8 +139,7 @@
 }
 
 :where(
-  .rrll-header-status,
-  .phase4-header-status
+  .rrll-header-status
 ) {
   color: var(--rrll-theme-text-secondary);
 }
