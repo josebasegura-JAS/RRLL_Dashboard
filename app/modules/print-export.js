@@ -3,17 +3,7 @@
  * Extraído en Fase 2 sin cambiar comportamiento funcional.
  */
 
-function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-
-    function htmlEscapeForPrint(value) { return String(value || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+function htmlEscapeForPrint(value) { return window.escapeHtml(value || ""); }
     function datePrint(value) { try { return value ? new Date(value).toLocaleDateString("es-ES") : ""; } catch { return ""; } }
 
     function getActiveModuleFilter(type) {
