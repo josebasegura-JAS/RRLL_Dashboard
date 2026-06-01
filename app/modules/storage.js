@@ -295,6 +295,7 @@ function getTodayKey() {
       if (save && save.status === "error") return "Error al guardar";
       if (mirror && mirror.mirrorError) return "Espejo local no actualizado";
       if (backup && backup.error) return "Error de backup";
+      if (backup && backup.warning) return "Backup local creado; copia de red pendiente";
       if (backup && backup.dirtySinceLastBackup) return "Cambios pendientes de backup";
       return "Guardado";
     }
@@ -304,7 +305,7 @@ function getTodayKey() {
       if (save && save.status === "error") return "error";
       if (save && save.status === "saving") return "saving";
       if (mirror && mirror.mirrorError) return "pending";
-      if (backup && backup.error) return "pending";
+      if (backup && (backup.error || backup.warning)) return "pending";
       if (backup && backup.dirtySinceLastBackup) return "pending";
       if (info && info.mode === "shared" && !info.fallbackLocal) return "saved";
       return "local";
@@ -342,7 +343,7 @@ function getTodayKey() {
 
       widget.title = save.status === "error" && save.error
         ? save.error
-        : (mirror && mirror.mirrorError ? mirror.mirrorError : (backup && backup.error ? backup.error : `${modeLabel} · ${statusLabel}`));
+        : (mirror && mirror.mirrorError ? mirror.mirrorError : (backup && (backup.error || backup.warning) ? (backup.error || `${backup.warning}${backup.networkError ? ` ${backup.networkError}` : ""}`) : `${modeLabel} · ${statusLabel}`));
 
       label.textContent = `${modeLabel} · ${statusLabel}`;
       if (connectionEl) connectionEl.textContent = "";
@@ -351,7 +352,7 @@ function getTodayKey() {
         : `Último guardado: ${formatSidebarTime(save.updatedAt)}`;
       if (backupEl) backupEl.textContent = backup && backup.error
         ? "Backup no creado"
-        : `Último backup: ${formatSidebarTime(backup.lastBackupAt || backup.createdAt)}`;
+        : (backup && backup.warning ? backup.warning : `Último backup: ${formatSidebarTime(backup.lastBackupAt || backup.createdAt)}`);
       if (mirrorEl) {
         if (mirror && mirror.mirrorError) {
           mirrorEl.textContent = "Espejo local no actualizado";

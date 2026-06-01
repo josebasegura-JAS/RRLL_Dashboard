@@ -889,25 +889,42 @@ async function createRobustBackup(reason, data, options = {}) {
 
       const localDir = ensureBackupsDir();
       const networkDir = getNetworkBackupsDir();
-      if (networkDir && !fs.existsSync(networkDir)) fs.mkdirSync(networkDir, { recursive: true });
-
       const localFile = getNextBackupPath(localDir);
       fs.copyFileSync(info.path, localFile);
 
       let networkFile = "";
+      let networkError = "";
+      let warning = "";
       if (networkDir) {
-        networkFile = getNextBackupPath(networkDir);
-        fs.copyFileSync(info.path, networkFile);
+        try {
+          if (!fs.existsSync(networkDir)) fs.mkdirSync(networkDir, { recursive: true });
+          networkFile = getNextBackupPath(networkDir);
+          fs.copyFileSync(info.path, networkFile);
+        } catch (error) {
+          networkFile = "";
+          networkError = error && error.message ? error.message : String(error);
+          warning = "Backup local creado; no se pudo copiar a red.";
+          console.warn(`[RRLL][DB] Backup local creado, pero no se pudo copiar a red (${reason}):`, networkError);
+        }
       }
 
       pruneManagedSqliteBackups(localDir, 30);
-      if (networkDir) pruneManagedSqliteBackups(networkDir, 50);
+      if (networkDir && !networkError) {
+        try {
+          pruneManagedSqliteBackups(networkDir, 50);
+        } catch (error) {
+          networkError = error && error.message ? error.message : String(error);
+          warning = "Backup local y réplica de red creados; no se pudo completar la limpieza de backups de red.";
+          console.warn(`[RRLL][DB] Backup local creado, pero no se pudo completar la gestión de backups de red (${reason}):`, networkError);
+        }
+      }
 
       lastBackupAt = Date.now();
       clearDatabaseDirty();
       const baseName = path.basename(localFile, ".db");
       lastBackupMeta = {
         ok: !suspicious,
+        partial: !!networkError,
         suspicious,
         createdAt: new Date(lastBackupAt).toISOString(),
         reason,
@@ -918,9 +935,11 @@ async function createRobustBackup(reason, data, options = {}) {
         dirtySinceLastBackup,
         lastBackupAt: new Date(lastBackupAt).toISOString(),
         localFile,
-        networkFile
+        networkFile,
+        warning,
+        networkError
       };
-      return { ok: true, suspicious, keyCount, fileBase: baseName, localFile, networkFile };
+      return { ok: true, partial: !!networkError, suspicious, keyCount, fileBase: baseName, localFile, networkFile, warning, networkError };
     });
   } catch (error) {
     console.error(`No se pudo crear backup (${reason}):`, error);

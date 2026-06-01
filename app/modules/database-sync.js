@@ -25,7 +25,9 @@
       const backup = await (window.rrllDB.getBackupStatus ? window.rrllDB.getBackupStatus() : null);
       const backupText = backup && backup.error
         ? `Error: ${backup.error}`
-        : (backup && (backup.lastBackupAt || backup.createdAt) ? `${new Date(backup.lastBackupAt || backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}${backup.dirtySinceLastBackup ? " · cambios pendientes" : ""}` : "No configurado");
+        : (backup && backup.warning
+          ? `${backup.warning}${backup.networkError ? ` Detalle: ${backup.networkError}` : ""}`
+          : (backup && (backup.lastBackupAt || backup.createdAt) ? `${new Date(backup.lastBackupAt || backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}${backup.dirtySinceLastBackup ? " · cambios pendientes" : ""}` : "No configurado"));
       phase4SetTexts(["configBackupStatusLabel"], backupText);
       const mirror = await (window.rrllDB.getMirrorStatus ? window.rrllDB.getMirrorStatus() : null);
       const mirrorDate = mirror && (mirror.lastMirrorAt || mirror.updatedAt) ? new Date(mirror.lastMirrorAt || mirror.updatedAt).toLocaleString("es-ES") : "";
@@ -483,6 +485,10 @@ Backup previo: ${result.backupPath}` : ""}`);
       const detail = result && (result.error || result.skipped) ? (result.error || result.skipped) : "motivo no disponible";
       console.warn("No se pudo crear el backup manual:", detail);
       alert(`No se pudo crear el backup: ${detail}`);
+      return;
+    }
+    if (result.warning) {
+      alert(`${result.warning}${result.networkError ? ` Detalle: ${result.networkError}` : ""}`);
       return;
     }
     alert("Backup creado correctamente.");
