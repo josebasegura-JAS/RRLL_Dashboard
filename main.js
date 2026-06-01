@@ -116,6 +116,22 @@ async function getLastSaveStatus() {
   return { ...lastSaveStatus };
 }
 
+function recordBackupFailure(reason, detail, skipped = "") {
+  const message = detail || skipped || "No se pudo crear el backup.";
+  console.warn(`[RRLL][DB] Backup no creado (${reason}):`, message);
+  lastBackupMeta = {
+    ok: false,
+    createdAt: new Date().toISOString(),
+    reason,
+    dbPath: resolveDbAccessInfo().path,
+    dirtySinceLastBackup,
+    lastBackupAt: lastBackupAt ? new Date(lastBackupAt).toISOString() : null,
+    error: message,
+    skipped
+  };
+  return { ok: false, error: message, ...(skipped ? { skipped } : {}) };
+}
+
 function getBackupStatus() {
   return {
     ...(lastBackupMeta || {
@@ -673,6 +689,7 @@ async function updateLocalMirror(reason = "manual") {
     if (!fs.existsSync(info.path)) throw new Error("La base compartida no existe o no está accesible.");
     if (hasDbWriteArtifacts(info.path)) {
       const error = new Error("Base compartida bloqueada o con escritura en curso; espejo omitido.");
+      console.warn("[RRLL][DB] Espejo local no actualizado:", error.message);
       setMirrorStatusFromMeta(readMirrorMeta(), { ok: false, mirrorOk: false, mirrorError: error.message, sourcePath: info.path, sourceMode: info.effectiveMode });
       return { ok: false, skipped: "db_write_in_progress", error: error.message, ...getMirrorStatus() };
     }
@@ -1045,7 +1062,7 @@ async function createRobustBackup(reason, data, options = {}) {
   const safe = isPlainObject(data) ? data : {};
   const info = resolveDbAccessInfo();
   const keyCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
-  if (!keyCount) return { ok: false, skipped: "empty" };
+  if (!keyCount) return recordBackupFailure(reason, "No hay datos RRLL para incluir en el backup.", "empty");
 
   const criticalCount = Object.keys(safe).filter(k => k.startsWith("rrll_")).length;
   const suspicious = criticalCount < 3;
@@ -1053,8 +1070,8 @@ async function createRobustBackup(reason, data, options = {}) {
   try {
     return await withFileLock(info.path, async () => {
       cleanupDbTempFiles(info.path);
-      if (listDbTempFiles(info.path).length) return { ok: false, skipped: "db_write_in_progress" };
-      if (!fs.existsSync(info.path)) return { ok: false, skipped: "missing_db" };
+      if (listDbTempFiles(info.path).length) return recordBackupFailure(reason, "La BBDD tiene una escritura en curso; backup omitido.", "db_write_in_progress");
+      if (!fs.existsSync(info.path)) return recordBackupFailure(reason, "La BBDD persistida no existe; backup omitido.", "missing_db");
       validatePersistedDb(info.path);
 
       const localDir = ensureBackupsDir();
@@ -2048,7 +2065,10 @@ app.whenReady().then(async () => {
   setMirrorStatusFromMeta(readMirrorMeta());
   const startupData = await loadAllData();
   try {
-    await createRobustBackup("app_start", startupData);
+    const startupBackup = await createRobustBackup("app_start", startupData);
+    if (!startupBackup || !startupBackup.ok) {
+      console.warn("[RRLL][DB] El backup inicial no se ha creado. La aplicación continuará:", startupBackup && (startupBackup.error || startupBackup.skipped) ? (startupBackup.error || startupBackup.skipped) : "motivo no disponible");
+    }
   } catch (error) {
     console.error("No se pudo crear backup al abrir:", error);
   }

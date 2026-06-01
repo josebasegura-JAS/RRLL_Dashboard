@@ -23,7 +23,9 @@
         phase4SetTexts(["dbPathLabel", "configDbPathLabel"], `${info.path} (red configurada: ${info.configuredSharedPath})`);
       }
       const backup = await (window.rrllDB.getBackupStatus ? window.rrllDB.getBackupStatus() : null);
-      const backupText = backup && (backup.lastBackupAt || backup.createdAt) ? `${new Date(backup.lastBackupAt || backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}${backup.dirtySinceLastBackup ? " · cambios pendientes" : ""}` : "No configurado";
+      const backupText = backup && backup.error
+        ? `Error: ${backup.error}`
+        : (backup && (backup.lastBackupAt || backup.createdAt) ? `${new Date(backup.lastBackupAt || backup.createdAt).toLocaleString("es-ES")}${backup.suspicious ? " (sospechoso)" : ""}${backup.dirtySinceLastBackup ? " · cambios pendientes" : ""}` : "No configurado");
       phase4SetTexts(["configBackupStatusLabel"], backupText);
       const mirror = await (window.rrllDB.getMirrorStatus ? window.rrllDB.getMirrorStatus() : null);
       const mirrorDate = mirror && (mirror.lastMirrorAt || mirror.updatedAt) ? new Date(mirror.lastMirrorAt || mirror.updatedAt).toLocaleString("es-ES") : "";
@@ -474,9 +476,15 @@ Backup previo: ${result.backupPath}` : ""}`);
   };
   window.createBackupNow = async function createBackupNow() {
     if (!window.rrllDB || typeof window.rrllDB.createBackup !== "function") return;
-    await window.rrllDB.createBackup({ reason: "manual_ui", data: window.rrllDatabaseCache || {} });
+    const result = await window.rrllDB.createBackup({ reason: "manual_ui", data: window.rrllDatabaseCache || {} });
     if (typeof window.refreshSidebarDatabaseStatus === "function") await window.refreshSidebarDatabaseStatus();
     await refreshDatabaseInfo();
+    if (!result || !result.ok) {
+      const detail = result && (result.error || result.skipped) ? (result.error || result.skipped) : "motivo no disponible";
+      console.warn("No se pudo crear el backup manual:", detail);
+      alert(`No se pudo crear el backup: ${detail}`);
+      return;
+    }
     alert("Backup creado correctamente.");
   };
   window.openBackupsFolder = async function openBackupsFolder() {

@@ -28,6 +28,7 @@ function getTodayKey() {
     };
     let rrllLastSyncOffline = false;
     let rrllPersistQueue = Promise.resolve();
+    let rrllPersistFailurePending = false;
     const RRLL_EDITING_LOCKS_KEY = "rrll_editing_locks";
     const RRLL_EDITING_LOCK_TTL_MS = 30 * 1000;
     const RRLL_EDITING_LOCK_HEARTBEAT_MS = 10 * 1000;
@@ -293,6 +294,7 @@ function getTodayKey() {
       if (save && save.status === "saving") return "Guardando...";
       if (save && save.status === "error") return "Error al guardar";
       if (mirror && mirror.mirrorError) return "Espejo local no actualizado";
+      if (backup && backup.error) return "Error de backup";
       if (backup && backup.dirtySinceLastBackup) return "Cambios pendientes de backup";
       return "Guardado";
     }
@@ -302,6 +304,7 @@ function getTodayKey() {
       if (save && save.status === "error") return "error";
       if (save && save.status === "saving") return "saving";
       if (mirror && mirror.mirrorError) return "pending";
+      if (backup && backup.error) return "pending";
       if (backup && backup.dirtySinceLastBackup) return "pending";
       if (info && info.mode === "shared" && !info.fallbackLocal) return "saved";
       return "local";
@@ -339,14 +342,16 @@ function getTodayKey() {
 
       widget.title = save.status === "error" && save.error
         ? save.error
-        : (mirror && mirror.mirrorError ? mirror.mirrorError : `${modeLabel} · ${statusLabel}`);
+        : (mirror && mirror.mirrorError ? mirror.mirrorError : (backup && backup.error ? backup.error : `${modeLabel} · ${statusLabel}`));
 
       label.textContent = `${modeLabel} · ${statusLabel}`;
       if (connectionEl) connectionEl.textContent = "";
       saveEl.textContent = save.status === "error" && save.error
         ? "Error al guardar"
         : `Último guardado: ${formatSidebarTime(save.updatedAt)}`;
-      if (backupEl) backupEl.textContent = `Último backup: ${formatSidebarTime(backup.lastBackupAt || backup.createdAt)}`;
+      if (backupEl) backupEl.textContent = backup && backup.error
+        ? "Backup no creado"
+        : `Último backup: ${formatSidebarTime(backup.lastBackupAt || backup.createdAt)}`;
       if (mirrorEl) {
         if (mirror && mirror.mirrorError) {
           mirrorEl.textContent = "Espejo local no actualizado";
@@ -389,9 +394,13 @@ function getTodayKey() {
       }, delay);
     }
 
-    function setSaveStatus(status, detail) {
+    function setSaveStatus(status, detail, options = {}) {
       const normalizedStatus = status === "offline" ? "error" : (status || "saved");
       const now = new Date().toISOString();
+      if (rrllPersistFailurePending && !options.recoverPersistFailure && !options.persistFailure) {
+        renderSidebarDatabaseStatus();
+        return;
+      }
       if (normalizedStatus === "saving") {
         rrllSidebarLastState.save = { status: "saving", updatedAt: rrllSidebarLastState.save?.updatedAt || null, error: "" };
       } else if (normalizedStatus === "error") {
@@ -410,14 +419,16 @@ function getTodayKey() {
     async function markSaveFinished() {
       const state = await updateSyncStatus("save");
       if (state && state.token) rrllLastKnownDbToken = state.token;
-      setSaveStatus("saved", `Último guardado: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`);
+      rrllPersistFailurePending = false;
+      setSaveStatus("saved", `Último guardado: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`, { recoverPersistFailure: true });
       scheduleSidebarStatusRefresh(0);
       clearTimeout(rrllSaveStatusTimer);
     }
 
     function markSaveError(error) {
       console.error("Error de guardado/sincronización:", error);
-      setSaveStatus("error", error && error.message ? error.message : "No se pudo guardar o sincronizar.");
+      setSaveStatus("error", error && error.message ? error.message : "No se pudo guardar o sincronizar.", { persistFailure: true });
+      rrllPersistFailurePending = true;
     }
 
     function enqueueDatabasePersist(operation) {
@@ -471,7 +482,8 @@ function save(key, value, { rejectOnError = false } = {}) {
   try {
     markSaveStarted();
     localStorage.setItem(key, JSON.stringify(value));
-    setSaveStatus("saved", `Guardado local: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`);
+    rrllPersistFailurePending = false;
+    setSaveStatus("saved", `Guardado local: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`, { recoverPersistFailure: true });
   } catch (error) {
     markSaveError(error);
     if (rejectOnError) return Promise.reject(error);
