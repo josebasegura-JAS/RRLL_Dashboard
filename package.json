@@ -18,6 +18,7 @@
     "files": [
       "package.json",
       "main.js",
+      "main/**/*",
       "preload.js",
       "app/**/*",
       "node_modules/**/*"
