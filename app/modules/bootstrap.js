@@ -196,4 +196,5 @@ window.closeConfigModal = closeConfigModal;
 window.openTrashModal = openTrashModal;
 window.closeTrashModal = closeTrashModal;
 
+window.renderAllDataViews = renderAllDataViews;
 window.rrllSafeCall = rrllSafeCall;
