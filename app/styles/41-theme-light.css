@@ -1374,64 +1374,64 @@ body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row b {
   line-height: 1.2 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-card {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-card {
   padding: 10px !important;
   border-radius: 14px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-head {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-head {
   gap: 8px !important;
   margin-bottom: 7px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-head strong {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-head strong {
   font-size: 12.5px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-head small {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-head small {
   font-size: 9.5px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-weekdays,
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-grid {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-weekdays,
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-grid {
   gap: 4px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-weekdays {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-weekdays {
   margin-bottom: 4px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-weekdays span {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-weekdays span {
   font-size: 9.5px !important;
   line-height: 1.1 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-day {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-day {
   height: 28px !important;
   padding: 2px !important;
   border-radius: 8px !important;
   grid-template-rows: 1fr 6px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-day b {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-day b {
   font-size: 10.5px !important;
   line-height: 1 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-day span {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-day span {
   gap: 2px !important;
   min-height: 4px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-day i,
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-legend i {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-day i,
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-legend i {
   width: 4.5px !important;
   height: 4.5px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-calendar-legend {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-legend {
   gap: 5px 8px !important;
   margin-top: 8px !important;
   font-size: 9.5px !important;
@@ -1749,7 +1749,7 @@ html[data-theme="light"] .sidebar-collapse-toggle:hover {
   background: rgba(226, 232, 240, .24) !important;
 }
 
-html[data-theme="light"] :is(.card, .dashboard-card, .widget-card, .panel-card, .module-card, details.module-card, .phase4-dashboard-card, .rrll-dashboard-panel, .rrll-pro-card, .rrll-pro-list-card, .rrll-pro-task-shell, .rrll-pro-list, .session-panel, .session-card, .licencias-column, .vinculograma-column, .column, .committee-main, .paritaria-main, .committee-subsection, .paritaria-subsection, .phase4-metric-card, .rrll-dashboard-metric-card, .quick-card, .phase5-calendar-card, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section) {
+html[data-theme="light"] :is(.card, .dashboard-card, .widget-card, .panel-card, .module-card, details.module-card, .phase4-dashboard-card, .rrll-dashboard-panel, .rrll-pro-card, .rrll-pro-list-card, .rrll-pro-task-shell, .rrll-pro-list, .session-panel, .session-card, .licencias-column, .vinculograma-column, .column, .committee-main, .paritaria-main, .committee-subsection, .paritaria-subsection, .phase4-metric-card, .rrll-dashboard-metric-card, .quick-card, .rrll-calendar-card, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section) {
   background: var(--surface) !important;
   color: var(--text-primary) !important;
   border: 1px solid var(--border-soft) !important;
@@ -1910,11 +1910,11 @@ html[data-theme="light"] :is(.rrll-due-pill.expired, .priority-critical, .priori
   color: #8f1d24 !important;
 }
 
-html[data-theme="light"] :is(.modal-backdrop, .rrll-modal-backdrop, .phase5-calendar-modal) {
+html[data-theme="light"] :is(.modal-backdrop, .rrll-modal-backdrop, .rrll-calendar-modal) {
   background: rgba(15, 23, 42, .38) !important;
 }
 
-html[data-theme="light"] :is(.modal-box, .modal-card, .rrll-pro-modal-box, .dialog-box, .popup-box, .config-modal-box, .config-modal-card, .print-preview-box, .existing-updates-box, .phase5-calendar-modal-panel) {
+html[data-theme="light"] :is(.modal-box, .modal-card, .rrll-pro-modal-box, .dialog-box, .popup-box, .config-modal-box, .config-modal-card, .print-preview-box, .existing-updates-box, .rrll-calendar-modal-panel) {
   background: var(--surface-elevated) !important;
   color: var(--text-primary) !important;
   border: 1px solid var(--border-soft) !important;
@@ -1933,13 +1933,13 @@ html[data-theme="light"] :is(.dropdown-menu, .select-menu, .context-menu, .toolt
   box-shadow: var(--rrll-shadow-panel) !important;
 }
 
-html[data-theme="light"] :is(.phase5-calendar-day, .ticket-day, .ticket-days-grid .ticket-day) {
+html[data-theme="light"] :is(.rrll-calendar-day, .ticket-day, .ticket-days-grid .ticket-day) {
   background: var(--rrll-light-input-bg) !important;
   border-color: var(--border-soft) !important;
   color: var(--text-secondary) !important;
 }
 
-html[data-theme="light"] :is(.phase5-calendar-day:hover, .ticket-day:hover, .ticket-days-grid .ticket-day:hover) {
+html[data-theme="light"] :is(.rrll-calendar-day:hover, .ticket-day:hover, .ticket-days-grid .ticket-day:hover) {
   background: var(--rrll-bg-table-hover-light) !important;
   border-color: var(--rrll-separator-light) !important;
 }
