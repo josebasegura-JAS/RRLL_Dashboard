@@ -1203,7 +1203,7 @@ body:is(.rrll-view-module, .phase4-view-module) .telework-form {
 
 .rrll-sidebar {
   background: linear-gradient(180deg, var(--rrll-sidebar-bg) 0%, var(--rrll-sidebar-bg-active) 100%) !important;
-  color: var(--phase4-sidebar-text) !important;
+  color: var(--rrll-sidebar-text) !important;
   box-shadow: 4px 0 18px rgba(0, 0, 0, 0.18);
 }
 
@@ -1215,7 +1215,7 @@ body:is(.rrll-view-module, .phase4-view-module) .telework-form {
 .phase4-sidebar-brand span,
 .phase4-sidebar-section,
 .phase4-sidebar-footer {
-  color: var(--phase4-sidebar-muted) !important;
+  color: var(--rrll-sidebar-muted) !important;
 }
 
 .phase4-nav-item,
@@ -1234,7 +1234,7 @@ body:is(.rrll-view-module, .phase4-view-module) .telework-form {
 
 .phase4-nav-item.active,
 .phase4-nav-subitem.active {
-  background: var(--phase4-sidebar-active-soft) !important;
+  background: var(--rrll-sidebar-active-soft) !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: inset 3px 0 0 #e30613 !important;
