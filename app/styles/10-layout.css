@@ -1201,7 +1201,7 @@ body.phase4-view-module .telework-form {
 /* Ajuste visual solicitado: sidebar gris oscuro coherente con la app */
 
 .phase4-sidebar {
-  background: linear-gradient(180deg, var(--phase4-sidebar-bg) 0%, var(--phase4-sidebar-bg-2) 100%) !important;
+  background: linear-gradient(180deg, var(--rrll-sidebar-bg) 0%, var(--rrll-sidebar-bg-active) 100%) !important;
   color: var(--phase4-sidebar-text) !important;
   box-shadow: 4px 0 18px rgba(0, 0, 0, 0.18);
 }
@@ -1226,7 +1226,7 @@ body.phase4-view-module .telework-form {
 .phase4-nav-item:hover,
 .phase4-nav-button:hover,
 .phase4-nav-subitem:hover {
-  background: var(--phase4-sidebar-hover) !important;
+  background: var(--rrll-sidebar-hover) !important;
   color: #ffffff !important;
   border-color: rgba(229, 231, 235, 0.10) !important;
 }
