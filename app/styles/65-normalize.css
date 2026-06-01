@@ -87,7 +87,7 @@ button,
   border-radius: var(--rrll-radius-md);
 }
 
-button:not(.phase4-metric-card):not(.phase5-metric-card):not(.quick-card) {
+button:not(.phase4-metric-card):not(.rrll-dashboard-metric-card):not(.quick-card) {
   min-height: var(--rrll-control-height-sm);
 }
 
@@ -187,18 +187,18 @@ small {
 
 /* Métricas y dashboard: mantener jerarquía, pero con escala controlada */
 .phase4-metric-card span:not(.phase4-metric-icon),
-.phase5-metric-card span:not(.phase4-metric-icon) {
+.rrll-dashboard-metric-card span:not(.phase4-metric-icon) {
   font-size: var(--rrll-font-md);
 }
 
 .phase4-metric-card strong,
-.phase5-metric-card strong {
+.rrll-dashboard-metric-card strong {
   font-size: var(--rrll-font-2xl);
   line-height: var(--rrll-line-tight);
 }
 
 .phase4-metric-card small,
-.phase5-metric-card small {
+.rrll-dashboard-metric-card small {
   font-size: var(--rrll-font-sm);
 }
 

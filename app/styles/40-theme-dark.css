@@ -691,7 +691,7 @@ html[data-theme="dark"] .phase4-home-dashboard .phase4-status-row small {
   font-size: 12px !important;
 }
 
-html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row.phase5-dashboard-row,
+html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row.rrll-dashboard-row,
 html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row {
   position: relative !important;
   display: grid !important;
@@ -707,7 +707,7 @@ html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row {
   box-shadow: none !important;
 }
 
-html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row.phase5-dashboard-row:hover,
+html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row.rrll-dashboard-row:hover,
 html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row:hover {
   background: rgba(52,59,70,.46) !important;
   border-color: rgba(148,163,184,.12) !important;

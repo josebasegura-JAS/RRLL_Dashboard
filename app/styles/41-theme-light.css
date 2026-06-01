@@ -1258,17 +1258,17 @@ body:is(.rrll-view-home, .phase4-view-home) .top-title p {
   line-height: 1.2 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard {
   gap: 12px !important;
   margin-bottom: 12px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-metric-grid {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-grid {
   gap: 10px !important;
   margin-bottom: 10px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-metric-card {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card {
   grid-template-columns: 34px minmax(0, 1fr) 38px !important;
   min-height: 112px !important;
   padding: 10px 11px !important;
@@ -1276,100 +1276,100 @@ body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-met
   box-shadow: 0 12px 26px rgba(17, 24, 39, .16) !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-metric-card .phase4-metric-icon {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card .phase4-metric-icon {
   width: 30px !important;
   height: 30px !important;
   border-radius: 9px !important;
   font-size: 16px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-metric-card span:not(.phase4-metric-icon) {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card span:not(.phase4-metric-icon) {
   font-size: 9.8px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-metric-card strong {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card strong {
   font-size: 21px !important;
   line-height: 1 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-metric-card small {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card small {
   font-size: 10.5px !important;
   line-height: 1.18 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-mini-donut {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-mini-donut {
   width: 34px !important;
   height: 34px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-mini-donut::after {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-mini-donut::after {
   inset: 8px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-metric-legend {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-metric-legend {
   gap: 4px 7px !important;
   margin-top: 7px !important;
   padding-top: 7px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-metric-legend-item,
-body:is(.rrll-view-home, .phase4-view-home) .phase5-metric-legend-item b,
-body:is(.rrll-view-home, .phase4-view-home) .phase5-empty-legend {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-metric-legend-item,
+body:is(.rrll-view-home, .phase4-view-home) .rrll-metric-legend-item b,
+body:is(.rrll-view-home, .phase4-view-home) .rrll-empty-legend {
   font-size: 9.5px !important;
   line-height: 1.05 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-dashboard-grid {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-grid-layout {
   gap: 12px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-dashboard-card {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-panel {
   padding: 13px !important;
   border-radius: 16px !important;
   box-shadow: 0 13px 28px rgba(17, 24, 39, .16), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-card-head {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-card-head {
   gap: 8px !important;
   margin-bottom: 8px !important;
   padding-bottom: 8px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-card-head h3 {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-card-head h3 {
   font-size: 14px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-card-head span {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-card-head span {
   font-size: 10.5px !important;
   line-height: 1.2 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-due-layout {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-due-layout {
   grid-template-columns: minmax(240px, 1fr) 242px !important;
   gap: 11px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-list {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list {
   max-height: 328px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row.rrll-dashboard-row {
   gap: 2px 8px !important;
   min-height: 44px !important;
   padding: 7px 6px !important;
   border-radius: 9px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-list-row span,
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-list-row small,
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-list-row em {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row span,
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row small,
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row em {
   font-size: 10.5px !important;
   line-height: 1.2 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase4-list-row b {
+body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row b {
   font-size: 11.5px !important;
   line-height: 1.2 !important;
 }
@@ -1448,11 +1448,11 @@ body:is(.rrll-view-home, .phase4-view-home) .dashboard-search-header {
 }
 
 @media (max-width: 1400px) {
-  body:is(.rrll-view-home, .phase4-view-home) .phase5-useful-dashboard .phase5-metric-grid {
+  body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-grid {
     grid-template-columns: repeat(3, minmax(160px, 1fr)) !important;
   }
 
-  body:is(.rrll-view-home, .phase4-view-home) .phase5-due-layout {
+  body:is(.rrll-view-home, .phase4-view-home) .rrll-due-layout {
     grid-template-columns: minmax(0, 1fr) 242px !important;
   }
 }
@@ -1462,7 +1462,7 @@ body:is(.rrll-view-home, .phase4-view-home) .dashboard-search-header {
     padding-inline: 14px !important;
   }
 
-  body:is(.rrll-view-home, .phase4-view-home) .phase5-due-layout {
+  body:is(.rrll-view-home, .phase4-view-home) .rrll-due-layout {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
@@ -1749,18 +1749,18 @@ html[data-theme="light"] .sidebar-collapse-toggle:hover {
   background: rgba(226, 232, 240, .24) !important;
 }
 
-html[data-theme="light"] :is(.card, .dashboard-card, .widget-card, .panel-card, .module-card, details.module-card, .phase4-dashboard-card, .phase5-dashboard-card, .rrll-pro-card, .rrll-pro-list-card, .rrll-pro-task-shell, .rrll-pro-list, .session-panel, .session-card, .licencias-column, .vinculograma-column, .column, .committee-main, .paritaria-main, .committee-subsection, .paritaria-subsection, .phase4-metric-card, .phase5-metric-card, .quick-card, .phase5-calendar-card, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section) {
+html[data-theme="light"] :is(.card, .dashboard-card, .widget-card, .panel-card, .module-card, details.module-card, .phase4-dashboard-card, .rrll-dashboard-panel, .rrll-pro-card, .rrll-pro-list-card, .rrll-pro-task-shell, .rrll-pro-list, .session-panel, .session-card, .licencias-column, .vinculograma-column, .column, .committee-main, .paritaria-main, .committee-subsection, .paritaria-subsection, .phase4-metric-card, .rrll-dashboard-metric-card, .quick-card, .phase5-calendar-card, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section) {
   background: var(--surface) !important;
   color: var(--text-primary) !important;
   border: 1px solid var(--border-soft) !important;
   box-shadow: var(--rrll-shadow-soft) !important;
 }
 
-html[data-theme="light"] :is(.card, .dashboard-card, .widget-card, .panel-card, .module-card, .phase4-dashboard-card, .phase5-dashboard-card, .rrll-pro-card, .rrll-pro-list-card, .phase4-metric-card, .phase5-metric-card, .quick-card) {
+html[data-theme="light"] :is(.card, .dashboard-card, .widget-card, .panel-card, .module-card, .phase4-dashboard-card, .rrll-dashboard-panel, .rrll-pro-card, .rrll-pro-list-card, .phase4-metric-card, .rrll-dashboard-metric-card, .quick-card) {
   transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease, transform .16s ease !important;
 }
 
-html[data-theme="light"] :is(.phase4-metric-card, .phase5-metric-card, .quick-card):hover {
+html[data-theme="light"] :is(.phase4-metric-card, .rrll-dashboard-metric-card, .quick-card):hover {
   border-color: var(--rrll-separator-light) !important;
   box-shadow: var(--rrll-shadow-panel) !important;
   transform: translateY(-1px);

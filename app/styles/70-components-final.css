@@ -71,7 +71,7 @@
   .widget-card,
   .metric-card,
   .phase4-dashboard-card,
-  .phase5-dashboard-card,
+  .rrll-dashboard-panel,
   .home-widget,
   .home-card
 ) {
@@ -248,7 +248,7 @@
 .panel-card,
 .module-card,
 .phase4-dashboard-card,
-.phase5-dashboard-card,
+.rrll-dashboard-panel,
 .session-card {
   background: var(--rrll-card-bg);
   border: 1px solid var(--rrll-card-border);
@@ -267,7 +267,7 @@
 .panel-card,
 .module-card,
 .phase4-dashboard-card,
-.phase5-dashboard-card,
+.rrll-dashboard-panel,
 .rrll-pro-list-card,
 .rrll-pro-task-shell,
 .session-panel,
@@ -289,7 +289,7 @@
 .panel-card,
 .module-card,
 .phase4-dashboard-card,
-.phase5-dashboard-card {
+.rrll-dashboard-panel {
   padding: var(--rrll-space-2xl) !important;
 }
 
@@ -2369,9 +2369,9 @@ html[data-theme="dark"] :is(
   .widget-card,
   .panel-card,
   .phase4-dashboard-card,
-  .phase5-dashboard-card,
+  .rrll-dashboard-panel,
   .phase4-metric-card,
-  .phase5-metric-card,
+  .rrll-dashboard-metric-card,
   .module-card,
   .rrll-pro-module,
   .rrll-pro-task-shell,
@@ -2780,9 +2780,9 @@ html[data-theme="light"] :is(
   .widget-card,
   .panel-card,
   .phase4-dashboard-card,
-  .phase5-dashboard-card,
+  .rrll-dashboard-panel,
   .phase4-metric-card,
-  .phase5-metric-card,
+  .rrll-dashboard-metric-card,
   .module-card,
   details.module-card,
   .rrll-pro-module,
@@ -3236,12 +3236,12 @@ body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-pro-task-head, .rrll-p
 }
 
 /* Cards, paneles y cuerpos: un solo ritmo de padding y borde. */
-:is(.rrll-card, .card, .dashboard-card, .widget-card, .panel-card, .module-card, .phase4-dashboard-card, .phase5-dashboard-card, .rrll-pro-list-card, .professional-panel, .session-panel, .data-panel, .card-panel, .workflow-column, .minutes-column, .telework-column, .session-column, .rrll-pro-vinc-column, .rrll-pro-license-column, .committee-main, .paritaria-main, .committee-subsection, .paritaria-subsection) {
+:is(.rrll-card, .card, .dashboard-card, .widget-card, .panel-card, .module-card, .phase4-dashboard-card, .rrll-dashboard-panel, .rrll-pro-list-card, .professional-panel, .session-panel, .data-panel, .card-panel, .workflow-column, .minutes-column, .telework-column, .session-column, .rrll-pro-vinc-column, .rrll-pro-license-column, .committee-main, .paritaria-main, .committee-subsection, .paritaria-subsection) {
   border-radius: var(--rrll-radius-lg) !important;
   box-sizing: border-box;
 }
 
-:is(.rrll-card, .card, .dashboard-card, .widget-card, .panel-card, .phase4-dashboard-card, .phase5-dashboard-card, .rrll-pro-list-card, .professional-panel, .session-panel, .data-panel, .card-panel) {
+:is(.rrll-card, .card, .dashboard-card, .widget-card, .panel-card, .phase4-dashboard-card, .rrll-dashboard-panel, .rrll-pro-list-card, .professional-panel, .session-panel, .data-panel, .card-panel) {
   padding: var(--rrll-visual-card-padding) !important;
 }
 

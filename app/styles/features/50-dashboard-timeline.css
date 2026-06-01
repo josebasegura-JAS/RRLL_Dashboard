@@ -164,13 +164,13 @@
 }
 
 /* Dashboard: contención de alertas y timeline sin scroll horizontal */
-.phase5-useful-dashboard,
-.phase5-useful-dashboard .phase5-dashboard-grid,
-.phase5-useful-dashboard .phase5-dashboard-card,
-.phase5-useful-dashboard .phase4-list,
-.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row,
-.phase5-useful-dashboard .phase5-alert-list,
-.phase5-useful-dashboard .phase5-alert-row,
+.rrll-dashboard,
+.rrll-dashboard .rrll-dashboard-grid-layout,
+.rrll-dashboard .rrll-dashboard-panel,
+.rrll-dashboard .phase4-list,
+.rrll-dashboard .phase4-list-row.rrll-dashboard-row,
+.rrll-dashboard .rrll-alert-list,
+.rrll-dashboard .rrll-alert-row,
 .dashboard-search-card,
 .dashboard-search-body,
 .dashboard-timeline-card,
@@ -183,8 +183,8 @@
   box-sizing: border-box !important;
 }
 
-.phase5-useful-dashboard .phase5-dashboard-card *,
-.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row *,
+.rrll-dashboard .rrll-dashboard-panel *,
+.rrll-dashboard .phase4-list-row.rrll-dashboard-row *,
 .dashboard-search-card *,
 .dashboard-timeline-card * {
   min-width: 0 !important;
@@ -192,38 +192,38 @@
   word-break: normal !important;
 }
 
-.phase5-useful-dashboard .phase5-dashboard-grid {
+.rrll-dashboard .rrll-dashboard-grid-layout {
   grid-template-columns: minmax(0, 1.45fr) minmax(0, .72fr) minmax(0, .83fr) !important;
 }
 
-.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+.rrll-dashboard .phase4-list-row.rrll-dashboard-row {
   grid-template-columns: minmax(0, 72px) minmax(0, 1fr) auto !important;
 }
 
-.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row b,
+.rrll-dashboard .phase4-list-row.rrll-dashboard-row b,
 .dashboard-timeline-content strong,
 .dashboard-timeline-content small {
   white-space: normal !important;
 }
 
-.phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row em {
+.rrll-dashboard .phase4-list-row.rrll-dashboard-row em {
   justify-self: end !important;
   white-space: nowrap !important;
 }
 
 @media (max-width: 1400px) {
-  .phase5-useful-dashboard .phase5-dashboard-grid {
+  .rrll-dashboard .rrll-dashboard-grid-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
 @media (max-width: 900px) {
-  .phase5-useful-dashboard .phase5-dashboard-grid,
-  .phase5-due-layout {
+  .rrll-dashboard .rrll-dashboard-grid-layout,
+  .rrll-due-layout {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .phase5-useful-dashboard .phase4-list-row.phase5-dashboard-row {
+  .rrll-dashboard .phase4-list-row.rrll-dashboard-row {
     grid-template-columns: minmax(0, 64px) minmax(0, 1fr) auto !important;
   }
 }
