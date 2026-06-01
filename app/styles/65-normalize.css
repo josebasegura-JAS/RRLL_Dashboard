@@ -80,7 +80,7 @@ button,
 .primary-btn,
 .secondary-btn,
 .danger-btn,
-.phase4-nav-button,
+.rrll-nav-button,
 .sync-now-button {
   font-size: var(--rrll-button-font);
   line-height: var(--rrll-line-tight);
@@ -92,13 +92,13 @@ button:not(.phase4-metric-card):not(.phase5-metric-card):not(.quick-card) {
 }
 
 /* Menú lateral */
-.phase4-nav-item,
-.phase4-nav-subitem,
-.phase4-nav-pill {
+.rrll-nav-item,
+.rrll-nav-subitem,
+.rrll-nav-pill {
   font-size: var(--rrll-sidebar-font);
 }
 
-.phase4-nav-pill,
+.rrll-nav-pill,
 .badge,
 .status-badge,
 .state-badge,

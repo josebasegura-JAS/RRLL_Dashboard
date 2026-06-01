@@ -30,7 +30,7 @@
   padding-top: 12px !important;
   background: linear-gradient(180deg, #242b36 0%, var(--rrll-bg-app-dark) 100%) !important;
 }
-.phase4-nav:first-of-type {
+.rrll-nav:first-of-type {
   margin-top: 0 !important;
 }
 
@@ -702,24 +702,24 @@ html[data-theme="dark"] .save-status-widget {
   border-color: var(--rrll-border) !important;
 }
 
-html[data-theme="light"] .phase4-nav-item,
-html[data-theme="dark"] .phase4-nav-item,
-html[data-theme="light"] .phase4-nav-subitem,
-html[data-theme="dark"] .phase4-nav-subitem {
+html[data-theme="light"] .rrll-nav-item,
+html[data-theme="dark"] .rrll-nav-item,
+html[data-theme="light"] .rrll-nav-subitem,
+html[data-theme="dark"] .rrll-nav-subitem {
   color: var(--rrll-text-soft) !important;
 }
 
-html[data-theme="light"] .phase4-nav-item:hover,
-html[data-theme="dark"] .phase4-nav-item:hover,
-html[data-theme="light"] .phase4-nav-subitem:hover,
-html[data-theme="dark"] .phase4-nav-subitem:hover {
+html[data-theme="light"] .rrll-nav-item:hover,
+html[data-theme="dark"] .rrll-nav-item:hover,
+html[data-theme="light"] .rrll-nav-subitem:hover,
+html[data-theme="dark"] .rrll-nav-subitem:hover {
   background: var(--rrll-surface-hover) !important;
 }
 
-html[data-theme="light"] .phase4-nav-item.active,
-html[data-theme="dark"] .phase4-nav-item.active,
-html[data-theme="light"] .phase4-nav-button.open,
-html[data-theme="dark"] .phase4-nav-button.open {
+html[data-theme="light"] .rrll-nav-item.active,
+html[data-theme="dark"] .rrll-nav-item.active,
+html[data-theme="light"] .rrll-nav-button.open,
+html[data-theme="dark"] .rrll-nav-button.open {
   background: linear-gradient(135deg, rgba(239, 68, 68, .18), rgba(185, 37, 27, .10)) !important;
   color: var(--rrll-text-main) !important;
   border-color: rgba(239, 68, 68, .42) !important;
@@ -1064,15 +1064,15 @@ html[data-theme="light"] .rrll-sidebar {
   backdrop-filter: blur(18px) saturate(1.05);
 }
 
-html[data-theme="light"] .phase4-nav-item,
-html[data-theme="light"] .phase4-nav-subitem {
+html[data-theme="light"] .rrll-nav-item,
+html[data-theme="light"] .rrll-nav-subitem {
   color: var(--rrll-text-soft) !important;
 }
 
-html[data-theme="light"] .phase4-nav-item:hover,
-html[data-theme="light"] .phase4-nav-subitem:hover,
-html[data-theme="light"] .phase4-nav-item.active,
-html[data-theme="light"] .phase4-nav-button.open {
+html[data-theme="light"] .rrll-nav-item:hover,
+html[data-theme="light"] .rrll-nav-subitem:hover,
+html[data-theme="light"] .rrll-nav-item.active,
+html[data-theme="light"] .rrll-nav-button.open {
   background: linear-gradient(135deg, rgba(245, 239, 223, .92), rgba(207, 220, 219, .9)) !important;
   color: var(--rrll-text-main-light) !important;
   border-color: rgba(167, 53, 53, .48) !important;
@@ -4717,8 +4717,8 @@ html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#ge
 }
 
 /* Sidebar submenu Comité/Paritaria en light: mantener superficie oscura de navegación. */
-html[data-theme="light"] .rrll-sidebar .phase4-nav-submenu,
-html[data-theme="light"] .sidebar .phase4-nav-submenu,
+html[data-theme="light"] .rrll-sidebar .rrll-nav-submenu,
+html[data-theme="light"] .sidebar .rrll-nav-submenu,
 html[data-theme="light"] .rrll-sidebar .nav-submenu,
 html[data-theme="light"] .sidebar .nav-submenu {
   background: #2d3645 !important;
@@ -4726,19 +4726,19 @@ html[data-theme="light"] .sidebar .nav-submenu {
   color: #e5e7eb !important;
 }
 
-html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-subitem, .nav-subitem),
-html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem) {
+html[data-theme="light"] .rrll-sidebar :is(.rrll-nav-subitem, .nav-subitem),
+html[data-theme="light"] .sidebar :is(.rrll-nav-subitem, .nav-subitem) {
   color: #e5e7eb !important;
 }
 
-html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-subitem, .nav-subitem):hover,
-html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem):hover {
+html[data-theme="light"] .rrll-sidebar :is(.rrll-nav-subitem, .nav-subitem):hover,
+html[data-theme="light"] .sidebar :is(.rrll-nav-subitem, .nav-subitem):hover {
   background: rgba(255, 255, 255, .08) !important;
   color: #ffffff !important;
 }
 
-html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-subitem, .nav-subitem).active,
-html[data-theme="light"] .sidebar :is(.phase4-nav-subitem, .nav-subitem).active {
+html[data-theme="light"] .rrll-sidebar :is(.rrll-nav-subitem, .nav-subitem).active,
+html[data-theme="light"] .sidebar :is(.rrll-nav-subitem, .nav-subitem).active {
   background: rgba(227, 6, 19, .18) !important;
   color: #ffffff !important;
 }

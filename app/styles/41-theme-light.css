@@ -1076,45 +1076,45 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
 .rrll-sidebar::-webkit-scrollbar-thumb:hover {
   background: rgba(203, 213, 225, .32) !important;
 }
-.phase4-nav {
+.rrll-nav {
   gap: 4px !important;
 }
-.phase4-nav-item,
-.phase4-nav-subitem,
-.phase4-nav-button {
+.rrll-nav-item,
+.rrll-nav-subitem,
+.rrll-nav-button {
   gap: 8px !important;
   min-width: 0 !important;
 }
-.phase4-nav-item {
+.rrll-nav-item {
   min-height: 33px !important;
   padding: 6px 9px !important;
   border-radius: 9px !important;
 }
-.phase4-nav-submenu {
+.rrll-nav-submenu {
   margin: -1px 0 4px 24px !important;
   padding-left: 8px !important;
 }
-.phase4-nav-submenu.open {
+.rrll-nav-submenu.open {
   gap: 3px !important;
 }
-.phase4-nav-subitem {
+.rrll-nav-subitem {
   min-height: 27px !important;
   padding: 5px 8px !important;
   border-radius: 8px !important;
 }
-.phase4-nav-secondary {
+.rrll-nav-secondary {
   display: grid !important;
   grid-template-columns: 34px 34px minmax(0, 1fr) !important;
   align-items: center !important;
   justify-content: start !important;
   gap: 6px !important;
 }
-.phase4-nav-folder-link {
+.rrll-nav-folder-link {
   grid-column: 1 / -1 !important;
   width: 100% !important;
 }
-.phase4-nav-trash-icon,
-.phase4-nav-settings-icon {
+.rrll-nav-trash-icon,
+.rrll-nav-settings-icon {
   width: 34px !important;
   min-width: 34px !important;
   height: 34px !important;
@@ -1125,10 +1125,10 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
   line-height: 1 !important;
   border-radius: 10px !important;
 }
-.phase4-nav-trash-icon {
+.rrll-nav-trash-icon {
   position: relative !important;
 }
-.phase4-nav-trash-icon .phase4-nav-pill {
+.rrll-nav-trash-icon .rrll-nav-pill {
   position: absolute !important;
   top: -5px !important;
   right: -6px !important;
@@ -1203,15 +1203,15 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
     padding-top: 10px !important;
     padding-bottom: 10px !important;
   }
-  .phase4-nav {
+  .rrll-nav {
     gap: 3px !important;
   }
-  .phase4-nav-item {
+  .rrll-nav-item {
     min-height: 31px !important;
     padding-top: 5px !important;
     padding-bottom: 5px !important;
   }
-  .phase4-nav-subitem {
+  .rrll-nav-subitem {
     min-height: 25px !important;
     padding-top: 4px !important;
     padding-bottom: 4px !important;
@@ -1675,26 +1675,26 @@ html[data-theme="light"] :is(.rrll-sidebar, .sidebar:not(.sidebar-left)) {
   box-shadow: 6px 0 24px rgba(15, 23, 42, .18) !important;
 }
 
-html[data-theme="light"] :is(.phase4-nav-item, .nav-item, .phase4-nav-subitem, .phase4-nav-button, .phase4-nav-chevron, .sidebar-folder-notice, .save-status-detail) {
+html[data-theme="light"] :is(.rrll-nav-item, .nav-item, .rrll-nav-subitem, .rrll-nav-button, .rrll-nav-chevron, .sidebar-folder-notice, .save-status-detail) {
   color: var(--rrll-sidebar-muted) !important;
 }
 
-html[data-theme="light"] :is(.phase4-nav-item span, .phase4-nav-subitem span, .phase4-nav-item, .phase4-nav-subitem) {
+html[data-theme="light"] :is(.rrll-nav-item span, .rrll-nav-subitem span, .rrll-nav-item, .rrll-nav-subitem) {
   color: var(--rrll-sidebar-text) !important;
 }
 
-html[data-theme="light"] :is(.phase4-nav-item, .nav-item, .phase4-nav-subitem, .phase4-nav-button) {
+html[data-theme="light"] :is(.rrll-nav-item, .nav-item, .rrll-nav-subitem, .rrll-nav-button) {
   border-radius: 10px !important;
   transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s ease !important;
 }
 
-html[data-theme="light"] :is(.phase4-nav-item:hover, .nav-item:hover, .phase4-nav-subitem:hover, .phase4-nav-button:hover) {
+html[data-theme="light"] :is(.rrll-nav-item:hover, .nav-item:hover, .rrll-nav-subitem:hover, .rrll-nav-button:hover) {
   background: var(--rrll-sidebar-hover) !important;
   color: var(--rrll-light-input-bg) !important;
   transform: translateX(1px);
 }
 
-html[data-theme="light"] :is(.phase4-nav-item.active, .nav-item.active, .phase4-nav-subitem.active, .phase4-nav-parent.active, .phase4-nav-item.is-active) {
+html[data-theme="light"] :is(.rrll-nav-item.active, .nav-item.active, .rrll-nav-subitem.active, .rrll-nav-parent.active, .rrll-nav-item.is-active) {
   background: linear-gradient(90deg, var(--rrll-sidebar-active) 0%, #b73a3a 100%) !important;
   color: var(--rrll-light-surface) !important;
   border-color: rgba(255, 255, 255, .12) !important;
@@ -1719,22 +1719,22 @@ html[data-theme="light"] .rrll-sidebar-sync .sync-now-button {
 }
 
 
-html[data-theme="light"] :is(.phase4-nav-item i, .phase4-nav-subitem i, .phase4-nav-item svg, .phase4-nav-subitem svg, .phase4-nav-chevron) {
+html[data-theme="light"] :is(.rrll-nav-item i, .rrll-nav-subitem i, .rrll-nav-item svg, .rrll-nav-subitem svg, .rrll-nav-chevron) {
   color: var(--rrll-sidebar-icon) !important;
   opacity: .98 !important;
 }
 
-html[data-theme="light"] :is(.phase4-nav-item:hover, .phase4-nav-subitem:hover, .phase4-nav-item.active, .phase4-nav-subitem.active) :is(i, svg, .phase4-nav-chevron) {
+html[data-theme="light"] :is(.rrll-nav-item:hover, .rrll-nav-subitem:hover, .rrll-nav-item.active, .rrll-nav-subitem.active) :is(i, svg, .rrll-nav-chevron) {
   color: var(--rrll-light-surface) !important;
 }
 
-html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-pill, .badge) {
+html[data-theme="light"] .rrll-sidebar :is(.rrll-nav-pill, .badge) {
   background: rgba(226, 232, 240, .18) !important;
   color: var(--rrll-sidebar-text) !important;
   border: 1px solid rgba(226, 232, 240, .26) !important;
 }
 
-html[data-theme="light"] .rrll-sidebar :is(.phase4-nav-item.active .phase4-nav-pill, .phase4-nav-subitem.active .phase4-nav-pill, .phase4-nav-item.active .badge, .phase4-nav-subitem.active .badge) {
+html[data-theme="light"] .rrll-sidebar :is(.rrll-nav-item.active .rrll-nav-pill, .rrll-nav-subitem.active .rrll-nav-pill, .rrll-nav-item.active .badge, .rrll-nav-subitem.active .badge) {
   background: rgba(255, 255, 255, .24) !important;
   color: var(--rrll-light-surface) !important;
 }
@@ -1879,7 +1879,7 @@ html[data-theme="light"] :is(.excel, button.excel, .rrll-pro-tool-button.excel) 
   color: #11623d !important;
 }
 
-html[data-theme="light"] :is(.badge, .rrll-badge, .status-badge, .state-badge, .tag, .chip, .pill, .summary-counts, .phase4-nav-pill, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
+html[data-theme="light"] :is(.badge, .rrll-badge, .status-badge, .state-badge, .tag, .chip, .pill, .summary-counts, .rrll-nav-pill, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
   background: #f3f6f9 !important;
   border: 1px solid var(--border-soft) !important;
   color: var(--text-secondary) !important;

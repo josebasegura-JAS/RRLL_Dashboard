@@ -14,7 +14,7 @@
   </script>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .phase4-nav-section-label { display: none; }
+    .rrll-nav-section-label { display: none; }
 
     .rrll-draws-table th,
     .rrll-draws-table td {
@@ -43,44 +43,44 @@
 <body class="rrll-view-home">
   <div class="rrll-shell">
     <aside class="rrll-sidebar" aria-label="Navegación principal">
-      <nav class="phase4-nav">
-        <a href="#" class="phase4-nav-item active" data-view="home">⌂ <span>Inicio</span></a>
-        <button type="button" class="phase4-nav-item phase4-nav-button sidebar-group-toggle" data-group-toggle="gestion-diaria" onclick="toggleSidebarGroup('gestion-diaria')"><span>▸</span> <span>Gestión diaria</span><strong class="phase4-nav-chevron">▾</strong></button>
+      <nav class="rrll-nav">
+        <a href="#" class="rrll-nav-item active" data-view="home">⌂ <span>Inicio</span></a>
+        <button type="button" class="rrll-nav-item rrll-nav-button sidebar-group-toggle" data-group-toggle="gestion-diaria" onclick="toggleSidebarGroup('gestion-diaria')"><span>▸</span> <span>Gestión diaria</span><strong class="rrll-nav-chevron">▾</strong></button>
         <div class="sidebar-group-items" id="sidebar-group-gestion-diaria">
-          <a href="#gestor-tareas" class="phase4-nav-item">✓ <span>Gestión de tareas</span></a>
-          <a href="#gestor-peticiones" class="phase4-nav-item">✉ <span>Peticiones</span></a>
-          <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="phase4-nav-chevron">▾</strong></button>
-          <div class="phase4-nav-submenu" id="phase4-submenu-comite">
-            <a href="#gestor-puntos-comite" class="phase4-nav-subitem">• <span>Puntos de Comité</span></a>
-            <a href="#gestor-sesiones-comite" class="phase4-nav-subitem">• <span>Sesiones de Comité</span></a>
+          <a href="#gestor-tareas" class="rrll-nav-item">✓ <span>Gestión de tareas</span></a>
+          <a href="#gestor-peticiones" class="rrll-nav-item">✉ <span>Peticiones</span></a>
+          <button type="button" class="rrll-nav-item rrll-nav-button rrll-nav-parent" data-menu="comite" onclick="togglePhase4SideSubmenu('comite')">👥 <span>Comité</span><strong class="rrll-nav-chevron">▾</strong></button>
+          <div class="rrll-nav-submenu" id="rrll-submenu-comite">
+            <a href="#gestor-puntos-comite" class="rrll-nav-subitem">• <span>Puntos de Comité</span></a>
+            <a href="#gestor-sesiones-comite" class="rrll-nav-subitem">• <span>Sesiones de Comité</span></a>
           </div>
-          <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-parent" data-menu="paritaria" onclick="togglePhase4SideSubmenu('paritaria')">⚖ <span>Paritaria</span><strong class="phase4-nav-chevron">▾</strong></button>
-          <div class="phase4-nav-submenu" id="phase4-submenu-paritaria">
-            <a href="#gestor-puntos-paritaria" class="phase4-nav-subitem">• <span>Puntos Paritaria</span></a>
-            <a href="#gestor-sesiones-paritaria" class="phase4-nav-subitem">• <span>Sesiones Paritaria</span></a>
+          <button type="button" class="rrll-nav-item rrll-nav-button rrll-nav-parent" data-menu="paritaria" onclick="togglePhase4SideSubmenu('paritaria')">⚖ <span>Paritaria</span><strong class="rrll-nav-chevron">▾</strong></button>
+          <div class="rrll-nav-submenu" id="rrll-submenu-paritaria">
+            <a href="#gestor-puntos-paritaria" class="rrll-nav-subitem">• <span>Puntos Paritaria</span></a>
+            <a href="#gestor-sesiones-paritaria" class="rrll-nav-subitem">• <span>Sesiones Paritaria</span></a>
           </div>
-          <a href="#gestor-actas" class="phase4-nav-item">▣ <span>Actas</span></a>
+          <a href="#gestor-actas" class="rrll-nav-item">▣ <span>Actas</span></a>
         </div>
-        <button type="button" class="phase4-nav-item phase4-nav-button sidebar-group-toggle" data-group-toggle="personas" onclick="toggleSidebarGroup('personas')"><span>▸</span> <span>Personas</span><strong class="phase4-nav-chevron">▾</strong></button>
+        <button type="button" class="rrll-nav-item rrll-nav-button sidebar-group-toggle" data-group-toggle="personas" onclick="toggleSidebarGroup('personas')"><span>▸</span> <span>Personas</span><strong class="rrll-nav-chevron">▾</strong></button>
         <div class="sidebar-group-items" id="sidebar-group-personas">
-          <a href="#gestor-teletrabajo" class="phase4-nav-item">▤ <span>Teletrabajo</span></a>
-          <a href="#gestor-plantilla" class="phase4-nav-item">▦ <span>Plantilla</span></a>
-          <a href="#gestor-vinculograma" class="phase4-nav-item">◇ <span>Vinculograma</span></a>
-          <a href="#gestor-licencias" class="phase4-nav-item">◷ <span>Licencias y excedencias</span></a>
+          <a href="#gestor-teletrabajo" class="rrll-nav-item">▤ <span>Teletrabajo</span></a>
+          <a href="#gestor-plantilla" class="rrll-nav-item">▦ <span>Plantilla</span></a>
+          <a href="#gestor-vinculograma" class="rrll-nav-item">◇ <span>Vinculograma</span></a>
+          <a href="#gestor-licencias" class="rrll-nav-item">◷ <span>Licencias y excedencias</span></a>
         </div>
-        <button type="button" class="phase4-nav-item phase4-nav-button sidebar-group-toggle" data-group-toggle="calculos" onclick="toggleSidebarGroup('calculos')"><span>▸</span> <span>Cálculos y herramientas</span><strong class="phase4-nav-chevron">▾</strong></button>
+        <button type="button" class="rrll-nav-item rrll-nav-button sidebar-group-toggle" data-group-toggle="calculos" onclick="toggleSidebarGroup('calculos')"><span>▸</span> <span>Cálculos y herramientas</span><strong class="rrll-nav-chevron">▾</strong></button>
         <div class="sidebar-group-items" id="sidebar-group-calculos">
-          <a href="#gestor-ticket-restaurante" class="phase4-nav-item">🍽 <span>Ticket Restaurante</span></a>
-          <a href="#gestor-sorteos" class="phase4-nav-item">🎲 <span>Sorteos</span></a>
-          <a href="#gestor-criterios" class="phase4-nav-item">✦ <span>Criterios RRLL</span></a>
-          <a href="#gestor-especiales" class="phase4-nav-item">✉ <span>Especiales</span></a>
-          <button type="button" class="phase4-nav-item phase4-nav-button" onclick="phase4ShowHome(); if (document.querySelector('.dashboard-search-collapsible')?.classList.contains('is-collapsed')) toggleDashboardSearch(); runDashboardSearch();">⌕ <span>Búsqueda</span></button>
+          <a href="#gestor-ticket-restaurante" class="rrll-nav-item">🍽 <span>Ticket Restaurante</span></a>
+          <a href="#gestor-sorteos" class="rrll-nav-item">🎲 <span>Sorteos</span></a>
+          <a href="#gestor-criterios" class="rrll-nav-item">✦ <span>Criterios RRLL</span></a>
+          <a href="#gestor-especiales" class="rrll-nav-item">✉ <span>Especiales</span></a>
+          <button type="button" class="rrll-nav-item rrll-nav-button" onclick="phase4ShowHome(); if (document.querySelector('.dashboard-search-collapsible')?.classList.contains('is-collapsed')) toggleDashboardSearch(); runDashboardSearch();">⌕ <span>Búsqueda</span></button>
         </div>
       </nav>
-      <nav class="phase4-nav phase4-nav-secondary" aria-label="Accesos rápidos">
-        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-folder-link" onclick="openRRLLFolderShortcut()" title="Abrir carpeta Relaciones Laborales">📁 <span>Relaciones Laborales</span></button>
-        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-trash-icon" onclick="openTrashModal()" title="Papelera" aria-label="Papelera">🗑 <span>Papelera</span> <small id="trash-count-modern" class="phase4-nav-pill">0</small></button>
-        <button type="button" class="phase4-nav-item phase4-nav-button phase4-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙ <span>Configuración</span></button>
+      <nav class="rrll-nav rrll-nav-secondary" aria-label="Accesos rápidos">
+        <button type="button" class="rrll-nav-item rrll-nav-button rrll-nav-folder-link" onclick="openRRLLFolderShortcut()" title="Abrir carpeta Relaciones Laborales">📁 <span>Relaciones Laborales</span></button>
+        <button type="button" class="rrll-nav-item rrll-nav-button rrll-nav-trash-icon" onclick="openTrashModal()" title="Papelera" aria-label="Papelera">🗑 <span>Papelera</span> <small id="trash-count-modern" class="rrll-nav-pill">0</small></button>
+        <button type="button" class="rrll-nav-item rrll-nav-button rrll-nav-settings-icon" onclick="openConfigModal()" title="Configuración" aria-label="Configuración">⚙ <span>Configuración</span></button>
       </nav>
       <div id="rrllFolderNotice" class="sidebar-folder-notice" aria-live="polite"></div>
       <div id="saveStatusWidget" class="save-status-widget synced rrll-sidebar-sync" aria-live="polite" title="Estado de la base de datos">

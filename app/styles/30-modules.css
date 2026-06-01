@@ -1327,9 +1327,9 @@ body:is(.rrll-view-home, .phase4-view-home) {
   box-shadow: 0 18px 42px rgba(3,7,18,.22) !important;
 }
 
-.phase4-nav-item,
-.phase4-nav-subitem,
-.phase4-nav-parent,
+.rrll-nav-item,
+.rrll-nav-subitem,
+.rrll-nav-parent,
 .launch-button,
 .toolbar-button,
 .icon-button,
@@ -1346,11 +1346,11 @@ button.ghost,
   border-color: rgba(148,163,184,.18) !important;
 }
 
-.phase4-nav-item:hover,
-.phase4-nav-subitem:hover,
-.phase4-nav-item.active,
-.phase4-nav-subitem.active,
-.phase4-nav-parent.open,
+.rrll-nav-item:hover,
+.rrll-nav-subitem:hover,
+.rrll-nav-item.active,
+.rrll-nav-subitem.active,
+.rrll-nav-parent.open,
 .tab-button.active,
 .list-filter-button.active {
   background: linear-gradient(90deg, rgba(239,68,68,.28), rgba(239,68,68,.10)) !important;
@@ -1927,8 +1927,8 @@ small,
   letter-spacing: .08em !important;
   font-weight: 800 !important;
 }
-.phase4-nav-item,
-.phase4-nav-subitem,
+.rrll-nav-item,
+.rrll-nav-subitem,
 .sidebar-left a,
 .sidebar-left button {
   min-height: 34px !important;

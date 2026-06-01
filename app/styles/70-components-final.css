@@ -152,9 +152,9 @@
 .rrll-sidebar-title,
 .rrll-sidebar-item,
 .rrll-sidebar-status,
-.phase4-nav,
-.phase4-nav-section,
-.phase4-nav-item {
+.rrll-nav,
+.rrll-nav-section,
+.rrll-nav-item {
   box-sizing: border-box;
   font-family: var(--rrll-font-family);
   font-size: var(--rrll-font-sm);
@@ -169,24 +169,24 @@
 
 .rrll-sidebar-section,
 .rrll-sidebar-title,
-.phase4-nav-section {
+.rrll-nav-section {
   color: var(--rrll-theme-text-secondary);
 }
 
 .rrll-sidebar-item,
-.phase4-nav-item {
+.rrll-nav-item {
   background: var(--rrll-theme-bg-panel);
   border: 1px solid var(--rrll-border);
   border-radius: var(--rrll-radius-md);
 }
 
 .rrll-sidebar-item:hover,
-.phase4-nav-item:hover {
+.rrll-nav-item:hover {
   background: var(--rrll-theme-bg-hover);
 }
 
 .rrll-sidebar-item.active,
-.phase4-nav-item.active {
+.rrll-nav-item.active {
   color: var(--rrll-theme-accent);
   border: 1px solid var(--rrll-theme-accent);
 }
@@ -1128,8 +1128,8 @@ table tr:last-child td {
 
 .rrll-pro-tabs button.active,
 .session-select-option.active,
-.phase4-nav-item.active,
-.phase4-nav-subitem.active {
+.rrll-nav-item.active,
+.rrll-nav-subitem.active {
   border-color: var(--rrll-component-red) !important;
 }
 
@@ -2355,7 +2355,7 @@ html[data-theme="dark"] .dashboard-layout {
 
 html[data-theme="dark"] .top-strip,
 html[data-theme="dark"] .rrll-sidebar,
-html[data-theme="dark"] .phase4-nav-submenu,
+html[data-theme="dark"] .rrll-nav-submenu,
 html[data-theme="dark"] .save-status-widget {
   background: linear-gradient(180deg, var(--rrll-surface-base), var(--rrll-bg-app)) !important;
   border-color: var(--rrll-border) !important;
@@ -2667,7 +2667,7 @@ html[data-theme="dark"] :is(button.black, .black, .small.black, button.secondary
   background: var(--rrll-surface-hover) !important;
 }
 
-html[data-theme="dark"] :is(.summary-counts, .phase4-nav-pill, .badge, .rrll-badge, .status-badge, .state-badge, .tag, .chip, .pill) {
+html[data-theme="dark"] :is(.summary-counts, .rrll-nav-pill, .badge, .rrll-badge, .status-badge, .state-badge, .tag, .chip, .pill) {
   background: rgba(52, 59, 70, .76) !important;
   border-color: rgba(148, 163, 184, .16) !important;
   color: rgba(226, 232, 240, .90) !important;
@@ -2752,22 +2752,22 @@ html[data-theme="light"] :is(body, body:is(.rrll-view-home, .phase4-view-home), 
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] :is(.top-strip, .rrll-sidebar, .phase4-nav-submenu, .save-status-widget) {
+html[data-theme="light"] :is(.top-strip, .rrll-sidebar, .rrll-nav-submenu, .save-status-widget) {
   background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(241, 245, 249, .94)) !important;
   border-color: var(--rrll-border) !important;
   box-shadow: var(--rrll-shadow-soft) !important;
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] :is(.top-strip .top-title p, .phase4-nav-item, .phase4-nav-subitem, .save-status-detail, .rrll-subtle, .rrll-muted, small) {
+html[data-theme="light"] :is(.top-strip .top-title p, .rrll-nav-item, .rrll-nav-subitem, .save-status-detail, .rrll-subtle, .rrll-muted, small) {
   color: var(--rrll-text-muted) !important;
 }
 
-html[data-theme="light"] :is(.top-strip h1, .brand-text, .phase4-nav-item.active, .phase4-nav-subitem.active, .phase4-nav-button.open) {
+html[data-theme="light"] :is(.top-strip h1, .brand-text, .rrll-nav-item.active, .rrll-nav-subitem.active, .rrll-nav-button.open) {
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] :is(.phase4-nav-item:hover, .phase4-nav-subitem:hover, .phase4-nav-item.active, .phase4-nav-subitem.active, .phase4-nav-button.open) {
+html[data-theme="light"] :is(.rrll-nav-item:hover, .rrll-nav-subitem:hover, .rrll-nav-item.active, .rrll-nav-subitem.active, .rrll-nav-button.open) {
   background: linear-gradient(135deg, #ffffff, #e9f1f5) !important;
   border-color: rgba(167, 53, 53, .34) !important;
   box-shadow: 0 8px 18px rgba(15, 23, 42, .08) !important;
@@ -2912,7 +2912,7 @@ html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.rr
 }
 
 html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(details.module-card, details.committee-main, details.paritaria-main, details.committee-subsection, details.paritaria-subsection) > summary .summary-counts,
-html[data-theme="light"] :is(.summary-counts, .phase4-nav-pill, .badge, .rrll-badge, .status-badge, .state-badge, .tag, .chip, .pill) {
+html[data-theme="light"] :is(.summary-counts, .rrll-nav-pill, .badge, .rrll-badge, .status-badge, .state-badge, .tag, .chip, .pill) {
   background: #edf4f7 !important;
   border-color: var(--rrll-border) !important;
   color: var(--rrll-text-soft) !important;
@@ -3340,7 +3340,7 @@ textarea,
   max-width: 100%;
 }
 
-:is(.rrll-pro-tabs button, .rrll-pro-tabs span, .session-select-option, .phase4-nav-pill) {
+:is(.rrll-pro-tabs button, .rrll-pro-tabs span, .session-select-option, .rrll-nav-pill) {
   min-height: var(--rrll-visual-control-height-sm) !important;
   padding: 5px 10px !important;
   font-size: var(--rrll-font-sm) !important;
@@ -3394,7 +3394,7 @@ textarea,
   line-height: var(--rrll-line-normal) !important;
 }
 
-:is(.rrll-status-pill, .rrll-due-pill, .priority-badge, .rrll-badge, .badge, .status-badge, .state-badge, .tag, .chip, .pill, .status-pending, .status-in-progress, .status-closed, .summary-counts, .phase4-nav-pill) {
+:is(.rrll-status-pill, .rrll-due-pill, .priority-badge, .rrll-badge, .badge, .status-badge, .state-badge, .tag, .chip, .pill, .status-pending, .status-in-progress, .status-closed, .summary-counts, .rrll-nav-pill) {
   min-height: 22px !important;
   padding: 3px 8px !important;
   border-radius: var(--rrll-radius-pill) !important;
