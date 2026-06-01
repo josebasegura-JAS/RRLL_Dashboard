@@ -31,8 +31,10 @@ function getTodayKey() {
     const RRLL_EDITING_LOCKS_KEY = "rrll_editing_locks";
     const RRLL_EDITING_LOCK_TTL_MS = 30 * 1000;
     const RRLL_EDITING_LOCK_HEARTBEAT_MS = 10 * 1000;
+    const RRLL_EDITING_LOCK_HEARTBEAT_FAILURE_LIMIT = 3;
     let rrllCurrentUserCache = null;
     const rrllEditingHeartbeatTimers = {};
+    const rrllEditingHeartbeatStates = {};
 
     async function getCurrentWindowsUser() {
       if (rrllCurrentUserCache) return rrllCurrentUserCache;
@@ -55,7 +57,17 @@ function getTodayKey() {
     }
 
     function setEditingLocks(next) {
-      return save(RRLL_EDITING_LOCKS_KEY, Array.isArray(next) ? next : []);
+      return save(RRLL_EDITING_LOCKS_KEY, Array.isArray(next) ? next : [], { rejectOnError: true });
+    }
+
+    async function reloadEditingLocksFromSource() {
+      if (window.rrllDB && typeof window.rrllDB.loadAll === "function") {
+        const source = await window.rrllDB.loadAll();
+        const locks = Array.isArray(source?.[RRLL_EDITING_LOCKS_KEY]) ? source[RRLL_EDITING_LOCKS_KEY] : [];
+        rrllDatabaseCache[RRLL_EDITING_LOCKS_KEY] = locks;
+        return locks;
+      }
+      return getEditingLocks();
     }
 
     function isExpiredLock(lock) {
@@ -73,7 +85,9 @@ function getTodayKey() {
         }
         return !expired;
       });
-      if (active.length !== locks.length) setEditingLocks(active);
+      if (active.length !== locks.length) {
+        setEditingLocks(active).catch(error => console.warn("No se pudieron persistir locks caducados:", error));
+      }
       return active;
     }
 
@@ -122,7 +136,15 @@ function getTodayKey() {
       if (!module || !id) return { allowed: true, lock: null };
 
       const currentUser = await getCurrentWindowsUser();
-      const locks = purgeExpiredEditingLocks();
+      let locks;
+      try {
+        await reloadEditingLocksFromSource();
+        locks = await purgeExpiredEditingLocksAsync();
+      } catch (error) {
+        const message = `No se pudo confirmar el lock de edición porque falló la lectura o persistencia: ${error?.message || error}`;
+        console.warn("[RRLL LOCK] adquisición cancelada durante la lectura o purga:", { module, recordId: id, error: error?.message || error });
+        return { allowed: false, lock: { message }, message };
+      }
       const existingIndex = locks.findIndex(lock => String(lock.module) === module && String(lock.recordId) === id);
       const existing = existingIndex >= 0 ? locks[existingIndex] : null;
 
@@ -146,9 +168,25 @@ function getTodayKey() {
       const nextLocks = existingIndex >= 0
         ? locks.map((lock, index) => (index === existingIndex ? nextLock : lock))
         : [...locks, nextLock];
-      setEditingLocks(nextLocks);
-      console.info("[RRLL LOCK] lock adquirido:", { module, recordId: id, editingBy: currentUser, expiresAt: nextLock.expiresAt });
-      return { allowed: true, lock: nextLock };
+      try {
+        await setEditingLocks(nextLocks);
+        const confirmedLocks = await reloadEditingLocksFromSource();
+        const confirmed = confirmedLocks.find(lock => String(lock.module) === module && String(lock.recordId) === id) || null;
+        if (confirmed && String(confirmed.editingBy || "").toLowerCase() === currentUser.toLowerCase()) {
+          console.info("[RRLL LOCK] lock adquirido y confirmado:", { module, recordId: id, editingBy: currentUser, expiresAt: confirmed.expiresAt });
+          return { allowed: true, lock: confirmed };
+        }
+
+        const message = confirmed
+          ? `No se pudo confirmar el lock de edición: otro usuario (${confirmed.editingBy || "desconocido"}) adquirió el registro antes de completar la confirmación.`
+          : "No se pudo confirmar el lock de edición después de persistirlo. La edición se ha bloqueado por seguridad.";
+        console.warn("[RRLL LOCK] adquisición no confirmada:", { module, recordId: id, requestedBy: currentUser, confirmedLock: confirmed });
+        return { allowed: false, lock: confirmed || { message }, message };
+      } catch (error) {
+        const message = `No se pudo persistir o confirmar el lock de edición: ${error?.message || error}`;
+        console.warn("[RRLL LOCK] adquisición cancelada por error de persistencia:", { module, recordId: id, error: error?.message || error });
+        return { allowed: false, lock: { message }, message };
+      }
     }
 
     async function renewEditingLock(moduleName, recordId) {
@@ -165,6 +203,25 @@ function getTodayKey() {
         clearInterval(rrllEditingHeartbeatTimers[key]);
         delete rrllEditingHeartbeatTimers[key];
       }
+      delete rrllEditingHeartbeatStates[key];
+    }
+
+    function registerEditingLockHeartbeatFailure(module, id, detail) {
+      const key = `${module}::${id}`;
+      const state = rrllEditingHeartbeatStates[key] || { confirmed: true, failures: 0, warned: false, message: "" };
+      state.failures += 1;
+      state.message = `No se ha podido renovar el lock de edición (${state.failures}/${RRLL_EDITING_LOCK_HEARTBEAT_FAILURE_LIMIT}). ${detail || ""}`.trim();
+      if (state.failures >= RRLL_EDITING_LOCK_HEARTBEAT_FAILURE_LIMIT) {
+        state.confirmed = false;
+        state.message = "El lock de edición ya no está confirmado porque su renovación ha fallado repetidamente. Guarda o copia tus cambios y vuelve a abrir el registro antes de continuar editando.";
+        if (!state.warned) {
+          state.warned = true;
+          alert(state.message);
+        }
+      }
+      rrllEditingHeartbeatStates[key] = state;
+      console.warn("[RRLL LOCK] fallo heartbeat (reintento automático):", { module, recordId: id, failures: state.failures, confirmed: state.confirmed, detail });
+      return state;
     }
 
     function startEditingLockHeartbeat(moduleName, recordId) {
@@ -172,18 +229,29 @@ function getTodayKey() {
       const id = String(recordId || "").trim();
       if (!module || !id) return;
       clearEditingLockHeartbeat(module, id);
-      rrllEditingHeartbeatTimers[`${module}::${id}`] = setInterval(async () => {
+      const key = `${module}::${id}`;
+      rrllEditingHeartbeatStates[key] = { confirmed: true, failures: 0, warned: false, message: "" };
+      rrllEditingHeartbeatTimers[key] = setInterval(async () => {
         try {
           const result = await renewEditingLock(module, id);
+          if (result?.allowed === false) {
+            registerEditingLockHeartbeatFailure(module, id, result.message || "La renovación no se pudo confirmar.");
+            return;
+          }
+          rrllEditingHeartbeatStates[key] = { confirmed: true, failures: 0, warned: false, message: "" };
           if (result?.lock?.expiresAt) console.info("[RRLL LOCK] lock renovado:", { module, recordId: id, expiresAt: result.lock.expiresAt });
         } catch (error) {
-          console.warn("[RRLL LOCK] fallo heartbeat (reintento automático):", { module, recordId: id, error: error?.message || error });
+          registerEditingLockHeartbeatFailure(module, id, error?.message || String(error));
         }
       }, RRLL_EDITING_LOCK_HEARTBEAT_MS);
     }
 
     function showEditingLockBlockedMessage(lock) {
       if (!lock) return;
+      if (lock.message) {
+        alert(lock.message);
+        return;
+      }
       const editingBy = lock.editingBy || "otro usuario";
       const editingDate = Date.parse(lock.editingAt || "");
       const editingAt = Number.isFinite(editingDate)
@@ -368,14 +436,17 @@ function getTodayKey() {
         });
     }
 
-    function persistDatabaseKey(key, value) {
+    function persistDatabaseKey(key, value, { rejectOnError = false } = {}) {
       if (!window.rrllDB || typeof window.rrllDB.saveKey !== "function") {
-        return persistDatabaseCache();
+        return persistDatabaseCache({ rejectOnError });
       }
       markSaveStarted();
       return enqueueDatabasePersist(() => window.rrllDB.saveKey(key, value))
         .then(markSaveFinished)
-        .catch(markSaveError);
+        .catch(error => {
+          markSaveError(error);
+          if (rejectOnError) throw error;
+        });
     }
 
     function load(key, fallback) {
@@ -391,10 +462,10 @@ function getTodayKey() {
       }
     }
 
-function save(key, value) {
+function save(key, value, { rejectOnError = false } = {}) {
   if (window.rrllDB) {
     rrllDatabaseCache[key] = value;
-    return persistDatabaseKey(key, value);
+    return persistDatabaseKey(key, value, { rejectOnError });
   }
 
   try {
@@ -403,6 +474,7 @@ function save(key, value) {
     setSaveStatus("saved", `Guardado local: ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`);
   } catch (error) {
     markSaveError(error);
+    if (rejectOnError) return Promise.reject(error);
   }
 
   return Promise.resolve();
@@ -501,6 +573,7 @@ function clearAllEditingLockHeartbeats() {
   Object.keys(rrllEditingHeartbeatTimers).forEach(key => {
     clearInterval(rrllEditingHeartbeatTimers[key]);
     delete rrllEditingHeartbeatTimers[key];
+    delete rrllEditingHeartbeatStates[key];
     console.info("[RRLL LOCK] heartbeat detenido:", { key });
   });
   console.info("[RRLL LOCK] todos los heartbeats detenidos");
@@ -545,6 +618,7 @@ window.getActiveEditingLock = getActiveEditingLock;
 window.clearEditingLock = clearEditingLock;
 window.clearEditingLocksForCurrentUser = clearEditingLocksForCurrentUser;
 window.clearAllEditingLockHeartbeats = clearAllEditingLockHeartbeats;
+window.getEditingLockHeartbeatState = (moduleName, recordId) => rrllEditingHeartbeatStates[`${String(moduleName || "").trim()}::${String(recordId || "").trim()}`] || null;
 
 window.addEventListener("beforeunload", () => {
   clearAllEditingLockHeartbeats();
