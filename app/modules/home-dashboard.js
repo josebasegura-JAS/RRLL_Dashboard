@@ -437,7 +437,7 @@ function phase5SetupCalendarClicks() {
   if (phase5CalendarClickReady) return;
   phase5CalendarClickReady = true;
   document.addEventListener("click", event => {
-    const dayButton = event.target && event.target.closest ? event.target.closest(".phase5-calendar-day[data-date]") : null;
+    const dayButton = event.target && event.target.closest ? event.target.closest(".rrll-calendar-day[data-date]") : null;
     if (dayButton) {
       event.preventDefault();
       phase5OpenCalendarDay(dayButton.dataset.date);
@@ -464,17 +464,17 @@ function phase5EnsureCalendarModal() {
   if (modal) return modal;
   modal = document.createElement("div");
   modal.id = "phase5CalendarDayModal";
-  modal.className = "phase5-calendar-modal";
+  modal.className = "rrll-calendar-modal";
   modal.innerHTML = `
-    <div class="phase5-calendar-modal-panel" role="dialog" aria-modal="true" aria-labelledby="phase5CalendarModalTitle">
-      <div class="phase5-calendar-modal-head">
+    <div class="rrll-calendar-modal-panel" role="dialog" aria-modal="true" aria-labelledby="phase5CalendarModalTitle">
+      <div class="rrll-calendar-modal-head">
         <div>
           <strong id="phase5CalendarModalTitle">Agenda del día</strong>
           <small id="phase5CalendarModalDate"></small>
         </div>
         <button type="button" data-calendar-modal-close aria-label="Cerrar">×</button>
       </div>
-      <div class="phase5-calendar-modal-list" id="phase5CalendarModalList"></div>
+      <div class="rrll-calendar-modal-list" id="phase5CalendarModalList"></div>
     </div>`;
   document.body.appendChild(modal);
   return modal;
@@ -503,7 +503,7 @@ function phase5OpenCalendarDay(dateKey) {
       const label = phase5CalendarTypeLabel(event);
       const due = phase4DueLabel(event.date);
       const target = event.target ? ` data-calendar-target="${escapeHtml(event.target)}"` : "";
-      return `<button type="button" class="phase5-calendar-modal-item ${typeClass}"${target}>
+      return `<button type="button" class="rrll-calendar-modal-item ${typeClass}"${target}>
         <span><i></i>${escapeHtml(label)}</span>
         <strong>${escapeHtml(event.title || "Sin título")}</strong>
         <small>${escapeHtml(event.module || "")} · ${escapeHtml(due)}</small>
@@ -519,7 +519,7 @@ function phase5CloseCalendarDay() {
 }
 
 function phase5RenderCalendarLegend(events) {
-  const legend = document.querySelector(".phase5-calendar-legend");
+  const legend = document.querySelector(".rrll-calendar-legend");
   if (!legend) return;
   const labels = {
     "cal-due": "Vencimiento activo",
@@ -581,10 +581,10 @@ function phase5RenderCalendar(events) {
   phase5RenderCalendarLegend(events);
 
   grid.innerHTML = cells.map(cell => {
-    if (cell.empty) return `<span class="phase5-calendar-day empty"></span>`;
+    if (cell.empty) return `<span class="rrll-calendar-day empty"></span>`;
     const key = phase5CalendarKey(cell.date);
     const dayEvents = byDay.get(key) || [];
-    const classes = ["phase5-calendar-day"];
+    const classes = ["rrll-calendar-day"];
     if (key === phase5CalendarKey(today)) classes.push("today");
     if (dayEvents.length) classes.push("has-event");
     const dots = dayEvents.slice(0, 4).map(event => `<i class="${phase5EventClass(event.type, event.date)}"></i>`).join("");
