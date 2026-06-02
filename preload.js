@@ -1,8 +1,12 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+function ticketRestaurantPerfDebugEnabled() {
+  try { return window.localStorage && window.localStorage.getItem("rrll_ticket_restaurant_perf_debug") === "1"; } catch { return false; }
+}
+
 contextBridge.exposeInMainWorld("rrllDB", {
-  loadAll: () => ipcRenderer.invoke("db:loadAll"),
-  loadTicketCalendars: () => ipcRenderer.invoke("db:loadTicketCalendars"),
+  loadAll: () => ipcRenderer.invoke("db:loadAll", { perfDebug: ticketRestaurantPerfDebugEnabled() }),
+  loadTicketCalendars: () => ipcRenderer.invoke("db:loadTicketCalendars", { perfDebug: ticketRestaurantPerfDebugEnabled() }),
   saveTicketCalendar: payload => ipcRenderer.invoke("db:saveTicketCalendar", payload),
   saveAll: data => ipcRenderer.invoke("db:saveAll", data),
   saveKey: (key, value) => ipcRenderer.invoke("db:saveKey", key, value),

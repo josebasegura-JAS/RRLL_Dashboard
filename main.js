@@ -32,6 +32,7 @@ let mirrorDirty = false;
 let mirrorUpdateInProgress = false;
 let sqlReadyPromise = null;
 let SQLRef = null;
+let rrllMainPerfDebugEnabled = process.env.RRLL_TICKET_RESTAURANT_PERF_DEBUG === "1";
 const {
   cleanupDbTempFiles,
   ensureParentDir,
@@ -41,9 +42,21 @@ const {
   getDbTempPrefix,
   hasDbWriteArtifacts,
   listDbTempFiles,
-  persistDb,
+  persistDb: persistDbRaw,
   validatePersistedDb
 } = createSqlitePersistenceHelpers({ getSQLRef: () => SQLRef });
+
+function rrllMainPerfStart(label, enabled = rrllMainPerfDebugEnabled) {
+  if (!enabled) return null;
+  const startedAt = Date.now();
+  return () => console.log(`[RRLL perf] main ${label}: ${Date.now() - startedAt} ms`);
+}
+
+function persistDb(db, dbPath, options = {}) {
+  const finish = rrllMainPerfStart("persistDb", options.perfDebug);
+  try { return persistDbRaw(db, dbPath); } finally { if (finish) finish(); }
+}
+
 let lastBackupMeta = null;
 let lastSaveStatus = { status: "saved", updatedAt: null, error: "" };
 let lastMirrorMeta = null;
@@ -313,7 +326,8 @@ function readLegacyJsonDatabase() {
   }
 }
 
-async function openDatabase(dbPath) {
+async function openDatabase(dbPath, { initializeTicketCalendars = true, perfDebug = false } = {}) {
+  const finish = rrllMainPerfStart("openDatabase", perfDebug || rrllMainPerfDebugEnabled);
   const SQL = await getSQL();
   ensureParentDir(dbPath);
   const exists = fs.existsSync(dbPath);
@@ -383,13 +397,14 @@ async function openDatabase(dbPath) {
 
   try { db.run("ALTER TABLE kv_store ADD COLUMN updated_by TEXT"); } catch {}
 
-  initializeTicketCalendarPersistence(db, dbPath);
+  if (initializeTicketCalendars) initializeTicketCalendarPersistence(db, dbPath);
 
   const versionRow = db.exec("SELECT value FROM meta WHERE key = 'schema_version'");
   if (!versionRow.length) {
     db.run("INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', '2')");
   }
 
+  if (finish) finish();
   return { db, existed: exists };
 }
 
@@ -685,7 +700,8 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function withFileLock(dbPath, operation) {
+async function withFileLock(dbPath, operation, { perfDebug = false } = {}) {
+  const finish = rrllMainPerfStart("withFileLock", perfDebug || rrllMainPerfDebugEnabled);
   const lockPath = `${dbPath}.lock`;
   ensureParentDir(lockPath);
   const maxAttempts = 40;
@@ -703,6 +719,7 @@ async function withFileLock(dbPath, operation) {
       const result = await operation();
       try { fs.closeSync(fd); } catch {}
       try { fs.unlinkSync(lockPath); } catch {}
+      if (finish) finish();
       return result;
     } catch (error) {
       if (fd !== null) {
@@ -801,10 +818,11 @@ async function getDbState() {
   });
 }
 
-async function loadAllData() {
+async function loadAllData({ perfDebug = false } = {}) {
+  if (perfDebug) rrllMainPerfDebugEnabled = true;
   const info = resolveDbAccessInfo();
   return withFileLock(info.path, async () => {
-    const { db, existed } = await openDatabase(info.path);
+    const { db, existed } = await openDatabase(info.path, { perfDebug });
     try {
       if (!existed && info.effectiveMode === "local") {
         const legacy = readLegacyJsonDatabase();
@@ -837,7 +855,7 @@ async function loadAllData() {
     } finally {
       try { db.close(); } catch {}
     }
-  });
+  }, { perfDebug });
 }
 
 function createTicketCalendarFallbackModel(error) {
@@ -848,11 +866,13 @@ function createTicketCalendarFallbackModel(error) {
   }).readTicketCalendarModel();
 }
 
-async function loadTicketCalendarModel() {
+async function loadTicketCalendarModel({ perfDebug = false } = {}) {
+  if (perfDebug) rrllMainPerfDebugEnabled = true;
+  const finish = rrllMainPerfStart("loadTicketCalendarModel", perfDebug || rrllMainPerfDebugEnabled);
   try {
     const info = resolveDbAccessInfo();
     return await withFileLock(info.path, async () => {
-      const { db } = await openDatabase(info.path);
+      const { db } = await openDatabase(info.path, { initializeTicketCalendars: false, perfDebug });
       try {
         return createTicketCalendarAdapter({
           repository: createTicketCalendarRepository({ db }),
@@ -861,10 +881,10 @@ async function loadTicketCalendarModel() {
       } finally {
         try { db.close(); } catch {}
       }
-    });
+    }, { perfDebug });
   } catch (error) {
     return createTicketCalendarFallbackModel(error);
-  }
+  } finally { if (finish) finish(); }
 }
 
 async function saveTicketCalendar(payload = {}) {
@@ -1779,8 +1799,8 @@ async function parseOutlookMsgInMain(_event, payload) {
     return { ok: false, message: "No se ha podido importar el mensaje .msg." };
   }
 }
-ipcMain.handle("db:loadAll", async () => loadAllData());
-ipcMain.handle("db:loadTicketCalendars", async () => loadTicketCalendarModel());
+ipcMain.handle("db:loadAll", async (_event, options) => loadAllData(options));
+ipcMain.handle("db:loadTicketCalendars", async (_event, options) => loadTicketCalendarModel(options));
 ipcMain.handle("db:saveTicketCalendar", async (_event, payload) => saveTicketCalendar(payload));
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));

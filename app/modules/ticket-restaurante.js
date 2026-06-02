@@ -3,16 +3,62 @@ const RRLL_TICKET_CALENDAR_DOMAIN = typeof window !== "undefined" && window.Tick
   : null;
 const TICKET_RESTAURANT_FALLBACK_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela", "Liberados"];
 let ticketRestaurantCalendarOptions = null;
+let rrllTicketCalendarModelCache = null;
+let rrllTicketCalendarModelLoadedAt = 0;
+let rrllTicketCalendarModelLoadingPromise = null;
+let ticketRestaurantComputeContext = null;
+
+function rrllTicketRestaurantPerfEnabled() {
+  try { return window.localStorage && window.localStorage.getItem("rrll_ticket_restaurant_perf_debug") === "1"; } catch { return false; }
+}
+
+function rrllTicketRestaurantPerfCall(label, fn) {
+  const finish = rrllTicketRestaurantPerfStart(label);
+  try { return fn(); } finally { if (finish) finish(); }
+}
+
+function rrllTicketRestaurantPerfStart(label) {
+  if (!rrllTicketRestaurantPerfEnabled()) return null;
+  const startedAt = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+  return () => console.log(`[RRLL perf] ${label}: ${((typeof performance !== "undefined" && performance.now ? performance.now() : Date.now()) - startedAt).toFixed(1)} ms`);
+}
+
+async function loadTicketCalendarModelCached({ force = false } = {}) {
+  const finish = rrllTicketRestaurantPerfStart("window.rrllDB.loadTicketCalendars");
+  try {
+    if (rrllTicketCalendarModelLoadingPromise) return await rrllTicketCalendarModelLoadingPromise;
+    if (!force && rrllTicketCalendarModelCache) return rrllTicketCalendarModelCache;
+    if (!window.rrllDB || typeof window.rrllDB.loadTicketCalendars !== "function") return null;
+    rrllTicketCalendarModelLoadingPromise = Promise.resolve(window.rrllDB.loadTicketCalendars())
+      .then(model => {
+        rrllTicketCalendarModelCache = model || null;
+        rrllTicketCalendarModelLoadedAt = Date.now();
+        return rrllTicketCalendarModelCache;
+      })
+      .catch(error => {
+        console.warn("No se pudieron cargar calendarios Ticket Restaurante desde SQLite; se usa el fallback base.", error);
+        return null;
+      })
+      .finally(() => { rrllTicketCalendarModelLoadingPromise = null; });
+    return await rrllTicketCalendarModelLoadingPromise;
+  } finally { if (finish) finish(); }
+}
+
+function invalidateTicketCalendarModelCache() {
+  rrllTicketCalendarModelCache = null;
+  rrllTicketCalendarModelLoadedAt = 0;
+}
 let ticketRestaurantSelectedCalendar = "Servicios Centrales";
 const TICKET_RESTAURANT_CALENDARS = RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars === "function"
   ? RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars().map(calendar => calendar.name)
   : [...TICKET_RESTAURANT_FALLBACK_CALENDARS];
 
-async function hydrateTicketRestaurantCalendars() {
+async function hydrateTicketRestaurantCalendars({ force = false } = {}) {
+  const finish = rrllTicketRestaurantPerfStart("hydrateTicketRestaurantCalendars");
   ticketRestaurantCalendarOptions = null;
-  if (!RRLL_TICKET_CALENDAR_DOMAIN || !window.rrllDB || typeof window.rrllDB.loadTicketCalendars !== "function") return;
+  if (!RRLL_TICKET_CALENDAR_DOMAIN || !window.rrllDB || typeof window.rrllDB.loadTicketCalendars !== "function") { if (finish) finish(); return; }
   try {
-    const model = await window.rrllDB.loadTicketCalendars();
+    const model = await loadTicketCalendarModelCached({ force });
     if (!model || model.source !== "sqlite" || !model.options) return;
     const calendars = RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars(model.options).map(calendar => calendar.name);
     if (!calendars.length) return;
@@ -21,7 +67,7 @@ async function hydrateTicketRestaurantCalendars() {
     if (!TICKET_RESTAURANT_CALENDARS.includes(ticketRestaurantSelectedCalendar)) ticketRestaurantSelectedCalendar = TICKET_RESTAURANT_CALENDARS[0];
   } catch (error) {
     console.warn("No se pudieron cargar calendarios Ticket Restaurante desde SQLite; se usa el fallback base.", error);
-  }
+  } finally { if (finish) finish(); }
 }
 const TICKET_RESTAURANT_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const TICKET_RESTAURANT_PERSON_HEADERS = ["Nº empleado", "Nombre", "Apellido1", "Apellido2", "DNI", "Puesto", "Calendario"];
@@ -364,8 +410,20 @@ function getTicketRestaurantPendingDiscountLedger() {
   return stored && typeof stored === "object" ? stored : {};
 }
 
+function stableTicketRestaurantLedgerSerialization(value) {
+  if (Array.isArray(value)) return `[${value.map(stableTicketRestaurantLedgerSerialization).join(",")}]`;
+  if (value && typeof value === "object") return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableTicketRestaurantLedgerSerialization(value[key])}`).join(",")}}`;
+  return JSON.stringify(value);
+}
+
 function saveTicketRestaurantPendingDiscountLedger(ledger) {
-  save("rrll_ticket_restaurant_pending_discounts", ledger && typeof ledger === "object" ? ledger : {});
+  const finish = rrllTicketRestaurantPerfStart("saveTicketRestaurantPendingDiscountLedger");
+  try {
+    const nextLedger = ledger && typeof ledger === "object" ? ledger : {};
+    if (stableTicketRestaurantLedgerSerialization(getTicketRestaurantPendingDiscountLedger()) === stableTicketRestaurantLedgerSerialization(nextLedger)) return false;
+    save("rrll_ticket_restaurant_pending_discounts", nextLedger);
+    return true;
+  } finally { if (finish) finish(); }
 }
 
 function buildTicketRestaurantPendingDiscountIdentity(row) {
@@ -437,9 +495,8 @@ function ticketRestaurantDateGeneratesDiscountForPerson(employee, date = "") {
   return true;
 }
 
-function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
-  const absences = getTicketRestaurantAbsences();
-  const people = getTicketRestaurantPeople();
+function buildTicketRestaurantPendingDiscountLedgerFromAbsences({ absences = getTicketRestaurantAbsences(), people = getTicketRestaurantPeople(), previousLedger = getTicketRestaurantPendingDiscountLedger() } = {}) {
+  const finish = rrllTicketRestaurantPerfStart("buildTicketRestaurantPendingDiscountLedgerFromAbsences");
   const peopleByEmployee = new Map();
   const peopleByName = new Map();
   people.forEach(person => {
@@ -449,7 +506,6 @@ function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
     if (nameKey && !peopleByName.has(nameKey)) peopleByName.set(nameKey, person);
   });
 
-  const previousLedger = getTicketRestaurantPendingDiscountLedger();
   const ledger = {};
 
   absences.forEach(absence => {
@@ -486,8 +542,17 @@ function ensureTicketRestaurantPendingDiscountLedgerFromAbsences() {
     entry.pendingDebt = computedDebt;
   });
 
-  saveTicketRestaurantPendingDiscountLedger(ledger);
+  if (finish) finish();
   return ledger;
+}
+
+function ensureTicketRestaurantPendingDiscountLedgerFromAbsences({ persist = true, absences, people, previousLedger } = {}) {
+  const finish = rrllTicketRestaurantPerfStart("ensureTicketRestaurantPendingDiscountLedgerFromAbsences");
+  try {
+    const ledger = buildTicketRestaurantPendingDiscountLedgerFromAbsences({ absences, people, previousLedger });
+    if (persist) saveTicketRestaurantPendingDiscountLedger(ledger);
+    return ledger;
+  } finally { if (finish) finish(); }
 }
 
 function registerTicketRestaurantPendingDiscounts(absenceRows) {
@@ -801,14 +866,16 @@ function showTicketRestaurantArea(area) {
 }
 
 function renderTicketRestaurant() {
+  const finish = rrllTicketRestaurantPerfStart("renderTicketRestaurant");
   renderTicketRestaurantCalendarSelector();
-  renderTicketRestaurantCalendar();
-  renderTicketRestaurantPeople();
-  renderTicketRestaurantAbsences();
-  renderTicketRestaurantComputeControls();
+  rrllTicketRestaurantPerfCall("renderTicketRestaurantCalendar", () => renderTicketRestaurantCalendar());
+  rrllTicketRestaurantPerfCall("renderTicketRestaurantPeople", () => renderTicketRestaurantPeople());
+  rrllTicketRestaurantPerfCall("renderTicketRestaurantAbsences", () => renderTicketRestaurantAbsences());
+  if (ticketRestaurantActiveArea === "compute") renderTicketRestaurantComputeControls();
   renderTicketRestaurantConfig();
   if (typeof renderTicketCalendarManagement === "function") renderTicketCalendarManagement();
   if (ticketRestaurantActiveArea === "monthly") renderTicketRestaurantMonthlyQuotePreview();
+  if (finish) finish();
 }
 
 function renderTicketRestaurantCalendarSelector() {
@@ -1803,6 +1870,7 @@ function renderTicketComputeMonthSelector() {
 }
 
 function renderTicketRestaurantComputeControls() {
+  const finish = rrllTicketRestaurantPerfStart("renderTicketRestaurantComputeControls");
   const month = document.getElementById("ticketRestaurantComputeMonth");
   const year = document.getElementById("ticketRestaurantComputeYear");
   const visible = getTicketComputeVisibleMonth();
@@ -1821,7 +1889,8 @@ function renderTicketRestaurantComputeControls() {
     if (field) field.style.display = "none";
   }
   renderTicketComputeMonthSelector();
-  renderTicketRestaurantComputePreview();
+  if (ticketRestaurantActiveArea === "compute") renderTicketRestaurantComputePreview();
+  if (finish) finish();
 }
 
 function getTicketRestaurantComputeSelection() {
@@ -1932,13 +2001,17 @@ function resolveEffectiveTicketAbsenceDays(absences) {
 function getEffectiveEmployeeAbsencesForMonth(employeeNumber, month, absences = null) {
   const key = normalizeTicketEmployeeLookup(employeeNumber);
   if (!key) return [];
-  return resolveEffectiveTicketAbsenceDays(absences || getTicketRestaurantAbsences())
-    .filter(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === key)
+  const effectiveDays = ticketRestaurantComputeContext && absences === ticketRestaurantComputeContext.absences
+    ? (ticketRestaurantComputeContext.absenceDaysByEmployee.get(key) || [])
+    : resolveEffectiveTicketAbsenceDays(absences || getTicketRestaurantAbsences())
+      .filter(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === key);
+  return effectiveDays
     .filter(item => !month || ticketRestaurantDateIsInVisibleMonth(item.date, month));
 }
 
 function ticketRestaurantGetCalendarMarkSet(calendar) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
+  if (ticketRestaurantComputeContext && ticketRestaurantComputeContext.calendarMarkSetsByCalendar.has(normalizedCalendar)) return ticketRestaurantComputeContext.calendarMarkSetsByCalendar.get(normalizedCalendar);
   return new Set(getTicketRestaurantCalendarMarks()
     .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
     .map(item => parseTicketDate(item.date))
@@ -1948,6 +2021,7 @@ function ticketRestaurantGetCalendarMarkSet(calendar) {
 function findTicketRestaurantPersonByEmployee(employeeNumber) {
   const key = normalizeTicketEmployeeLookup(employeeNumber);
   if (!key) return null;
+  if (ticketRestaurantComputeContext) return ticketRestaurantComputeContext.peopleByEmployee.get(key) || null;
   return getTicketRestaurantPeople().find(item => normalizeTicketEmployeeLookup(item && item.employeeNumber) === key) || null;
 }
 
@@ -2004,16 +2078,20 @@ function formatTicketRestaurantAbsenceImpactDetail(detail) {
   return `${reason} ${from}-${to} (${detail.naturalDays} días ausencia; ${impact}${noImpact})`;
 }
 
+function getTicketRestaurantCalendarMarksForCompute() {
+  return ticketRestaurantComputeContext ? ticketRestaurantComputeContext.calendarMarks : getTicketRestaurantCalendarMarks();
+}
+
 function ticketRestaurantWorkingDays(month, year, calendar) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
   if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
   if (RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.countTicketDaysForCalendar === "function") {
-    const calendarMarks = getTicketRestaurantCalendarMarks()
+    const calendarMarks = getTicketRestaurantCalendarMarksForCompute()
       .map(item => ({ ...item, date: parseTicketDate(item && item.date) }))
       .filter(item => item.date);
     return RRLL_TICKET_CALENDAR_DOMAIN.countTicketDaysForCalendar({ calendarName: normalizedCalendar, month, year, calendarMarks, ...ticketRestaurantCalendarOptions });
   }
-  const marks = new Set(getTicketRestaurantCalendarMarks()
+  const marks = new Set(getTicketRestaurantCalendarMarksForCompute()
     .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
     .map(item => parseTicketDate(item.date))
     .filter(Boolean));
@@ -2035,12 +2113,12 @@ function ticketRestaurantNoTicketWeekdays(month, year, calendar) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
   if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
   if (RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.countNoTicketWeekdaysForCalendar === "function") {
-    const calendarMarks = getTicketRestaurantCalendarMarks()
+    const calendarMarks = getTicketRestaurantCalendarMarksForCompute()
       .map(item => ({ ...item, date: parseTicketDate(item && item.date) }))
       .filter(item => item.date);
     return RRLL_TICKET_CALENDAR_DOMAIN.countNoTicketWeekdaysForCalendar({ calendarName: normalizedCalendar, month, year, calendarMarks, ...ticketRestaurantCalendarOptions });
   }
-  const marks = new Set(getTicketRestaurantCalendarMarks()
+  const marks = new Set(getTicketRestaurantCalendarMarksForCompute()
     .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
     .map(item => parseTicketDate(item.date))
     .filter(Boolean));
@@ -2056,13 +2134,27 @@ function ticketRestaurantNoTicketWeekdays(month, year, calendar) {
 }
 
 function calculateTicketRestaurantCompute(period = null) {
+  const finish = rrllTicketRestaurantPerfStart("calculateTicketRestaurantCompute");
+  const people = getTicketRestaurantPeople();
+  const absences = getTicketRestaurantAbsences();
+  const calendarMarks = getTicketRestaurantCalendarMarks();
+  const previousLedger = getTicketRestaurantPendingDiscountLedger();
+  const peopleByEmployee = new Map(people.map(person => [normalizeTicketEmployeeLookup(person && person.employeeNumber), person]).filter(([key]) => key));
+  const normalizedCalendarByPerson = new Map(people.map(person => [person, normalizeTicketCalendar(person && person.calendar)]));
+  const calendarMarkSetsByCalendar = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [normalizeTicketCalendar(calendar), new Set(calendarMarks.filter(item => item && item.noTicket && normalizeTicketCalendar(item.calendar) === normalizeTicketCalendar(calendar)).map(item => parseTicketDate(item.date)).filter(Boolean))]));
+  const absenceDaysByEmployee = new Map();
+  resolveEffectiveTicketAbsenceDays(absences).forEach(item => {
+    const key = normalizeTicketEmployeeLookup(item && item.employeeNumber);
+    if (!absenceDaysByEmployee.has(key)) absenceDaysByEmployee.set(key, []);
+    absenceDaysByEmployee.get(key).push(item);
+  });
+  ticketRestaurantComputeContext = { people, absences, calendarMarks, peopleByEmployee, normalizedCalendarByPerson, calendarMarkSetsByCalendar, absenceDaysByEmployee };
   const { month, year } = period ? normalizeTicketMonth(period) : getTicketRestaurantComputeSelection();
   const visibleMonth = { month, year };
   const calendarTheoretical = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
   const calendarNoTicketWeekdays = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantNoTicketWeekdays(month, year, calendar)]));
-  const absences = getTicketRestaurantAbsences();
   const warnings = [];
-  const pendingLedger = ensureTicketRestaurantPendingDiscountLedgerFromAbsences();
+  const pendingLedger = ensureTicketRestaurantPendingDiscountLedgerFromAbsences({ persist: false, absences, people, previousLedger });
   const targetMonth = { month, year };
   const targetMonthKey = ticketMonthKey(targetMonth);
   const targetMonthStart = `${targetMonthKey}-01`;
@@ -2075,8 +2167,8 @@ function calculateTicketRestaurantCompute(period = null) {
     console.log("Total ausencias guardadas:", absences.length);
     console.log("Total entradas ledger:", totalLedgerEntries);
   }
-  const rows = getTicketRestaurantPeople().map(person => {
-    const normalizedCalendar = normalizeTicketCalendar(person.calendar);
+  const rows = people.map(person => {
+    const normalizedCalendar = ticketRestaurantComputeContext.normalizedCalendarByPerson.get(person);
     const hasCalendar = isKnownTicketCalendar(normalizedCalendar);
     const employeeLabel = person.employeeNumber || "sin nº";
     if (!hasCalendar) warnings.push(`Empleado sin calendario asignado: ${employeeLabel}.`);
@@ -2174,7 +2266,6 @@ function calculateTicketRestaurantCompute(period = null) {
       calendarWarning: !hasCalendar
     };
   });
-  saveTicketRestaurantPendingDiscountLedger(pendingLedger);
   if (debugEnabled) {
     debugRows.forEach(item => console.log("Persona:", item));
     console.groupEnd();
@@ -2191,6 +2282,8 @@ function calculateTicketRestaurantCompute(period = null) {
       final: calendarRows.reduce((sum, row) => sum + row.finalTickets, 0)
     };
   });
+  ticketRestaurantComputeContext = null;
+  if (finish) finish();
   return { month, year, rows, summary, warnings };
 }
 
@@ -2285,11 +2378,13 @@ function openTicketRestaurantAbsenceImpactDetail(employeeNumber, source = "compu
 }
 
 function renderTicketRestaurantComputePreview() {
+  const finish = rrllTicketRestaurantPerfStart("renderTicketRestaurantComputePreview");
+  if (ticketRestaurantActiveArea !== "compute") { if (finish) finish(); return; }
   const periodEl = document.getElementById("ticketRestaurantComputePeriod");
   const summaryEl = document.getElementById("ticketRestaurantComputeSummary");
   const noticeEl = document.getElementById("ticketRestaurantComputeNotice");
   const body = document.getElementById("ticketRestaurantComputeBody");
-  if (!summaryEl || !body) return;
+  if (!summaryEl || !body) { if (finish) finish(); return; }
   renderTicketComputeMonthSelector();
   const calc = calculateTicketRestaurantCompute();
   ticketRestaurantLastVisibleCompute = calc;
@@ -2309,6 +2404,7 @@ function renderTicketRestaurantComputePreview() {
     <td>${escapeHtml(row.person.employeeNumber)}</td><td>${escapeHtml(ticketRestaurantFullName(row.person))}</td><td>${escapeHtml(row.person.calendar)}${row.calendarWarning ? " · revisar" : ""}</td><td>${row.theoretical}</td><td>${row.absenceDays}</td><td><strong>${row.finalTickets}</strong></td>
   </tr>`).join("") : `<tr><td colspan="6" class="muted">No hay personas con derecho que coincidan con los filtros.</td></tr>`;
   if (ticketRestaurantActiveArea === "monthly") renderTicketRestaurantMonthlyQuotePreview();
+  if (finish) finish();
 }
 
 function saveTicketRestaurantConfigFromInputs() {
@@ -2471,3 +2567,6 @@ window.saveTicketRestaurantConfigFromInputs = saveTicketRestaurantConfigFromInpu
 window.renderTicketRestaurant = renderTicketRestaurant;
 window.getTicketRestaurantConfig = getTicketRestaurantConfig;
 window.calculateTicketRestaurantCompute = calculateTicketRestaurantCompute;
+
+window.loadTicketCalendarModelCached = loadTicketCalendarModelCached;
+window.invalidateTicketCalendarModelCache = invalidateTicketCalendarModelCache;

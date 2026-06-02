@@ -117,6 +117,27 @@ assert.equal(fallback.countNoTicketWeekdays(6, 2026, "Servicios Centrales"), 1);
   assert.equal(hydrated.isKnown("sabado"), true);
   assert.equal(hydrated.countDays(6, 2026, "sabado"), 3);
   assert.equal(hydrated.countNoTicketWeekdays(6, 2026, "sabado"), 1);
+
+  let cachedLoads = 0;
+  const cachedModel = {
+    source: "sqlite",
+    options: {
+      calendars: [{ id: 10, name: "Turno sábado", active: 1 }],
+      aliases: [{ calendar_id: 10, alias: "sabado" }],
+      weekdays: [{ calendar_id: 10, iso_weekday: 6 }],
+      exclusions: [{ calendar_id: 10, date: "2026-06-06", no_ticket: 1 }],
+      rules: []
+    }
+  };
+  hydrated.context.window.rrllDB.loadTicketCalendars = async () => { cachedLoads += 1; return cachedModel; };
+  hydrated.context.invalidateTicketCalendarModelCache();
+  await Promise.all([hydrated.context.hydrateTicketRestaurantCalendars(), hydrated.context.loadTicketCalendarModelCached()]);
+  assert.equal(cachedLoads, 1);
+  await hydrated.context.loadTicketCalendarModelCached();
+  assert.equal(cachedLoads, 1);
+  hydrated.context.invalidateTicketCalendarModelCache();
+  await hydrated.context.loadTicketCalendarModelCached({ force: true });
+  assert.equal(cachedLoads, 2);
   console.log("ticket-restaurante calendar integration smoke test passed");
 })().catch(error => {
   console.error(error);

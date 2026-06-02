@@ -26,6 +26,8 @@ for (let day = 1; day <= 7; day += 1) element(`ticketCalendarWeekday${day}`);
 let savedPayload = null;
 let restaurantHydrations = 0;
 let restaurantRenders = 0;
+let cacheInvalidations = 0;
+let restaurantHydrateOptions = null;
 const model = {
   source: "sqlite",
   options: {
@@ -40,9 +42,10 @@ const context = {
   console,
   document: { getElementById: id => elements.get(id) || null },
   escapeHtml: value => String(value),
-  hydrateTicketRestaurantCalendars: async () => { restaurantHydrations += 1; },
+  hydrateTicketRestaurantCalendars: async options => { restaurantHydrations += 1; restaurantHydrateOptions = options; },
   renderTicketRestaurant: () => { restaurantRenders += 1; },
   window: {
+    invalidateTicketCalendarModelCache: () => { cacheInvalidations += 1; },
     rrllDB: {
       loadTicketCalendars: async () => model,
       saveTicketCalendar: async payload => { savedPayload = payload; return { ok: true, id: 1 }; }
@@ -71,6 +74,8 @@ vm.runInContext(source, context, { filename: "ticket-calendar-management.js" });
   assert.equal(savedPayload.name, "Servicios Centrales editado");
   assert.deepEqual([...savedPayload.weekdays], [1, 2, 3, 4, 5]);
   assert.equal(restaurantHydrations, 1);
+  assert.equal(cacheInvalidations, 1);
+  assert.equal(restaurantHydrateOptions.force, true);
   assert.equal(restaurantRenders, 1);
   assert.match(elements.get("ticketCalendarManagementNotice").textContent, /guardado correctamente/i);
   console.log("ticket-calendar-management smoke test passed");
