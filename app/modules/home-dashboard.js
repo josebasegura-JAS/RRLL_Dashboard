@@ -75,7 +75,7 @@ function phase4RecentItem(title, module, date, target) {
   };
 }
 
-const PHASE5_DASHBOARD_COLORS = {
+const RRLL_DASHBOARD_COLORS = {
   pending: "#f59e0b",
   progress: "#3b82f6",
   allegations: "#8b5cf6",
@@ -645,32 +645,32 @@ function renderHomeDashboard() {
   phase4SetText("homeMetricParitariaSub", `${paritariaPending} pendientes · ${paritariaProgress} en curso · ${paritariaOpenSessions} sesiones`);
 
   phase5SetMetricDonut("homeMetricTasksDonut", [
-    { label: "Pendientes", value: taskPending, color: PHASE5_DASHBOARD_COLORS.pending },
-    { label: "En curso", value: taskProgress, color: PHASE5_DASHBOARD_COLORS.progress }
+    { label: "Pendientes", value: taskPending, color: RRLL_DASHBOARD_COLORS.pending },
+    { label: "En curso", value: taskProgress, color: RRLL_DASHBOARD_COLORS.progress }
   ]);
   phase5SetMetricDonut("homeMetricPetitionsDonut", [
-    { label: "Pendientes", value: petitionPending, color: PHASE5_DASHBOARD_COLORS.pending },
-    { label: "En curso", value: petitionProgress, color: PHASE5_DASHBOARD_COLORS.progress }
+    { label: "Pendientes", value: petitionPending, color: RRLL_DASHBOARD_COLORS.pending },
+    { label: "En curso", value: petitionProgress, color: RRLL_DASHBOARD_COLORS.progress }
   ]);
   phase5SetMetricDonut("homeMetricMinutesDonut", [
-    { label: "Pend. hacer", value: minutesTodo, color: PHASE5_DASHBOARD_COLORS.pending },
-    { label: "Dirección", value: minutesDirection, color: PHASE5_DASHBOARD_COLORS.progress },
-    { label: "Alegaciones", value: minutesAllegations, color: PHASE5_DASHBOARD_COLORS.allegations },
-    { label: "Firma", value: minutesSignature, color: PHASE5_DASHBOARD_COLORS.signature }
+    { label: "Pend. hacer", value: minutesTodo, color: RRLL_DASHBOARD_COLORS.pending },
+    { label: "Dirección", value: minutesDirection, color: RRLL_DASHBOARD_COLORS.progress },
+    { label: "Alegaciones", value: minutesAllegations, color: RRLL_DASHBOARD_COLORS.allegations },
+    { label: "Firma", value: minutesSignature, color: RRLL_DASHBOARD_COLORS.signature }
   ]);
   phase5SetMetricDonut("homeMetricTeleworkDonut", [
-    { label: "Entrada", value: teleworkEntry, color: PHASE5_DASHBOARD_COLORS.pending },
-    { label: "Trámite", value: teleworkProcessing, color: PHASE5_DASHBOARD_COLORS.progress }
+    { label: "Entrada", value: teleworkEntry, color: RRLL_DASHBOARD_COLORS.pending },
+    { label: "Trámite", value: teleworkProcessing, color: RRLL_DASHBOARD_COLORS.progress }
   ]);
   phase5SetMetricDonut("homeMetricCommitteeDonut", [
-    { label: "Pendientes", value: committeePending, color: PHASE5_DASHBOARD_COLORS.pending },
-    { label: "En curso", value: committeeProgress, color: PHASE5_DASHBOARD_COLORS.progress },
-    { label: "Sesiones", value: committeeOpenSessions, color: PHASE5_DASHBOARD_COLORS.session }
+    { label: "Pendientes", value: committeePending, color: RRLL_DASHBOARD_COLORS.pending },
+    { label: "En curso", value: committeeProgress, color: RRLL_DASHBOARD_COLORS.progress },
+    { label: "Sesiones", value: committeeOpenSessions, color: RRLL_DASHBOARD_COLORS.session }
   ]);
   phase5SetMetricDonut("homeMetricParitariaDonut", [
-    { label: "Pendientes", value: paritariaPending, color: PHASE5_DASHBOARD_COLORS.pending },
-    { label: "En curso", value: paritariaProgress, color: PHASE5_DASHBOARD_COLORS.progress },
-    { label: "Sesiones", value: paritariaOpenSessions, color: PHASE5_DASHBOARD_COLORS.session }
+    { label: "Pendientes", value: paritariaPending, color: RRLL_DASHBOARD_COLORS.pending },
+    { label: "En curso", value: paritariaProgress, color: RRLL_DASHBOARD_COLORS.progress },
+    { label: "Sesiones", value: paritariaOpenSessions, color: RRLL_DASHBOARD_COLORS.session }
   ]);
 
   const dueItems = [];
