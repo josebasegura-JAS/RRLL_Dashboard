@@ -11,7 +11,7 @@ const context = {
   }
 };
 const legacyScenario = { year: 2026, ticket_amount: 10, absence_rate: 0.06, name: "Base", notes: "Hipótesis estable" };
-const calendarGroup = { name: "Oficinas", calculation_type: "calendar_people", people_count: 2, ticket_calendar: "Servicios Centrales" };
+const calendarGroup = { name: "Oficinas", calculation_type: "calendar_people", people_count: 2, ticket_calendar: "Servicios Centrales", absence_rate: 0.06 };
 
 assert.equal(BudgetDomain.normalizeBudgetNumber("14,57"), 14.57);
 assert.equal(BudgetDomain.normalizeBudgetRate(6), 0.06);
@@ -25,6 +25,8 @@ assert.equal(BudgetDomain.calculateBudgetManualItemYear({ monthly_amount: 100 })
 assert.equal(BudgetDomain.calculateBudgetManualItemsYear([{ annual_amount: 900 }, { monthly_amount: 100 }]), 2100);
 
 // El campo year antiguo sigue siendo el fallback compatible cuando no se informa un año de simulación.
+// El absentismo general histórico del escenario ya no interviene: únicamente se aplica el del grupo.
+assert.equal(BudgetDomain.calculateBudgetTicketGroupMonth({ ...calendarGroup, absence_rate: undefined }, legacyScenario, 1, context), 200);
 assert.equal(BudgetDomain.calculateBudgetTicketGroupMonth(calendarGroup, legacyScenario, 1, context), 188);
 assert.equal(BudgetDomain.calculateBudgetTicketGroupYear(calendarGroup, legacyScenario, context).totalTicket, 2256);
 assert.equal(BudgetDomain.calculateBudgetTicketGroupMonth({ ...calendarGroup, absence_rate: 0.1 }, legacyScenario, 1, context), 180);
@@ -49,6 +51,7 @@ assert.deepEqual({ month: total2026.byMonth[7].month, ticket: total2026.byMonth[
 const exportable = BudgetDomain.buildBudgetScenarioExportData({ manualItems: [{ concept: "Formación", category: "Desarrollo", monthly_amount: 100 }], ticketGroups: [calendarGroup], scenario: legacyScenario, context, simulationYear: 2027 });
 assert.equal(exportable.scenario.name, "Base");
 assert.equal(exportable.scenario.simulationYear, 2027);
+assert.equal(exportable.scenario.absenceRate, undefined);
 assert.equal(exportable.summary.totalScenario, 3042.4);
 assert.equal(exportable.monthly[7].totalTicket, 0);
 assert.deepEqual(exportable.manualItems[0], { concept: "Formación", type: "Desarrollo", monthlyAmount: 100, annualAmount: undefined, totalCalculated: 1200 });

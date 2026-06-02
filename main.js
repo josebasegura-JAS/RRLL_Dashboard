@@ -443,10 +443,9 @@ function initializeTicketCalendarPersistence(db, dbPath) {
 
 function initializeBudgetPersistence(db, dbPath) {
   try {
-    const existing = db.exec(`SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('budget_scenarios', 'budget_manual_items', 'budget_ticket_groups')`);
-    const existingCount = existing.length ? existing[0].values.length : 0;
-    createBudgetRepository({ db }).ensureBudgetSchema();
-    if (existingCount < 3) persistDb(db, dbPath);
+    createBudgetRepository({ db });
+    // Persiste tanto la creación inicial como la materialización compatible del absentismo histórico por grupo.
+    persistDb(db, dbPath);
   } catch (error) {
     console.warn("No se pudo inicializar la persistencia de Presupuestos:", error && error.message ? error.message : error);
   }
@@ -1882,6 +1881,7 @@ ipcMain.handle("db:enableTicketCalendar", async (_event, calendarId) => changeTi
 ipcMain.handle("db:deleteTicketCalendar", async (_event, calendarId) => changeTicketCalendarLifecycle("delete", calendarId));
 ipcMain.handle("db:loadBudgetScenarios", async () => runBudgetRead(repository => repository.getBudgetScenarios()));
 ipcMain.handle("db:saveBudgetScenario", async (_event, payload) => runBudgetWrite(repository => repository.saveBudgetScenario(payload), "save_budget_scenario"));
+ipcMain.handle("db:duplicateBudgetScenario", async (_event, scenarioId, newName) => runBudgetWrite(repository => repository.duplicateBudgetScenario(scenarioId, newName), "duplicate_budget_scenario"));
 ipcMain.handle("db:loadBudgetManualItems", async (_event, scenarioId) => runBudgetRead(repository => repository.getBudgetManualItems(scenarioId)));
 ipcMain.handle("db:saveBudgetManualItem", async (_event, payload) => runBudgetWrite(repository => repository.saveBudgetManualItem(payload), "save_budget_manual_item"));
 ipcMain.handle("db:deleteBudgetManualItem", async (_event, id) => runBudgetWrite(repository => repository.deleteBudgetManualItem(id), "delete_budget_manual_item"));

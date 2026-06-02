@@ -34,6 +34,10 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
       manual_tickets REAL, manual_monthly_amount REAL, notes TEXT, display_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL
     )`);
+    // Compatibilidad no destructiva: materializa en cada grupo histórico el antiguo fallback del escenario.
+    db.run(`UPDATE budget_ticket_groups
+      SET absence_rate = COALESCE((SELECT absence_rate FROM budget_scenarios WHERE budget_scenarios.id = budget_ticket_groups.scenario_id), 0)
+      WHERE calculation_type = 'calendar_people' AND absence_rate IS NULL`);
     return { created };
   }
 
@@ -62,12 +66,12 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
     const name = requireText(input, "nombre", "name", "El nombre del escenario es obligatorio.");
     const year = Number(value(input, "año", "year"));
     const ticketAmount = Number(value(input, "importeTicket", "ticket_amount", 0));
-    const absenceRate = Number(value(input, "absentismoGeneral", "absence_rate", 0));
     if (!Number.isInteger(year)) throw new Error("El año del escenario debe ser numérico.");
     if (!Number.isFinite(ticketAmount) || ticketAmount < 0) throw new Error("El importe ticket no puede ser negativo.");
-    if (!Number.isFinite(absenceRate) || absenceRate < 0 || absenceRate > 1) throw new Error("El absentismo debe estar entre 0 y 1.");
+    // absence_rate se conserva físicamente para abrir BBDD antiguas, pero ya no forma parte del escenario funcional.
+    const legacyAbsenceRate = existing ? existing.absence_rate : 0;
     db.run(`INSERT OR REPLACE INTO budget_scenarios (id, name, year, ticket_amount, absence_rate, notes, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [id, name, year, ticketAmount, absenceRate, value(input, "observaciones", "notes", ""), existing ? existing.created_at : timestamp, timestamp]);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [id, name, year, ticketAmount, legacyAbsenceRate, value(input, "observaciones", "notes", ""), existing ? existing.created_at : timestamp, timestamp]);
     return id;
   }
 
@@ -113,8 +117,26 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
   }
   function deleteBudgetTicketGroup(id) { db.run("DELETE FROM budget_ticket_groups WHERE id = ?", [id]); return id; }
 
+  function duplicateBudgetScenario(scenarioId, newName) {
+    const scenario = getBudgetScenario(scenarioId);
+    if (!scenario) throw new Error("El escenario que deseas duplicar no existe.");
+    const name = String(newName || "").trim();
+    if (!name) throw new Error("El nombre del nuevo escenario es obligatorio.");
+    db.run("BEGIN TRANSACTION");
+    try {
+      const duplicateId = saveBudgetScenario({ name, year: scenario.year, ticket_amount: scenario.ticket_amount, notes: scenario.notes });
+      getBudgetManualItems(scenario.id).forEach(item => saveBudgetManualItem({ ...item, id: undefined, scenario_id: duplicateId }));
+      getBudgetTicketGroups(scenario.id).forEach(group => saveBudgetTicketGroup({ ...group, id: undefined, scenario_id: duplicateId }));
+      db.run("COMMIT");
+      return duplicateId;
+    } catch (error) {
+      db.run("ROLLBACK");
+      throw error;
+    }
+  }
+
   ensureBudgetSchema();
-  return { ensureBudgetSchema, getBudgetScenarios, getBudgetScenario, saveBudgetScenario, getBudgetManualItems, saveBudgetManualItem, deleteBudgetManualItem, getBudgetTicketGroups, saveBudgetTicketGroup, deleteBudgetTicketGroup };
+  return { ensureBudgetSchema, getBudgetScenarios, getBudgetScenario, saveBudgetScenario, duplicateBudgetScenario, getBudgetManualItems, saveBudgetManualItem, deleteBudgetManualItem, getBudgetTicketGroups, saveBudgetTicketGroup, deleteBudgetTicketGroup };
 }
 
 if (typeof module !== "undefined" && module.exports) module.exports = { createBudgetRepository };
