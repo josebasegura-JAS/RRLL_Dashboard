@@ -10,22 +10,10 @@ const TicketCalendarDomain = (() => {
   }
 
   const FALLBACK_TICKET_CALENDARS = Object.freeze([
-    freezeCalendar({
-      name: "Servicios Centrales",
-      aliases: ["sscc", "servicioscentrales", "serviciocentrales"]
-    }),
-    freezeCalendar({
-      name: "Ingeniería Ariz",
-      aliases: ["ariz", "ingenieriaariz"]
-    }),
-    freezeCalendar({
-      name: "Instalaciones Sopela",
-      aliases: ["sopela", "instalacionessopela", "instalacionsopela"]
-    }),
-    freezeCalendar({
-      name: "Liberados",
-      aliases: ["liberados"]
-    })
+    freezeCalendar({ name: "Servicios Centrales", aliases: ["sscc", "servicioscentrales", "serviciocentrales"] }),
+    freezeCalendar({ name: "Ingeniería Ariz", aliases: ["ariz", "ingenieriaariz"] }),
+    freezeCalendar({ name: "Instalaciones Sopela", aliases: ["sopela", "instalacionessopela", "instalacionsopela"] }),
+    freezeCalendar({ name: "Liberados", aliases: ["liberados"] })
   ]);
 
   function normalizeCompactText(value) {
@@ -44,36 +32,69 @@ const TicketCalendarDomain = (() => {
       .sort((left, right) => left - right);
   }
 
-  function normalizeExternalCalendar(calendar) {
+  function getCalendarReferenceId(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return String(source.calendarId == null ? source.calendar_id == null ? "" : source.calendar_id : source.calendarId);
+  }
+
+  function normalizeDomainOptions(value) {
+    if (Array.isArray(value)) return { calendars: value };
+    return value && typeof value === "object" ? value : {};
+  }
+
+  function getRelatedValues(values, calendar, mapper) {
+    const calendarId = String(calendar.id == null ? "" : calendar.id);
+    const calendarName = normalizeCompactText(calendar.name);
+    return (Array.isArray(values) ? values : [])
+      .filter(value => {
+        const referenceId = getCalendarReferenceId(value);
+        if (referenceId && calendarId) return referenceId === calendarId;
+        const source = value && typeof value === "object" ? value : {};
+        return normalizeCompactText(source.calendarName == null ? source.calendar : source.calendarName) === calendarName;
+      })
+      .map(mapper);
+  }
+
+  function normalizeExternalCalendar(calendar, options = {}) {
     if (typeof calendar === "string") return freezeCalendar({ name: calendar.trim() });
     const source = calendar && typeof calendar === "object" ? calendar : {};
+    const aliases = [
+      ...(Array.isArray(source.aliases) ? source.aliases : []),
+      ...getRelatedValues(options.aliases, source, alias => alias && typeof alias === "object" ? alias.alias : alias)
+    ].filter(alias => alias != null);
+    const configuredWeekdays = getRelatedValues(options.weekdays, source, weekday => (
+      weekday && typeof weekday === "object" ? weekday.isoWeekday == null ? weekday.iso_weekday : weekday.isoWeekday : weekday
+    ));
     return freezeCalendar({
       name: String(source.name == null ? "" : source.name).replace(/\s+/g, " ").trim(),
-      aliases: Array.isArray(source.aliases) ? source.aliases.map(alias => String(alias)) : [],
-      ticketIsoWeekdays: normalizeTicketIsoWeekdays(source.ticketIsoWeekdays)
+      aliases: [...new Set(aliases.map(alias => String(alias)))],
+      ticketIsoWeekdays: normalizeTicketIsoWeekdays(configuredWeekdays.length ? configuredWeekdays : source.ticketIsoWeekdays)
     });
   }
 
-  function getTicketCalendars(calendars) {
-    if (calendars == null) return FALLBACK_TICKET_CALENDARS;
-    if (!Array.isArray(calendars)) return Object.freeze([]);
-    return Object.freeze(calendars.map(normalizeExternalCalendar).filter(calendar => calendar.name));
+  function getTicketCalendars(value) {
+    const options = normalizeDomainOptions(value);
+    if (!Array.isArray(options.calendars) || !options.calendars.length) return FALLBACK_TICKET_CALENDARS;
+    const calendars = options.calendars
+      .filter(calendar => !(calendar && typeof calendar === "object") || calendar.active == null || Number(calendar.active) === 1)
+      .map(calendar => normalizeExternalCalendar(calendar, options))
+      .filter(calendar => calendar.name);
+    return calendars.length ? Object.freeze(calendars) : FALLBACK_TICKET_CALENDARS;
   }
 
-  function normalizeTicketCalendar(value, calendars) {
+  function normalizeTicketCalendar(value, options) {
     const text = String(value == null ? "" : value).replace(/\s+/g, " ").trim();
     const key = normalizeCompactText(text);
     if (!key) return text;
-    const calendar = getTicketCalendars(calendars).find(item => (
-      normalizeCompactText(item.name) === key
-      || item.aliases.some(alias => normalizeCompactText(alias) === key)
+    const calendar = getTicketCalendars(options).find(item => (
+      normalizeCompactText(item.name) === key || item.aliases.some(alias => normalizeCompactText(alias) === key)
     ));
     return calendar ? calendar.name : text;
   }
 
-  function isKnownTicketCalendar(value, calendars) {
-    const normalized = normalizeTicketCalendar(value, calendars);
-    return getTicketCalendars(calendars).some(calendar => calendar.name === normalized);
+  function isKnownTicketCalendar(value, options) {
+    const normalized = normalizeTicketCalendar(value, options);
+    return getTicketCalendars(options).some(calendar => calendar.name === normalized);
   }
 
   function parseIsoDate(value) {
@@ -94,25 +115,42 @@ const TicketCalendarDomain = (() => {
     return new Date(`${iso}T00:00:00Z`).getUTCDay() || 7;
   }
 
-  function resolveCalendar(calendarName, calendars) {
-    const normalized = normalizeTicketCalendar(calendarName, calendars);
-    return getTicketCalendars(calendars).find(calendar => calendar.name === normalized) || null;
+  function resolveCalendar(calendarName, options) {
+    const normalized = normalizeTicketCalendar(calendarName, options);
+    return getTicketCalendars(options).find(calendar => calendar.name === normalized) || null;
   }
 
-  function getNoTicketMarkSet(calendarName, calendarMarks, calendars) {
-    const normalized = normalizeTicketCalendar(calendarName, calendars);
-    return new Set((Array.isArray(calendarMarks) ? calendarMarks : [])
-      .filter(mark => mark && mark.noTicket)
-      .filter(mark => normalizeTicketCalendar(mark.calendarName == null ? mark.calendar : mark.calendarName, calendars) === normalized)
+  function normalizeCalendarMark(mark) {
+    const source = mark && typeof mark === "object" ? mark : {};
+    return {
+      calendar: source.calendarName == null ? source.calendar : source.calendarName,
+      calendarId: getCalendarReferenceId(source),
+      date: source.date,
+      noTicket: source.noTicket == null ? source.no_ticket : source.noTicket
+    };
+  }
+
+  function getNoTicketMarkSet(calendarName, calendarMarks, options) {
+    const calendar = resolveCalendar(calendarName, options);
+    if (!calendar) return new Set();
+    const calendarId = String((normalizeDomainOptions(options).calendars || []).find(item => (
+      item && typeof item === "object" && normalizeCompactText(item.name) === normalizeCompactText(calendar.name)
+    ))?.id ?? "");
+    const marks = [...(Array.isArray(calendarMarks) ? calendarMarks : []), ...(Array.isArray(normalizeDomainOptions(options).exclusions) ? normalizeDomainOptions(options).exclusions : [])];
+    return new Set(marks
+      .map(normalizeCalendarMark)
+      .filter(mark => mark.noTicket)
+      .filter(mark => mark.calendarId && calendarId ? mark.calendarId === calendarId : normalizeTicketCalendar(mark.calendar, options) === calendar.name)
       .map(mark => parseIsoDate(mark.date))
       .filter(Boolean));
   }
 
-  function calendarHasTicketRightOnDate({ calendarName, date, calendarMarks = [], calendars } = {}) {
-    const calendar = resolveCalendar(calendarName, calendars);
+  function calendarHasTicketRightOnDate({ calendarName, date, calendarMarks = [], calendars, aliases, weekdays, exclusions, rules } = {}) {
+    const options = { calendars, aliases, weekdays, exclusions, rules };
+    const calendar = resolveCalendar(calendarName, options);
     const iso = parseIsoDate(date);
     if (!calendar || !iso || !calendar.ticketIsoWeekdays.includes(getIsoWeekday(iso))) return false;
-    return !getNoTicketMarkSet(calendar.name, calendarMarks, calendars).has(iso);
+    return !getNoTicketMarkSet(calendar.name, calendarMarks, options).has(iso);
   }
 
   function normalizePeriodNumber(value) {
@@ -120,40 +158,35 @@ const TicketCalendarDomain = (() => {
     return Number.isInteger(number) ? number : 0;
   }
 
-  function countTicketDaysForCalendar({ calendarName, year, month, calendarMarks = [], calendars } = {}) {
+  function countTicketDaysForCalendar({ calendarName, year, month, calendarMarks = [], calendars, aliases, weekdays, exclusions, rules } = {}) {
+    const options = { calendars, aliases, weekdays, exclusions, rules };
     const normalizedYear = normalizePeriodNumber(year);
     const normalizedMonth = normalizePeriodNumber(month);
-    if (!resolveCalendar(calendarName, calendars) || normalizedMonth < 1 || normalizedMonth > 12) return 0;
+    if (!resolveCalendar(calendarName, options) || normalizedMonth < 1 || normalizedMonth > 12) return 0;
     const totalDays = new Date(Date.UTC(normalizedYear, normalizedMonth, 0)).getUTCDate();
     let count = 0;
     for (let day = 1; day <= totalDays; day += 1) {
       const date = `${String(normalizedYear).padStart(4, "0")}-${String(normalizedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      if (calendarHasTicketRightOnDate({ calendarName, date, calendarMarks, calendars })) count += 1;
+      if (calendarHasTicketRightOnDate({ calendarName, date, calendarMarks, calendars, aliases, weekdays, exclusions, rules })) count += 1;
     }
     return count;
   }
 
-  function countNoTicketWeekdaysForCalendar({ calendarName, year, month, calendarMarks = [], calendars } = {}) {
-    const calendar = resolveCalendar(calendarName, calendars);
+  function countNoTicketWeekdaysForCalendar({ calendarName, year, month, calendarMarks = [], calendars, aliases, weekdays, exclusions, rules } = {}) {
+    const options = { calendars, aliases, weekdays, exclusions, rules };
+    const calendar = resolveCalendar(calendarName, options);
     const normalizedYear = normalizePeriodNumber(year);
     const normalizedMonth = normalizePeriodNumber(month);
     if (!calendar || normalizedMonth < 1 || normalizedMonth > 12) return 0;
     let count = 0;
-    getNoTicketMarkSet(calendar.name, calendarMarks, calendars).forEach(date => {
+    getNoTicketMarkSet(calendar.name, calendarMarks, options).forEach(date => {
       if (Number(date.slice(0, 4)) !== normalizedYear || Number(date.slice(5, 7)) !== normalizedMonth) return;
       if (calendar.ticketIsoWeekdays.includes(getIsoWeekday(date))) count += 1;
     });
     return count;
   }
 
-  return Object.freeze({
-    normalizeTicketCalendar,
-    isKnownTicketCalendar,
-    getTicketCalendars,
-    calendarHasTicketRightOnDate,
-    countTicketDaysForCalendar,
-    countNoTicketWeekdaysForCalendar
-  });
+  return Object.freeze({ normalizeTicketCalendar, isKnownTicketCalendar, getTicketCalendars, calendarHasTicketRightOnDate, countTicketDaysForCalendar, countNoTicketWeekdaysForCalendar });
 })();
 
 if (typeof window !== "undefined") window.TicketCalendarDomain = TicketCalendarDomain;

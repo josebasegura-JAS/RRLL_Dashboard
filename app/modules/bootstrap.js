@@ -148,6 +148,7 @@ async function showStartupDbFallbackAlert() {
         }
       }
 
+      if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars();
       purgeDeprecatedFixedTaskData();
       renderAllDataViews();
       phase4RouteFromHash();

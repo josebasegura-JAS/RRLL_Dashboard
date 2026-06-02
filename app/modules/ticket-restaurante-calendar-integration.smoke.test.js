@@ -87,4 +87,28 @@ assert.equal(fallback.countDays(6, 2026, "Servicios Centrales"), 21);
 assert.equal(withDomain.countNoTicketWeekdays(6, 2026, "Servicios Centrales"), 1);
 assert.equal(fallback.countNoTicketWeekdays(6, 2026, "Servicios Centrales"), 1);
 
-console.log("ticket-restaurante calendar integration smoke test passed");
+(async () => {
+  const hydrated = loadTicketRestaurant(TicketCalendarDomain);
+  hydrated.context.window.rrllDB = {
+    loadTicketCalendars: async () => ({
+      source: "sqlite",
+      options: {
+        calendars: [{ id: 10, name: "Turno sábado", active: 1 }],
+        aliases: [{ calendar_id: 10, alias: "sabado" }],
+        weekdays: [{ calendar_id: 10, iso_weekday: 6 }],
+        exclusions: [{ calendar_id: 10, date: "2026-06-06", no_ticket: 1 }],
+        rules: []
+      }
+    })
+  };
+  await hydrated.context.hydrateTicketRestaurantCalendars();
+  assert.deepEqual(hydrated.getCalendars(), ["Turno sábado"]);
+  assert.equal(hydrated.normalize("sabado"), "Turno sábado");
+  assert.equal(hydrated.isKnown("sabado"), true);
+  assert.equal(hydrated.countDays(6, 2026, "sabado"), 3);
+  assert.equal(hydrated.countNoTicketWeekdays(6, 2026, "sabado"), 1);
+  console.log("ticket-restaurante calendar integration smoke test passed");
+})().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});
