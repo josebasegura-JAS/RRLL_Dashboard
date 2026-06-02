@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld("rrllDB", {
   deleteTicketCalendar: calendarId => ipcRenderer.invoke("db:deleteTicketCalendar", calendarId),
   loadBudgetScenarios: () => ipcRenderer.invoke("db:loadBudgetScenarios"),
   saveBudgetScenario: payload => ipcRenderer.invoke("db:saveBudgetScenario", payload),
+  duplicateBudgetScenario: (scenarioId, newName) => ipcRenderer.invoke("db:duplicateBudgetScenario", scenarioId, newName),
   loadBudgetManualItems: scenarioId => ipcRenderer.invoke("db:loadBudgetManualItems", scenarioId),
   saveBudgetManualItem: payload => ipcRenderer.invoke("db:saveBudgetManualItem", payload),
   deleteBudgetManualItem: id => ipcRenderer.invoke("db:deleteBudgetManualItem", id),

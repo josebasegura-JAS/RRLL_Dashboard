@@ -57,9 +57,8 @@ const BudgetDomain = (() => {
     return normalizeBudgetNumber(hasValue(own) ? own : getValue(scenario, "importeTicket", "ticket_amount"));
   }
 
-  function getAbsenceRate(group = {}, scenario = {}) {
-    const own = getValue(group, "absentismoPropio", "absence_rate");
-    return normalizeBudgetRate(hasValue(own) ? own : getValue(scenario, "absentismoGeneral", "absence_rate"));
+  function getAbsenceRate(group = {}) {
+    return normalizeBudgetRate(getValue(group, "absentismoPropio", "absence_rate"));
   }
 
   function resolveBudgetSimulationYear(scenario = {}, simulationYear) {
@@ -125,7 +124,6 @@ const BudgetDomain = (() => {
         name: getValue(scenario, "nombre", "name") || "",
         simulationYear: totals.simulationYear,
         ticketAmount: normalizeBudgetNumber(getValue(scenario, "importeTicket", "ticket_amount")),
-        absenceRate: normalizeBudgetRate(getValue(scenario, "absentismoGeneral", "absence_rate")),
         notes: getValue(scenario, "observaciones", "notes") || ""
       },
       summary: { totalManual: totals.totalManual, totalTicket: totals.totalTicket, totalScenario: totals.totalScenario },
