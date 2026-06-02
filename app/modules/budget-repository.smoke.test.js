@@ -10,7 +10,7 @@ const { createBudgetRepository } = require("./budget-repository");
   let sequence = 0;
   const repository = createBudgetRepository({ db, now: () => "2026-06-02T00:00:00.000Z", createId: () => `id-${++sequence}` });
   const tables = db.exec("SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'budget_%' ORDER BY name")[0].values.map(row => row[0]);
-  assert.deepEqual(tables, ["budget_manual_items", "budget_scenarios", "budget_ticket_groups"]);
+  assert.deepEqual(tables, ["budget_actuals", "budget_manual_items", "budget_scenarios", "budget_ticket_groups"]);
 
   const scenarioId = repository.saveBudgetScenario({ name: "Presupuesto 2026 Base", year: 2026, ticket_amount: 14.57, absence_rate: 0.06 });
   assert.equal(repository.getBudgetScenario(scenarioId).name, "Presupuesto 2026 Base");
@@ -43,6 +43,14 @@ const { createBudgetRepository } = require("./budget-repository");
   assert.equal(repository.getBudgetManualItems(scenarioId)[0].concept, "Formación");
   assert.equal(repository.getBudgetTicketGroups(scenarioId)[0].people_count, 10);
   assert.equal(repository.getBudgetTicketGroups(scenarioId)[0].absence_rate, 0.08);
+  const actualId = repository.saveBudgetActual({ year: 2026, month: 1, block: "Formación", concept: "Curso enero", amount: 125.5, notes: "Original" });
+  assert.equal(repository.getBudgetActuals(2026)[0].amount, 125.5);
+  repository.saveBudgetActual({ id: actualId, year: 2026, month: 2, block: "Formación", concept: "Curso actualizado", amount: 150, notes: "Editado" });
+  assert.equal(repository.getBudgetActuals(2026)[0].concept, "Curso actualizado");
+  assert.equal(createBudgetRepository({ db }).getBudgetActuals(2026)[0].notes, "Editado");
+  repository.deleteBudgetActual(actualId);
+  assert.equal(repository.getBudgetActuals(2026).length, 0);
+
   repository.deleteBudgetManualItem(itemId);
   repository.deleteBudgetTicketGroup(groupId);
   assert.equal(repository.getBudgetManualItems(scenarioId).length, 0);
