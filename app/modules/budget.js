@@ -7,6 +7,7 @@ let rrllBudgetCalendarFallback = false;
 let rrllBudgetInitialized = false;
 let rrllBudgetInitializePromise = null;
 const rrllBudgetSimulationYears = new Map();
+let rrllBudgetComparisonData = null;
 
 function rrllBudgetBridge() { return window.rrllDB || null; }
 function rrllBudgetScenario() { return rrllBudgetScenarios.find(item => item.id === rrllBudgetSelectedScenarioId) || null; }
@@ -62,6 +63,7 @@ async function refreshBudgetModule() {
   rrllBudgetScenarios = await rrllBudgetBridge().loadBudgetScenarios();
   if (rrllBudgetSelectedScenarioId && !rrllBudgetScenarios.some(item => item.id === rrllBudgetSelectedScenarioId)) rrllBudgetSelectedScenarioId = "";
   rrllBudgetSyncSimulationYearInput();
+  renderBudgetComparisonSelectors();
   await renderBudgetScenarios();
   await loadSelectedBudgetScenario();
 }
@@ -161,6 +163,47 @@ async function printBudgetScenario() {
     openPrintPreviewWithHtml(`<h1>Presupuesto · ${rrllBudgetEscape(data.scenario.name)} · ${data.scenario.simulationYear}</h1><h2>Resumen global</h2>${rrllBudgetPrintTable(["Partidas manuales", "Ticket Restaurante", "Total escenario"], [[rrllBudgetMoney(data.summary.totalManual), rrllBudgetMoney(data.summary.totalTicket), rrllBudgetMoney(data.summary.totalScenario)]])}<h2>Resumen mensual</h2>${rrllBudgetPrintTable(["Mes", "Partidas manuales", "Ticket Restaurante", "Total mensual"], monthlyRows)}<h2>Detalle partidas manuales</h2>${rrllBudgetPrintTable(["Concepto", "Tipo", "Importe mensual", "Importe anual", "Total calculado"], manualRows)}<h2>Detalle grupos Ticket</h2>${rrllBudgetPrintTable(["Nombre grupo", "Calendario", "Tipo", "Personas", "Tickets", "Importe manual", "Importe ticket", "Absentismo", "Total anual"], ticketRows)}`);
   } catch (error) { alert(error.message); }
 }
+
+function rrllBudgetComparisonPercent(value) { return value == null ? "—" : rrllBudgetPercent(value); }
+function rrllBudgetComparisonYear() { const input = document.getElementById("budgetComparisonYear"); const year = Number(input && String(input.value).trim()); rrllBudgetAssert(Number.isInteger(year) && year >= 1900 && year <= 9999, "Indica un año de comparación válido."); return year; }
+function invalidateBudgetComparison() { rrllBudgetComparisonData = null; document.getElementById("budgetComparisonResult")?.classList.add("budget-form-hidden"); }
+function renderBudgetComparisonSelectors() {
+  const selectA = document.getElementById("budgetComparisonScenarioA"); const selectB = document.getElementById("budgetComparisonScenarioB"); const year = document.getElementById("budgetComparisonYear");
+  if (!selectA || !selectB || !year) return;
+  const selectedA = selectA.value; const selectedB = selectB.value;
+  const options = rrllBudgetScenarios.map(scenario => `<option value="${rrllBudgetEscape(scenario.id)}">${rrllBudgetEscape(scenario.name)}</option>`).join("");
+  selectA.innerHTML = options; selectB.innerHTML = options;
+  selectA.value = rrllBudgetScenarios.some(scenario => scenario.id === selectedA) ? selectedA : (rrllBudgetScenarios[0]?.id || "");
+  selectB.value = rrllBudgetScenarios.some(scenario => scenario.id === selectedB) ? selectedB : (rrllBudgetScenarios[1]?.id || rrllBudgetScenarios[0]?.id || "");
+  if (!year.value) year.value = rrllBudgetSimulationYear();
+  invalidateBudgetComparison();
+}
+async function rrllBudgetCalculatedComparisonData() {
+  const scenarioA = rrllBudgetScenarios.find(scenario => scenario.id === document.getElementById("budgetComparisonScenarioA")?.value);
+  const scenarioB = rrllBudgetScenarios.find(scenario => scenario.id === document.getElementById("budgetComparisonScenarioB")?.value);
+  const simulationYear = rrllBudgetComparisonYear();
+  rrllBudgetAssert(scenarioA && scenarioB, "Selecciona los dos escenarios que deseas comparar.");
+  const [[manualItemsA, ticketGroupsA], [manualItemsB, ticketGroupsB]] = await Promise.all([scenarioA, scenarioB].map(async scenario => Promise.all([rrllBudgetBridge().loadBudgetManualItems(scenario.id), rrllBudgetBridge().loadBudgetTicketGroups(scenario.id)])));
+  const needsTicketCalendars = [...ticketGroupsA, ...ticketGroupsB].some(group => group.calculation_type === "calendar_people");
+  const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
+  const dataA = BudgetDomain.buildBudgetScenarioExportData({ manualItems: manualItemsA, ticketGroups: ticketGroupsA, scenario: scenarioA, context, simulationYear });
+  const dataB = BudgetDomain.buildBudgetScenarioExportData({ manualItems: manualItemsB, ticketGroups: ticketGroupsB, scenario: scenarioB, context, simulationYear });
+  return BudgetDomain.buildBudgetComparisonData({ scenarioA: dataA, scenarioB: dataB });
+}
+function rrllBudgetComparisonRows(rows, includeCalendar = false) { return rows.map(row => `<tr><td>${rrllBudgetEscape(row.name)}</td>${includeCalendar ? `<td>${rrllBudgetEscape(row.calendar || "—")}</td>` : ""}<td>${rrllBudgetMoney(row.scenarioA)}</td><td>${rrllBudgetMoney(row.scenarioB)}</td><td>${rrllBudgetMoney(row.difference)}</td><td>${rrllBudgetComparisonPercent(row.differencePercent)}</td></tr>`).join(""); }
+function renderBudgetComparison(data) {
+  document.getElementById("budgetComparisonTitle").textContent = `${data.scenarioA} vs ${data.scenarioB} · Año ${data.simulationYear}`;
+  document.getElementById("budgetComparisonTotalA").textContent = rrllBudgetMoney(data.summary.scenarioA); document.getElementById("budgetComparisonTotalB").textContent = rrllBudgetMoney(data.summary.scenarioB); document.getElementById("budgetComparisonDifference").textContent = rrllBudgetMoney(data.summary.difference); document.getElementById("budgetComparisonPercent").textContent = rrllBudgetComparisonPercent(data.summary.differencePercent);
+  document.getElementById("budgetComparisonBlockRows").innerHTML = rrllBudgetComparisonRows(data.blocks);
+  document.getElementById("budgetComparisonManualRows").innerHTML = rrllBudgetComparisonRows(data.manualItems) || '<tr><td colspan="5" class="muted">No hay partidas manuales.</td></tr>';
+  document.getElementById("budgetComparisonTicketRows").innerHTML = rrllBudgetComparisonRows(data.ticketGroups, true) || '<tr><td colspan="6" class="muted">No hay grupos Ticket.</td></tr>';
+  document.getElementById("budgetComparisonResult").classList.remove("budget-form-hidden");
+}
+async function compareBudgetScenarios() { try { rrllBudgetComparisonData = await rrllBudgetCalculatedComparisonData(); renderBudgetComparison(rrllBudgetComparisonData); } catch (error) { alert(error.message); } }
+function rrllBudgetComparisonExcelRows(data) { const rows = [["CABECERA", "Escenario A", data.scenarioA], ["CABECERA", "Escenario B", data.scenarioB], ["CABECERA", "Año simulado", data.simulationYear], ["RESUMEN GLOBAL", "Total general", data.summary.scenarioA, data.summary.scenarioB, data.summary.difference, data.summary.differencePercent ?? ""]]; data.blocks.forEach(row => rows.push(["BLOQUE", row.name, row.scenarioA, row.scenarioB, row.difference, row.differencePercent ?? ""])); data.manualItems.forEach(row => rows.push(["PARTIDA MANUAL", row.name, row.scenarioA, row.scenarioB, row.difference, row.differencePercent ?? ""])); data.ticketGroups.forEach(row => rows.push(["GRUPO TICKET", row.name, row.scenarioA, row.scenarioB, row.difference, row.differencePercent ?? "", row.calendar])); return rows; }
+function rrllBudgetRequireComparison() { rrllBudgetAssert(rrllBudgetComparisonData, "Compara dos escenarios antes de continuar."); return rrllBudgetComparisonData; }
+function exportBudgetComparisonExcel() { try { rrllBudgetAssert(typeof exportExcelData === "function", "La exportación Excel no está disponible."); const data = rrllBudgetRequireComparison(); exportExcelData({ title: `Comparativa presupuestos - ${data.scenarioA} vs ${data.scenarioB} - ${data.simulationYear}`, filename: `comparativa-presupuestos-${data.scenarioA}-${data.scenarioB}-${data.simulationYear}`.replace(/[^a-zA-Z0-9_-]/g, "-"), headers: ["Sección", "Bloque / concepto / grupo", "Escenario A", "Escenario B", "Diferencia €", "Diferencia %", "Calendario"], rows: rrllBudgetComparisonExcelRows(data) }); } catch (error) { alert(error.message); } }
+function printBudgetComparison() { try { rrllBudgetAssert(typeof openPrintPreviewWithHtml === "function", "La impresión no está disponible."); const data = rrllBudgetRequireComparison(); const format = rows => rows.map(row => [row.name, rrllBudgetMoney(row.scenarioA), rrllBudgetMoney(row.scenarioB), rrllBudgetMoney(row.difference), rrllBudgetComparisonPercent(row.differencePercent)]); const tickets = data.ticketGroups.map(row => [row.name, row.calendar || "—", rrllBudgetMoney(row.scenarioA), rrllBudgetMoney(row.scenarioB), rrllBudgetMoney(row.difference), rrllBudgetComparisonPercent(row.differencePercent)]); openPrintPreviewWithHtml(`<h1>Comparativa presupuestos · ${rrllBudgetEscape(data.scenarioA)} vs ${rrllBudgetEscape(data.scenarioB)} · ${data.simulationYear}</h1><h2>Resumen global</h2>${rrllBudgetPrintTable(["Escenario A", "Escenario B", "Diferencia €", "Diferencia %"], [[rrllBudgetMoney(data.summary.scenarioA), rrllBudgetMoney(data.summary.scenarioB), rrllBudgetMoney(data.summary.difference), rrllBudgetComparisonPercent(data.summary.differencePercent)]])}<h2>Comparación por bloques</h2>${rrllBudgetPrintTable(["Bloque", "Escenario A", "Escenario B", "Diferencia €", "Diferencia %"], format(data.blocks))}<h2>Detalle partidas manuales</h2>${rrllBudgetPrintTable(["Concepto", "Escenario A", "Escenario B", "Diferencia €", "Diferencia %"], format(data.manualItems))}<h2>Detalle grupos Ticket</h2>${rrllBudgetPrintTable(["Grupo", "Calendario", "Escenario A", "Escenario B", "Diferencia €", "Diferencia %"], tickets)}`); } catch (error) { alert(error.message); } }
 
 function openBudgetScenarioForm(scenario = {}) { document.getElementById("budgetScenarioForm").classList.remove("budget-form-hidden"); document.getElementById("budgetScenarioId").value = scenario.id || ""; document.getElementById("budgetScenarioName").value = scenario.name || ""; document.getElementById("budgetScenarioYear").value = scenario.year || new Date().getFullYear(); document.getElementById("budgetScenarioTicketAmount").value = scenario.ticket_amount ?? "0"; document.getElementById("budgetScenarioNotes").value = scenario.notes || ""; }
 function closeBudgetScenarioForm() { document.getElementById("budgetScenarioForm").classList.add("budget-form-hidden"); }

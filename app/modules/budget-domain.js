@@ -133,11 +133,57 @@ const BudgetDomain = (() => {
     };
   }
 
+  function buildBudgetDifference(totalA, totalB) {
+    const scenarioA = normalizeBudgetNumber(totalA);
+    const scenarioB = normalizeBudgetNumber(totalB);
+    const difference = scenarioB - scenarioA;
+    return { scenarioA, scenarioB, difference, differencePercent: scenarioA === 0 ? (scenarioB === 0 ? 0 : null) : difference / scenarioA };
+  }
+
+  function comparisonKey(value) {
+    return String(value || "").trim().toLocaleLowerCase();
+  }
+
+  function mergeBudgetComparisonRows(itemsA = [], itemsB = [], { label, calendar } = {}) {
+    const rows = new Map();
+    const add = (item, side) => {
+      const name = String(item[label] || "").trim();
+      const key = comparisonKey(name);
+      if (!rows.has(key)) rows.set(key, { name, calendars: new Set(), scenarioA: 0, scenarioB: 0 });
+      const row = rows.get(key);
+      if (!row.name) row.name = name;
+      if (calendar && item[calendar]) row.calendars.add(String(item[calendar]).trim());
+      row[side] += normalizeBudgetNumber(item.totalCalculated);
+    };
+    (Array.isArray(itemsA) ? itemsA : []).forEach(item => add(item, "scenarioA"));
+    (Array.isArray(itemsB) ? itemsB : []).forEach(item => add(item, "scenarioB"));
+    return [...rows.values()].map(row => ({ name: row.name, ...(calendar ? { calendar: [...row.calendars].join(" · ") } : {}), ...buildBudgetDifference(row.scenarioA, row.scenarioB) }));
+  }
+
+  function buildBudgetComparisonData({ scenarioA = {}, scenarioB = {} } = {}) {
+    const simulationYear = Number(scenarioA.scenario && scenarioA.scenario.simulationYear);
+    if (!Number.isInteger(simulationYear) || simulationYear !== Number(scenarioB.scenario && scenarioB.scenario.simulationYear)) throw new Error("Los escenarios comparados deben usar el mismo año de simulación.");
+    const blocks = [
+      { name: "Ticket Restaurante", ...buildBudgetDifference(scenarioA.summary && scenarioA.summary.totalTicket, scenarioB.summary && scenarioB.summary.totalTicket) },
+      { name: "Partidas manuales", ...buildBudgetDifference(scenarioA.summary && scenarioA.summary.totalManual, scenarioB.summary && scenarioB.summary.totalManual) },
+      { name: "Total general", ...buildBudgetDifference(scenarioA.summary && scenarioA.summary.totalScenario, scenarioB.summary && scenarioB.summary.totalScenario) }
+    ];
+    return {
+      simulationYear,
+      scenarioA: scenarioA.scenario && scenarioA.scenario.name || "",
+      scenarioB: scenarioB.scenario && scenarioB.scenario.name || "",
+      summary: { ...buildBudgetDifference(scenarioA.summary && scenarioA.summary.totalScenario, scenarioB.summary && scenarioB.summary.totalScenario) },
+      blocks,
+      manualItems: mergeBudgetComparisonRows(scenarioA.manualItems, scenarioB.manualItems, { label: "concept" }),
+      ticketGroups: mergeBudgetComparisonRows(scenarioA.ticketGroups, scenarioB.ticketGroups, { label: "name", calendar: "calendar" })
+    };
+  }
+
   return Object.freeze({
     normalizeBudgetNumber, normalizeBudgetRate, resolveBudgetSimulationYear,
     calculateBudgetManualItemMonth, calculateBudgetManualItemYear, calculateBudgetManualItemsYear, calculateBudgetManualItemsMonth,
     calculateBudgetTicketGroupMonth, calculateBudgetTicketGroupYear, calculateBudgetTicketScenarioMonth, calculateBudgetTicketScenarioYear,
-    calculateBudgetScenarioMonth, calculateBudgetScenarioYear, buildBudgetScenarioExportData
+    calculateBudgetScenarioMonth, calculateBudgetScenarioYear, buildBudgetScenarioExportData, buildBudgetComparisonData
   });
 })();
 
