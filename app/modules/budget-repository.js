@@ -18,7 +18,7 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
   }
 
   function ensureBudgetSchema() {
-    const names = ["budget_scenarios", "budget_manual_items", "budget_ticket_groups"];
+    const names = ["budget_scenarios", "budget_manual_items", "budget_ticket_groups", "budget_actuals"];
     const created = names.filter(name => !hasTable(name));
     db.run(`CREATE TABLE IF NOT EXISTS budget_scenarios (
       id TEXT PRIMARY KEY, name TEXT NOT NULL, year INTEGER NOT NULL, ticket_amount REAL NOT NULL DEFAULT 0,
@@ -33,6 +33,10 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
       ticket_calendar TEXT, absence_rate REAL, ticket_amount REAL, calculation_type TEXT NOT NULL DEFAULT 'calendar_people',
       manual_tickets REAL, manual_monthly_amount REAL, notes TEXT, display_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS budget_actuals (
+      id TEXT PRIMARY KEY, year INTEGER NOT NULL, month INTEGER NOT NULL, block TEXT NOT NULL, concept TEXT NOT NULL,
+      amount REAL NOT NULL DEFAULT 0, notes TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
     )`);
     // Compatibilidad no destructiva: materializa en cada grupo histórico el antiguo fallback del escenario.
     db.run(`UPDATE budget_ticket_groups
@@ -117,6 +121,31 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
   }
   function deleteBudgetTicketGroup(id) { db.run("DELETE FROM budget_ticket_groups WHERE id = ?", [id]); return id; }
 
+  function getBudgetActuals(year) {
+    const normalizedYear = Number(year);
+    return Number.isInteger(normalizedYear)
+      ? rows("SELECT * FROM budget_actuals WHERE year = ? ORDER BY month, block COLLATE NOCASE, concept COLLATE NOCASE, created_at", [normalizedYear])
+      : rows("SELECT * FROM budget_actuals ORDER BY year DESC, month, block COLLATE NOCASE, concept COLLATE NOCASE, created_at");
+  }
+  function saveBudgetActual(input = {}) {
+    const existing = getExisting("budget_actuals", input.id);
+    const id = existing ? existing.id : (input.id || createId());
+    const timestamp = now();
+    const year = Number(value(input, "año", "year"));
+    const month = Number(value(input, "mes", "month"));
+    const block = requireText(input, "bloque", "block", "El bloque del real ejecutado es obligatorio.");
+    const concept = requireText(input, "concepto", "concept", "El concepto del real ejecutado es obligatorio.");
+    const amount = Number(value(input, "importe", "amount"));
+    if (!["Ticket Restaurante", "Formación", "Vestuario", "Consultoría", "Reconocimientos médicos", "Gastos sindicales", "Otros"].includes(block)) throw new Error("El bloque del real ejecutado no es válido.");
+    if (!Number.isInteger(year)) throw new Error("El año del real ejecutado debe ser numérico.");
+    if (!Number.isInteger(month) || month < 1 || month > 12) throw new Error("El mes del real ejecutado debe estar entre 1 y 12.");
+    if (!Number.isFinite(amount) || amount < 0) throw new Error("El importe real ejecutado no puede ser negativo.");
+    db.run(`INSERT OR REPLACE INTO budget_actuals (id, year, month, block, concept, amount, notes, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [id, year, month, block, concept, amount, value(input, "observaciones", "notes", ""), existing ? existing.created_at : timestamp, timestamp]);
+    return id;
+  }
+  function deleteBudgetActual(id) { db.run("DELETE FROM budget_actuals WHERE id = ?", [id]); return id; }
+
   function duplicateBudgetScenario(scenarioId, newName) {
     const scenario = getBudgetScenario(scenarioId);
     if (!scenario) throw new Error("El escenario que deseas duplicar no existe.");
@@ -136,7 +165,7 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
   }
 
   ensureBudgetSchema();
-  return { ensureBudgetSchema, getBudgetScenarios, getBudgetScenario, saveBudgetScenario, duplicateBudgetScenario, getBudgetManualItems, saveBudgetManualItem, deleteBudgetManualItem, getBudgetTicketGroups, saveBudgetTicketGroup, deleteBudgetTicketGroup };
+  return { ensureBudgetSchema, getBudgetScenarios, getBudgetScenario, saveBudgetScenario, duplicateBudgetScenario, getBudgetManualItems, saveBudgetManualItem, deleteBudgetManualItem, getBudgetTicketGroups, saveBudgetTicketGroup, deleteBudgetTicketGroup, getBudgetActuals, saveBudgetActual, deleteBudgetActual };
 }
 
 if (typeof module !== "undefined" && module.exports) module.exports = { createBudgetRepository };

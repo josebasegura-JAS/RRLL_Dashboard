@@ -1888,6 +1888,9 @@ ipcMain.handle("db:deleteBudgetManualItem", async (_event, id) => runBudgetWrite
 ipcMain.handle("db:loadBudgetTicketGroups", async (_event, scenarioId) => runBudgetRead(repository => repository.getBudgetTicketGroups(scenarioId)));
 ipcMain.handle("db:saveBudgetTicketGroup", async (_event, payload) => runBudgetWrite(repository => repository.saveBudgetTicketGroup(payload), "save_budget_ticket_group"));
 ipcMain.handle("db:deleteBudgetTicketGroup", async (_event, id) => runBudgetWrite(repository => repository.deleteBudgetTicketGroup(id), "delete_budget_ticket_group"));
+ipcMain.handle("db:loadBudgetActuals", async (_event, year) => runBudgetRead(repository => repository.getBudgetActuals(year)));
+ipcMain.handle("db:saveBudgetActual", async (_event, payload) => runBudgetWrite(repository => repository.saveBudgetActual(payload), "save_budget_actual"));
+ipcMain.handle("db:deleteBudgetActual", async (_event, id) => runBudgetWrite(repository => repository.deleteBudgetActual(id), "delete_budget_actual"));
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));

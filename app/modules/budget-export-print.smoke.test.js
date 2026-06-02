@@ -31,5 +31,14 @@ vm.runInContext(`
   assert.match(context.printHtml, /Presupuesto · Copia · 2031/);
   assert.match(context.printHtml, /Detalle grupos Ticket/);
   assert.match(context.printHtml, /5 %/);
+  vm.runInContext(`
+    rrllBudgetActualComparisonData = { scenario: "Copia", simulationYear: 2031, cutoffMonth: 2, summary: { annualBudget: 1200, budgetAccumulated: 200, actualAccumulated: 250, difference: 50, differencePercent: 0.25 }, blocks: [{ block: "Formación", budgetAccumulated: 200, actualAccumulated: 250, difference: 50, differencePercent: 0.25 }], concepts: [{ block: "Formación", concept: "Curso", budgetAccumulated: 200, actualAccumulated: 250, difference: 50, differencePercent: 0.25 }], actuals: [{ year: 2031, month: 2, block: "Formación", concept: "Curso", amount: 250, notes: "Factura" }] };
+  `, context);
+  context.exportBudgetActualComparisonExcel();
+  context.printBudgetActualComparison();
+  assert.equal(context.excel.title, "Presupuesto vs Real - Copia - 2031 - Febrero");
+  assert.equal(context.excel.rows.some(row => row[0] === "REAL UTILIZADO" && row[2] === "Curso" && row[3] === 250), true);
+  assert.match(context.printHtml, /Presupuesto vs Real ejecutado/);
+  assert.match(context.printHtml, /Detalle por concepto/);
   console.log("budget export and print smoke test passed");
 })().catch(error => { console.error(error); process.exitCode = 1; });
