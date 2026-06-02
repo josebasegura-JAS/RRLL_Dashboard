@@ -634,7 +634,7 @@ html[data-theme="light"] .telework-catalog-table select {
 
 
 /* Teletrabajo: cabecera superior homogénea y selector de campaña limpio */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-header-actions {
+body.rrll-view-module #gestor-teletrabajo .telework-header-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -643,13 +643,13 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-he
   min-width: 0;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-header-actions button,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-header-actions select {
+body.rrll-view-module #gestor-teletrabajo .telework-header-actions button,
+body.rrll-view-module #gestor-teletrabajo .telework-header-actions select {
   box-sizing: border-box;
   min-height: 44px;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-header-actions button {
+body.rrll-view-module #gestor-teletrabajo .telework-header-actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -657,7 +657,7 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-he
   white-space: nowrap;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-campaign-picker {
+body.rrll-view-module #gestor-teletrabajo .telework-campaign-picker {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -665,34 +665,34 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ca
   min-height: 44px;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-campaign-picker span {
+body.rrll-view-module #gestor-teletrabajo .telework-campaign-picker span {
   line-height: 1;
   white-space: nowrap;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-campaign-picker select {
+body.rrll-view-module #gestor-teletrabajo .telework-campaign-picker select {
   margin: 0;
   height: 44px;
   padding-block: 0;
 }
 
 @media (max-width: 760px) {
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-header-actions {
+  body.rrll-view-module #gestor-teletrabajo .telework-header-actions {
     justify-content: flex-start;
     width: 100%;
   }
 
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-header-actions button,
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-campaign-picker {
+  body.rrll-view-module #gestor-teletrabajo .telework-header-actions button,
+  body.rrll-view-module #gestor-teletrabajo .telework-campaign-picker {
     flex: 1 1 auto;
   }
 
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-campaign-picker select {
+  body.rrll-view-module #gestor-teletrabajo .telework-campaign-picker select {
     flex: 1 1 140px;
   }
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-future-heading {
+body.rrll-view-module #gestor-teletrabajo .telework-future-heading {
   color: var(--muted, #64748b);
   font-size: 12px;
   font-weight: 800;
@@ -701,7 +701,7 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-fu
   text-transform: uppercase;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-future-campaign {
+body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
   border-style: dashed;
   background: rgba(59, 130, 246, .08);
 }

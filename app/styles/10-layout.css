@@ -322,42 +322,42 @@
 
 
 /* Fase 4 - Bloque 3: navegación real por vistas */
-body:is(.rrll-view-home, .phase4-view-home) #dashboardLayout {
+body.rrll-view-home #dashboardLayout {
   display: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .phase4-home-dashboard,
-body:is(.rrll-view-module, .phase4-view-module) .quick-top,
-body:is(.rrll-view-module, .phase4-view-module) #alertsPanel {
+body.rrll-view-module .phase4-home-dashboard,
+body.rrll-view-module .quick-top,
+body.rrll-view-module #alertsPanel {
   display: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #dashboardLayout {
+body.rrll-view-module #dashboardLayout {
   display: block;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .sidebar-left {
+body.rrll-view-module .sidebar-left {
   display: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right {
+body.rrll-view-module .content-right {
   width: 100%;
   max-width: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card {
+body.rrll-view-module .content-right > .module-card {
   display: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module {
   display: block;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary {
   cursor: default;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .dashboard-layout {
+body.rrll-view-module .dashboard-layout {
   margin-top: 18px;
 }
 
@@ -467,18 +467,18 @@ textarea:focus-visible {
   word-break: break-word;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .dashboard-layout {
+body.rrll-view-module .dashboard-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   max-width: 1560px;
   margin: 18px 0 0;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module {
   border-radius: 18px;
   border-top-width: 4px;
   overflow: hidden;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary {
   position: sticky;
   top: 65px;
   z-index: 10;
@@ -487,7 +487,7 @@ body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is
   border-bottom: 1px solid rgba(15,23,42,.08);
   padding-bottom: 12px;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module):not([open]) > summary {
+body.rrll-view-module .content-right > .module-card.rrll-active-module:not([open]) > summary {
   margin-bottom: 0;
 }
 
@@ -583,7 +583,7 @@ label { color: #334155; font-weight: 750; }
   .rrll-sidebar { width: 100%; height: auto; max-height: none; }
   .rrll-main .top-strip { flex-wrap: wrap; gap: 10px; }
   .rrll-main .top-title { width: 100%; text-align: left; margin-left: 0; }
-  body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary { position: static; }
+  body.rrll-view-module .content-right > .module-card.rrll-active-module > summary { position: static; }
   .summary-counts { white-space: normal; }
 }
 
@@ -605,41 +605,41 @@ label { color: #334155; font-weight: 750; }
 }
 
 /* Fase 4 - cierre: limpieza visual y transición segura */
-body:is(.rrll-transitioning, .phase4-transitioning) .phase4-home-dashboard,
-body:is(.rrll-transitioning, .phase4-transitioning) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-transitioning .phase4-home-dashboard,
+body.rrll-transitioning .content-right > .module-card.rrll-active-module {
   opacity: .72;
   pointer-events: none;
 }
-body:is(.rrll-view-home, .phase4-view-home) .content-right > .module-card {
+body.rrll-view-home .content-right > .module-card {
   display: none;
 }
-body:is(.rrll-view-home, .phase4-view-home) .sidebar-left,
-body:is(.rrll-view-home, .phase4-view-home) .content-right {
+body.rrll-view-home .sidebar-left,
+body.rrll-view-home .content-right {
   display: none;
 }
-body:is(.rrll-view-module, .phase4-view-module) .quick-top.compact-quick-panel {
+body.rrll-view-module .quick-top.compact-quick-panel {
   display: none !important;
 }
-:is(.rrll-active-module, .phase4-active-module) .item,
-:is(.rrll-active-module, .phase4-active-module) .task-card,
-:is(.rrll-active-module, .phase4-active-module) .petition-card,
-:is(.rrll-active-module, .phase4-active-module) .minute-card,
-:is(.rrll-active-module, .phase4-active-module) .telework-card,
-:is(.rrll-active-module, .phase4-active-module) .agenda-card,
-:is(.rrll-active-module, .phase4-active-module) .session-card {
+.rrll-active-module .item,
+.rrll-active-module .task-card,
+.rrll-active-module .petition-card,
+.rrll-active-module .minute-card,
+.rrll-active-module .telework-card,
+.rrll-active-module .agenda-card,
+.rrll-active-module .session-card {
   max-width: 100%;
 }
-:is(.rrll-active-module, .phase4-active-module) .item-title,
-:is(.rrll-active-module, .phase4-active-module) .item-description,
-:is(.rrll-active-module, .phase4-active-module) .notes,
-:is(.rrll-active-module, .phase4-active-module) textarea,
-:is(.rrll-active-module, .phase4-active-module) input {
+.rrll-active-module .item-title,
+.rrll-active-module .item-description,
+.rrll-active-module .notes,
+.rrll-active-module textarea,
+.rrll-active-module input {
   min-width: 0;
 }
-:is(.rrll-active-module, .phase4-active-module) .module-actions,
-:is(.rrll-active-module, .phase4-active-module) .filter-row,
-:is(.rrll-active-module, .phase4-active-module) .form-row,
-:is(.rrll-active-module, .phase4-active-module) .summary-actions {
+.rrll-active-module .module-actions,
+.rrll-active-module .filter-row,
+.rrll-active-module .form-row,
+.rrll-active-module .summary-actions {
   min-width: 0;
 }
 @media (max-width: 1366px) {
@@ -656,13 +656,13 @@ body:is(.rrll-view-module, .phase4-view-module) .quick-top.compact-quick-panel {
 .rrll-main #dashboardLayout {
   display: none !important;
 }
-body:is(.rrll-view-home, .phase4-view-home) .phase4-home-dashboard {
+body.rrll-view-home .phase4-home-dashboard {
   display: grid !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .phase4-home-dashboard {
+body.rrll-view-module .phase4-home-dashboard {
   display: none !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .rrll-main #dashboardLayout {
+body.rrll-view-module .rrll-main #dashboardLayout {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) !important;
   width: 100% !important;
@@ -670,33 +670,33 @@ body:is(.rrll-view-module, .phase4-view-module) .rrll-main #dashboardLayout {
   margin: 18px 0 0 !important;
   gap: 0 !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .sidebar-left {
+body.rrll-view-module .sidebar-left {
   display: none !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right {
+body.rrll-view-module .content-right {
   display: block !important;
   width: 100% !important;
   max-width: none !important;
   min-width: 0 !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card {
+body.rrll-view-module .content-right > .module-card {
   display: none !important;
   width: 100% !important;
   max-width: none !important;
   min-width: 0 !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module {
   display: block !important;
   width: 100% !important;
   max-width: none !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary {
   display: flex !important;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
-body:is(.rrll-view-module, .phase4-view-module) .rrll-main main {
+body.rrll-view-module .rrll-main main {
   overflow-x: hidden;
 }
 
@@ -796,11 +796,11 @@ body:is(.rrll-view-module, .phase4-view-module) .rrll-main main {
   display: none !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) #dashboardLayout {
+body.rrll-view-home #dashboardLayout {
   display: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #dashboardLayout {
+body.rrll-view-module #dashboardLayout {
   display: block !important;
   width: 100%;
   max-width: none;
@@ -808,7 +808,7 @@ body:is(.rrll-view-module, .phase4-view-module) #dashboardLayout {
   padding: 0;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right {
+body.rrll-view-module .content-right {
   display: block;
   width: 100%;
   max-width: none !important;
@@ -817,7 +817,7 @@ body:is(.rrll-view-module, .phase4-view-module) .content-right {
 }
 
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module {
   display: block !important;
   width: 100%;
   max-width: none;
@@ -830,7 +830,7 @@ body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is
   overflow: hidden;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -841,40 +841,40 @@ body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is
   list-style: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary::-webkit-details-marker {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary::-webkit-details-marker {
   display: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .module-title {
+body.rrll-view-module .module-title {
   font-size: 18px;
   font-weight: 900;
   color: #0f172a;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .summary-counts {
+body.rrll-view-module .summary-counts {
   margin-left: auto;
   color: #64748b;
   font-weight: 800;
   white-space: nowrap;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .summary-actions {
+body.rrll-view-module .summary-actions {
   display: inline-flex;
   gap: 8px;
   margin-left: 8px;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > :not(summary) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > :not(summary) {
   margin-left: 22px;
   margin-right: 22px;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .session-form,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-body:is(.rrll-view-module, .phase4-view-module) .form-inline {
+body.rrll-view-module .enhanced-task-form,
+body.rrll-view-module .enhanced-petition-form,
+body.rrll-view-module .agenda-form-v18,
+body.rrll-view-module .session-form,
+body.rrll-view-module .telework-form,
+body.rrll-view-module .form-inline {
   margin-top: 22px;
   display: grid;
   grid-template-columns: minmax(220px, 2fr) minmax(140px, 1fr) minmax(130px, .8fr) auto;
@@ -882,17 +882,17 @@ body:is(.rrll-view-module, .phase4-view-module) .form-inline {
   align-items: center;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) textarea {
+body.rrll-view-module textarea {
   margin-top: 12px;
   width: calc(100% - 44px);
   min-height: 76px;
   resize: vertical;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns,
-body:is(.rrll-view-module, .phase4-view-module) .minutes-columns,
-body:is(.rrll-view-module, .phase4-view-module) .telework-columns,
-body:is(.rrll-view-module, .phase4-view-module) .session-columns {
+body.rrll-view-module .workflow-columns,
+body.rrll-view-module .minutes-columns,
+body.rrll-view-module .telework-columns,
+body.rrll-view-module .session-columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
@@ -900,7 +900,7 @@ body:is(.rrll-view-module, .phase4-view-module) .session-columns {
   width: calc(100% - 44px);
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .column {
+body.rrll-view-module .column {
   min-width: 0;
   border-radius: 18px;
   background: #f8fafc;
@@ -908,25 +908,25 @@ body:is(.rrll-view-module, .phase4-view-module) .column {
   box-shadow: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .column-header {
+body.rrll-view-module .column-header {
   border-bottom: 1px solid rgba(15, 23, 42, 0.07);
   background: rgba(255, 255, 255, 0.75);
   border-radius: 18px 18px 0 0;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .task,
-body:is(.rrll-view-module, .phase4-view-module) .petition,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-item,
-body:is(.rrll-view-module, .phase4-view-module) .session-card,
-body:is(.rrll-view-module, .phase4-view-module) .minute,
-body:is(.rrll-view-module, .phase4-view-module) .telework-item {
+body.rrll-view-module .task,
+body.rrll-view-module .petition,
+body.rrll-view-module .agenda-item,
+body.rrll-view-module .session-card,
+body.rrll-view-module .minute,
+body.rrll-view-module .telework-item {
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection {
+body.rrll-view-module .committee-subsection,
+body.rrll-view-module .paritaria-subsection {
   margin: 18px 22px 22px 22px !important;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
@@ -934,8 +934,8 @@ body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection {
   overflow: hidden;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > summary,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > summary {
+body.rrll-view-module .committee-subsection > summary,
+body.rrll-view-module .paritaria-subsection > summary {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -945,66 +945,66 @@ body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > summary 
   list-style: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > summary::-webkit-details-marker,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > summary::-webkit-details-marker {
+body.rrll-view-module .committee-subsection > summary::-webkit-details-marker,
+body.rrll-view-module .paritaria-subsection > summary::-webkit-details-marker {
   display: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection:not([open]),
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection:not([open]) {
+body.rrll-view-module .committee-subsection:not([open]),
+body.rrll-view-module .paritaria-subsection:not([open]) {
   display: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) input,
-body:is(.rrll-view-module, .phase4-view-module) select,
-body:is(.rrll-view-module, .phase4-view-module) textarea {
+body.rrll-view-module input,
+body.rrll-view-module select,
+body.rrll-view-module textarea {
   border-radius: 12px;
   border: 1px solid #dbe3ef;
   background: #fff;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) button:not(.rrll-nav-item):not(.summary-icon-button) {
+body.rrll-view-module button:not(.rrll-nav-item):not(.summary-icon-button) {
   border-radius: 12px;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .phase4-home-dashboard,
-body:is(.rrll-view-module, .phase4-view-module) .quick-top,
-body:is(.rrll-view-module, .phase4-view-module) #alertsPanel {
+body.rrll-view-module .phase4-home-dashboard,
+body.rrll-view-module .quick-top,
+body.rrll-view-module #alertsPanel {
   display: none !important;
 }
 
 @media (max-width: 1100px) {
-  body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-  body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form,
-  body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-  body:is(.rrll-view-module, .phase4-view-module) .session-form,
-  body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-  body:is(.rrll-view-module, .phase4-view-module) .form-inline {
+  body.rrll-view-module .enhanced-task-form,
+  body.rrll-view-module .enhanced-petition-form,
+  body.rrll-view-module .agenda-form-v18,
+  body.rrll-view-module .session-form,
+  body.rrll-view-module .telework-form,
+  body.rrll-view-module .form-inline {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 760px) {
-  body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-  body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form,
-  body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-  body:is(.rrll-view-module, .phase4-view-module) .session-form,
-  body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-  body:is(.rrll-view-module, .phase4-view-module) .form-inline {
+  body.rrll-view-module .enhanced-task-form,
+  body.rrll-view-module .enhanced-petition-form,
+  body.rrll-view-module .agenda-form-v18,
+  body.rrll-view-module .session-form,
+  body.rrll-view-module .telework-form,
+  body.rrll-view-module .form-inline {
     grid-template-columns: 1fr;
   }
-  body:is(.rrll-view-module, .phase4-view-module) .summary-counts { display: none; }
-  body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > :not(summary),
-  body:is(.rrll-view-module, .phase4-view-module) .committee-subsection,
-  body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection {
+  body.rrll-view-module .summary-counts { display: none; }
+  body.rrll-view-module .content-right > .module-card.rrll-active-module > :not(summary),
+  body.rrll-view-module .committee-subsection,
+  body.rrll-view-module .paritaria-subsection {
     margin-left: 14px !important;
     margin-right: 14px !important;
   }
-  body:is(.rrll-view-module, .phase4-view-module) textarea,
-  body:is(.rrll-view-module, .phase4-view-module) .workflow-columns,
-  body:is(.rrll-view-module, .phase4-view-module) .minutes-columns,
-  body:is(.rrll-view-module, .phase4-view-module) .telework-columns,
-  body:is(.rrll-view-module, .phase4-view-module) .session-columns {
+  body.rrll-view-module textarea,
+  body.rrll-view-module .workflow-columns,
+  body.rrll-view-module .minutes-columns,
+  body.rrll-view-module .telework-columns,
+  body.rrll-view-module .session-columns {
     width: calc(100% - 28px);
   }
 }
@@ -1024,49 +1024,49 @@ body:is(.rrll-view-module, .phase4-view-module) #alertsPanel {
 .rrll-main .top-title p {
   margin: 2px 0 0;
 }
-body:is(.rrll-view-module, .phase4-view-module) .dashboard-layout {
+body.rrll-view-module .dashboard-layout {
   max-width: none !important;
   width: 100% !important;
   margin: 0 !important;
   display: block !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right {
+body.rrll-view-module .content-right {
   width: 100% !important;
   max-width: none !important;
   padding: 0 !important;
   display: block !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
   box-sizing: border-box;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary {
   top: 55px;
   padding: 12px 16px;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary::after,
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) details > summary::after,
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) .closed-toggle,
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) .session-toggle {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary::after,
+body.rrll-view-module .content-right > .module-card.rrll-active-module details > summary::after,
+body.rrll-view-module .content-right > .module-card.rrll-active-module .closed-toggle,
+body.rrll-view-module .content-right > .module-card.rrll-active-module .session-toggle {
   display: none !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) summary {
+body.rrll-view-module .content-right > .module-card.rrll-active-module summary {
   cursor: default !important;
   padding-right: 14px !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns,
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns.closed-open {
+body.rrll-view-module .workflow-columns,
+body.rrll-view-module .workflow-columns.closed-open {
   grid-template-columns: minmax(220px, 0.85fr) minmax(360px, 1.3fr) minmax(260px, 0.95fr) !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns:not(.closed-open) .workflow-closed-column {
+body.rrll-view-module .workflow-columns:not(.closed-open) .workflow-closed-column {
   padding: 14px !important;
   min-height: auto !important;
   background: #fff !important;
   border-left: 1px solid var(--border) !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns:not(.closed-open) .workflow-closed-column .column-header {
+body.rrll-view-module .workflow-columns:not(.closed-open) .workflow-closed-column .column-header {
   height: auto !important;
   min-height: 0 !important;
   padding: 0 0 8px !important;
@@ -1075,25 +1075,25 @@ body:is(.rrll-view-module, .phase4-view-module) .workflow-columns:not(.closed-op
   align-items: center !important;
   flex-direction: row !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns:not(.closed-open) .workflow-closed-column h3 {
+body.rrll-view-module .workflow-columns:not(.closed-open) .workflow-closed-column h3 {
   writing-mode: initial !important;
   transform: none !important;
   white-space: normal !important;
   font-size: 15px !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns:not(.closed-open) .workflow-closed-column .closed-content,
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns:not(.closed-open) .workflow-closed-column .muted {
+body.rrll-view-module .workflow-columns:not(.closed-open) .workflow-closed-column .closed-content,
+body.rrll-view-module .workflow-columns:not(.closed-open) .workflow-closed-column .muted {
   display: block !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .session-columns {
+body.rrll-view-module .session-columns {
   grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr) !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .session-panel,
-body:is(.rrll-view-module, .phase4-view-module) .session-panel-collapsed {
+body.rrll-view-module .session-panel,
+body.rrll-view-module .session-panel-collapsed {
   width: auto !important;
   min-width: 0 !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .session-panel-collapsed .column-header {
+body.rrll-view-module .session-panel-collapsed .column-header {
   height: auto !important;
   min-height: 0 !important;
   padding: 0 0 8px !important;
@@ -1102,36 +1102,36 @@ body:is(.rrll-view-module, .phase4-view-module) .session-panel-collapsed .column
   align-items: center !important;
   flex-direction: row !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .session-panel-collapsed h3 {
+body.rrll-view-module .session-panel-collapsed h3 {
   writing-mode: initial !important;
   transform: none !important;
   white-space: normal !important;
   font-size: 15px !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .session-panel-collapsed .session-content {
+body.rrll-view-module .session-panel-collapsed .session-content {
   display: block !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-body:is(.rrll-view-module, .phase4-view-module) .petition-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .minute-form,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-body:is(.rrll-view-module, .phase4-view-module) .session-form {
+body.rrll-view-module .enhanced-task-form,
+body.rrll-view-module .petition-form-v18,
+body.rrll-view-module .agenda-form-v18,
+body.rrll-view-module .paritaria-form-v18,
+body.rrll-view-module .minute-form,
+body.rrll-view-module .telework-form,
+body.rrll-view-module .session-form {
   width: 100%;
   max-width: none;
 }
-body:is(.rrll-view-module, .phase4-view-module) .telework-form {
+body.rrll-view-module .telework-form {
   grid-template-columns: minmax(120px, .45fr) minmax(260px, 1fr) minmax(140px, .35fr) auto;
   align-items: center;
 }
 @media (max-width: 1100px) {
-  body:is(.rrll-view-module, .phase4-view-module) .workflow-columns,
-  body:is(.rrll-view-module, .phase4-view-module) .workflow-columns.closed-open,
-  body:is(.rrll-view-module, .phase4-view-module) .session-columns {
+  body.rrll-view-module .workflow-columns,
+  body.rrll-view-module .workflow-columns.closed-open,
+  body.rrll-view-module .session-columns {
     grid-template-columns: 1fr !important;
   }
-  body:is(.rrll-view-module, .phase4-view-module) .telework-form {
+  body.rrll-view-module .telework-form {
     grid-template-columns: 1fr !important;
   }
 }
@@ -1176,28 +1176,28 @@ body:is(.rrll-view-module, .phase4-view-module) .telework-form {
 
 /* Fase 4.2 - patrón único de introducción de datos en gestores */
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module {
   background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary {
   min-height: 60px !important;
   padding: 14px 18px !important;
   background: linear-gradient(90deg, #ffffff 0%, #f8fafc 100%) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) > summary .module-title {
+body.rrll-view-module .content-right > .module-card.rrll-active-module > summary .module-title {
   font-size: 19px !important;
   letter-spacing: -0.02em;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .session-form,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline {
+body.rrll-view-module .enhanced-task-form,
+body.rrll-view-module .enhanced-petition-form,
+body.rrll-view-module .agenda-form-v18,
+body.rrll-view-module .paritaria-form-v18,
+body.rrll-view-module .session-form,
+body.rrll-view-module .telework-form,
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline {
   width: calc(100% - 44px) !important;
   max-width: none !important;
   box-sizing: border-box !important;
@@ -1213,34 +1213,34 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-mo
   box-shadow: var(--rrll-shadow-soft) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .session-form {
+body.rrll-view-module .agenda-form-v18,
+body.rrll-view-module .paritaria-form-v18,
+body.rrll-view-module .session-form {
   grid-template-columns: minmax(180px, .65fr) minmax(260px, 1.5fr) minmax(150px, .65fr) auto !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .telework-form {
+body.rrll-view-module .telework-form {
   grid-template-columns: minmax(130px, .55fr) minmax(280px, 1.4fr) minmax(160px, .55fr) auto !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline {
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline {
   grid-template-columns: minmax(320px, 1fr) auto !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form input,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form select,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form input,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form select,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18 input,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18 select,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18 input,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18 select,
-body:is(.rrll-view-module, .phase4-view-module) .session-form input,
-body:is(.rrll-view-module, .phase4-view-module) .session-form select,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form input,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form select,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline input,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline select {
+body.rrll-view-module .enhanced-task-form input,
+body.rrll-view-module .enhanced-task-form select,
+body.rrll-view-module .enhanced-petition-form input,
+body.rrll-view-module .enhanced-petition-form select,
+body.rrll-view-module .agenda-form-v18 input,
+body.rrll-view-module .agenda-form-v18 select,
+body.rrll-view-module .paritaria-form-v18 input,
+body.rrll-view-module .paritaria-form-v18 select,
+body.rrll-view-module .session-form input,
+body.rrll-view-module .session-form select,
+body.rrll-view-module .telework-form input,
+body.rrll-view-module .telework-form select,
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline input,
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline select {
   min-height: 44px !important;
   width: 100% !important;
   min-width: 0 !important;
@@ -1254,25 +1254,25 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-mo
   font-weight: 650 !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form input::placeholder,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form input::placeholder,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18 input::placeholder,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18 input::placeholder,
-body:is(.rrll-view-module, .phase4-view-module) .session-form input::placeholder,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form input::placeholder,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline input::placeholder,
-body:is(.rrll-view-module, .phase4-view-module) textarea::placeholder {
+body.rrll-view-module .enhanced-task-form input::placeholder,
+body.rrll-view-module .enhanced-petition-form input::placeholder,
+body.rrll-view-module .agenda-form-v18 input::placeholder,
+body.rrll-view-module .paritaria-form-v18 input::placeholder,
+body.rrll-view-module .session-form input::placeholder,
+body.rrll-view-module .telework-form input::placeholder,
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline input::placeholder,
+body.rrll-view-module textarea::placeholder {
   color: #7c8797 !important;
   font-weight: 500 !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form button,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form button,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18 button,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18 button,
-body:is(.rrll-view-module, .phase4-view-module) .session-form button,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form button,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline button {
+body.rrll-view-module .enhanced-task-form button,
+body.rrll-view-module .enhanced-petition-form button,
+body.rrll-view-module .agenda-form-v18 button,
+body.rrll-view-module .paritaria-form-v18 button,
+body.rrll-view-module .session-form button,
+body.rrll-view-module .telework-form button,
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline button {
   min-height: 44px !important;
   padding: 0 18px !important;
   border-radius: 12px !important;
@@ -1284,20 +1284,20 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-mo
   white-space: nowrap !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form button:hover,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form button:hover,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18 button:hover,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18 button:hover,
-body:is(.rrll-view-module, .phase4-view-module) .session-form button:hover,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form button:hover,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline button:hover {
+body.rrll-view-module .enhanced-task-form button:hover,
+body.rrll-view-module .enhanced-petition-form button:hover,
+body.rrll-view-module .agenda-form-v18 button:hover,
+body.rrll-view-module .paritaria-form-v18 button:hover,
+body.rrll-view-module .session-form button:hover,
+body.rrll-view-module .telework-form button:hover,
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline button:hover {
   background: var(--rrll-red-dark) !important;
   transform: translateY(-1px);
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .module-card:is(.rrll-active-module, .phase4-active-module) > textarea,
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > textarea,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > textarea {
+body.rrll-view-module .module-card.rrll-active-module > textarea,
+body.rrll-view-module .committee-subsection > textarea,
+body.rrll-view-module .paritaria-subsection > textarea {
   width: calc(100% - 44px) !important;
   box-sizing: border-box !important;
   margin: 10px 22px 0 !important;
@@ -1310,9 +1310,9 @@ body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > textarea
   font-size: 14px !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .petition-type-row,
-body:is(.rrll-view-module, .phase4-view-module) .telework-days-row,
-body:is(.rrll-view-module, .phase4-view-module) .two-buttons {
+body.rrll-view-module .petition-type-row,
+body.rrll-view-module .telework-days-row,
+body.rrll-view-module .two-buttons {
   width: calc(100% - 44px) !important;
   box-sizing: border-box !important;
   margin: 10px 22px 0 !important;
@@ -1326,7 +1326,7 @@ body:is(.rrll-view-module, .phase4-view-module) .two-buttons {
   border-radius: 16px !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .check-option {
+body.rrll-view-module .check-option {
   min-height: 36px !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -1340,7 +1340,7 @@ body:is(.rrll-view-module, .phase4-view-module) .check-option {
   color: #334155 !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .check-option input[type="checkbox"] {
+body.rrll-view-module .check-option input[type="checkbox"] {
   width: 17px !important;
   height: 17px !important;
   min-height: 17px !important;
@@ -1348,66 +1348,66 @@ body:is(.rrll-view-module, .phase4-view-module) .check-option input[type="checkb
   accent-color: var(--rrll-red) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns,
-body:is(.rrll-view-module, .phase4-view-module) .minutes-columns,
-body:is(.rrll-view-module, .phase4-view-module) .telework-columns,
-body:is(.rrll-view-module, .phase4-view-module) .session-columns {
+body.rrll-view-module .workflow-columns,
+body.rrll-view-module .minutes-columns,
+body.rrll-view-module .telework-columns,
+body.rrll-view-module .session-columns {
   margin-top: 16px !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .column {
+body.rrll-view-module .column {
   background: #ffffff !important;
   border: 1px solid var(--rrll-border) !important;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.045) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .column-header {
+body.rrll-view-module .column-header {
   min-height: 48px !important;
   padding: 12px 14px !important;
   background: #f8fafc !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .column-header h3 {
+body.rrll-view-module .column-header h3 {
   font-size: 15px !important;
   letter-spacing: -0.01em;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .badge {
+body.rrll-view-module .badge {
   background: #111827 !important;
   color: #ffffff !important;
 }
 
 @media (max-width: 1180px) {
-  body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-  body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form,
-  body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-  body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18,
-  body:is(.rrll-view-module, .phase4-view-module) .session-form,
-  body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline {
+  body.rrll-view-module .enhanced-task-form,
+  body.rrll-view-module .enhanced-petition-form,
+  body.rrll-view-module .agenda-form-v18,
+  body.rrll-view-module .paritaria-form-v18,
+  body.rrll-view-module .session-form,
+  body.rrll-view-module .telework-form,
+  body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline {
     grid-template-columns: 1fr 1fr !important;
   }
 }
 
 @media (max-width: 760px) {
-  body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-  body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form,
-  body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-  body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18,
-  body:is(.rrll-view-module, .phase4-view-module) .session-form,
-  body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline {
+  body.rrll-view-module .enhanced-task-form,
+  body.rrll-view-module .enhanced-petition-form,
+  body.rrll-view-module .agenda-form-v18,
+  body.rrll-view-module .paritaria-form-v18,
+  body.rrll-view-module .session-form,
+  body.rrll-view-module .telework-form,
+  body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline {
     grid-template-columns: 1fr !important;
     margin-left: 14px !important;
     margin-right: 14px !important;
     width: calc(100% - 28px) !important;
   }
-  body:is(.rrll-view-module, .phase4-view-module) .module-card:is(.rrll-active-module, .phase4-active-module) > textarea,
-  body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > textarea,
-  body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > textarea,
-  body:is(.rrll-view-module, .phase4-view-module) .petition-type-row,
-  body:is(.rrll-view-module, .phase4-view-module) .telework-days-row,
-  body:is(.rrll-view-module, .phase4-view-module) .two-buttons {
+  body.rrll-view-module .module-card.rrll-active-module > textarea,
+  body.rrll-view-module .committee-subsection > textarea,
+  body.rrll-view-module .paritaria-subsection > textarea,
+  body.rrll-view-module .petition-type-row,
+  body.rrll-view-module .telework-days-row,
+  body.rrll-view-module .two-buttons {
     margin-left: 14px !important;
     margin-right: 14px !important;
     width: calc(100% - 28px) !important;
@@ -1431,22 +1431,22 @@ body:is(.rrll-view-module, .phase4-view-module) .badge {
 }
 
 /* Inicio: solo dashboard moderno */
-body:is(.rrll-view-home, .phase4-view-home) #dashboardLayout,
-body:is(.rrll-view-home, .phase4-view-home) .content-right,
-body:is(.rrll-view-home, .phase4-view-home) .module-card {
+body.rrll-view-home #dashboardLayout,
+body.rrll-view-home .content-right,
+body.rrll-view-home .module-card {
   display: none !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) #phase4HomeDashboard {
+body.rrll-view-home #phase4HomeDashboard {
   display: block !important;
 }
 
 /* Gestores: solo contenedor central moderno */
-body:is(.rrll-view-module, .phase4-view-module) #phase4HomeDashboard {
+body.rrll-view-module #phase4HomeDashboard {
   display: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #dashboardLayout {
+body.rrll-view-module #dashboardLayout {
   display: block !important;
   width: 100% !important;
   max-width: none !important;
@@ -1457,7 +1457,7 @@ body:is(.rrll-view-module, .phase4-view-module) #dashboardLayout {
   border: 0 !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right {
+body.rrll-view-module .content-right {
   display: block !important;
   width: 100% !important;
   max-width: none !important;
@@ -1466,11 +1466,11 @@ body:is(.rrll-view-module, .phase4-view-module) .content-right {
   box-sizing: border-box !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card {
+body.rrll-view-module .content-right > .module-card {
   display: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module {
   display: block !important;
   width: 100% !important;
   max-width: none !important;
@@ -1481,41 +1481,41 @@ body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is
 }
 
 /* Los summary pasan a ser cabecera fija, no desplegable */
-body:is(.rrll-view-module, .phase4-view-module) .module-card > summary,
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > summary,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > summary {
+body.rrll-view-module .module-card > summary,
+body.rrll-view-module .committee-subsection > summary,
+body.rrll-view-module .paritaria-subsection > summary {
   list-style: none !important;
   cursor: default !important;
   user-select: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .module-card > summary::-webkit-details-marker,
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > summary::-webkit-details-marker,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > summary::-webkit-details-marker {
+body.rrll-view-module .module-card > summary::-webkit-details-marker,
+body.rrll-view-module .committee-subsection > summary::-webkit-details-marker,
+body.rrll-view-module .paritaria-subsection > summary::-webkit-details-marker {
   display: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .module-card > summary::marker,
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > summary::marker,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > summary::marker {
+body.rrll-view-module .module-card > summary::marker,
+body.rrll-view-module .committee-subsection > summary::marker,
+body.rrll-view-module .paritaria-subsection > summary::marker {
   content: "" !important;
 }
 
 /* Subvistas Comité/Paritaria: solo se muestra la elegida por navegación */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-comite:is(.rrll-active-module, .phase4-active-module) > summary,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria:is(.rrll-active-module, .phase4-active-module) > summary {
+body.rrll-view-module #gestor-comite.rrll-active-module > summary,
+body.rrll-view-module #gestor-paritaria.rrll-active-module > summary {
   display: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-comite:is(.rrll-active-module, .phase4-active-module) .committee-subsection,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria:is(.rrll-active-module, .phase4-active-module) .paritaria-subsection {
+body.rrll-view-module #gestor-comite.rrll-active-module .committee-subsection,
+body.rrll-view-module #gestor-paritaria.rrll-active-module .paritaria-subsection {
   display: none !important;
   margin: 0 !important;
   border-radius: 20px !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-comite:is(.rrll-active-module, .phase4-active-module) .committee-subsection[open],
-body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria:is(.rrll-active-module, .phase4-active-module) .paritaria-subsection[open] {
+body.rrll-view-module #gestor-comite.rrll-active-module .committee-subsection[open],
+body.rrll-view-module #gestor-paritaria.rrll-active-module .paritaria-subsection[open] {
   display: block !important;
 }
 
@@ -1530,34 +1530,34 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria:is(.rrll-activ
   padding-bottom: 8px !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .rrll-main main {
+body.rrll-view-module .rrll-main main {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
 /* Formularios homogéneos a ancho completo */
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .session-form,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-comite[open] > .agenda-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-paritaria[open] > .paritaria-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite[open] > .session-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria[open] > .session-form {
+body.rrll-view-module .enhanced-task-form,
+body.rrll-view-module .enhanced-petition-form,
+body.rrll-view-module .agenda-form-v18,
+body.rrll-view-module .paritaria-form-v18,
+body.rrll-view-module .session-form,
+body.rrll-view-module .telework-form,
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline,
+body.rrll-view-module #gestor-puntos-comite[open] > .agenda-form-v18,
+body.rrll-view-module #gestor-puntos-paritaria[open] > .paritaria-form-v18,
+body.rrll-view-module #gestor-sesiones-comite[open] > .session-form,
+body.rrll-view-module #gestor-sesiones-paritaria[open] > .session-form {
   width: calc(100% - 32px) !important;
   margin: 16px 16px 0 !important;
   max-width: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .module-card:is(.rrll-active-module, .phase4-active-module) > textarea,
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > textarea,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > textarea,
-body:is(.rrll-view-module, .phase4-view-module) .petition-type-row,
-body:is(.rrll-view-module, .phase4-view-module) .telework-days-row,
-body:is(.rrll-view-module, .phase4-view-module) .two-buttons {
+body.rrll-view-module .module-card.rrll-active-module > textarea,
+body.rrll-view-module .committee-subsection > textarea,
+body.rrll-view-module .paritaria-subsection > textarea,
+body.rrll-view-module .petition-type-row,
+body.rrll-view-module .telework-days-row,
+body.rrll-view-module .two-buttons {
   width: calc(100% - 32px) !important;
   margin-left: 16px !important;
   margin-right: 16px !important;
@@ -1565,10 +1565,10 @@ body:is(.rrll-view-module, .phase4-view-module) .two-buttons {
 }
 
 /* Columnas: ocupar ancho útil, sin columnas plegadas ni textos desbordados */
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns,
-body:is(.rrll-view-module, .phase4-view-module) .minutes-columns,
-body:is(.rrll-view-module, .phase4-view-module) .telework-columns,
-body:is(.rrll-view-module, .phase4-view-module) .session-columns {
+body.rrll-view-module .workflow-columns,
+body.rrll-view-module .minutes-columns,
+body.rrll-view-module .telework-columns,
+body.rrll-view-module .session-columns {
   width: calc(100% - 32px) !important;
   margin: 16px 16px 0 !important;
   display: grid !important;
@@ -1577,9 +1577,9 @@ body:is(.rrll-view-module, .phase4-view-module) .session-columns {
   align-items: start !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .workflow-closed-column,
-body:is(.rrll-view-module, .phase4-view-module) .closed-column,
-body:is(.rrll-view-module, .phase4-view-module) .session-panel {
+body.rrll-view-module .workflow-closed-column,
+body.rrll-view-module .closed-column,
+body.rrll-view-module .session-panel {
   width: auto !important;
   min-width: 0 !important;
   max-width: none !important;
@@ -1588,11 +1588,11 @@ body:is(.rrll-view-module, .phase4-view-module) .session-panel {
   cursor: default !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .workflow-closed-column .column-header,
-body:is(.rrll-view-module, .phase4-view-module) .workflow-closed-column h3,
-body:is(.rrll-view-module, .phase4-view-module) .workflow-closed-column .closed-content,
-body:is(.rrll-view-module, .phase4-view-module) .workflow-closed-column .muted,
-body:is(.rrll-view-module, .phase4-view-module) .workflow-closed-column .badge {
+body.rrll-view-module .workflow-closed-column .column-header,
+body.rrll-view-module .workflow-closed-column h3,
+body.rrll-view-module .workflow-closed-column .closed-content,
+body.rrll-view-module .workflow-closed-column .muted,
+body.rrll-view-module .workflow-closed-column .badge {
   display: revert !important;
   writing-mode: horizontal-tb !important;
   opacity: 1 !important;
@@ -1600,38 +1600,38 @@ body:is(.rrll-view-module, .phase4-view-module) .workflow-closed-column .badge {
   max-height: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .item-card,
-body:is(.rrll-view-module, .phase4-view-module) .task-card,
-body:is(.rrll-view-module, .phase4-view-module) .petition-card,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-card,
-body:is(.rrll-view-module, .phase4-view-module) .minute-card,
-body:is(.rrll-view-module, .phase4-view-module) .telework-card,
-body:is(.rrll-view-module, .phase4-view-module) .session-card {
+body.rrll-view-module .item-card,
+body.rrll-view-module .task-card,
+body.rrll-view-module .petition-card,
+body.rrll-view-module .agenda-card,
+body.rrll-view-module .minute-card,
+body.rrll-view-module .telework-card,
+body.rrll-view-module .session-card {
   max-width: 100% !important;
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .item-card *,
-body:is(.rrll-view-module, .phase4-view-module) .task-card *,
-body:is(.rrll-view-module, .phase4-view-module) .petition-card *,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-card *,
-body:is(.rrll-view-module, .phase4-view-module) .minute-card *,
-body:is(.rrll-view-module, .phase4-view-module) .telework-card *,
-body:is(.rrll-view-module, .phase4-view-module) .session-card * {
+body.rrll-view-module .item-card *,
+body.rrll-view-module .task-card *,
+body.rrll-view-module .petition-card *,
+body.rrll-view-module .agenda-card *,
+body.rrll-view-module .minute-card *,
+body.rrll-view-module .telework-card *,
+body.rrll-view-module .session-card * {
   min-width: 0 !important;
   overflow-wrap: anywhere !important;
 }
 
 /* Botones de acciones coherentes */
-body:is(.rrll-view-module, .phase4-view-module) .summary-actions {
+body.rrll-view-module .summary-actions {
   display: flex !important;
   gap: 8px !important;
   align-items: center !important;
   margin-left: auto !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .summary-icon-button {
+body.rrll-view-module .summary-icon-button {
   border-radius: 10px !important;
   min-width: 38px !important;
   min-height: 38px !important;
@@ -1679,8 +1679,8 @@ body:is(.rrll-view-module, .phase4-view-module) .summary-icon-button {
 }
 
 /* Fase 3.1: tareas y peticiones con trabajo activo arriba y cerradas plegadas abajo */
-body:is(.rrll-view-module, .phase4-view-module) #tasks-columns.workflow-main-columns,
-body:is(.rrll-view-module, .phase4-view-module) #petitions-columns.workflow-main-columns,
+body.rrll-view-module #tasks-columns.workflow-main-columns,
+body.rrll-view-module #petitions-columns.workflow-main-columns,
 #tasks-columns.workflow-main-columns,
 #petitions-columns.workflow-main-columns {
   display: grid !important;
@@ -1689,8 +1689,8 @@ body:is(.rrll-view-module, .phase4-view-module) #petitions-columns.workflow-main
   align-items: start !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #tasks-columns.workflow-main-columns,
-body:is(.rrll-view-module, .phase4-view-module) #petitions-columns.workflow-main-columns {
+body.rrll-view-module #tasks-columns.workflow-main-columns,
+body.rrll-view-module #petitions-columns.workflow-main-columns {
   width: calc(100% - 32px) !important;
   margin: 16px 16px 0 !important;
 }
@@ -1751,8 +1751,8 @@ body:is(.rrll-view-module, .phase4-view-module) #petitions-columns.workflow-main
 }
 
 @media (max-width: 1100px) {
-  body:is(.rrll-view-module, .phase4-view-module) #tasks-columns.workflow-main-columns,
-  body:is(.rrll-view-module, .phase4-view-module) #petitions-columns.workflow-main-columns,
+  body.rrll-view-module #tasks-columns.workflow-main-columns,
+  body.rrll-view-module #petitions-columns.workflow-main-columns,
   #tasks-columns.workflow-main-columns,
   #petitions-columns.workflow-main-columns {
     grid-template-columns: 1fr !important;
