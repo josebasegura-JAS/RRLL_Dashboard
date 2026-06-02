@@ -65,12 +65,57 @@ function runAndCount(db, sql, params = []) {
   return Number(db.getRowsModified()) || 0;
 }
 
-function createTicketCalendarRepository({ db }) {
+
+const TICKET_CALENDAR_TABLE_COLUMNS = Object.freeze({
+  ticket_calendars: Object.freeze(["id", "name", "display_order", "active", "observations"]),
+  ticket_calendar_aliases: Object.freeze(["id", "calendar_id", "alias"]),
+  ticket_calendar_weekdays: Object.freeze(["calendar_id", "iso_weekday"]),
+  ticket_calendar_exclusions: Object.freeze(["id", "calendar_id", "date", "no_ticket", "source"]),
+  ticket_calendar_rules: Object.freeze(["id", "calendar_id", "rule_type", "rule_value", "active"])
+});
+
+function getTicketCalendarSchemaInfo(db) {
+  const tableNames = rowsFromExec(db, `
+    SELECT name FROM sqlite_master
+    WHERE type = 'table' AND name LIKE 'ticket_calendar%'
+  `).map(row => row.name);
+  const existingTables = new Set(tableNames);
+  const columns = {};
+  const columnTypes = {};
+  tableNames.forEach(tableName => {
+    const tableColumns = rowsFromExec(db, `PRAGMA table_info(${tableName})`);
+    columns[tableName] = tableColumns.map(row => String(row.name));
+    columnTypes[tableName] = Object.fromEntries(tableColumns.map(row => [String(row.name), String(row.type || "").toUpperCase()]));
+  });
+  const hasColumns = (tableName, required) => {
+    const available = new Set(columns[tableName] || []);
+    return required.every(column => available.has(column));
+  };
+  const hasAnyTables = tableNames.length > 0;
+  const currentCompatible = Object.entries(TICKET_CALENDAR_TABLE_COLUMNS)
+    .every(([tableName, required]) => existingTables.has(tableName) && hasColumns(tableName, required));
+  const calendarIdIsInteger = !existingTables.has("ticket_calendars") || (columnTypes.ticket_calendars || {}).id === "INTEGER";
+  const calendarsCanBeUpgraded = !existingTables.has("ticket_calendars")
+    || (calendarIdIsInteger && hasColumns("ticket_calendars", ["id", "name", "display_order", "active"]));
+  const relationsCanBeInitialized = Object.entries(TICKET_CALENDAR_TABLE_COLUMNS)
+    .filter(([tableName]) => tableName !== "ticket_calendars")
+    .every(([tableName, required]) => !existingTables.has(tableName) || hasColumns(tableName, required));
+  const safeToInitialize = !hasAnyTables || (calendarsCanBeUpgraded && relationsCanBeInitialized);
+  const readCompatible = existingTables.has("ticket_calendars") && hasColumns("ticket_calendars", ["id", "name"]);
+  return Object.freeze({ hasAnyTables, currentCompatible: currentCompatible && calendarIdIsInteger, safeToInitialize, readCompatible, tables: Object.freeze(tableNames), columns: Object.freeze(columns), columnTypes: Object.freeze(columnTypes) });
+}
+
+function createTicketCalendarRepository({ db, warn = console.warn }) {
   if (!db || typeof db.run !== "function" || typeof db.exec !== "function") {
     throw new Error("Se requiere una conexión SQLite válida para TicketCalendarRepository.");
   }
 
   function ensureTicketCalendarSchema() {
+    const before = getTicketCalendarSchemaInfo(db);
+    if (before.hasAnyTables && !before.safeToInitialize) {
+      warn("Esquema SQLite de calendarios Ticket incompatible; se conserva sin migración destructiva y se usará fallback.", before);
+      return before;
+    }
     db.run(`
       CREATE TABLE IF NOT EXISTS ticket_calendars (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -120,6 +165,19 @@ function createTicketCalendarRepository({ db }) {
         UNIQUE (calendar_id, rule_type, rule_value)
       );
     `);
+    return getTicketCalendarSchemaInfo(db);
+  }
+
+  function assertCurrentSchema(operation) {
+    const info = getTicketCalendarSchemaInfo(db);
+    if (info.currentCompatible) return info;
+    const error = new Error(`Esquema SQLite de calendarios Ticket incompatible para ${operation}; se conserva la BBDD sin cambios.`);
+    error.code = "ticket_calendar_schema_incompatible";
+    throw error;
+  }
+
+  function hasTable(tableName) {
+    return getTicketCalendarSchemaInfo(db).tables.includes(tableName);
   }
 
   function getCalendarIdByName(name) {
@@ -128,6 +186,7 @@ function createTicketCalendarRepository({ db }) {
   }
 
   function seedBaseTicketCalendars() {
+    assertCurrentSchema("insertar calendarios base");
     let inserted = 0;
     BASE_TICKET_CALENDARS.forEach(calendar => {
       inserted += runAndCount(db, "INSERT OR IGNORE INTO ticket_calendars (name, display_order, active) VALUES (?, ?, 1)", [calendar.name, calendar.displayOrder]);
@@ -210,6 +269,7 @@ function createTicketCalendarRepository({ db }) {
   }
 
   function createTicketCalendar(input) {
+    assertCurrentSchema("crear un calendario");
     const calendar = validateTicketCalendar(input);
     db.run("BEGIN");
     try {
@@ -225,6 +285,7 @@ function createTicketCalendarRepository({ db }) {
   }
 
   function updateTicketCalendar(calendarId, input) {
+    assertCurrentSchema("editar un calendario");
     const id = Number(calendarId);
     if (!Number.isInteger(id) || id <= 0 || !getTicketCalendars().some(calendar => Number(calendar.id) === id)) {
       throw createValidationError("ticket_calendar_not_found", "No se ha encontrado el calendario que quieres editar.");
@@ -247,23 +308,45 @@ function createTicketCalendarRepository({ db }) {
   }
 
   function getTicketCalendars() {
-    return rowsFromExec(db, "SELECT id, name, display_order, active, observations FROM ticket_calendars ORDER BY display_order, id");
+    const info = getTicketCalendarSchemaInfo(db);
+    if (!info.readCompatible) return [];
+    const available = new Set(info.columns.ticket_calendars || []);
+    const displayOrder = available.has("display_order") ? "display_order" : "NULL AS display_order";
+    const active = available.has("active") ? "active" : "1 AS active";
+    const observations = available.has("observations") ? "observations" : available.has("notes") ? "notes AS observations" : "'' AS observations";
+    const order = available.has("display_order") ? "display_order, id" : available.has("name") ? "name, id" : "id";
+    return rowsFromExec(db, `SELECT id, name, ${displayOrder}, ${active}, ${observations} FROM ticket_calendars ORDER BY ${order}`);
   }
 
   function getTicketCalendarAliases() {
-    return rowsFromExec(db, "SELECT id, calendar_id, alias FROM ticket_calendar_aliases ORDER BY calendar_id, id");
+    const info = getTicketCalendarSchemaInfo(db);
+    return info.tables.includes("ticket_calendar_aliases") && ["id", "calendar_id", "alias"].every(column => (info.columns.ticket_calendar_aliases || []).includes(column))
+      ? rowsFromExec(db, "SELECT id, calendar_id, alias FROM ticket_calendar_aliases ORDER BY calendar_id, id") : [];
   }
 
   function getTicketCalendarWeekdays() {
-    return rowsFromExec(db, "SELECT calendar_id, iso_weekday FROM ticket_calendar_weekdays ORDER BY calendar_id, iso_weekday");
+    const info = getTicketCalendarSchemaInfo(db);
+    return info.tables.includes("ticket_calendar_weekdays") && ["calendar_id", "iso_weekday"].every(column => (info.columns.ticket_calendar_weekdays || []).includes(column))
+      ? rowsFromExec(db, "SELECT calendar_id, iso_weekday FROM ticket_calendar_weekdays ORDER BY calendar_id, iso_weekday") : [];
   }
 
   function getTicketCalendarExclusions() {
-    return rowsFromExec(db, "SELECT id, calendar_id, date, no_ticket, source FROM ticket_calendar_exclusions ORDER BY calendar_id, date, id");
+    const info = getTicketCalendarSchemaInfo(db);
+    if (!info.tables.includes("ticket_calendar_exclusions") || !["id", "calendar_id"].every(column => (info.columns.ticket_calendar_exclusions || []).includes(column))) return [];
+    const available = new Set(info.columns.ticket_calendar_exclusions || []);
+    const date = available.has("date") ? "date" : available.has("exclusion_date") ? "exclusion_date AS date" : "NULL AS date";
+    const noTicket = available.has("no_ticket") ? "no_ticket" : available.has("exclusion_type") ? "CASE WHEN exclusion_type IS NULL OR exclusion_type != 'ticket' THEN 1 ELSE 0 END AS no_ticket" : "1 AS no_ticket";
+    const source = available.has("source") ? "source" : "'legacy_schema' AS source";
+    return rowsFromExec(db, `SELECT id, calendar_id, ${date}, ${noTicket}, ${source} FROM ticket_calendar_exclusions ORDER BY calendar_id, date, id`);
   }
 
   function getTicketCalendarRules() {
-    return rowsFromExec(db, "SELECT id, calendar_id, rule_type, rule_value, active FROM ticket_calendar_rules ORDER BY calendar_id, id");
+    const info = getTicketCalendarSchemaInfo(db);
+    if (!info.tables.includes("ticket_calendar_rules") || !["id", "calendar_id", "rule_type"].every(column => (info.columns.ticket_calendar_rules || []).includes(column))) return [];
+    const available = new Set(info.columns.ticket_calendar_rules || []);
+    const ruleValue = available.has("rule_value") ? "rule_value" : available.has("rule_payload") ? "rule_payload AS rule_value" : "'' AS rule_value";
+    const active = available.has("active") ? "active" : "1 AS active";
+    return rowsFromExec(db, `SELECT id, calendar_id, rule_type, ${ruleValue}, ${active} FROM ticket_calendar_rules ORDER BY calendar_id, id`);
   }
 
   function getCalendarIdLookup() {
@@ -285,6 +368,7 @@ function createTicketCalendarRepository({ db }) {
   }
 
   function migrateLegacyTicketCalendarExclusions() {
+    assertCurrentSchema("copiar exclusiones KV");
     const calendarIds = getCalendarIdLookup();
     let inserted = 0;
     readLegacyCalendarMarks().forEach(mark => {
@@ -301,6 +385,7 @@ function createTicketCalendarRepository({ db }) {
   }
 
   return Object.freeze({
+    getTicketCalendarSchemaInfo: () => getTicketCalendarSchemaInfo(db),
     ensureTicketCalendarSchema,
     seedBaseTicketCalendars,
     migrateLegacyTicketCalendarExclusions,
@@ -318,6 +403,7 @@ const TicketCalendarRepository = Object.freeze({
   BASE_TICKET_CALENDARS,
   DEFAULT_TICKET_ISO_WEEKDAYS,
   LEGACY_CALENDAR_MARKS_KEY,
+  getTicketCalendarSchemaInfo,
   createTicketCalendarRepository
 });
 

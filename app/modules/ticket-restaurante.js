@@ -3,6 +3,7 @@ const RRLL_TICKET_CALENDAR_DOMAIN = typeof window !== "undefined" && window.Tick
   : null;
 const TICKET_RESTAURANT_FALLBACK_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela", "Liberados"];
 let ticketRestaurantCalendarOptions = null;
+let ticketRestaurantSelectedCalendar = "Servicios Centrales";
 const TICKET_RESTAURANT_CALENDARS = RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars === "function"
   ? RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars().map(calendar => calendar.name)
   : [...TICKET_RESTAURANT_FALLBACK_CALENDARS];
@@ -163,7 +164,7 @@ function openTicketRestaurantPrintPreview(title, headers, rows) {
 
 
 let ticketRestaurantActiveArea = "compute";
-let ticketRestaurantSelectedCalendar = "Servicios Centrales";
+
 let ticketRestaurantCalendarYear = new Date().getFullYear();
 let ticketRestaurantEditingEmployee = null;
 let ticketRestaurantLastPlantillaLookup = "";

@@ -12,12 +12,14 @@ let ticketCalendarManagementModel = null;
 let ticketCalendarManagementEditingId = 0;
 
 function getTicketCalendarManagementRows() {
-  const options = ticketCalendarManagementModel && ticketCalendarManagementModel.options;
-  if (!options) return [];
-  return options.calendars.map(calendar => ({
+  const options = ticketCalendarManagementModel && ticketCalendarManagementModel.options || {};
+  const calendars = Array.isArray(options.calendars) ? options.calendars : [];
+  const aliases = Array.isArray(options.aliases) ? options.aliases : [];
+  const weekdays = Array.isArray(options.weekdays) ? options.weekdays : [];
+  return calendars.map(calendar => ({
     ...calendar,
-    aliases: options.aliases.filter(alias => Number(alias.calendar_id) === Number(calendar.id)).map(alias => alias.alias),
-    weekdays: options.weekdays.filter(day => Number(day.calendar_id) === Number(calendar.id)).map(day => Number(day.iso_weekday))
+    aliases: aliases.filter(alias => Number(alias.calendar_id) === Number(calendar.id)).map(alias => alias.alias),
+    weekdays: weekdays.filter(day => Number(day.calendar_id) === Number(calendar.id)).map(day => Number(day.iso_weekday))
   }));
 }
 
@@ -29,8 +31,15 @@ function setTicketCalendarManagementNotice(message = "", type = "") {
 }
 
 async function hydrateTicketCalendarManagement() {
-  if (!window.rrllDB || typeof window.rrllDB.loadTicketCalendars !== "function") return;
-  ticketCalendarManagementModel = await window.rrllDB.loadTicketCalendars();
+  try {
+    ticketCalendarManagementModel = window.rrllDB && typeof window.rrllDB.loadTicketCalendars === "function"
+      ? await window.rrllDB.loadTicketCalendars()
+      : null;
+  } catch (error) {
+    console.warn("No se pudo hidratar el mantenimiento de calendarios Ticket; se muestra vacío o fallback.", error);
+    ticketCalendarManagementModel = null;
+    setTicketCalendarManagementNotice("No se pudieron cargar los calendarios guardados. Se mantiene el fallback de Ticket Restaurante.", "error");
+  }
   renderTicketCalendarManagement();
 }
 
@@ -65,43 +74,58 @@ function editTicketCalendar(calendarId) {
   const calendar = getTicketCalendarManagementRows().find(item => Number(item.id) === Number(calendarId));
   if (!calendar) return;
   ticketCalendarManagementEditingId = Number(calendar.id);
-  document.getElementById("ticketCalendarManagementName").value = calendar.name || "";
-  document.getElementById("ticketCalendarManagementAliases").value = calendar.aliases.join(", ");
-  document.getElementById("ticketCalendarManagementObservations").value = calendar.observations || "";
+  const name = document.getElementById("ticketCalendarManagementName");
+  const aliases = document.getElementById("ticketCalendarManagementAliases");
+  const observations = document.getElementById("ticketCalendarManagementObservations");
+  const title = document.getElementById("ticketCalendarManagementFormTitle");
+  if (name) name.value = calendar.name || "";
+  if (aliases) aliases.value = calendar.aliases.join(", ");
+  if (observations) observations.value = calendar.observations || "";
   TICKET_CALENDAR_WEEKDAY_LABELS.forEach(([day]) => {
-    document.getElementById(`ticketCalendarWeekday${day}`).checked = calendar.weekdays.includes(day);
+    const checkbox = document.getElementById(`ticketCalendarWeekday${day}`);
+    if (checkbox) checkbox.checked = calendar.weekdays.includes(day);
   });
-  document.getElementById("ticketCalendarManagementFormTitle").textContent = "Editar calendario";
+  if (title) title.textContent = "Editar calendario";
   setTicketCalendarManagementNotice();
 }
 
 function readTicketCalendarManagementForm() {
   return {
     id: ticketCalendarManagementEditingId || undefined,
-    name: document.getElementById("ticketCalendarManagementName").value,
-    aliases: document.getElementById("ticketCalendarManagementAliases").value,
-    observations: document.getElementById("ticketCalendarManagementObservations").value,
+    name: (document.getElementById("ticketCalendarManagementName") || {}).value || "",
+    aliases: (document.getElementById("ticketCalendarManagementAliases") || {}).value || "",
+    observations: (document.getElementById("ticketCalendarManagementObservations") || {}).value || "",
     weekdays: TICKET_CALENDAR_WEEKDAY_LABELS
-      .filter(([day]) => document.getElementById(`ticketCalendarWeekday${day}`).checked)
+      .filter(([day]) => {
+        const checkbox = document.getElementById(`ticketCalendarWeekday${day}`);
+        return checkbox && checkbox.checked;
+      })
       .map(([day]) => day)
   };
 }
 
 async function saveTicketCalendarManagement(event) {
-  event.preventDefault();
+  if (event && typeof event.preventDefault === "function") event.preventDefault();
   if (!window.rrllDB || typeof window.rrllDB.saveTicketCalendar !== "function") {
     setTicketCalendarManagementNotice("No está disponible la conexión con SQLite.", "error");
     return;
   }
-  const result = await window.rrllDB.saveTicketCalendar(readTicketCalendarManagementForm());
+  let result;
+  try {
+    result = await window.rrllDB.saveTicketCalendar(readTicketCalendarManagementForm());
+  } catch (error) {
+    console.warn("No se pudo guardar el calendario Ticket.", error);
+    setTicketCalendarManagementNotice(error && error.message ? error.message : "No se ha podido guardar el calendario.", "error");
+    return;
+  }
   if (!result || !result.ok) {
     setTicketCalendarManagementNotice(result && result.message ? result.message : "No se ha podido guardar el calendario.", "error");
     return;
   }
-  await hydrateTicketRestaurantCalendars();
+  try { if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars(); } catch (error) { console.warn("No se pudo refrescar Ticket Restaurante tras guardar el calendario.", error); }
   await hydrateTicketCalendarManagement();
   resetTicketCalendarForm();
-  renderTicketRestaurant();
+  if (typeof renderTicketRestaurant === "function") renderTicketRestaurant();
   setTicketCalendarManagementNotice("Calendario guardado correctamente.", "success");
 }
 

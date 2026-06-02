@@ -6,9 +6,17 @@ function rrllSafeCall(label, fn) {
     if (typeof fn === "function") return fn();
   } catch (error) {
     console.error(`[RRLL] Error en ${label}:`, error);
-    if (typeof setSaveStatus === "function") {
-      setSaveStatus("error", `Error en ${label}. Revisa consola o recarga la app.`);
-    }
+    if (typeof setSaveStatus === "function") setSaveStatus("error", `Error en ${label}. Revisa consola o recarga la app.`);
+  }
+  return undefined;
+}
+
+async function rrllSafeAsyncCall(label, fn) {
+  try {
+    if (typeof fn === "function") return await fn();
+  } catch (error) {
+    console.warn(`[RRLL] Error no bloqueante en ${label}; se continúa con fallback:`, error);
+    if (typeof setSaveStatus === "function") setSaveStatus("error", `Error en ${label}. Se usa fallback.`);
   }
   return undefined;
 }
@@ -148,11 +156,11 @@ async function showStartupDbFallbackAlert() {
         }
       }
 
-      if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars();
-      if (typeof hydrateTicketCalendarManagement === "function") await hydrateTicketCalendarManagement();
-      purgeDeprecatedFixedTaskData();
+      await rrllSafeAsyncCall("calendarios Ticket Restaurante", () => typeof hydrateTicketRestaurantCalendars === "function" ? hydrateTicketRestaurantCalendars() : undefined);
+      await rrllSafeAsyncCall("mantenimiento de calendarios Ticket", () => typeof hydrateTicketCalendarManagement === "function" ? hydrateTicketCalendarManagement() : undefined);
+      rrllSafeCall("limpieza de tareas obsoletas", () => purgeDeprecatedFixedTaskData());
       renderAllDataViews();
-      phase4RouteFromHash();
+      rrllSafeCall("navegación inicial", () => phase4RouteFromHash());
       forceActiveDetailsOpen();
       await refreshDatabaseInfo();
       await showStartupDbFallbackAlert();
