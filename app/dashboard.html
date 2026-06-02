@@ -1409,15 +1409,15 @@
             </div>
 
             <div class="ticket-restaurant-tabs" role="tablist" aria-label="Áreas de Ticket Restaurante">
-              <button type="button" class="ticket-restaurant-tab active" data-ticket-area="compute" onclick="showTicketRestaurantArea('compute')">Generar Cómputo</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="compute" onclick="showTicketRestaurantArea('compute')">Generar Cómputo</button>
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="monthly" onclick="showTicketRestaurantArea('monthly')">Cómputo Cotización Mensual</button>
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="absences" onclick="showTicketRestaurantArea('absences')">Importar Ausencias</button>
-              <button type="button" class="ticket-restaurant-tab" data-ticket-area="calendar" onclick="showTicketRestaurantArea('calendar')">Definir Calendarios</button>
+              <button type="button" class="ticket-restaurant-tab active" data-ticket-area="calendar" onclick="showTicketRestaurantArea('calendar')">Definir Calendarios</button>
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="calendar-management" onclick="showTicketRestaurantArea('calendar-management')">Calendarios Ticket</button>
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="people" onclick="showTicketRestaurantArea('people')">Personas con Derecho</button>
             </div>
 
-            <section class="ticket-restaurant-area" data-ticket-area="calendar" hidden>
+            <section class="ticket-restaurant-area" data-ticket-area="calendar">
               <div class="rrll-pro-list-card">
                 <div class="ticket-calendar-toolbar">
                   <label class="rrll-pro-field">
@@ -1489,7 +1489,7 @@
               </div>
             </section>
 
-            <section class="ticket-restaurant-area" data-ticket-area="compute">
+            <section class="ticket-restaurant-area" data-ticket-area="compute" hidden>
               <div class="rrll-pro-list-card">
                 <div class="ticket-compute-toolbar">
                   <label class="rrll-pro-field"><span>Mes</span><select id="ticketRestaurantComputeMonth" onchange="renderTicketRestaurantComputePreview()"></select></label>

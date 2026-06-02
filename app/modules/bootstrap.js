@@ -41,7 +41,11 @@ async function rrllSafeAsyncCall(label, fn) {
       rrllSafeCall("licencias", () => { if (typeof renderLicencias === "function") renderLicencias(); });
       rrllSafeCall("plantilla", () => { if (typeof renderPlantilla === "function") renderPlantilla(); });
       rrllSafeCall("criterios RRLL", () => { if (typeof renderCriteria === "function") renderCriteria(); });
-      rrllSafeCall("Ticket Restaurante", () => { if (typeof renderTicketRestaurant === "function") renderTicketRestaurant(); });
+      const ticketModule = document.getElementById("gestor-ticket-restaurante");
+      const isTicketActive = ticketModule
+        && !ticketModule.hidden
+        && ticketModule.classList.contains("rrll-active-module");
+      if (isTicketActive) rrllSafeCall("Ticket Restaurante", () => { if (typeof renderTicketRestaurant === "function") renderTicketRestaurant(); });
       rrllSafeCall("sorteos", () => { if (typeof renderSorteos === "function") renderSorteos(); });
       rrllSafeCall("especiales", () => { if (typeof renderEspeciales === "function") renderEspeciales(); });
       rrllSafeCall("papelera", () => renderTrash());
@@ -160,8 +164,6 @@ async function showStartupDbFallbackAlert() {
         }
       }
 
-      await rrllSafeAsyncCall("calendarios Ticket Restaurante", () => typeof hydrateTicketRestaurantCalendars === "function" ? hydrateTicketRestaurantCalendars() : undefined);
-      await rrllSafeAsyncCall("mantenimiento de calendarios Ticket", () => typeof hydrateTicketCalendarManagement === "function" ? hydrateTicketCalendarManagement() : undefined);
       rrllSafeCall("limpieza de tareas obsoletas", () => purgeDeprecatedFixedTaskData());
       renderAllDataViews();
       rrllSafeCall("navegación inicial", () => phase4RouteFromHash());

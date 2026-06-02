@@ -328,6 +328,11 @@ function toggleSidebarLeft() {
       phase4SetActiveNav(gestorId);
       preventLegacySummaryToggle();
       forceActiveDetailsOpen();
+      if (gestorId === "gestor-ticket-restaurante") {
+        Promise.resolve(typeof window.ensureTicketRestaurantReady === "function" ? window.ensureTicketRestaurantReady() : undefined)
+          .catch(error => console.warn("No se pudo preparar Ticket Restaurante; se renderiza con fallback.", error))
+          .then(() => { if (typeof window.renderTicketRestaurant === "function") window.renderTicketRestaurant(); });
+      }
       return true;
     }
 
