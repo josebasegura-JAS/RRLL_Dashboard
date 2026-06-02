@@ -14,3 +14,7 @@
 #gestor-presupuestos .budget-summary strong { font-size: 1.35rem; }
 #gestor-presupuestos .budget-row-selected { background: rgba(72, 149, 239, .14); }
 #gestor-presupuestos .budget-actions-inline { display: flex; gap: .35rem; flex-wrap: wrap; }
+
+#gestor-presupuestos .budget-dashboard { margin-top: 1rem; }
+#gestor-presupuestos .budget-chart-svg { display: block; width: 100%; height: auto; min-height: 180px; color: var(--text-color, #1f2937); background: var(--surface-soft, rgba(255,255,255,.035)); border: 1px solid var(--border-color, rgba(255,255,255,.12)); border-radius: .75rem; }
+#gestor-presupuestos .budget-chart-svg text { fill: currentColor; font-size: 13px; }
