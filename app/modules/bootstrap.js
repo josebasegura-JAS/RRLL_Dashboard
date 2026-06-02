@@ -22,6 +22,7 @@ async function rrllSafeAsyncCall(label, fn) {
 }
 
     function renderAllDataViews() {
+      const rrllRenderFinish = typeof rrllTicketRestaurantPerfStart === "function" ? rrllTicketRestaurantPerfStart("renderAllDataViews") : null;
       rrllSafeCall("fecha", () => renderDate());
       rrllSafeCall("dashboard", () => renderHomeDashboard());
       rrllSafeCall("accesos rápidos", () => renderLinks());
@@ -47,6 +48,7 @@ async function rrllSafeAsyncCall(label, fn) {
       rrllSafeCall("estado de alertas", () => restoreAlertsPanelState());
       rrllSafeCall("alertas", () => renderAlertsPanel());
       rrllSafeCall("columnas cerradas", () => applyAllClosedColumnStates());
+      if (rrllRenderFinish) rrllRenderFinish();
     }
 
     function waitForDatabaseBridge(timeoutMs = 2500) {
@@ -140,6 +142,7 @@ async function showStartupDbFallbackAlert() {
 }
 
     async function initializeApp() {
+      const rrllInitializeFinish = typeof rrllTicketRestaurantPerfStart === "function" ? rrllTicketRestaurantPerfStart("initializeApp total") : null;
       setupGestorAccordions();
       setupPhase4Navigation();
       preventLegacySummaryToggle();
@@ -147,7 +150,8 @@ async function showStartupDbFallbackAlert() {
 
       if (window.rrllDB && typeof window.rrllDB.loadAll === "function") {
         try {
-          rrllDatabaseCache = await window.rrllDB.loadAll();
+          const rrllLoadAllFinish = typeof rrllTicketRestaurantPerfStart === "function" ? rrllTicketRestaurantPerfStart("window.rrllDB.loadAll") : null;
+          try { rrllDatabaseCache = await window.rrllDB.loadAll(); } finally { if (rrllLoadAllFinish) rrllLoadAllFinish(); }
           const state = await updateSyncStatus("init");
           if (state && state.token) rrllLastKnownDbToken = state.token;
         } catch (error) {
@@ -165,6 +169,7 @@ async function showStartupDbFallbackAlert() {
       await refreshDatabaseInfo();
       await showStartupDbFallbackAlert();
       startDatabaseAutoSync();
+      if (rrllInitializeFinish) rrllInitializeFinish();
     }
 
     document.addEventListener("keydown", (event) => {

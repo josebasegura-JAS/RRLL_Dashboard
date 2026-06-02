@@ -30,10 +30,11 @@ function setTicketCalendarManagementNotice(message = "", type = "") {
   notice.className = `ticket-calendar-management-notice${type ? ` ${type}` : ""}`;
 }
 
-async function hydrateTicketCalendarManagement() {
+async function hydrateTicketCalendarManagement({ force = false } = {}) {
+  const finish = typeof rrllTicketRestaurantPerfStart === "function" ? rrllTicketRestaurantPerfStart("hydrateTicketCalendarManagement") : null;
   try {
     ticketCalendarManagementModel = window.rrllDB && typeof window.rrllDB.loadTicketCalendars === "function"
-      ? await window.rrllDB.loadTicketCalendars()
+      ? await (typeof window.loadTicketCalendarModelCached === "function" ? window.loadTicketCalendarModelCached({ force }) : window.rrllDB.loadTicketCalendars())
       : null;
   } catch (error) {
     console.warn("No se pudo hidratar el mantenimiento de calendarios Ticket; se muestra vacío o fallback.", error);
@@ -41,6 +42,7 @@ async function hydrateTicketCalendarManagement() {
     setTicketCalendarManagementNotice("No se pudieron cargar los calendarios guardados. Se mantiene el fallback de Ticket Restaurante.", "error");
   }
   renderTicketCalendarManagement();
+  if (finish) finish();
 }
 
 function renderTicketCalendarManagement() {
@@ -122,7 +124,10 @@ async function saveTicketCalendarManagement(event) {
     setTicketCalendarManagementNotice(result && result.message ? result.message : "No se ha podido guardar el calendario.", "error");
     return;
   }
-  try { if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars(); } catch (error) { console.warn("No se pudo refrescar Ticket Restaurante tras guardar el calendario.", error); }
+  try {
+    if (typeof window.invalidateTicketCalendarModelCache === "function") window.invalidateTicketCalendarModelCache();
+    if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars({ force: true });
+  } catch (error) { console.warn("No se pudo refrescar Ticket Restaurante tras guardar el calendario.", error); }
   await hydrateTicketCalendarManagement();
   resetTicketCalendarForm();
   if (typeof renderTicketRestaurant === "function") renderTicketRestaurant();
