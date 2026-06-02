@@ -203,8 +203,7 @@ h1, h2, h3, h4, strong, b,
 .alert-meta,
 .phase4-metric-card small,
 .phase4-card-head span,
-.phase4-list small,
-.phase4-status-list small {
+.phase4-list small {
   color: var(--muted) !important;
 }
 
@@ -458,23 +457,11 @@ button.danger {
 .phase4-metric-card {
   text-align: left !important;
 }
-
-.phase4-list-item,
-.phase4-workload-row,
-.phase4-status-row,
 .phase4-list > div {
   background: rgba(255,255,255,.045) !important;
   border: 1px solid rgba(255,255,255,.07) !important;
   color: var(--text) !important;
   border-radius: 12px !important;
-}
-
-.phase4-donut {
-  background: conic-gradient(var(--red) 0 var(--done, 0%), #f59e0b var(--done, 0%) var(--progress, 0%), rgba(255,255,255,.10) var(--progress, 0%) 100%) !important;
-}
-
-.phase4-donut::after {
-  background: #10161d !important;
 }
 
 /* Modales, búsqueda, configuración y papelera */

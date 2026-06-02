@@ -583,38 +583,6 @@ body.rrll-view-module #gestor-peticiones > .muted {
   color: #93c5fd !important;
 }
 
-.phase4-workload button {
-  min-height: 38px !important;
-  padding: 7px 8px !important;
-  border-radius: 10px !important;
-  background: rgba(255,255,255,.028) !important;
-  border: 1px solid rgba(255,255,255,.06) !important;
-  color: rgba(226,232,240,.88) !important;
-}
-
-.phase4-workload button:hover {
-  background: rgba(255,255,255,.048) !important;
-  border-color: rgba(255,255,255,.12) !important;
-}
-
-.phase4-workload span {
-  color: rgba(226,232,240,.88) !important;
-  font-weight: 800 !important;
-}
-
-.phase4-workload div {
-  height: 7px !important;
-  background: rgba(255,255,255,.10) !important;
-}
-
-.phase4-workload i {
-  background: linear-gradient(90deg, #60a5fa, #2563eb) !important;
-}
-
-.phase4-workload b {
-  color: rgba(248,250,252,.92) !important;
-}
-
 @media (max-width: 1250px) {
   .rrll-pro-petition-form {
     grid-template-columns: 1fr 1fr !important;
@@ -737,7 +705,6 @@ body.rrll-view-module #gestor-teletrabajo > .muted {
 #homeAlertsList .phase4-list-row,
 #homeRecentList .phase4-list-row,
 #homeDueList .phase4-list-row,
-.phase4-workload-row,
 .phase4-list > div {
   min-height: 42px !important;
   padding: 8px 10px !important;
@@ -762,32 +729,6 @@ body.rrll-view-module #gestor-teletrabajo > .muted {
 #homeRecentList .phase4-list-row,
 #homeDueList .phase4-list-row {
   box-shadow: inset 3px 0 0 rgba(59,130,246,.50) !important;
-}
-
-.phase4-workload-row {
-  display: grid !important;
-  grid-template-columns: 120px 1fr 38px !important;
-  align-items: center !important;
-  gap: 10px !important;
-}
-
-.phase4-workload-row span,
-.phase4-workload-row b {
-  color: rgba(226,232,240,.88) !important;
-}
-
-.phase4-workload-row div,
-.phase4-workload div {
-  height: 7px !important;
-  background: rgba(255,255,255,.10) !important;
-  border-radius: 999px !important;
-  overflow: hidden !important;
-}
-
-.phase4-workload-row i,
-.phase4-workload i {
-  background: linear-gradient(90deg, #60a5fa, #2563eb) !important;
-  border-radius: 999px !important;
 }
 
 @media (max-width: 1250px) {
@@ -1309,7 +1250,6 @@ body.rrll-view-home {
 .module-card,
 .phase4-dashboard-card,
 .phase4-metric-card,
-.phase4-home-hero,
 .quick-top,
 .alerts-card,
 .modal-content,
@@ -1358,8 +1298,6 @@ button.ghost,
   border-color: rgba(239,68,68,.36) !important;
   box-shadow: 0 10px 28px rgba(127,29,29,.14) !important;
 }
-
-.phase4-eyebrow,
 .phase4-metric-card span:not(.phase4-metric-icon),
 .phase4-metric-card small,
 .phase4-card-head span,
@@ -1505,10 +1443,7 @@ button.ghost,
   color: var(--text) !important;
   box-shadow: 0 16px 36px rgba(3,7,18,.18) !important;
 }
-
-.phase4-status-row,
 .phase4-list-row,
-.phase4-workload button,
 .professional-row,
 .table-row,
 .data-row,
@@ -1616,29 +1551,10 @@ button.ghost,
   color: #bbf7d0 !important;
   border-color: rgba(34,197,94,.28) !important;
 }
-
-.phase4-donut {
-  background: conic-gradient(#22c55e 0 var(--done), #3b82f6 var(--done) var(--progress), #f59e0b var(--progress) 100%) !important;
-  box-shadow: inset 0 0 0 1px rgba(148,163,184,.14), 0 16px 32px rgba(3,7,18,.22) !important;
-}
-
-.phase4-donut::after {
-  background: #242a36 !important;
-  border: 1px solid rgba(148,163,184,.16) !important;
-}
-
-.phase4-donut span,
-.phase4-donut small {
-  color: rgba(229,231,235,.92) !important;
-}
-
-.phase4-workload div,
 .progress-track,
 .progress-bar-track {
   background: rgba(148,163,184,.18) !important;
 }
-
-.phase4-workload i,
 .progress-bar,
 .progress-fill {
   background: linear-gradient(90deg, #3b82f6, #60a5fa) !important;
@@ -1776,20 +1692,6 @@ td,
   align-items: start !important;
 }
 
-.phase4-home-dashboard .phase4-dashboard-card-wide {
-  min-height: 252px !important;
-}
-
-.phase4-home-dashboard .phase4-status-layout {
-  grid-template-columns: 190px 1fr !important;
-  gap: 22px !important;
-  align-items: center !important;
-}
-
-.phase4-home-dashboard .phase4-status-list {
-  gap: 10px !important;
-}
-
 .phase4-home-dashboard .phase4-dashboard-card .phase4-list {
   gap: 0 !important;
   max-height: 286px !important;
@@ -1805,9 +1707,6 @@ td,
 
 @media (max-width: 1120px) {
   .phase4-home-dashboard .phase4-dashboard-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .phase4-home-dashboard .phase4-status-layout {
     grid-template-columns: 1fr !important;
   }
 }
@@ -1839,8 +1738,6 @@ body {
 /* Cabeceras principales */
 .app-title,
 .header-title,
-.phase4-page-title,
-.phase4-title,
 .view-title,
 .page-title,
 h1 {
@@ -1865,8 +1762,6 @@ h2 {
 
 .card h3,
 .module-card h3,
-.phase4-metric-title,
-.phase4-card-title,
 .professional-card-title,
 .phase4-dashboard-card h3,
 h3 {
@@ -1895,8 +1790,6 @@ small,
 .muted,
 .help-text,
 .form-hint,
-.phase4-muted,
-.phase4-list-meta,
 .summary-counts,
 .alert-meta,
 .status-meta,
@@ -1914,8 +1807,7 @@ small,
   font-size: 13px !important;
 }
 .sidebar-title,
-.brand-title,
-.phase4-brand-title {
+.brand-title{
   font-size: 18px !important;
   line-height: 1.15 !important;
   font-weight: 750 !important;
@@ -1946,7 +1838,6 @@ small,
 .professional-panel {
   padding: 16px !important;
 }
-.phase4-metric-value,
 .metric-value,
 .kpi-value {
   font-size: 22px !important;
@@ -1954,7 +1845,6 @@ small,
   font-weight: 750 !important;
   letter-spacing: -0.04em !important;
 }
-.phase4-metric-label,
 .metric-label,
 .kpi-label {
   font-size: var(--rrll-fs-small) !important;
@@ -1963,7 +1853,6 @@ small,
   letter-spacing: .045em !important;
   font-weight: 700 !important;
 }
-.phase4-metric-sub,
 .metric-sub,
 .kpi-sub {
   font-size: var(--rrll-fs-secondary) !important;
@@ -2120,7 +2009,6 @@ button,
 .status-badge,
 .priority-badge,
 .count-pill,
-.phase4-pill,
 .tag,
 .chip,
 .kbd,
