@@ -1787,20 +1787,19 @@
 
       <div class="config-section rrll-theme-config">
         <h4>Apariencia</h4>
-        <p class="muted">El modo claro está desactivado temporalmente. La aplicación funciona en modo oscuro.</p>
-        <div class="theme-choice-row" role="group" aria-label="Selector de tema">
+        <p class="muted">La aplicación utiliza el modo oscuro como único tema oficial.</p>
+        <div class="theme-choice-row" role="group" aria-label="Selector de tema desactivado" aria-hidden="true" hidden>
           <button type="button" class="theme-choice" data-theme-choice="light" onclick="setRRLLTheme('light')" hidden disabled aria-disabled="true">
             <span class="theme-choice-preview theme-choice-preview-light"></span>
             <strong>Claro</strong>
             <small>Gris claro profesional</small>
           </button>
-          <button type="button" class="theme-choice" data-theme-choice="dark" onclick="setRRLLTheme('dark')">
+          <button type="button" class="theme-choice" data-theme-choice="dark" onclick="setRRLLTheme('dark')" hidden disabled aria-disabled="true">
             <span class="theme-choice-preview theme-choice-preview-dark"></span>
             <strong>Oscuro</strong>
             <small>Gris carbón</small>
           </button>
         </div>
-        <small id="themeDarkOnlyNotice" class="muted">Modo claro desactivado temporalmente.</small>
       </div>
 
       <div class="config-section rrll-screen-settings-foundation" aria-labelledby="screenSettingsTitle">

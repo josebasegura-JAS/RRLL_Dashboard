@@ -1,56 +1,47 @@
-// Selector de tema visual RRLL.
-// Mantiene la elección en localStorage y no toca lógica ni datos.
+// Adaptador de compatibilidad del tema visual RRLL.
+// Mantiene la API histórica, pero el único tema activo y persistido es oscuro.
 (function () {
   const THEME_KEY = "rrll_theme";
-  const DEFAULT_THEME = "dark";
-  const VALID_THEMES = new Set(["light", "dark"]);
+  const DARK_THEME = "dark";
 
   function readTheme() {
-    try {
-      const stored = localStorage.getItem(THEME_KEY);
-      if (stored === "light") return "dark";
-      return VALID_THEMES.has(stored) ? stored : DEFAULT_THEME;
-    } catch {
-      return DEFAULT_THEME;
-    }
+    return DARK_THEME;
   }
 
-  function updateThemeButtons(theme) {
-    const darkOnlyNotice = document.getElementById("themeDarkOnlyNotice");
-    if (darkOnlyNotice) darkOnlyNotice.hidden = false;
+  function updateThemeButtons() {
     document.querySelectorAll("[data-theme-choice]").forEach(button => {
-      if (button.getAttribute("data-theme-choice") !== "dark") {
-        button.hidden = true;
-        button.disabled = true;
-        button.setAttribute("aria-disabled", "true");
-        button.classList.remove("active");
-        button.setAttribute("aria-pressed", "false");
-        return;
-      }
-      const active = button.getAttribute("data-theme-choice") === theme;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", active ? "true" : "false");
+      const darkChoice = button.getAttribute("data-theme-choice") === DARK_THEME;
+      button.hidden = true;
+      button.disabled = true;
+      button.setAttribute("aria-disabled", "true");
+      button.classList.toggle("active", darkChoice);
+      button.setAttribute("aria-pressed", darkChoice ? "true" : "false");
     });
   }
 
-  function applyTheme(theme) {
-    const safeTheme = VALID_THEMES.has(theme) ? theme : DEFAULT_THEME;
-    document.documentElement.setAttribute("data-theme", safeTheme);
-    if (document.body) document.body.setAttribute("data-theme", safeTheme);
-    updateThemeButtons(safeTheme);
-    return safeTheme;
+  function applyDarkTheme() {
+    document.documentElement.setAttribute("data-theme", DARK_THEME);
+    if (document.body) document.body.setAttribute("data-theme", DARK_THEME);
+    updateThemeButtons();
+    return DARK_THEME;
   }
 
-  window.setRRLLTheme = function setRRLLTheme(theme) {
-    const safeTheme = applyTheme("dark");
-    try { localStorage.setItem(THEME_KEY, safeTheme); } catch {}
+  function persistDarkTheme() {
+    try { localStorage.setItem(THEME_KEY, DARK_THEME); } catch {}
+  }
+
+  window.setRRLLTheme = function setRRLLTheme() {
+    applyDarkTheme();
+    persistDarkTheme();
   };
 
   window.getRRLLTheme = readTheme;
 
   document.addEventListener("DOMContentLoaded", () => {
-    applyTheme(readTheme());
+    applyDarkTheme();
+    persistDarkTheme();
   });
 
-  applyTheme(readTheme());
+  applyDarkTheme();
+  persistDarkTheme();
 })();
