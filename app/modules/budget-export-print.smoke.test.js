@@ -18,13 +18,17 @@ vm.runInContext(`
   rrllBudgetSelectedScenarioId = "scenario";
   rrllBudgetManualItems = [{ concept: "Manual", monthly_amount: 100 }];
   rrllBudgetTicketGroups = [{ name: "Grupo", calculation_type: "manual_tickets", manual_tickets: 2, absence_rate: 0.05 }];
+  rrllBudgetSimulationYears.set("scenario", 2031);
 `, context);
 
 (async () => {
   await context.exportBudgetScenarioExcel();
   await context.printBudgetScenario();
+  assert.equal(context.excel.title, "Presupuesto - Copia - 2031");
+  assert.equal(context.excel.rows.some(row => row[1] === "Año simulado" && row[2] === 2031), true);
   assert.equal(context.excel.rows.some(row => row[1] === "Absentismo general"), false);
   assert.equal(context.excel.rows.some(row => row[0] === "GRUPO TICKET" && row[8] === 0.05), true);
+  assert.match(context.printHtml, /Presupuesto · Copia · 2031/);
   assert.match(context.printHtml, /Detalle grupos Ticket/);
   assert.match(context.printHtml, /5 %/);
   console.log("budget export and print smoke test passed");

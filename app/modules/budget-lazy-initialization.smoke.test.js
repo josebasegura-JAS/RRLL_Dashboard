@@ -22,7 +22,8 @@ const phase4ShowModuleBody = navigationSource.slice(
 assert.match(phase4ShowModuleBody, /gestorId === "gestor-presupuestos"/);
 assert.match(phase4ShowModuleBody, /window\.initializeBudgetModule\(\)/);
 
-assert.match(budgetSource, /function rrllBudgetPromptSimulationYear/);
+assert.match(budgetSource, /function rrllBudgetReadSimulationYear/);
+assert.doesNotMatch(budgetSource, /\b(?:window\.)?prompt\s*\(/);
 assert.match(budgetSource, /simulationYear: rrllBudgetSimulationYear\(row\.scenario\)/);
 assert.match(budgetSource, /BudgetDomain\.buildBudgetScenarioExportData/);
 assert.match(budgetSource, /exportExcelData\(/);
