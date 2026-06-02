@@ -12,6 +12,7 @@ const {
   writeMirrorMeta
 } = require("./main/mirror-helpers");
 const { createSqlitePersistenceHelpers } = require("./main/sqlite-persistence-helpers");
+const { createTicketCalendarRepository } = require("./app/modules/ticket-calendar-repository");
 const { writeJsonAtomically } = require("./main/config-persistence-helpers");
 const {
   buildOutlookDraftPowerShellScript,
@@ -380,12 +381,48 @@ async function openDatabase(dbPath) {
 
   try { db.run("ALTER TABLE kv_store ADD COLUMN updated_by TEXT"); } catch {}
 
+  initializeTicketCalendarPersistence(db, dbPath);
+
   const versionRow = db.exec("SELECT value FROM meta WHERE key = 'schema_version'");
   if (!versionRow.length) {
     db.run("INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', '2')");
   }
 
   return { db, existed: exists };
+}
+
+function initializeTicketCalendarPersistence(db, dbPath) {
+  let changed = false;
+  try {
+    const repository = createTicketCalendarRepository({ db });
+    const existingSchemaTables = db.exec(`
+      SELECT name FROM sqlite_master
+      WHERE type = 'table'
+        AND name IN ('ticket_calendars', 'ticket_calendar_aliases', 'ticket_calendar_weekdays', 'ticket_calendar_exclusions', 'ticket_calendar_rules')
+    `);
+    const schemaExists = existingSchemaTables.length > 0 && existingSchemaTables[0].values.length === 5;
+    repository.ensureTicketCalendarSchema();
+    changed = !schemaExists;
+    if (repository.seedBaseTicketCalendars() > 0) changed = true;
+    if (repository.migrateLegacyTicketCalendarExclusions() > 0) changed = true;
+  } catch (error) {
+    console.warn("No se pudo inicializar la persistencia de calendarios Ticket Restaurante:", error && error.message ? error.message : error);
+  }
+  if (!changed) return;
+  try {
+    persistDb(db, dbPath);
+  } catch (error) {
+    console.warn("No se pudo persistir la inicialización de calendarios Ticket Restaurante:", error && error.message ? error.message : error);
+  }
+}
+
+function migrateLegacyTicketCalendarExclusionsSafely(db) {
+  try {
+    return createTicketCalendarRepository({ db }).migrateLegacyTicketCalendarExclusions();
+  } catch (error) {
+    console.warn("No se pudieron copiar exclusiones históricas de Ticket Restaurante:", error && error.message ? error.message : error);
+    return 0;
+  }
 }
 
 function setMirrorStatusFromMeta(meta, overrides = {}) {
@@ -808,6 +845,7 @@ async function saveKeyData(key, value) {
       const tracedValue = applyBasicUserTrace(value, user);
       db.run("INSERT OR REPLACE INTO kv_store (key, value, updated_at, updated_by) VALUES (?, ?, ?, ?)", [key, serializeValue(tracedValue), now, user]);
       if (key === "rrll_criteria") syncCriteriaTable(db, tracedValue);
+      if (key === "rrll_ticket_restaurant_calendar_marks") migrateLegacyTicketCalendarExclusionsSafely(db);
       addAudit(db, "save_key", key, null);
       touchDatabaseState(db);
       persistDb(db, info.path);
@@ -845,6 +883,7 @@ async function saveAllData(data) {
         });
         stmt.free();
         syncCriteriaTable(db, tracedData.rrll_criteria);
+        migrateLegacyTicketCalendarExclusionsSafely(db);
         addAudit(db, "save_all", null, "Guardado completo / importación");
         touchDatabaseState(db);
         db.run("COMMIT");
