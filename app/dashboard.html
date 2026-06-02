@@ -1413,6 +1413,7 @@
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="monthly" onclick="showTicketRestaurantArea('monthly')">Cómputo Cotización Mensual</button>
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="absences" onclick="showTicketRestaurantArea('absences')">Importar Ausencias</button>
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="calendar" onclick="showTicketRestaurantArea('calendar')">Definir Calendarios</button>
+              <button type="button" class="ticket-restaurant-tab" data-ticket-area="calendar-management" onclick="showTicketRestaurantArea('calendar-management')">Calendarios Ticket</button>
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="people" onclick="showTicketRestaurantArea('people')">Personas con Derecho</button>
             </div>
 
@@ -1431,6 +1432,29 @@
                   <div class="ticket-calendar-legend"><span>Día normal</span><span class="weekend">Fin de semana</span><span class="no-ticket">Sin ticket</span></div>
                 </div>
                 <div id="ticketRestaurantCalendarGrid" class="ticket-calendar-grid"></div>
+              </div>
+            </section>
+
+            <section class="ticket-restaurant-area" data-ticket-area="calendar-management" hidden>
+              <div class="ticket-calendar-management-layout">
+                <div class="rrll-pro-list-card">
+                  <div class="rrll-pro-list-toolbar">
+                    <div><h3>Calendarios Ticket Restaurante</h3><p class="rrll-pro-subtitle">Calendarios configurados en SQLite.</p></div>
+                    <button class="rrll-pro-primary" type="button" onclick="resetTicketCalendarForm()">Nuevo calendario</button>
+                  </div>
+                  <div class="rrll-pro-table-wrap"><table class="rrll-pro-table ticket-table"><thead><tr><th>Nombre</th><th>Alias</th><th>Activo</th><th>Días Ticket</th><th>Acciones</th></tr></thead><tbody id="ticketCalendarManagementBody"></tbody></table></div>
+                </div>
+                <form id="ticketCalendarManagementForm" class="rrll-pro-list-card ticket-calendar-management-form" onsubmit="saveTicketCalendarManagement(event)">
+                  <h3 id="ticketCalendarManagementFormTitle">Nuevo calendario</h3>
+                  <label class="rrll-pro-field"><span>Nombre *</span><input id="ticketCalendarManagementName" required /></label>
+                  <label class="rrll-pro-field"><span>Alias</span><input id="ticketCalendarManagementAliases" placeholder="alias1, alias2" /></label>
+                  <fieldset><legend>Días Ticket *</legend><div class="ticket-calendar-weekday-checks">
+                    <label><input id="ticketCalendarWeekday1" type="checkbox" checked /> Lunes</label><label><input id="ticketCalendarWeekday2" type="checkbox" checked /> Martes</label><label><input id="ticketCalendarWeekday3" type="checkbox" checked /> Miércoles</label><label><input id="ticketCalendarWeekday4" type="checkbox" checked /> Jueves</label><label><input id="ticketCalendarWeekday5" type="checkbox" checked /> Viernes</label><label><input id="ticketCalendarWeekday6" type="checkbox" /> Sábado</label><label><input id="ticketCalendarWeekday7" type="checkbox" /> Domingo</label>
+                  </div></fieldset>
+                  <label class="rrll-pro-field"><span>Observaciones</span><textarea id="ticketCalendarManagementObservations" rows="4"></textarea></label>
+                  <p id="ticketCalendarManagementNotice" class="ticket-calendar-management-notice" aria-live="polite"></p>
+                  <div class="modal-actions"><button class="secondary" type="button" onclick="resetTicketCalendarForm()">Cancelar</button><button type="submit">Guardar</button></div>
+                </form>
               </div>
             </section>
 
@@ -2309,6 +2333,7 @@
   <script src="modules/ticket-calendar-domain.js"></script>
   <script src="modules/ticket-calendar-adapter.js"></script>
   <script src="modules/ticket-restaurante.js"></script>
+  <script src="modules/ticket-calendar-management.js"></script>
   <script src="modules/sorteos.js"></script>
   <script src="modules/especiales.js"></script>
   <script src="modules/links-config.js"></script>

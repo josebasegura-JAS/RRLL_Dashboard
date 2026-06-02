@@ -403,8 +403,10 @@ function initializeTicketCalendarPersistence(db, dbPath) {
         AND name IN ('ticket_calendars', 'ticket_calendar_aliases', 'ticket_calendar_weekdays', 'ticket_calendar_exclusions', 'ticket_calendar_rules')
     `);
     const schemaExists = existingSchemaTables.length > 0 && existingSchemaTables[0].values.length === 5;
+    const calendarColumns = schemaExists ? db.exec("PRAGMA table_info(ticket_calendars)") : [];
+    const observationsExists = calendarColumns.length > 0 && calendarColumns[0].values.some(column => column[1] === "observations");
     repository.ensureTicketCalendarSchema();
-    changed = !schemaExists;
+    changed = !schemaExists || !observationsExists;
     if (repository.seedBaseTicketCalendars() > 0) changed = true;
     if (repository.migrateLegacyTicketCalendarExclusions() > 0) changed = true;
   } catch (error) {
@@ -847,6 +849,33 @@ async function loadTicketCalendarModel() {
       try { db.close(); } catch {}
     }
   });
+}
+
+async function saveTicketCalendar(payload = {}) {
+  setLastSaveStatus("saving");
+  const info = resolveDbAccessInfo();
+  try {
+    return await withFileLock(info.path, async () => {
+      const { db } = await openDatabase(info.path);
+      try {
+        const repository = createTicketCalendarRepository({ db });
+        const id = payload && payload.id
+          ? repository.updateTicketCalendar(payload.id, payload)
+          : repository.createTicketCalendar(payload);
+        touchDatabaseState(db);
+        persistDb(db, info.path);
+        markDatabaseDirty();
+        if (info.mode === "shared" && info.effectiveMode === "shared" && !info.fallbackLocal) scheduleMirrorUpdate("save_ticket_calendar");
+        setLastSaveStatus("saved");
+        return { ok: true, id };
+      } finally {
+        try { db.close(); } catch {}
+      }
+    });
+  } catch (error) {
+    setLastSaveStatus("error", error && error.message ? error.message : String(error));
+    return { ok: false, code: error && error.code ? error.code : "ticket_calendar_save_error", message: error && error.message ? error.message : "No se ha podido guardar el calendario." };
+  }
 }
 
 async function saveKeyData(key, value) {
@@ -1736,6 +1765,7 @@ async function parseOutlookMsgInMain(_event, payload) {
 }
 ipcMain.handle("db:loadAll", async () => loadAllData());
 ipcMain.handle("db:loadTicketCalendars", async () => loadTicketCalendarModel());
+ipcMain.handle("db:saveTicketCalendar", async (_event, payload) => saveTicketCalendar(payload));
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));

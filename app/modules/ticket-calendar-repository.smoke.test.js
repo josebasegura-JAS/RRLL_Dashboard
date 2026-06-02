@@ -48,6 +48,26 @@ const {
   assert.equal(repository.migrateLegacyTicketCalendarExclusions(), 2);
   assert.equal(repository.getTicketCalendarExclusions().length, 2);
 
+  const saturdayCalendarId = repository.createTicketCalendar({
+    name: "Turno sábado",
+    aliases: "sabado, sábado, turno sabado",
+    weekdays: [6],
+    observations: "Calendario de prueba"
+  });
+  assert.ok(saturdayCalendarId > 0);
+  assert.deepEqual(repository.getTicketCalendars().map(calendar => calendar.name), [...BASE_TICKET_CALENDARS.map(calendar => calendar.name), "Turno sábado"]);
+  assert.deepEqual(repository.getTicketCalendarAliases().filter(alias => alias.calendar_id === saturdayCalendarId).map(alias => alias.alias), ["sabado", "turnosabado"]);
+  assert.deepEqual(repository.getTicketCalendarWeekdays().filter(day => day.calendar_id === saturdayCalendarId).map(day => day.iso_weekday), [6]);
+
+  repository.updateTicketCalendar(saturdayCalendarId, { name: "Turno fin de semana", aliases: "finde", weekdays: [6, 7], observations: "Editado" });
+  assert.deepEqual(repository.getTicketCalendars().find(calendar => calendar.id === saturdayCalendarId), { id: saturdayCalendarId, name: "Turno fin de semana", display_order: 5, active: 1, observations: "Editado" });
+  assert.deepEqual(repository.getTicketCalendarAliases().filter(alias => alias.calendar_id === saturdayCalendarId).map(alias => alias.alias), ["finde", "turnosabado"]);
+  assert.deepEqual(repository.getTicketCalendarWeekdays().filter(day => day.calendar_id === saturdayCalendarId).map(day => day.iso_weekday), [6, 7]);
+  assert.throws(() => repository.createTicketCalendar({ name: "", weekdays: [1] }), /nombre del calendario es obligatorio/i);
+  assert.throws(() => repository.createTicketCalendar({ name: "Vacío", weekdays: [] }), /al menos un día ticket/i);
+  assert.throws(() => repository.createTicketCalendar({ name: "servicios centrales", weekdays: [1] }), /ya existe un calendario con ese nombre/i);
+  assert.throws(() => repository.createTicketCalendar({ name: "Otro", aliases: "SSCC", weekdays: [1] }), /alias "sscc" ya está utilizado/i);
+
   const persisted = db.export();
   db.close();
 
@@ -56,14 +76,22 @@ const {
   reopenedRepository.ensureTicketCalendarSchema();
   assert.equal(reopenedRepository.seedBaseTicketCalendars(), 0);
   assert.equal(reopenedRepository.migrateLegacyTicketCalendarExclusions(), 0);
-  assert.equal(reopenedRepository.getTicketCalendars().length, 4);
-  assert.equal(reopenedRepository.getTicketCalendarAliases().length, 9);
-  assert.equal(reopenedRepository.getTicketCalendarWeekdays().length, 20);
+  assert.equal(reopenedRepository.getTicketCalendars().length, 5);
+  assert.equal(reopenedRepository.getTicketCalendarAliases().length, 11);
+  assert.equal(reopenedRepository.getTicketCalendarWeekdays().length, 22);
+  assert.deepEqual(reopenedRepository.getTicketCalendars().slice(0, 4).map(calendar => calendar.name), BASE_TICKET_CALENDARS.map(calendar => calendar.name));
+  assert.equal(reopenedRepository.getTicketCalendars()[4].name, "Turno fin de semana");
   assert.equal(reopenedRepository.getTicketCalendarRules().length, 1);
   assert.equal(reopenedRepository.getTicketCalendarExclusions().length, 2);
 
   assert.equal(db.exec("SELECT value FROM kv_store WHERE key = 'rrll_ticket_restaurant_calendar_marks'")[0].values.length, 1);
   db.close();
+
+  const legacySchemaDb = new SQL.Database();
+  legacySchemaDb.run("CREATE TABLE ticket_calendars (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, display_order INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1)");
+  createTicketCalendarRepository({ db: legacySchemaDb }).ensureTicketCalendarSchema();
+  assert.ok(legacySchemaDb.exec("PRAGMA table_info(ticket_calendars)")[0].values.some(column => column[1] === "observations"));
+  legacySchemaDb.close();
   console.log("ticket-calendar-repository smoke test passed");
 })().catch(error => {
   console.error(error);

@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("rrllDB", {
   loadAll: () => ipcRenderer.invoke("db:loadAll"),
   loadTicketCalendars: () => ipcRenderer.invoke("db:loadTicketCalendars"),
+  saveTicketCalendar: payload => ipcRenderer.invoke("db:saveTicketCalendar", payload),
   saveAll: data => ipcRenderer.invoke("db:saveAll", data),
   saveKey: (key, value) => ipcRenderer.invoke("db:saveKey", key, value),
   backupAll: data => ipcRenderer.invoke("db:backupAll", data),

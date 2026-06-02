@@ -76,9 +76,11 @@ function createTicketCalendarRepository({ db }) {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         display_order INTEGER NOT NULL,
-        active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1))
+        active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+        observations TEXT NOT NULL DEFAULT ''
       );
     `);
+    try { db.run("ALTER TABLE ticket_calendars ADD COLUMN observations TEXT NOT NULL DEFAULT ''"); } catch {}
     db.run(`
       CREATE TABLE IF NOT EXISTS ticket_calendar_aliases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -149,8 +151,103 @@ function createTicketCalendarRepository({ db }) {
     return inserted;
   }
 
+  function normalizeTicketCalendarInput(input = {}) {
+    const name = String(input.name == null ? "" : input.name).trim();
+    const aliases = [...new Set((Array.isArray(input.aliases) ? input.aliases : String(input.aliases == null ? "" : input.aliases).split(","))
+      .map(alias => normalizeCompactText(alias))
+      .filter(Boolean))];
+    const weekdays = [...new Set((Array.isArray(input.weekdays) ? input.weekdays : [])
+      .map(Number)
+      .filter(day => Number.isInteger(day) && day >= 1 && day <= 7))]
+      .sort((left, right) => left - right);
+    return { name, aliases, weekdays, observations: String(input.observations == null ? "" : input.observations).trim() };
+  }
+
+  function createValidationError(code, message) {
+    const error = new Error(message);
+    error.code = code;
+    return error;
+  }
+
+  function validateTicketCalendar(input, calendarId = 0) {
+    const calendar = normalizeTicketCalendarInput(input);
+    if (!calendar.name) throw createValidationError("ticket_calendar_name_required", "El nombre del calendario es obligatorio.");
+    if (!calendar.weekdays.length) throw createValidationError("ticket_calendar_weekday_required", "Selecciona al menos un día ticket.");
+
+    const normalizedName = normalizeCompactText(calendar.name);
+    const calendars = getTicketCalendars();
+    const aliases = getTicketCalendarAliases();
+    const conflictingCalendar = calendars.find(item => Number(item.id) !== Number(calendarId) && normalizeCompactText(item.name) === normalizedName);
+    if (conflictingCalendar) throw createValidationError("ticket_calendar_name_duplicate", "Ya existe un calendario con ese nombre.");
+
+    const ownAliases = new Set(calendar.aliases);
+    if (ownAliases.size !== calendar.aliases.length) throw createValidationError("ticket_calendar_alias_duplicate", "No se pueden repetir aliases.");
+    const reservedNames = new Map(calendars
+      .filter(item => Number(item.id) !== Number(calendarId))
+      .map(item => [normalizeCompactText(item.name), item.name]));
+    const reservedAliases = new Map(aliases
+      .filter(item => Number(item.calendar_id) !== Number(calendarId))
+      .map(item => [normalizeCompactText(item.alias), item.alias]));
+    calendar.aliases.forEach(alias => {
+      if (reservedNames.has(alias) || reservedAliases.has(alias)) {
+        throw createValidationError("ticket_calendar_alias_duplicate", `El alias "${alias}" ya está utilizado por otro calendario.`);
+      }
+    });
+    if (reservedAliases.has(normalizedName)) throw createValidationError("ticket_calendar_name_duplicate", "El nombre coincide con un alias ya utilizado por otro calendario.");
+    return calendar;
+  }
+
+  function getNextDisplayOrder() {
+    const rows = rowsFromExec(db, "SELECT COALESCE(MAX(display_order), 0) + 1 AS display_order FROM ticket_calendars");
+    return rows.length ? Number(rows[0].display_order) : 1;
+  }
+
+  function replaceTicketCalendarRelations(calendarId, calendar) {
+    db.run("DELETE FROM ticket_calendar_aliases WHERE calendar_id = ?", [calendarId]);
+    calendar.aliases.forEach(alias => db.run("INSERT INTO ticket_calendar_aliases (calendar_id, alias) VALUES (?, ?)", [calendarId, alias]));
+    db.run("DELETE FROM ticket_calendar_weekdays WHERE calendar_id = ?", [calendarId]);
+    calendar.weekdays.forEach(day => db.run("INSERT INTO ticket_calendar_weekdays (calendar_id, iso_weekday) VALUES (?, ?)", [calendarId, day]));
+  }
+
+  function createTicketCalendar(input) {
+    const calendar = validateTicketCalendar(input);
+    db.run("BEGIN");
+    try {
+      db.run("INSERT INTO ticket_calendars (name, display_order, active, observations) VALUES (?, ?, 1, ?)", [calendar.name, getNextDisplayOrder(), calendar.observations]);
+      const calendarId = getCalendarIdByName(calendar.name);
+      replaceTicketCalendarRelations(calendarId, calendar);
+      db.run("COMMIT");
+      return calendarId;
+    } catch (error) {
+      db.run("ROLLBACK");
+      throw error;
+    }
+  }
+
+  function updateTicketCalendar(calendarId, input) {
+    const id = Number(calendarId);
+    if (!Number.isInteger(id) || id <= 0 || !getTicketCalendars().some(calendar => Number(calendar.id) === id)) {
+      throw createValidationError("ticket_calendar_not_found", "No se ha encontrado el calendario que quieres editar.");
+    }
+    const previous = getTicketCalendars().find(calendar => Number(calendar.id) === id);
+    const renamedInput = normalizeCompactText(previous.name) === normalizeCompactText(input && input.name)
+      ? input
+      : { ...input, aliases: [...(Array.isArray(input && input.aliases) ? input.aliases : String(input && input.aliases == null ? "" : input.aliases).split(",")), previous.name] };
+    const calendar = validateTicketCalendar(renamedInput, id);
+    db.run("BEGIN");
+    try {
+      db.run("UPDATE ticket_calendars SET name = ?, observations = ? WHERE id = ?", [calendar.name, calendar.observations, id]);
+      replaceTicketCalendarRelations(id, calendar);
+      db.run("COMMIT");
+      return id;
+    } catch (error) {
+      db.run("ROLLBACK");
+      throw error;
+    }
+  }
+
   function getTicketCalendars() {
-    return rowsFromExec(db, "SELECT id, name, display_order, active FROM ticket_calendars ORDER BY display_order, id");
+    return rowsFromExec(db, "SELECT id, name, display_order, active, observations FROM ticket_calendars ORDER BY display_order, id");
   }
 
   function getTicketCalendarAliases() {
@@ -211,7 +308,9 @@ function createTicketCalendarRepository({ db }) {
     getTicketCalendarAliases,
     getTicketCalendarWeekdays,
     getTicketCalendarExclusions,
-    getTicketCalendarRules
+    getTicketCalendarRules,
+    createTicketCalendar,
+    updateTicketCalendar
   });
 }
 
