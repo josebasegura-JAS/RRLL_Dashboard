@@ -405,7 +405,11 @@ function initializeTicketCalendarPersistence(db, dbPath) {
     const schemaExists = existingSchemaTables.length > 0 && existingSchemaTables[0].values.length === 5;
     const calendarColumns = schemaExists ? db.exec("PRAGMA table_info(ticket_calendars)") : [];
     const observationsExists = calendarColumns.length > 0 && calendarColumns[0].values.some(column => column[1] === "observations");
-    repository.ensureTicketCalendarSchema();
+    const schemaInfo = repository.ensureTicketCalendarSchema();
+    if (!schemaInfo.currentCompatible) {
+      console.warn("Persistencia de calendarios Ticket en esquema incompatible; se conserva intacta y se usará fallback.");
+      return;
+    }
     changed = !schemaExists || !observationsExists;
     if (repository.seedBaseTicketCalendars() > 0) changed = true;
     if (repository.migrateLegacyTicketCalendarExclusions() > 0) changed = true;
@@ -836,19 +840,31 @@ async function loadAllData() {
   });
 }
 
+function createTicketCalendarFallbackModel(error) {
+  if (error) console.warn("No se pudieron cargar calendarios Ticket Restaurante; se usa el fallback base.", error && error.message ? error.message : error);
+  return createTicketCalendarAdapter({
+    repository: { getTicketCalendars() { return []; } },
+    domain: TicketCalendarDomain
+  }).readTicketCalendarModel();
+}
+
 async function loadTicketCalendarModel() {
-  const info = resolveDbAccessInfo();
-  return withFileLock(info.path, async () => {
-    const { db } = await openDatabase(info.path);
-    try {
-      return createTicketCalendarAdapter({
-        repository: createTicketCalendarRepository({ db }),
-        domain: TicketCalendarDomain
-      }).readTicketCalendarModel();
-    } finally {
-      try { db.close(); } catch {}
-    }
-  });
+  try {
+    const info = resolveDbAccessInfo();
+    return await withFileLock(info.path, async () => {
+      const { db } = await openDatabase(info.path);
+      try {
+        return createTicketCalendarAdapter({
+          repository: createTicketCalendarRepository({ db }),
+          domain: TicketCalendarDomain
+        }).readTicketCalendarModel();
+      } finally {
+        try { db.close(); } catch {}
+      }
+    });
+  } catch (error) {
+    return createTicketCalendarFallbackModel(error);
+  }
 }
 
 async function saveTicketCalendar(payload = {}) {

@@ -88,6 +88,16 @@ assert.equal(withDomain.countNoTicketWeekdays(6, 2026, "Servicios Centrales"), 1
 assert.equal(fallback.countNoTicketWeekdays(6, 2026, "Servicios Centrales"), 1);
 
 (async () => {
+  const rejected = loadTicketRestaurant(TicketCalendarDomain);
+  rejected.context.window.rrllDB = { loadTicketCalendars: async () => { throw new Error("IPC no disponible"); } };
+  await rejected.context.hydrateTicketRestaurantCalendars();
+  assert.deepEqual(rejected.getCalendars(), expectedCalendars);
+
+  const invalid = loadTicketRestaurant(TicketCalendarDomain);
+  invalid.context.window.rrllDB = { loadTicketCalendars: async () => ({ source: "sqlite", options: null }) };
+  await invalid.context.hydrateTicketRestaurantCalendars();
+  assert.deepEqual(invalid.getCalendars(), expectedCalendars);
+
   const hydrated = loadTicketRestaurant(TicketCalendarDomain);
   hydrated.context.window.rrllDB = {
     loadTicketCalendars: async () => ({
