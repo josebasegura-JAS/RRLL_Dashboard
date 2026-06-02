@@ -71,6 +71,7 @@
         <button type="button" class="rrll-nav-item rrll-nav-button sidebar-group-toggle" data-group-toggle="calculos" onclick="toggleSidebarGroup('calculos')"><span>▸</span> <span>Cálculos y herramientas</span><strong class="rrll-nav-chevron">▾</strong></button>
         <div class="sidebar-group-items" id="sidebar-group-calculos">
           <a href="#gestor-ticket-restaurante" class="rrll-nav-item">🍽 <span>Ticket Restaurante</span></a>
+          <a href="#gestor-presupuestos" class="rrll-nav-item">€ <span>Presupuestos</span></a>
           <a href="#gestor-sorteos" class="rrll-nav-item">🎲 <span>Sorteos</span></a>
           <a href="#gestor-criterios" class="rrll-nav-item">✦ <span>Criterios RRLL</span></a>
           <a href="#gestor-especiales" class="rrll-nav-item">✉ <span>Especiales</span></a>
@@ -1401,6 +1402,30 @@
             </details>
           </div>
         </details>
+
+        <details class="card module-card rrll-pro-module budget-module" id="gestor-presupuestos"><summary><span class="module-title"><span class="module-icon">€</span>Presupuestos RRLL</span><span class="summary-counts">Escenarios · Partidas manuales · Simulador Ticket Restaurante</span></summary>
+          <div class="budget-shell">
+            <section class="budget-section">
+              <div class="budget-section-heading"><div><h3>Escenarios de presupuesto</h3><p class="muted">Presupuesto global RRLL: partidas manuales más estimación Ticket Restaurante.</p></div><button type="button" onclick="openBudgetScenarioForm()">Nuevo escenario</button></div>
+              <div class="table-wrap"><table class="budget-table"><thead><tr><th>Nombre</th><th>Año</th><th>Importe ticket</th><th>Absentismo</th><th>Partidas manuales</th><th>Ticket Restaurante</th><th>Total global</th><th>Acciones</th></tr></thead><tbody id="budgetScenarioRows"></tbody></table></div>
+              <form id="budgetScenarioForm" class="budget-form budget-form-hidden" onsubmit="saveBudgetScenarioFromForm(event)">
+                <input id="budgetScenarioId" type="hidden" /><label>Nombre<input id="budgetScenarioName" required /></label><label>Año<input id="budgetScenarioYear" type="number" required /></label><label>Importe ticket<input id="budgetScenarioTicketAmount" inputmode="decimal" value="0" /></label><label>Absentismo general %<input id="budgetScenarioAbsenceRate" inputmode="decimal" value="0" /></label><label class="budget-wide">Observaciones<textarea id="budgetScenarioNotes"></textarea></label><div class="budget-actions budget-wide"><button type="submit">Guardar</button><button class="secondary" type="button" onclick="closeBudgetScenarioForm()">Cancelar</button></div>
+              </form>
+            </section>
+            <div id="budgetSelectedScenarioEmpty" class="budget-empty">Selecciona un escenario para gestionar sus partidas y su simulador Ticket Restaurante.</div>
+            <div id="budgetSelectedScenario" class="budget-form-hidden">
+              <section class="budget-summary"><div><span>Total partidas manuales</span><strong id="budgetSummaryManual">0,00 €</strong></div><div><span>Total Ticket Restaurante</span><strong id="budgetSummaryTicket">0,00 €</strong></div><div><span>Total global escenario</span><strong id="budgetSummaryTotal">0,00 €</strong></div></section>
+              <section class="budget-section"><div class="budget-section-heading"><div><h3>Partidas manuales</h3><p class="muted">El importe anual prevalece; si no existe, se aplica importe mensual × 12.</p></div><button type="button" onclick="openBudgetManualItemForm()">Añadir partida</button></div><div class="table-wrap"><table class="budget-table"><thead><tr><th>Concepto</th><th>Categoría</th><th>Mensual</th><th>Anual informado</th><th>Total anual</th><th>Observaciones</th><th>Acciones</th></tr></thead><tbody id="budgetManualItemRows"></tbody></table></div>
+                <form id="budgetManualItemForm" class="budget-form budget-form-hidden" onsubmit="saveBudgetManualItemFromForm(event)"><input id="budgetManualItemId" type="hidden" /><label>Concepto<input id="budgetManualItemConcept" required /></label><label>Categoría<input id="budgetManualItemCategory" /></label><label>Importe mensual<input id="budgetManualItemMonthly" inputmode="decimal" /></label><label>Importe anual<input id="budgetManualItemAnnual" inputmode="decimal" /></label><label class="budget-wide">Observaciones<textarea id="budgetManualItemNotes"></textarea></label><p class="muted budget-wide">Si informas importe anual, ese valor prevalecerá sobre el mensual.</p><div class="budget-actions budget-wide"><button type="submit">Guardar partida</button><button class="secondary" type="button" onclick="closeBudgetManualItemForm()">Cancelar</button></div></form>
+              </section>
+              <section class="budget-section"><div class="budget-section-heading"><div><h3>Simulador Ticket Restaurante</h3><p class="muted">Usa los calendarios Ticket configurables existentes y su fallback seguro.</p></div><button type="button" onclick="openBudgetTicketGroupForm()">Añadir grupo</button></div><div class="table-wrap"><table class="budget-table"><thead><tr><th>Nombre</th><th>Personas</th><th>Calendario</th><th>Absentismo</th><th>Importe ticket</th><th>Tipo cálculo</th><th>Coste anual</th><th>Acciones</th></tr></thead><tbody id="budgetTicketGroupRows"></tbody></table></div>
+                <form id="budgetTicketGroupForm" class="budget-form budget-form-hidden" onsubmit="saveBudgetTicketGroupFromForm(event)"><input id="budgetTicketGroupId" type="hidden" /><label>Nombre<input id="budgetTicketGroupName" required /></label><label>Tipo cálculo<select id="budgetTicketGroupType" onchange="renderBudgetTicketGroupFieldVisibility()"><option value="calendar_people">Calendario × personas</option><option value="manual_tickets">Tickets manuales</option><option value="manual_amount">Importe mensual manual</option></select></label><label data-budget-ticket-field="people">Número personas<input id="budgetTicketGroupPeople" inputmode="decimal" value="0" /></label><label data-budget-ticket-field="calendar">Calendario Ticket<select id="budgetTicketGroupCalendar"></select></label><label data-budget-ticket-field="absence">Absentismo propio %<input id="budgetTicketGroupAbsence" inputmode="decimal" placeholder="Usar general" /></label><label data-budget-ticket-field="ticket-amount">Importe ticket propio<input id="budgetTicketGroupAmount" inputmode="decimal" placeholder="Usar escenario" /></label><label data-budget-ticket-field="manual-tickets">Tickets manuales / mes<input id="budgetTicketGroupManualTickets" inputmode="decimal" /></label><label data-budget-ticket-field="manual-amount">Importe manual mensual<input id="budgetTicketGroupManualAmount" inputmode="decimal" /></label><label class="budget-wide">Observaciones<textarea id="budgetTicketGroupNotes"></textarea></label><div class="budget-actions budget-wide"><button type="submit">Guardar grupo</button><button class="secondary" type="button" onclick="closeBudgetTicketGroupForm()">Cancelar</button></div></form>
+              </section>
+              <section class="budget-section"><h3>Resumen mensual del escenario</h3><div class="table-wrap"><table class="budget-table"><thead><tr><th>Mes</th><th>Partidas manuales</th><th>Ticket Restaurante</th><th>Total global</th></tr></thead><tbody id="budgetMonthlyRows"></tbody><tfoot><tr><th>Resumen anual</th><th id="budgetYearManual"></th><th id="budgetYearTicket"></th><th id="budgetYearTotal"></th></tr></tfoot></table></div></section>
+            </div>
+          </div>
+        </details>
+
         <details class="card module-card rrll-pro-module ticket-restaurant-module" id="gestor-ticket-restaurante"><summary><span class="module-title"><span class="module-icon">🍽</span>Ticket Restaurante</span><span class="summary-counts">Calendarios · Personas · Ausencias · Cómputo</span></summary>
           <div class="rrll-pro-task-shell ticket-restaurant-shell">
             <div class="rrll-pro-task-head">
@@ -2336,6 +2361,8 @@
   <script src="modules/ticket-calendar-adapter.js"></script>
   <script src="modules/ticket-restaurante.js"></script>
   <script src="modules/ticket-calendar-management.js"></script>
+  <script src="modules/budget-domain.js"></script>
+  <script src="modules/budget.js"></script>
   <script src="modules/sorteos.js"></script>
   <script src="modules/especiales.js"></script>
   <script src="modules/links-config.js"></script>

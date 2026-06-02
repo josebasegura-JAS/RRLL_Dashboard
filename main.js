@@ -14,6 +14,7 @@ const {
 const { createSqlitePersistenceHelpers } = require("./main/sqlite-persistence-helpers");
 const { createTicketCalendarRepository } = require("./app/modules/ticket-calendar-repository");
 const { createTicketCalendarAdapter } = require("./app/modules/ticket-calendar-adapter");
+const { createBudgetRepository } = require("./app/modules/budget-repository");
 const TicketCalendarDomain = require("./app/modules/ticket-calendar-domain");
 const { writeJsonAtomically } = require("./main/config-persistence-helpers");
 const {
@@ -398,6 +399,7 @@ async function openDatabase(dbPath, { initializeTicketCalendars = true, perfDebu
   try { db.run("ALTER TABLE kv_store ADD COLUMN updated_by TEXT"); } catch {}
 
   if (initializeTicketCalendars) initializeTicketCalendarPersistence(db, dbPath);
+  initializeBudgetPersistence(db, dbPath);
 
   const versionRow = db.exec("SELECT value FROM meta WHERE key = 'schema_version'");
   if (!versionRow.length) {
@@ -436,6 +438,17 @@ function initializeTicketCalendarPersistence(db, dbPath) {
     persistDb(db, dbPath);
   } catch (error) {
     console.warn("No se pudo persistir la inicialización de calendarios Ticket Restaurante:", error && error.message ? error.message : error);
+  }
+}
+
+function initializeBudgetPersistence(db, dbPath) {
+  try {
+    const existing = db.exec(`SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('budget_scenarios', 'budget_manual_items', 'budget_ticket_groups')`);
+    const existingCount = existing.length ? existing[0].values.length : 0;
+    createBudgetRepository({ db }).ensureBudgetSchema();
+    if (existingCount < 3) persistDb(db, dbPath);
+  } catch (error) {
+    console.warn("No se pudo inicializar la persistencia de Presupuestos:", error && error.message ? error.message : error);
   }
 }
 
@@ -942,6 +955,37 @@ async function changeTicketCalendarLifecycle(action, calendarId) {
   } catch (error) {
     setLastSaveStatus("error", error && error.message ? error.message : String(error));
     return { ok: false, code: error && error.code ? error.code : "ticket_calendar_lifecycle_error", message: error && error.message ? error.message : "No se ha podido actualizar el calendario." };
+  }
+}
+
+async function runBudgetRead(operation) {
+  const info = resolveDbAccessInfo();
+  return await withFileLock(info.path, async () => {
+    const { db } = await openDatabase(info.path);
+    try { return operation(createBudgetRepository({ db })); }
+    finally { try { db.close(); } catch {} }
+  });
+}
+
+async function runBudgetWrite(operation, reason) {
+  setLastSaveStatus("saving");
+  const info = resolveDbAccessInfo();
+  try {
+    return await withFileLock(info.path, async () => {
+      const { db } = await openDatabase(info.path);
+      try {
+        const id = operation(createBudgetRepository({ db }));
+        touchDatabaseState(db);
+        persistDb(db, info.path);
+        markDatabaseDirty();
+        if (info.mode === "shared" && info.effectiveMode === "shared" && !info.fallbackLocal) scheduleMirrorUpdate(reason);
+        setLastSaveStatus("saved");
+        return { ok: true, id };
+      } finally { try { db.close(); } catch {} }
+    });
+  } catch (error) {
+    setLastSaveStatus("error", error && error.message ? error.message : String(error));
+    return { ok: false, code: "budget_write_error", message: error && error.message ? error.message : "No se ha podido guardar el presupuesto." };
   }
 }
 
@@ -1836,6 +1880,14 @@ ipcMain.handle("db:saveTicketCalendar", async (_event, payload) => saveTicketCal
 ipcMain.handle("db:disableTicketCalendar", async (_event, calendarId) => changeTicketCalendarLifecycle("disable", calendarId));
 ipcMain.handle("db:enableTicketCalendar", async (_event, calendarId) => changeTicketCalendarLifecycle("enable", calendarId));
 ipcMain.handle("db:deleteTicketCalendar", async (_event, calendarId) => changeTicketCalendarLifecycle("delete", calendarId));
+ipcMain.handle("db:loadBudgetScenarios", async () => runBudgetRead(repository => repository.getBudgetScenarios()));
+ipcMain.handle("db:saveBudgetScenario", async (_event, payload) => runBudgetWrite(repository => repository.saveBudgetScenario(payload), "save_budget_scenario"));
+ipcMain.handle("db:loadBudgetManualItems", async (_event, scenarioId) => runBudgetRead(repository => repository.getBudgetManualItems(scenarioId)));
+ipcMain.handle("db:saveBudgetManualItem", async (_event, payload) => runBudgetWrite(repository => repository.saveBudgetManualItem(payload), "save_budget_manual_item"));
+ipcMain.handle("db:deleteBudgetManualItem", async (_event, id) => runBudgetWrite(repository => repository.deleteBudgetManualItem(id), "delete_budget_manual_item"));
+ipcMain.handle("db:loadBudgetTicketGroups", async (_event, scenarioId) => runBudgetRead(repository => repository.getBudgetTicketGroups(scenarioId)));
+ipcMain.handle("db:saveBudgetTicketGroup", async (_event, payload) => runBudgetWrite(repository => repository.saveBudgetTicketGroup(payload), "save_budget_ticket_group"));
+ipcMain.handle("db:deleteBudgetTicketGroup", async (_event, id) => runBudgetWrite(repository => repository.deleteBudgetTicketGroup(id), "delete_budget_ticket_group"));
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));
