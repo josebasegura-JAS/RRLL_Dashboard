@@ -914,6 +914,37 @@ async function saveTicketCalendar(payload = {}) {
   }
 }
 
+async function changeTicketCalendarLifecycle(action, calendarId) {
+  setLastSaveStatus("saving");
+  const info = resolveDbAccessInfo();
+  try {
+    return await withFileLock(info.path, async () => {
+      const { db } = await openDatabase(info.path);
+      try {
+        const repository = createTicketCalendarRepository({ db });
+        const operations = {
+          disable: () => repository.disableTicketCalendar(calendarId),
+          enable: () => repository.enableTicketCalendar(calendarId),
+          delete: () => repository.deleteTicketCalendarIfUnused(calendarId)
+        };
+        if (!operations[action]) throw new Error("Operación de calendario Ticket no permitida.");
+        const id = operations[action]();
+        touchDatabaseState(db);
+        persistDb(db, info.path);
+        markDatabaseDirty();
+        if (info.mode === "shared" && info.effectiveMode === "shared" && !info.fallbackLocal) scheduleMirrorUpdate(`${action}_ticket_calendar`);
+        setLastSaveStatus("saved");
+        return { ok: true, id };
+      } finally {
+        try { db.close(); } catch {}
+      }
+    });
+  } catch (error) {
+    setLastSaveStatus("error", error && error.message ? error.message : String(error));
+    return { ok: false, code: error && error.code ? error.code : "ticket_calendar_lifecycle_error", message: error && error.message ? error.message : "No se ha podido actualizar el calendario." };
+  }
+}
+
 async function saveKeyData(key, value) {
   if (typeof key !== "string" || !key.startsWith("rrll_")) return false;
   setLastSaveStatus("saving");
@@ -1802,6 +1833,9 @@ async function parseOutlookMsgInMain(_event, payload) {
 ipcMain.handle("db:loadAll", async (_event, options) => loadAllData(options));
 ipcMain.handle("db:loadTicketCalendars", async (_event, options) => loadTicketCalendarModel(options));
 ipcMain.handle("db:saveTicketCalendar", async (_event, payload) => saveTicketCalendar(payload));
+ipcMain.handle("db:disableTicketCalendar", async (_event, calendarId) => changeTicketCalendarLifecycle("disable", calendarId));
+ipcMain.handle("db:enableTicketCalendar", async (_event, calendarId) => changeTicketCalendarLifecycle("enable", calendarId));
+ipcMain.handle("db:deleteTicketCalendar", async (_event, calendarId) => changeTicketCalendarLifecycle("delete", calendarId));
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));

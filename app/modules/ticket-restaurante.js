@@ -117,13 +117,21 @@ const TICKET_RESTAURANT_COMPUTE_FILTERS = [
   ["ticketComputeFilterAbsences", row => row.absenceDays],
   ["ticketComputeFilterFinal", row => row.finalTickets]
 ];
-const TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS = ["Nº empleado", "Nombre y apellidos", "Número de días con ticket", "Importe ticket"];
+const TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS = ["Nº empleado", "Nombre y apellidos", "Calendario", "Número de días con ticket", "Importe ticket"];
 const TICKET_RESTAURANT_MONTHLY_FILTERS = [
   ["ticketMonthlyQuoteFilterEmployee", row => row.employeeNumber],
   ["ticketMonthlyQuoteFilterName", row => row.fullName],
+  ["ticketMonthlyQuoteFilterCalendar", row => row.calendar],
   ["ticketMonthlyQuoteFilterDays", row => row.ticketDays],
   ["ticketMonthlyQuoteFilterAmount", row => row.ticketAmount]
 ];
+const TICKET_RESTAURANT_MONTHLY_QUOTE_SORT_COLUMNS = {
+  employee: { type: "number", getter: row => row.employeeNumber },
+  name: { type: "text", getter: row => row.fullName },
+  calendar: { type: "text", getter: row => row.calendar },
+  days: { type: "number", getter: row => row.ticketDays },
+  amount: { type: "number", getter: row => row.ticketAmount }
+};
 const TICKET_RESTAURANT_COMPUTE_SORT_COLUMNS = {
   employee: { type: "text", getter: row => row.person && row.person.employeeNumber },
   name: { type: "text", getter: row => ticketRestaurantFullName(row.person) },
@@ -201,9 +209,25 @@ function getVisibleTicketRestaurantComputeRows(calc) {
   return sortTicketRestaurantComputeRows(filteredRows);
 }
 
+function sortTicketRestaurantMonthlyQuoteRows(rows) {
+  const column = TICKET_RESTAURANT_MONTHLY_QUOTE_SORT_COLUMNS[ticketRestaurantMonthlyQuoteSortKey];
+  if (!column || !ticketRestaurantMonthlyQuoteSortDirection) return [...rows];
+  const direction = ticketRestaurantMonthlyQuoteSortDirection === "desc" ? -1 : 1;
+  return rows.map((row, index) => ({ row, index })).sort((a, b) => {
+    const left = column.getter(a.row);
+    const right = column.getter(b.row);
+    const leftEmpty = left == null || String(left).trim() === "";
+    const rightEmpty = right == null || String(right).trim() === "";
+    if (leftEmpty !== rightEmpty) return leftEmpty ? 1 : -1;
+    const result = compareTicketRestaurantSortValues(left, right, column.type);
+    return result ? result * direction : a.index - b.index;
+  }).map(item => item.row);
+}
+
 function getVisibleTicketRestaurantMonthlyQuoteRows(calc) {
   const source = calc || ticketRestaurantLastVisibleMonthlyQuote || calculateTicketRestaurantMonthlyQuote();
-  return (source.rows || []).filter(row => ticketRestaurantMatchesColumnFilters(row, TICKET_RESTAURANT_MONTHLY_FILTERS));
+  ticketRestaurantMonthlyQuoteRowsCache = [...(source.rows || [])];
+  return sortTicketRestaurantMonthlyQuoteRows(ticketRestaurantMonthlyQuoteRowsCache.filter(row => ticketRestaurantMatchesColumnFilters(row, TICKET_RESTAURANT_MONTHLY_FILTERS)));
 }
 
 function htmlEscapeTicketRestaurantOutput(value) {
@@ -239,6 +263,9 @@ let ticketRestaurantLastPlantillaLookup = "";
 let ticketRestaurantPlantillaLookupTimer = null;
 let ticketRestaurantLastVisibleCompute = null;
 let ticketRestaurantLastVisibleMonthlyQuote = null;
+let ticketRestaurantMonthlyQuoteRowsCache = [];
+let ticketRestaurantMonthlyQuoteSortKey = null;
+let ticketRestaurantMonthlyQuoteSortDirection = null;
 let ticketRestaurantComputeSort = { key: "calendar", direction: "desc" };
 let ticketRestaurantVisibleAbsenceMonth = null;
 let ticketRestaurantVisibleComputeMonth = null;
@@ -316,7 +343,8 @@ function saveTicketRestaurantCalendarMarks(items) {
 }
 
 function buildTicketRestaurantCalendarRuntime({ calendarMarks = getTicketRestaurantCalendarMarks() } = {}) {
-  const optionsForDomain = ticketRestaurantCalendarOptions || {};
+  const configuredOptions = ticketRestaurantCalendarOptions || {};
+  const optionsForDomain = { ...configuredOptions, includeInactive: true };
   const snapshot = RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.createTicketCalendarSnapshot === "function"
     ? RRLL_TICKET_CALENDAR_DOMAIN.createTicketCalendarSnapshot(optionsForDomain)
     : null;
@@ -2232,8 +2260,9 @@ function calculateTicketRestaurantCompute(period = null) {
   ticketRestaurantComputeContext.normalizedCalendarByPerson = new Map(people.map(person => [person, normalizeTicketCalendar(person && person.calendar)]));
   const { month, year } = period ? normalizeTicketMonth(period) : getTicketRestaurantComputeSelection();
   const visibleMonth = { month, year };
-  const calendarTheoretical = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
-  const calendarNoTicketWeekdays = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantNoTicketWeekdays(month, year, calendar)]));
+  const runtimeCalendars = getTicketRestaurantCalendarRuntime().calendars;
+  const calendarTheoretical = new Map(runtimeCalendars.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
+  const calendarNoTicketWeekdays = new Map(runtimeCalendars.map(calendar => [calendar, ticketRestaurantNoTicketWeekdays(month, year, calendar)]));
   const warnings = [];
   const pendingLedger = ensureTicketRestaurantPendingDiscountLedgerFromAbsences({ persist: false, absences, people, previousLedger });
   const targetMonth = { month, year };
@@ -2563,7 +2592,7 @@ function calculateTicketRestaurantMonthlyQuote(period = null) {
   const people = getTicketRestaurantPeople();
   const cfg = getTicketRestaurantConfig();
   ticketRestaurantComputeContext = createTicketRestaurantExecutionContext({ people, absences });
-  const calendarTheoretical = new Map(TICKET_RESTAURANT_CALENDARS.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
+  const calendarTheoretical = new Map(getTicketRestaurantCalendarRuntime().calendars.map(calendar => [calendar, ticketRestaurantWorkingDays(month, year, calendar)]));
   const rows = people.map(person => {
     const normalizedCalendar = normalizeTicketCalendar(person.calendar);
     const hasCalendar = isKnownTicketCalendar(normalizedCalendar);
@@ -2573,6 +2602,7 @@ function calculateTicketRestaurantMonthlyQuote(period = null) {
     return {
       employeeNumber: person.employeeNumber || "",
       fullName: ticketRestaurantFullName(person),
+      calendar: hasCalendar ? normalizedCalendar : (person.calendar || "Sin calendario"),
       ticketDays: Math.max(0, theoretical - monthlyAbsenceDays),
       ticketAmount: cfg.importe,
       absenceDays: monthlyAbsenceDays,
@@ -2586,34 +2616,55 @@ function calculateTicketRestaurantMonthlyQuote(period = null) {
   return { month, year, rows };
 }
 
-function renderTicketRestaurantMonthlyQuotePreview() {
+function setTicketRestaurantMonthlyQuoteSort(key) {
+  if (!TICKET_RESTAURANT_MONTHLY_QUOTE_SORT_COLUMNS[key]) return;
+  if (ticketRestaurantMonthlyQuoteSortKey !== key) {
+    ticketRestaurantMonthlyQuoteSortKey = key;
+    ticketRestaurantMonthlyQuoteSortDirection = "asc";
+  } else ticketRestaurantMonthlyQuoteSortDirection = ticketRestaurantMonthlyQuoteSortDirection === "asc" ? "desc" : "asc";
+  renderTicketRestaurantMonthlyQuotePreview({ recalculate: false });
+}
+
+function updateTicketRestaurantMonthlyQuoteSortHeaders() {
+  document.querySelectorAll("[data-ticket-monthly-quote-sort]").forEach(button => {
+    const active = button.dataset.ticketMonthlyQuoteSort === ticketRestaurantMonthlyQuoteSortKey && ticketRestaurantMonthlyQuoteSortDirection;
+    const indicator = button.querySelector(".ticket-sort-indicator");
+    const th = button.closest("th");
+    if (indicator) indicator.textContent = active ? (ticketRestaurantMonthlyQuoteSortDirection === "asc" ? "▲" : "▼") : "";
+    if (th) th.setAttribute("aria-sort", active ? (ticketRestaurantMonthlyQuoteSortDirection === "asc" ? "ascending" : "descending") : "none");
+  });
+}
+
+function renderTicketRestaurantMonthlyQuotePreview({ recalculate = true } = {}) {
   const panel = document.getElementById("ticketRestaurantMonthlyQuotePanel");
   const periodEl = document.getElementById("ticketRestaurantMonthlyQuotePeriod");
   const body = document.getElementById("ticketRestaurantMonthlyQuoteBody");
   if (!panel || !body) return;
   renderTicketContributionMonthSelector();
-  const calc = calculateTicketRestaurantMonthlyQuote();
+  const calc = !recalculate && ticketRestaurantLastVisibleMonthlyQuote ? ticketRestaurantLastVisibleMonthlyQuote : calculateTicketRestaurantMonthlyQuote();
   ticketRestaurantLastVisibleMonthlyQuote = calc;
+  ticketRestaurantMonthlyQuoteRowsCache = [...(calc.rows || [])];
   panel.hidden = false;
   if (periodEl) periodEl.textContent = `Cómputo Cotización Mensual para ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} de ${calc.year}`;
   applyTicketEmployeeNameColumnLayout("#ticketRestaurantMonthlyQuoteBody");
+  updateTicketRestaurantMonthlyQuoteSortHeaders();
   const visibleRows = getVisibleTicketRestaurantMonthlyQuoteRows(calc);
-  body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}" ondblclick="event.preventDefault(); event.stopPropagation(); openTicketRestaurantAbsenceImpactDetail('${ticketRestaurantEscapeJs(row.employeeNumber)}', 'monthly')" title="Doble clic para ver detalle de ausencias"><td>${escapeHtml(row.employeeNumber)}</td><td>${escapeHtml(row.fullName)}</td><td>${escapeHtml(row.ticketDays)}</td><td>${escapeHtml(row.ticketAmount)}</td></tr>`).join("") : `<tr><td colspan="4" class="muted">Sin resultados que coincidan con los filtros.</td></tr>`;
+  body.innerHTML = visibleRows.length ? visibleRows.map(row => `<tr class="${row.calendarWarning ? "ticket-row-warning" : ""}" ondblclick="event.preventDefault(); event.stopPropagation(); openTicketRestaurantAbsenceImpactDetail('${ticketRestaurantEscapeJs(row.employeeNumber)}', 'monthly')" title="Doble clic para ver detalle de ausencias"><td>${escapeHtml(row.employeeNumber)}</td><td>${escapeHtml(row.fullName)}</td><td>${escapeHtml(row.calendar)}</td><td>${escapeHtml(row.ticketDays)}</td><td>${escapeHtml(row.ticketAmount)}</td></tr>`).join("") : `<tr><td colspan="5" class="muted">Sin resultados que coincidan con los filtros.</td></tr>`;
 }
 
 async function exportTicketRestaurantMonthlyQuote() {
   renderTicketRestaurantMonthlyQuotePreview();
   const calc = ticketRestaurantLastVisibleMonthlyQuote || calculateTicketRestaurantMonthlyQuote();
-  const rows = [TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS, ...getVisibleTicketRestaurantMonthlyQuoteRows(calc).map(row => [row.employeeNumber, row.fullName, row.ticketDays, row.ticketAmount])];
+  const rows = [TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS, ...getVisibleTicketRestaurantMonthlyQuoteRows(calc).map(row => [row.employeeNumber, row.fullName, row.calendar, row.ticketDays, row.ticketAmount])];
   const fileName = `Computo_Cotizacion_Mensual_${TICKET_RESTAURANT_MONTHS[calc.month - 1]}_${calc.year}.xlsx`;
-  const result = await exportTicketWorkbook({ title: "Cómputo Cotización Mensual Ticket Restaurante", fileName, sheetName: "Cotizacion mensual", rows, widths: [16, 34, 24, 16] });
+  const result = await exportTicketWorkbook({ title: "Cómputo Cotización Mensual Ticket Restaurante", fileName, sheetName: "Cotizacion mensual", rows, widths: [16, 34, 24, 24, 16] });
   if (result && !result.canceled) alert(`Excel generado correctamente:\n${result.filePath}`);
 }
 
 function printTicketRestaurantMonthlyQuote() {
   renderTicketRestaurantMonthlyQuotePreview();
   const calc = ticketRestaurantLastVisibleMonthlyQuote || calculateTicketRestaurantMonthlyQuote();
-  const rows = getVisibleTicketRestaurantMonthlyQuoteRows(calc).map(row => [row.employeeNumber, row.fullName, row.ticketDays, row.ticketAmount]);
+  const rows = getVisibleTicketRestaurantMonthlyQuoteRows(calc).map(row => [row.employeeNumber, row.fullName, row.calendar, row.ticketDays, row.ticketAmount]);
   openTicketRestaurantPrintPreview(`Cómputo Cotización Mensual - ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} ${calc.year}`, TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS, rows);
 }
 
@@ -2651,6 +2702,7 @@ window.exportTicketRestaurantCompute = exportTicketRestaurantCompute;
 window.printTicketRestaurantComputeVisible = printTicketRestaurantComputeVisible;
 window.renderTicketRestaurantMonthlyQuotePreview = renderTicketRestaurantMonthlyQuotePreview;
 window.changeTicketContributionMonth = changeTicketContributionMonth;
+window.setTicketRestaurantMonthlyQuoteSort = setTicketRestaurantMonthlyQuoteSort;
 window.exportTicketRestaurantMonthlyQuote = exportTicketRestaurantMonthlyQuote;
 window.printTicketRestaurantMonthlyQuote = printTicketRestaurantMonthlyQuote;
 window.saveTicketRestaurantConfigFromInputs = saveTicketRestaurantConfigFromInputs;

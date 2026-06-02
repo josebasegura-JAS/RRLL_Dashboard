@@ -13,6 +13,7 @@ function element(id, initial = {}) {
 element("ticketCalendarManagementBody");
 element("ticketCalendarManagementNotice");
 element("ticketCalendarManagementFormTitle");
+element("ticketCalendarManagementShowInactive");
 element("ticketCalendarManagementName");
 element("ticketCalendarManagementAliases");
 element("ticketCalendarManagementObservations");
@@ -28,12 +29,13 @@ let restaurantHydrations = 0;
 let restaurantRenders = 0;
 let cacheInvalidations = 0;
 let restaurantHydrateOptions = null;
+const lifecycleCalls = [];
 const model = {
   source: "sqlite",
   options: {
-    calendars: [{ id: 1, name: "Servicios Centrales", active: 1, observations: "Histórico" }],
+    calendars: [{ id: 1, name: "Servicios Centrales", active: 1, observations: "Histórico" }, { id: 2, name: "Turno antiguo", active: 0, observations: "" }],
     aliases: [{ calendar_id: 1, alias: "sscc" }],
-    weekdays: [1, 2, 3, 4, 5].map(iso_weekday => ({ calendar_id: 1, iso_weekday })),
+    weekdays: [1, 2, 3, 4, 5].map(iso_weekday => ({ calendar_id: 1, iso_weekday })).concat([{ calendar_id: 2, iso_weekday: 6 }]),
     exclusions: [],
     rules: []
   }
@@ -48,7 +50,10 @@ const context = {
     invalidateTicketCalendarModelCache: () => { cacheInvalidations += 1; },
     rrllDB: {
       loadTicketCalendars: async () => model,
-      saveTicketCalendar: async payload => { savedPayload = payload; return { ok: true, id: 1 }; }
+      saveTicketCalendar: async payload => { savedPayload = payload; return { ok: true, id: 1 }; },
+      disableTicketCalendar: async id => { lifecycleCalls.push(["disable", id]); return { ok: true, id }; },
+      enableTicketCalendar: async id => { lifecycleCalls.push(["enable", id]); return { ok: true, id }; },
+      deleteTicketCalendar: async id => { lifecycleCalls.push(["delete", id]); return { ok: true, id }; }
     }
   }
 };
@@ -60,6 +65,11 @@ vm.runInContext(source, context, { filename: "ticket-calendar-management.js" });
   assert.match(elements.get("ticketCalendarManagementBody").innerHTML, /Servicios Centrales/);
   assert.match(elements.get("ticketCalendarManagementBody").innerHTML, /sscc/);
   assert.match(elements.get("ticketCalendarManagementBody").innerHTML, /L M X J V/);
+  assert.doesNotMatch(elements.get("ticketCalendarManagementBody").innerHTML, /Turno antiguo/);
+  elements.get("ticketCalendarManagementShowInactive").checked = true;
+  context.window.renderTicketCalendarManagement();
+  assert.match(elements.get("ticketCalendarManagementBody").innerHTML, /Turno antiguo/);
+  assert.match(elements.get("ticketCalendarManagementBody").innerHTML, /Inactivo/);
 
   context.window.editTicketCalendar(1);
   assert.equal(elements.get("ticketCalendarManagementName").value, "Servicios Centrales");
@@ -78,6 +88,10 @@ vm.runInContext(source, context, { filename: "ticket-calendar-management.js" });
   assert.equal(restaurantHydrateOptions.force, true);
   assert.equal(restaurantRenders, 1);
   assert.match(elements.get("ticketCalendarManagementNotice").textContent, /guardado correctamente/i);
+  await context.executeTicketCalendarManagementAction("disableTicketCalendar", 2, "desactivado");
+  await context.executeTicketCalendarManagementAction("enableTicketCalendar", 2, "reactivado");
+  await context.executeTicketCalendarManagementAction("deleteTicketCalendar", 2, "borrado");
+  assert.deepEqual(lifecycleCalls, [["disable", 2], ["enable", 2], ["delete", 2]]);
   console.log("ticket-calendar-management smoke test passed");
 })().catch(error => {
   console.error(error);

@@ -11,6 +11,11 @@ const TICKET_CALENDAR_WEEKDAY_LABELS = Object.freeze([
 let ticketCalendarManagementModel = null;
 let ticketCalendarManagementEditingId = 0;
 
+function ticketCalendarManagementShowsInactive() {
+  const checkbox = document.getElementById("ticketCalendarManagementShowInactive");
+  return !!(checkbox && checkbox.checked);
+}
+
 function getTicketCalendarManagementRows() {
   const options = ticketCalendarManagementModel && ticketCalendarManagementModel.options || {};
   const calendars = Array.isArray(options.calendars) ? options.calendars : [];
@@ -48,15 +53,18 @@ async function hydrateTicketCalendarManagement({ force = false, render = true } 
 function renderTicketCalendarManagement() {
   const body = document.getElementById("ticketCalendarManagementBody");
   if (!body) return;
-  const rows = getTicketCalendarManagementRows();
-  body.innerHTML = rows.map(calendar => `
-    <tr>
+  const rows = getTicketCalendarManagementRows().filter(calendar => ticketCalendarManagementShowsInactive() || Number(calendar.active) === 1);
+  body.innerHTML = rows.map(calendar => {
+    const active = Number(calendar.active) === 1;
+    return `
+    <tr class="${active ? "" : "ticket-calendar-management-row--inactive"}">
       <td>${escapeHtml(calendar.name)}</td>
       <td>${escapeHtml(calendar.aliases.join(", ") || "—")}</td>
-      <td>${Number(calendar.active) === 1 ? "Sí" : "No"}</td>
+      <td>${active ? "Sí" : '<strong class="ticket-calendar-management-inactive">Inactivo</strong>'}</td>
       <td>${escapeHtml(TICKET_CALENDAR_WEEKDAY_LABELS.filter(([day]) => calendar.weekdays.includes(day)).map(([, , short]) => short).join(" "))}</td>
-      <td class="table-actions"><button class="secondary small" type="button" onclick="editTicketCalendar(${Number(calendar.id)})">Editar</button></td>
-    </tr>`).join("") || '<tr><td colspan="5" class="rrll-pro-empty">No hay calendarios disponibles.</td></tr>';
+      <td class="table-actions"><button class="secondary small" type="button" onclick="editTicketCalendar(${Number(calendar.id)})">Editar</button><button class="secondary small" type="button" onclick="${active ? "disable" : "enable"}TicketCalendarManagement(${Number(calendar.id)})">${active ? "Desactivar" : "Reactivar"}</button><button class="secondary small" type="button" onclick="deleteTicketCalendarManagement(${Number(calendar.id)})">Borrar</button></td>
+    </tr>`;
+  }).join("") || '<tr><td colspan="5" class="rrll-pro-empty">No hay calendarios disponibles.</td></tr>';
 }
 
 function resetTicketCalendarForm() {
@@ -106,6 +114,56 @@ function readTicketCalendarManagementForm() {
   };
 }
 
+async function refreshTicketCalendarManagementAfterChange(successMessage) {
+  try {
+    if (typeof window.invalidateTicketCalendarModelCache === "function") window.invalidateTicketCalendarModelCache();
+    if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars({ force: true });
+  } catch (error) { console.warn("No se pudo refrescar Ticket Restaurante tras actualizar el calendario.", error); }
+  await hydrateTicketCalendarManagement({ force: true });
+  if (typeof renderTicketRestaurant === "function") renderTicketRestaurant();
+  setTicketCalendarManagementNotice(successMessage, "success");
+}
+
+async function executeTicketCalendarManagementAction(method, calendarId, successMessage) {
+  if (!window.rrllDB || typeof window.rrllDB[method] !== "function") {
+    setTicketCalendarManagementNotice("No está disponible la conexión con SQLite.", "error");
+    return;
+  }
+  let result;
+  try { result = await window.rrllDB[method](calendarId); }
+  catch (error) {
+    console.warn("No se pudo actualizar el calendario Ticket.", error);
+    setTicketCalendarManagementNotice(error && error.message ? error.message : "No se ha podido actualizar el calendario.", "error");
+    return;
+  }
+  if (!result || !result.ok) {
+    setTicketCalendarManagementNotice(result && result.message ? result.message : "No se ha podido actualizar el calendario.", "error");
+    return;
+  }
+  resetTicketCalendarForm();
+  await refreshTicketCalendarManagementAfterChange(successMessage);
+}
+
+function confirmTicketCalendarManagementAction({ title, message, confirmLabel, onConfirm }) {
+  if (typeof confirmDangerAction === "function") {
+    confirmDangerAction({ title, message, confirmLabel, onConfirm });
+    return;
+  }
+  if (typeof confirm !== "function" || confirm(message)) onConfirm();
+}
+
+function disableTicketCalendarManagement(calendarId) {
+  confirmTicketCalendarManagementAction({ title: "Desactivar calendario Ticket", message: "¿Quieres desactivar este calendario? Dejará de aparecer en nuevas asignaciones, pero se conservarán sus datos históricos.", confirmLabel: "Desactivar", onConfirm: () => executeTicketCalendarManagementAction("disableTicketCalendar", calendarId, "Calendario desactivado correctamente.") });
+}
+
+function enableTicketCalendarManagement(calendarId) {
+  confirmTicketCalendarManagementAction({ title: "Reactivar calendario Ticket", message: "¿Quieres reactivar este calendario? Volverá a aparecer en los selectores.", confirmLabel: "Reactivar", onConfirm: () => executeTicketCalendarManagementAction("enableTicketCalendar", calendarId, "Calendario reactivado correctamente.") });
+}
+
+function deleteTicketCalendarManagement(calendarId) {
+  confirmTicketCalendarManagementAction({ title: "Borrar calendario Ticket definitivamente", message: "¿Quieres borrar físicamente este calendario? Solo se eliminará si no tiene personas, exclusiones, reglas o marcas asociadas. Esta acción no se puede deshacer.", confirmLabel: "Borrar definitivamente", onConfirm: () => executeTicketCalendarManagementAction("deleteTicketCalendar", calendarId, "Calendario borrado correctamente.") });
+}
+
 async function saveTicketCalendarManagement(event) {
   if (event && typeof event.preventDefault === "function") event.preventDefault();
   if (!window.rrllDB || typeof window.rrllDB.saveTicketCalendar !== "function") {
@@ -124,14 +182,8 @@ async function saveTicketCalendarManagement(event) {
     setTicketCalendarManagementNotice(result && result.message ? result.message : "No se ha podido guardar el calendario.", "error");
     return;
   }
-  try {
-    if (typeof window.invalidateTicketCalendarModelCache === "function") window.invalidateTicketCalendarModelCache();
-    if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars({ force: true });
-  } catch (error) { console.warn("No se pudo refrescar Ticket Restaurante tras guardar el calendario.", error); }
-  await hydrateTicketCalendarManagement();
   resetTicketCalendarForm();
-  if (typeof renderTicketRestaurant === "function") renderTicketRestaurant();
-  setTicketCalendarManagementNotice("Calendario guardado correctamente.", "success");
+  await refreshTicketCalendarManagementAfterChange("Calendario guardado correctamente.");
 }
 
 window.hydrateTicketCalendarManagement = hydrateTicketCalendarManagement;
@@ -139,3 +191,6 @@ window.renderTicketCalendarManagement = renderTicketCalendarManagement;
 window.resetTicketCalendarForm = resetTicketCalendarForm;
 window.editTicketCalendar = editTicketCalendar;
 window.saveTicketCalendarManagement = saveTicketCalendarManagement;
+window.disableTicketCalendarManagement = disableTicketCalendarManagement;
+window.enableTicketCalendarManagement = enableTicketCalendarManagement;
+window.deleteTicketCalendarManagement = deleteTicketCalendarManagement;

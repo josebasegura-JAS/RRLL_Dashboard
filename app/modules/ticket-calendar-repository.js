@@ -30,6 +30,8 @@ const BASE_TICKET_CALENDARS = Object.freeze([
 
 const DEFAULT_TICKET_ISO_WEEKDAYS = Object.freeze([1, 2, 3, 4, 5]);
 const LEGACY_CALENDAR_MARKS_KEY = "rrll_ticket_restaurant_calendar_marks";
+const LEGACY_TICKET_PEOPLE_KEY = "rrll_ticket_restaurant_people";
+const TICKET_CALENDAR_DELETE_BLOCKED_MESSAGE = "No se puede borrar porque tiene personas, exclusiones, reglas o marcas asociadas. Puedes desactivarlo.";
 
 function normalizeCompactText(value) {
   return String(value == null ? "" : value)
@@ -177,7 +179,7 @@ function createTicketCalendarRepository({ db, warn = console.warn }) {
   }
 
   function hasTable(tableName) {
-    return getTicketCalendarSchemaInfo(db).tables.includes(tableName);
+    return rowsFromExec(db, "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1", [tableName]).length > 0;
   }
 
   function getCalendarIdByName(name) {
@@ -259,6 +261,92 @@ function createTicketCalendarRepository({ db, warn = console.warn }) {
   function getNextDisplayOrder() {
     const rows = rowsFromExec(db, "SELECT COALESCE(MAX(display_order), 0) + 1 AS display_order FROM ticket_calendars");
     return rows.length ? Number(rows[0].display_order) : 1;
+  }
+
+  function getTicketCalendarById(calendarId) {
+    const id = Number(calendarId);
+    if (!Number.isInteger(id) || id <= 0) return null;
+    return getTicketCalendars().find(calendar => Number(calendar.id) === id) || null;
+  }
+
+  function isBaseTicketCalendar(calendar) {
+    const key = normalizeCompactText(calendar && calendar.name);
+    return BASE_TICKET_CALENDARS.some(item => normalizeCompactText(item.name) === key);
+  }
+
+  function assertMutableTicketCalendar(calendarId, operation) {
+    assertCurrentSchema(operation);
+    const calendar = getTicketCalendarById(calendarId);
+    if (!calendar) throw createValidationError("ticket_calendar_not_found", "No se ha encontrado el calendario solicitado.");
+    return calendar;
+  }
+
+  function readLegacyKvArray(key) {
+    if (!hasTable("kv_store")) return [];
+    const rows = rowsFromExec(db, "SELECT value FROM kv_store WHERE key = ? LIMIT 1", [key]);
+    if (!rows.length) return [];
+    try {
+      const parsed = JSON.parse(rows[0].value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function valueReferencesCalendar(value, calendar, referenceNames = new Set()) {
+    const source = value && typeof value === "object" ? value : {};
+    const referenceId = source.calendarId == null ? source.calendar_id : source.calendarId;
+    if (referenceId != null && String(referenceId) === String(calendar.id)) return true;
+    const referenceName = source.calendarName == null ? source.calendar : source.calendarName;
+    return referenceNames.has(normalizeCompactText(referenceName));
+  }
+
+  function getTicketCalendarUsage(calendarId) {
+    const calendar = assertMutableTicketCalendar(calendarId, "consultar el uso de un calendario");
+    const relationCount = tableName => Number(rowsFromExec(db, `SELECT COUNT(*) AS total FROM ${tableName} WHERE calendar_id = ?`, [calendar.id])[0]?.total) || 0;
+    const referenceNames = new Set([normalizeCompactText(calendar.name), ...getTicketCalendarAliases().filter(alias => Number(alias.calendar_id) === Number(calendar.id)).map(alias => normalizeCompactText(alias.alias))]);
+    const usage = {
+      calendarId: Number(calendar.id),
+      calendarName: calendar.name,
+      base: isBaseTicketCalendar(calendar),
+      aliases: relationCount("ticket_calendar_aliases"),
+      weekdays: relationCount("ticket_calendar_weekdays"),
+      exclusions: relationCount("ticket_calendar_exclusions"),
+      rules: relationCount("ticket_calendar_rules"),
+      people: readLegacyKvArray(LEGACY_TICKET_PEOPLE_KEY).filter(value => valueReferencesCalendar(value, calendar, referenceNames)).length,
+      marks: readLegacyKvArray(LEGACY_CALENDAR_MARKS_KEY).filter(value => valueReferencesCalendar(value, calendar, referenceNames)).length
+    };
+    return Object.freeze({ ...usage, hasBlockingReferences: usage.exclusions > 0 || usage.rules > 0 || usage.people > 0 || usage.marks > 0 });
+  }
+
+  function disableTicketCalendar(calendarId) {
+    const calendar = assertMutableTicketCalendar(calendarId, "desactivar un calendario");
+    if (isBaseTicketCalendar(calendar)) throw createValidationError("ticket_calendar_base_protected", "Los calendarios base no se pueden desactivar.");
+    db.run("UPDATE ticket_calendars SET active = 0 WHERE id = ?", [calendar.id]);
+    return Number(calendar.id);
+  }
+
+  function enableTicketCalendar(calendarId) {
+    const calendar = assertMutableTicketCalendar(calendarId, "reactivar un calendario");
+    db.run("UPDATE ticket_calendars SET active = 1 WHERE id = ?", [calendar.id]);
+    return Number(calendar.id);
+  }
+
+  function deleteTicketCalendarIfUnused(calendarId) {
+    const usage = getTicketCalendarUsage(calendarId);
+    if (usage.base) throw createValidationError("ticket_calendar_base_protected", "Los calendarios base no se pueden borrar.");
+    if (usage.hasBlockingReferences) throw createValidationError("ticket_calendar_in_use", TICKET_CALENDAR_DELETE_BLOCKED_MESSAGE);
+    db.run("BEGIN");
+    try {
+      db.run("DELETE FROM ticket_calendar_aliases WHERE calendar_id = ?", [usage.calendarId]);
+      db.run("DELETE FROM ticket_calendar_weekdays WHERE calendar_id = ?", [usage.calendarId]);
+      db.run("DELETE FROM ticket_calendars WHERE id = ?", [usage.calendarId]);
+      db.run("COMMIT");
+      return usage.calendarId;
+    } catch (error) {
+      db.run("ROLLBACK");
+      throw error;
+    }
   }
 
   function replaceTicketCalendarRelations(calendarId, calendar) {
@@ -395,7 +483,11 @@ function createTicketCalendarRepository({ db, warn = console.warn }) {
     getTicketCalendarExclusions,
     getTicketCalendarRules,
     createTicketCalendar,
-    updateTicketCalendar
+    updateTicketCalendar,
+    disableTicketCalendar,
+    enableTicketCalendar,
+    deleteTicketCalendarIfUnused,
+    getTicketCalendarUsage
   });
 }
 
@@ -403,6 +495,8 @@ const TicketCalendarRepository = Object.freeze({
   BASE_TICKET_CALENDARS,
   DEFAULT_TICKET_ISO_WEEKDAYS,
   LEGACY_CALENDAR_MARKS_KEY,
+  LEGACY_TICKET_PEOPLE_KEY,
+  TICKET_CALENDAR_DELETE_BLOCKED_MESSAGE,
   getTicketCalendarSchemaInfo,
   createTicketCalendarRepository
 });
