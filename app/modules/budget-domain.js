@@ -171,12 +171,37 @@ const BudgetDomain = (() => {
     });
     const usedActuals = (Array.isArray(actuals) ? actuals : []).map(normalizeBudgetActual).filter(actual => actual.year === simulationYear && MONTHS.includes(actual.month) && actual.month <= normalizedCutoffMonth && actual.block && actual.concept);
     usedActuals.forEach(addActual);
+    const monthly = (Array.isArray(budgetResult.byMonth) ? budgetResult.byMonth : []).filter(item => Number(item.month) <= normalizedCutoffMonth).map(item => {
+      const actual = usedActuals.filter(row => row.month === Number(item.month)).reduce((total, row) => total + row.amount, 0);
+      return { month: Number(item.month), budget: normalizeBudgetNumber(item.totalScenario), actual, difference: actual - normalizeBudgetNumber(item.totalScenario) };
+    });
     const withDifference = row => ({ ...row, ...buildBudgetActualDifference(row.budget, row.actual) });
     const blockRows = [...blocks.values()].map(withDifference).sort((a, b) => a.block.localeCompare(b.block, "es"));
     const conceptRows = [...concepts.values()].map(withDifference).sort((a, b) => a.block.localeCompare(b.block, "es") || a.concept.localeCompare(b.concept, "es"));
     const budgetAccumulated = (Array.isArray(budgetResult.byMonth) ? budgetResult.byMonth : []).filter(item => Number(item.month) <= normalizedCutoffMonth).reduce((total, item) => total + normalizeBudgetNumber(item.totalScenario), 0);
     const actualAccumulated = usedActuals.reduce((total, actual) => total + actual.amount, 0);
-    return { simulationYear, cutoffMonth: normalizedCutoffMonth, annualBudget: normalizeBudgetNumber(budgetResult.totalScenario), summary: { annualBudget: normalizeBudgetNumber(budgetResult.totalScenario), ...buildBudgetActualDifference(budgetAccumulated, actualAccumulated) }, blocks: blockRows, concepts: conceptRows, actuals: usedActuals };
+    return { simulationYear, cutoffMonth: normalizedCutoffMonth, annualBudget: normalizeBudgetNumber(budgetResult.totalScenario), summary: { annualBudget: normalizeBudgetNumber(budgetResult.totalScenario), ...buildBudgetActualDifference(budgetAccumulated, actualAccumulated) }, monthly, blocks: blockRows, concepts: conceptRows, actuals: usedActuals };
+  }
+
+  function buildBudgetActualDashboardData(comparisonData = {}) {
+    const summary = comparisonData.summary || {};
+    const annualBudget = normalizeBudgetNumber(summary.annualBudget);
+    const actualAccumulated = normalizeBudgetNumber(summary.actualAccumulated);
+    const rowsByBlock = new Map((Array.isArray(comparisonData.blocks) ? comparisonData.blocks : []).map(row => [comparisonKey(row.block), row]));
+    const blocks = ACTUAL_BLOCKS.map(block => {
+      const row = rowsByBlock.get(comparisonKey(block)) || {};
+      return { block, budgetAccumulated: normalizeBudgetNumber(row.budgetAccumulated), actualAccumulated: normalizeBudgetNumber(row.actualAccumulated), difference: normalizeBudgetNumber(row.difference), differencePercent: row.differencePercent == null ? null : normalizeBudgetNumber(row.differencePercent) };
+    });
+    const concepts = (Array.isArray(comparisonData.concepts) ? comparisonData.concepts : []).map(row => ({ ...row })).sort((a, b) => Math.abs(normalizeBudgetNumber(b.difference)) - Math.abs(normalizeBudgetNumber(a.difference)) || String(a.block || "").localeCompare(String(b.block || ""), "es") || String(a.concept || "").localeCompare(String(b.concept || ""), "es"));
+    return {
+      scenario: comparisonData.scenario || "",
+      simulationYear: Number(comparisonData.simulationYear),
+      cutoffMonth: Number(comparisonData.cutoffMonth),
+      summary: { ...summary, annualBudget, actualAccumulated, actualAnnualBudgetPercent: annualBudget === 0 ? null : actualAccumulated / annualBudget },
+      monthly: (Array.isArray(comparisonData.monthly) ? comparisonData.monthly : []).map(row => ({ month: Number(row.month), budget: normalizeBudgetNumber(row.budget), actual: normalizeBudgetNumber(row.actual), difference: normalizeBudgetNumber(row.difference) })),
+      blocks,
+      concepts
+    };
   }
 
   function buildBudgetDifference(totalA, totalB) {
@@ -230,7 +255,7 @@ const BudgetDomain = (() => {
     calculateBudgetManualItemMonth, calculateBudgetManualItemYear, calculateBudgetManualItemsYear, calculateBudgetManualItemsMonth,
     calculateBudgetTicketGroupMonth, calculateBudgetTicketGroupYear, calculateBudgetTicketScenarioMonth, calculateBudgetTicketScenarioYear,
     calculateBudgetScenarioMonth, calculateBudgetScenarioYear, buildBudgetScenarioExportData, buildBudgetComparisonData,
-    normalizeBudgetActual, buildBudgetActualComparisonData
+    normalizeBudgetActual, buildBudgetActualComparisonData, buildBudgetActualDashboardData
   });
 })();
 
