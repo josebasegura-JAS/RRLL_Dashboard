@@ -17,6 +17,7 @@ async function hydrateTicketRestaurantCalendars() {
     if (!calendars.length) return;
     ticketRestaurantCalendarOptions = model.options;
     TICKET_RESTAURANT_CALENDARS.splice(0, TICKET_RESTAURANT_CALENDARS.length, ...calendars);
+    if (!TICKET_RESTAURANT_CALENDARS.includes(ticketRestaurantSelectedCalendar)) ticketRestaurantSelectedCalendar = TICKET_RESTAURANT_CALENDARS[0];
   } catch (error) {
     console.warn("No se pudieron cargar calendarios Ticket Restaurante desde SQLite; se usa el fallback base.", error);
   }
@@ -805,6 +806,7 @@ function renderTicketRestaurant() {
   renderTicketRestaurantAbsences();
   renderTicketRestaurantComputeControls();
   renderTicketRestaurantConfig();
+  if (typeof renderTicketCalendarManagement === "function") renderTicketCalendarManagement();
   if (ticketRestaurantActiveArea === "monthly") renderTicketRestaurantMonthlyQuotePreview();
 }
 
