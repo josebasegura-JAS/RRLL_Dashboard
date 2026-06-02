@@ -68,4 +68,7 @@ assert.equal(normalizeTicketCalendar("sabado", externalCalendars), "Turno sábad
 assert.equal(calendarHasTicketRightOnDate({ calendarName: "sabado", date: "2026-06-06", calendars: externalCalendars }), true);
 assert.equal(calendarHasTicketRightOnDate({ calendarName: "sabado", date: "2026-06-08", calendars: externalCalendars }), false);
 
+
+assert.deepEqual(TicketCalendarDomain.getTicketCalendars({ calendars: [{ id: 9, name: "Inactivo", active: 0 }] }).map(calendar => calendar.name), ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela", "Liberados"]);
+assert.deepEqual(TicketCalendarDomain.getTicketCalendars({ includeInactive: true, calendars: [{ id: 9, name: "Inactivo", active: 0 }] }).map(calendar => calendar.name), ["Inactivo"]);
 console.log("ticket-calendar-domain smoke test passed");

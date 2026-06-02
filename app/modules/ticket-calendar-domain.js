@@ -76,7 +76,7 @@ const TicketCalendarDomain = (() => {
     const options = normalizeDomainOptions(value);
     if (!Array.isArray(options.calendars) || !options.calendars.length) return FALLBACK_TICKET_CALENDARS;
     const calendars = options.calendars
-      .filter(calendar => !(calendar && typeof calendar === "object") || calendar.active == null || Number(calendar.active) === 1)
+      .filter(calendar => options.includeInactive || !(calendar && typeof calendar === "object") || calendar.active == null || Number(calendar.active) === 1)
       .map(calendar => normalizeExternalCalendar(calendar, options))
       .filter(calendar => calendar.name);
     return calendars.length ? Object.freeze(calendars) : FALLBACK_TICKET_CALENDARS;
