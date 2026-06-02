@@ -234,6 +234,11 @@ function normalizeTicketAbsenceReason(value) {
   return normalizeTicketText(value).replace(/\s+/g, " ").trim();
 }
 
+function ticketRestaurantAbsenceIsNonDiscountableByCalendar(absence, calendar) {
+  return normalizeTicketCalendar(calendar) === "Liberados"
+    && normalizeTicketAbsenceReason(absence && absence.reason) === "sin";
+}
+
 function normalizeTicketAbsenceIdentity(row) {
   const employeeNumberKey = normalizeTicketEmployeeLookup(row && row.employeeNumber);
   if (employeeNumberKey) return `emp:${employeeNumberKey}`;
@@ -379,6 +384,7 @@ function ticketRestaurantAbsenceGeneratesDiscount(absence, employee = null, date
 
   const normalizedCalendar = normalizeTicketCalendar(person.calendar);
   if (!isKnownTicketCalendar(normalizedCalendar)) return false;
+  if (ticketRestaurantAbsenceIsNonDiscountableByCalendar(absence, normalizedCalendar)) return false;
   if (!employeeHasTicketRightOnDate(person.employeeNumber, isoDate, normalizedCalendar)) return false;
 
   const monthInfo = ticketRestaurantMonthYearFromDate(isoDate);
@@ -1931,7 +1937,7 @@ function getEffectiveAbsenceDaysForEmployee(employeeNumber, absence, calendar, v
   const hasCalendar = isKnownTicketCalendar(normalizedCalendar);
   const allDates = expandDateRange(absence && absence.from, absence && (absence.to || absence.from));
   const visibleDates = visibleMonth ? allDates.filter(date => ticketRestaurantDateIsInVisibleMonth(date, visibleMonth)) : allDates;
-  const affectingDates = hasCalendar
+  const affectingDates = hasCalendar && !ticketRestaurantAbsenceIsNonDiscountableByCalendar(absence, normalizedCalendar)
     ? visibleDates.filter(date => employeeHasTicketRightOnDate(employeeNumber, date, normalizedCalendar))
     : [];
   return {
