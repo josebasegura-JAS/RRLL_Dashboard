@@ -2,9 +2,25 @@ const RRLL_TICKET_CALENDAR_DOMAIN = typeof window !== "undefined" && window.Tick
   ? window.TicketCalendarDomain
   : null;
 const TICKET_RESTAURANT_FALLBACK_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela", "Liberados"];
+let ticketRestaurantCalendarOptions = null;
 const TICKET_RESTAURANT_CALENDARS = RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars === "function"
   ? RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars().map(calendar => calendar.name)
-  : TICKET_RESTAURANT_FALLBACK_CALENDARS;
+  : [...TICKET_RESTAURANT_FALLBACK_CALENDARS];
+
+async function hydrateTicketRestaurantCalendars() {
+  ticketRestaurantCalendarOptions = null;
+  if (!RRLL_TICKET_CALENDAR_DOMAIN || !window.rrllDB || typeof window.rrllDB.loadTicketCalendars !== "function") return;
+  try {
+    const model = await window.rrllDB.loadTicketCalendars();
+    if (!model || model.source !== "sqlite" || !model.options) return;
+    const calendars = RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars(model.options).map(calendar => calendar.name);
+    if (!calendars.length) return;
+    ticketRestaurantCalendarOptions = model.options;
+    TICKET_RESTAURANT_CALENDARS.splice(0, TICKET_RESTAURANT_CALENDARS.length, ...calendars);
+  } catch (error) {
+    console.warn("No se pudieron cargar calendarios Ticket Restaurante desde SQLite; se usa el fallback base.", error);
+  }
+}
 const TICKET_RESTAURANT_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const TICKET_RESTAURANT_PERSON_HEADERS = ["Nº empleado", "Nombre", "Apellido1", "Apellido2", "DNI", "Puesto", "Calendario"];
 const TICKET_RESTAURANT_ABSENCE_HEADERS = ["Nº empleado", "Nombre y apellidos", "Desde", "Hasta", "Motivo", "Total días"];
@@ -544,7 +560,7 @@ function normalizeTicketCompactText(value) {
 
 function normalizeTicketCalendar(value) {
   if (RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.normalizeTicketCalendar === "function") {
-    return RRLL_TICKET_CALENDAR_DOMAIN.normalizeTicketCalendar(value);
+    return RRLL_TICKET_CALENDAR_DOMAIN.normalizeTicketCalendar(value, ticketRestaurantCalendarOptions);
   }
   const text = String(value || "").replace(/\s+/g, " ").trim();
   const key = normalizeTicketCompactText(text);
@@ -564,7 +580,7 @@ function normalizeTicketCalendar(value) {
 
 function isKnownTicketCalendar(value) {
   if (RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.isKnownTicketCalendar === "function") {
-    return RRLL_TICKET_CALENDAR_DOMAIN.isKnownTicketCalendar(value);
+    return RRLL_TICKET_CALENDAR_DOMAIN.isKnownTicketCalendar(value, ticketRestaurantCalendarOptions);
   }
   return TICKET_RESTAURANT_CALENDARS.includes(normalizeTicketCalendar(value));
 }
@@ -1992,7 +2008,7 @@ function ticketRestaurantWorkingDays(month, year, calendar) {
     const calendarMarks = getTicketRestaurantCalendarMarks()
       .map(item => ({ ...item, date: parseTicketDate(item && item.date) }))
       .filter(item => item.date);
-    return RRLL_TICKET_CALENDAR_DOMAIN.countTicketDaysForCalendar({ calendarName: normalizedCalendar, month, year, calendarMarks });
+    return RRLL_TICKET_CALENDAR_DOMAIN.countTicketDaysForCalendar({ calendarName: normalizedCalendar, month, year, calendarMarks, ...ticketRestaurantCalendarOptions });
   }
   const marks = new Set(getTicketRestaurantCalendarMarks()
     .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
@@ -2019,7 +2035,7 @@ function ticketRestaurantNoTicketWeekdays(month, year, calendar) {
     const calendarMarks = getTicketRestaurantCalendarMarks()
       .map(item => ({ ...item, date: parseTicketDate(item && item.date) }))
       .filter(item => item.date);
-    return RRLL_TICKET_CALENDAR_DOMAIN.countNoTicketWeekdaysForCalendar({ calendarName: normalizedCalendar, month, year, calendarMarks });
+    return RRLL_TICKET_CALENDAR_DOMAIN.countNoTicketWeekdaysForCalendar({ calendarName: normalizedCalendar, month, year, calendarMarks, ...ticketRestaurantCalendarOptions });
   }
   const marks = new Set(getTicketRestaurantCalendarMarks()
     .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)

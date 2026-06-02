@@ -13,6 +13,8 @@ const {
 } = require("./main/mirror-helpers");
 const { createSqlitePersistenceHelpers } = require("./main/sqlite-persistence-helpers");
 const { createTicketCalendarRepository } = require("./app/modules/ticket-calendar-repository");
+const { createTicketCalendarAdapter } = require("./app/modules/ticket-calendar-adapter");
+const TicketCalendarDomain = require("./app/modules/ticket-calendar-domain");
 const { writeJsonAtomically } = require("./main/config-persistence-helpers");
 const {
   buildOutlookDraftPowerShellScript,
@@ -826,6 +828,21 @@ async function loadAllData() {
         if (criteriaRows.length) result.rrll_criteria = criteriaRows;
       }
       return result;
+    } finally {
+      try { db.close(); } catch {}
+    }
+  });
+}
+
+async function loadTicketCalendarModel() {
+  const info = resolveDbAccessInfo();
+  return withFileLock(info.path, async () => {
+    const { db } = await openDatabase(info.path);
+    try {
+      return createTicketCalendarAdapter({
+        repository: createTicketCalendarRepository({ db }),
+        domain: TicketCalendarDomain
+      }).readTicketCalendarModel();
     } finally {
       try { db.close(); } catch {}
     }
@@ -1718,6 +1735,7 @@ async function parseOutlookMsgInMain(_event, payload) {
   }
 }
 ipcMain.handle("db:loadAll", async () => loadAllData());
+ipcMain.handle("db:loadTicketCalendars", async () => loadTicketCalendarModel());
 ipcMain.handle("db:saveAll", async (_event, data) => saveAllData(data));
 ipcMain.handle("db:saveKey", async (_event, key, value) => saveKeyData(key, value));
 ipcMain.handle("db:backupAll", async (_event, data) => backupAllData(data));
