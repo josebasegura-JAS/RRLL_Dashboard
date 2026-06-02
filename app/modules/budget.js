@@ -4,6 +4,8 @@ let rrllBudgetManualItems = [];
 let rrllBudgetTicketGroups = [];
 let rrllBudgetSelectedScenarioId = "";
 let rrllBudgetCalendarFallback = false;
+let rrllBudgetInitialized = false;
+let rrllBudgetInitializePromise = null;
 
 function rrllBudgetBridge() { return window.rrllDB || null; }
 function rrllBudgetScenario() { return rrllBudgetScenarios.find(item => item.id === rrllBudgetSelectedScenarioId) || null; }
@@ -17,7 +19,7 @@ function rrllBudgetAssert(condition, message) { if (!condition) throw new Error(
 function rrllBudgetResult(result) { if (!result || !result.ok) throw new Error(result && result.message ? result.message : "No se pudo guardar el presupuesto."); return result; }
 
 async function rrllBudgetCalendarContext() {
-  if (typeof ensureTicketRestaurantReady === "function") await ensureTicketRestaurantReady();
+  if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars();
   const runtime = typeof getTicketRestaurantCalendarRuntime === "function" ? getTicketRestaurantCalendarRuntime() : null;
   const domain = window.TicketCalendarDomain;
   return {
@@ -32,9 +34,15 @@ async function rrllBudgetCalendarContext() {
 }
 
 async function initializeBudgetModule() {
+  if (rrllBudgetInitialized) return;
+  if (rrllBudgetInitializePromise) return await rrllBudgetInitializePromise;
   const bridge = rrllBudgetBridge();
   if (!bridge || typeof bridge.loadBudgetScenarios !== "function") return;
-  try { await refreshBudgetModule(); } catch (error) { console.error("No se pudo iniciar Presupuestos:", error); }
+  rrllBudgetInitializePromise = refreshBudgetModule()
+    .then(() => { rrllBudgetInitialized = true; })
+    .catch(error => { console.error("No se pudo iniciar Presupuestos:", error); })
+    .finally(() => { rrllBudgetInitializePromise = null; });
+  return await rrllBudgetInitializePromise;
 }
 
 async function refreshBudgetModule() {
@@ -47,11 +55,13 @@ async function refreshBudgetModule() {
 async function renderBudgetScenarios() {
   const body = document.getElementById("budgetScenarioRows");
   if (!body) return;
-  const context = await rrllBudgetCalendarContext();
   const rows = await Promise.all(rrllBudgetScenarios.map(async scenario => {
     const [manualItems, ticketGroups] = await Promise.all([rrllBudgetBridge().loadBudgetManualItems(scenario.id), rrllBudgetBridge().loadBudgetTicketGroups(scenario.id)]);
-    return { scenario, totals: BudgetDomain.calculateBudgetScenarioYear({ manualItems, ticketGroups, scenario, context }) };
+    return { scenario, manualItems, ticketGroups };
   }));
+  const needsTicketCalendars = rows.some(({ ticketGroups }) => ticketGroups.some(group => group.calculation_type === "calendar_people"));
+  const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
+  rows.forEach(row => { row.totals = BudgetDomain.calculateBudgetScenarioYear({ ...row, context }); });
   body.innerHTML = rows.length ? rows.map(({ scenario, totals }) => `<tr class="${scenario.id === rrllBudgetSelectedScenarioId ? "budget-row-selected" : ""}"><td>${rrllBudgetEscape(scenario.name)}</td><td>${scenario.year}</td><td>${rrllBudgetMoney(scenario.ticket_amount)}</td><td>${rrllBudgetPercent(scenario.absence_rate)}</td><td>${rrllBudgetMoney(totals.totalManual)}</td><td>${rrllBudgetMoney(totals.totalTicket)}</td><td><strong>${rrllBudgetMoney(totals.totalScenario)}</strong></td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetScenario('${scenario.id}')">Editar</button><button type="button" onclick="selectBudgetScenario('${scenario.id}')">Seleccionar</button></div></td></tr>`).join("") : '<tr><td colspan="8" class="muted">Todavía no hay escenarios de presupuesto.</td></tr>';
 }
 
@@ -67,7 +77,8 @@ async function loadSelectedBudgetScenario() {
 
 async function renderBudgetSelectedScenario() {
   const scenario = rrllBudgetScenario(); if (!scenario) return;
-  const context = await rrllBudgetCalendarContext();
+  const needsTicketCalendars = rrllBudgetTicketGroups.some(group => group.calculation_type === "calendar_people");
+  const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
   const totals = BudgetDomain.calculateBudgetScenarioYear({ manualItems: rrllBudgetManualItems, ticketGroups: rrllBudgetTicketGroups, scenario, context });
   document.getElementById("budgetSummaryManual").textContent = rrllBudgetMoney(totals.totalManual);
   document.getElementById("budgetSummaryTicket").textContent = rrllBudgetMoney(totals.totalTicket);
@@ -94,7 +105,7 @@ async function openBudgetTicketGroupForm(group = {}) { document.getElementById("
 function closeBudgetTicketGroupForm() { document.getElementById("budgetTicketGroupForm").classList.add("budget-form-hidden"); }
 function editBudgetTicketGroup(id) { openBudgetTicketGroupForm(rrllBudgetTicketGroups.find(item => item.id === id)); }
 function renderBudgetTicketGroupFieldVisibility() { const type = document.getElementById("budgetTicketGroupType").value; const shown = type === "calendar_people" ? ["people", "calendar", "absence", "ticket-amount"] : type === "manual_tickets" ? ["manual-tickets", "ticket-amount"] : ["manual-amount"]; document.querySelectorAll("[data-budget-ticket-field]").forEach(node => node.classList.toggle("budget-form-hidden", !shown.includes(node.dataset.budgetTicketField))); }
-async function saveBudgetTicketGroupFromForm(event) { event.preventDefault(); try { const type = document.getElementById("budgetTicketGroupType").value; const people = rrllBudgetInputNumber("budgetTicketGroupPeople", 0); const absence = rrllBudgetRate("budgetTicketGroupAbsence"); const ticketAmount = rrllBudgetInputNumber("budgetTicketGroupAmount"); const manualTickets = rrllBudgetInputNumber("budgetTicketGroupManualTickets"); const manualAmount = rrllBudgetInputNumber("budgetTicketGroupManualAmount"); const calendar = document.getElementById("budgetTicketGroupCalendar").value; const context = await rrllBudgetCalendarContext(); rrllBudgetAssert(document.getElementById("budgetTicketGroupName").value.trim(), "El nombre del grupo es obligatorio."); rrllBudgetAssert(["calendar_people", "manual_tickets", "manual_amount"].includes(type), "Selecciona un tipo de cálculo válido."); rrllBudgetAssert(Number.isFinite(people) && people >= 0, "El número de personas no puede ser negativo."); rrllBudgetAssert(absence === null || (Number.isFinite(absence) && absence >= 0 && absence <= 1), "El absentismo propio debe estar entre 0 % y 100 %."); rrllBudgetAssert(ticketAmount === null || (Number.isFinite(ticketAmount) && ticketAmount >= 0), "El importe ticket propio no puede ser negativo."); if (type === "calendar_people") { rrllBudgetAssert(calendar, "Selecciona un calendario Ticket."); rrllBudgetAssert(context.isKnownTicketCalendar(calendar) || rrllBudgetCalendarFallback, "El calendario Ticket seleccionado no está disponible."); } if (type === "manual_tickets") rrllBudgetAssert(Number.isFinite(manualTickets) && manualTickets >= 0, "Indica tickets manuales válidos."); if (type === "manual_amount") rrllBudgetAssert(Number.isFinite(manualAmount) && manualAmount >= 0, "Indica un importe mensual manual válido."); rrllBudgetResult(await rrllBudgetBridge().saveBudgetTicketGroup({ id: document.getElementById("budgetTicketGroupId").value || undefined, scenario_id: rrllBudgetSelectedScenarioId, name: document.getElementById("budgetTicketGroupName").value, people_count: people, ticket_calendar: calendar, absence_rate: absence, ticket_amount: ticketAmount, calculation_type: type, manual_tickets: manualTickets, manual_monthly_amount: manualAmount, notes: document.getElementById("budgetTicketGroupNotes").value })); closeBudgetTicketGroupForm(); await refreshBudgetModule(); } catch (error) { alert(error.message); } }
+async function saveBudgetTicketGroupFromForm(event) { event.preventDefault(); try { const type = document.getElementById("budgetTicketGroupType").value; const people = rrllBudgetInputNumber("budgetTicketGroupPeople", 0); const absence = rrllBudgetRate("budgetTicketGroupAbsence"); const ticketAmount = rrllBudgetInputNumber("budgetTicketGroupAmount"); const manualTickets = rrllBudgetInputNumber("budgetTicketGroupManualTickets"); const manualAmount = rrllBudgetInputNumber("budgetTicketGroupManualAmount"); const calendar = document.getElementById("budgetTicketGroupCalendar").value; const context = type === "calendar_people" ? await rrllBudgetCalendarContext() : null; rrllBudgetAssert(document.getElementById("budgetTicketGroupName").value.trim(), "El nombre del grupo es obligatorio."); rrllBudgetAssert(["calendar_people", "manual_tickets", "manual_amount"].includes(type), "Selecciona un tipo de cálculo válido."); rrllBudgetAssert(Number.isFinite(people) && people >= 0, "El número de personas no puede ser negativo."); rrllBudgetAssert(absence === null || (Number.isFinite(absence) && absence >= 0 && absence <= 1), "El absentismo propio debe estar entre 0 % y 100 %."); rrllBudgetAssert(ticketAmount === null || (Number.isFinite(ticketAmount) && ticketAmount >= 0), "El importe ticket propio no puede ser negativo."); if (type === "calendar_people") { rrllBudgetAssert(calendar, "Selecciona un calendario Ticket."); rrllBudgetAssert(context.isKnownTicketCalendar(calendar) || rrllBudgetCalendarFallback, "El calendario Ticket seleccionado no está disponible."); } if (type === "manual_tickets") rrllBudgetAssert(Number.isFinite(manualTickets) && manualTickets >= 0, "Indica tickets manuales válidos."); if (type === "manual_amount") rrllBudgetAssert(Number.isFinite(manualAmount) && manualAmount >= 0, "Indica un importe mensual manual válido."); rrllBudgetResult(await rrllBudgetBridge().saveBudgetTicketGroup({ id: document.getElementById("budgetTicketGroupId").value || undefined, scenario_id: rrllBudgetSelectedScenarioId, name: document.getElementById("budgetTicketGroupName").value, people_count: people, ticket_calendar: calendar, absence_rate: absence, ticket_amount: ticketAmount, calculation_type: type, manual_tickets: manualTickets, manual_monthly_amount: manualAmount, notes: document.getElementById("budgetTicketGroupNotes").value })); closeBudgetTicketGroupForm(); await refreshBudgetModule(); } catch (error) { alert(error.message); } }
 async function deleteBudgetTicketGroup(id) { if (!confirm("¿Eliminar este grupo Ticket?")) return; rrllBudgetResult(await rrllBudgetBridge().deleteBudgetTicketGroup(id)); await refreshBudgetModule(); }
 
-setTimeout(initializeBudgetModule, 0);
+window.initializeBudgetModule = initializeBudgetModule;

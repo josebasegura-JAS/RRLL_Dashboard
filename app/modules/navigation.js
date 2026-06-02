@@ -335,6 +335,10 @@ function toggleSidebarLeft() {
           .catch(error => console.warn("No se pudo preparar Ticket Restaurante; se renderiza con fallback.", error))
           .then(() => { if (typeof window.renderTicketRestaurant === "function") window.renderTicketRestaurant(); });
       }
+      if (gestorId === "gestor-presupuestos") {
+        Promise.resolve(typeof window.initializeBudgetModule === "function" ? window.initializeBudgetModule() : undefined)
+          .catch(error => console.warn("No se pudo iniciar Presupuestos.", error));
+      }
       return true;
     }
 
