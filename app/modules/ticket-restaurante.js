@@ -1,4 +1,10 @@
-const TICKET_RESTAURANT_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela", "Liberados"];
+const RRLL_TICKET_CALENDAR_DOMAIN = typeof window !== "undefined" && window.TicketCalendarDomain
+  ? window.TicketCalendarDomain
+  : null;
+const TICKET_RESTAURANT_FALLBACK_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela", "Liberados"];
+const TICKET_RESTAURANT_CALENDARS = RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars === "function"
+  ? RRLL_TICKET_CALENDAR_DOMAIN.getTicketCalendars().map(calendar => calendar.name)
+  : TICKET_RESTAURANT_FALLBACK_CALENDARS;
 const TICKET_RESTAURANT_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const TICKET_RESTAURANT_PERSON_HEADERS = ["Nº empleado", "Nombre", "Apellido1", "Apellido2", "DNI", "Puesto", "Calendario"];
 const TICKET_RESTAURANT_ABSENCE_HEADERS = ["Nº empleado", "Nombre y apellidos", "Desde", "Hasta", "Motivo", "Total días"];
@@ -537,6 +543,9 @@ function normalizeTicketCompactText(value) {
 }
 
 function normalizeTicketCalendar(value) {
+  if (RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.normalizeTicketCalendar === "function") {
+    return RRLL_TICKET_CALENDAR_DOMAIN.normalizeTicketCalendar(value);
+  }
   const text = String(value || "").replace(/\s+/g, " ").trim();
   const key = normalizeTicketCompactText(text);
   const calendarAliases = new Map([
@@ -554,6 +563,9 @@ function normalizeTicketCalendar(value) {
 }
 
 function isKnownTicketCalendar(value) {
+  if (RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.isKnownTicketCalendar === "function") {
+    return RRLL_TICKET_CALENDAR_DOMAIN.isKnownTicketCalendar(value);
+  }
   return TICKET_RESTAURANT_CALENDARS.includes(normalizeTicketCalendar(value));
 }
 
@@ -1976,6 +1988,12 @@ function formatTicketRestaurantAbsenceImpactDetail(detail) {
 function ticketRestaurantWorkingDays(month, year, calendar) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
   if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
+  if (RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.countTicketDaysForCalendar === "function") {
+    const calendarMarks = getTicketRestaurantCalendarMarks()
+      .map(item => ({ ...item, date: parseTicketDate(item && item.date) }))
+      .filter(item => item.date);
+    return RRLL_TICKET_CALENDAR_DOMAIN.countTicketDaysForCalendar({ calendarName: normalizedCalendar, month, year, calendarMarks });
+  }
   const marks = new Set(getTicketRestaurantCalendarMarks()
     .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
     .map(item => parseTicketDate(item.date))
@@ -1997,6 +2015,12 @@ function ticketRestaurantWorkingDays(month, year, calendar) {
 function ticketRestaurantNoTicketWeekdays(month, year, calendar) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
   if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
+  if (RRLL_TICKET_CALENDAR_DOMAIN && typeof RRLL_TICKET_CALENDAR_DOMAIN.countNoTicketWeekdaysForCalendar === "function") {
+    const calendarMarks = getTicketRestaurantCalendarMarks()
+      .map(item => ({ ...item, date: parseTicketDate(item && item.date) }))
+      .filter(item => item.date);
+    return RRLL_TICKET_CALENDAR_DOMAIN.countNoTicketWeekdaysForCalendar({ calendarName: normalizedCalendar, month, year, calendarMarks });
+  }
   const marks = new Set(getTicketRestaurantCalendarMarks()
     .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
     .map(item => parseTicketDate(item.date))
