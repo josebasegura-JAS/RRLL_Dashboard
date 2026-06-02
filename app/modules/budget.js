@@ -6,6 +6,7 @@ let rrllBudgetSelectedScenarioId = "";
 let rrllBudgetCalendarFallback = false;
 let rrllBudgetInitialized = false;
 let rrllBudgetInitializePromise = null;
+const rrllBudgetSimulationYears = new Map();
 
 function rrllBudgetBridge() { return window.rrllDB || null; }
 function rrllBudgetScenario() { return rrllBudgetScenarios.find(item => item.id === rrllBudgetSelectedScenarioId) || null; }
@@ -17,6 +18,17 @@ function rrllBudgetInputNumber(id, fallback = null) { const value = document.get
 function rrllBudgetRate(id, fallback = null) { const value = document.getElementById(id).value; return rrllBudgetHasValue(value) ? BudgetDomain.normalizeBudgetRate(value, NaN) : fallback; }
 function rrllBudgetAssert(condition, message) { if (!condition) throw new Error(message); }
 function rrllBudgetResult(result) { if (!result || !result.ok) throw new Error(result && result.message ? result.message : "No se pudo guardar el presupuesto."); return result; }
+function rrllBudgetSimulationYear(scenario = rrllBudgetScenario()) { return scenario ? (rrllBudgetSimulationYears.get(scenario.id) || BudgetDomain.resolveBudgetSimulationYear(scenario)) : 0; }
+function rrllBudgetPromptSimulationYear(scenario = rrllBudgetScenario()) {
+  if (!scenario) return 0;
+  const suggestedYear = rrllBudgetSimulationYear(scenario);
+  const answer = prompt(`Indica el año que deseas simular para “${scenario.name}”.`, suggestedYear);
+  if (answer === null) return 0;
+  const year = Number(String(answer).trim());
+  rrllBudgetAssert(Number.isInteger(year) && year >= 1900 && year <= 9999, "Indica un año de simulación válido.");
+  rrllBudgetSimulationYears.set(scenario.id, year);
+  return year;
+}
 
 async function rrllBudgetCalendarContext() {
   if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars();
@@ -61,11 +73,22 @@ async function renderBudgetScenarios() {
   }));
   const needsTicketCalendars = rows.some(({ ticketGroups }) => ticketGroups.some(group => group.calculation_type === "calendar_people"));
   const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
-  rows.forEach(row => { row.totals = BudgetDomain.calculateBudgetScenarioYear({ ...row, context }); });
-  body.innerHTML = rows.length ? rows.map(({ scenario, totals }) => `<tr class="${scenario.id === rrllBudgetSelectedScenarioId ? "budget-row-selected" : ""}"><td>${rrllBudgetEscape(scenario.name)}</td><td>${scenario.year}</td><td>${rrllBudgetMoney(scenario.ticket_amount)}</td><td>${rrllBudgetPercent(scenario.absence_rate)}</td><td>${rrllBudgetMoney(totals.totalManual)}</td><td>${rrllBudgetMoney(totals.totalTicket)}</td><td><strong>${rrllBudgetMoney(totals.totalScenario)}</strong></td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetScenario('${scenario.id}')">Editar</button><button type="button" onclick="selectBudgetScenario('${scenario.id}')">Seleccionar</button></div></td></tr>`).join("") : '<tr><td colspan="8" class="muted">Todavía no hay escenarios de presupuesto.</td></tr>';
+  rows.forEach(row => { row.totals = BudgetDomain.calculateBudgetScenarioYear({ ...row, context, simulationYear: rrllBudgetSimulationYear(row.scenario) }); });
+  body.innerHTML = rows.length ? rows.map(({ scenario, totals }) => `<tr class="${scenario.id === rrllBudgetSelectedScenarioId ? "budget-row-selected" : ""}"><td>${rrllBudgetEscape(scenario.name)}</td><td>${scenario.year}</td><td>${rrllBudgetMoney(scenario.ticket_amount)}</td><td>${rrllBudgetPercent(scenario.absence_rate)}</td><td>${rrllBudgetMoney(totals.totalManual)}</td><td>${rrllBudgetMoney(totals.totalTicket)}</td><td><strong>${rrllBudgetMoney(totals.totalScenario)}</strong></td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetScenario('${scenario.id}')">Editar</button><button type="button" onclick="simulateBudgetScenario('${scenario.id}')">Simular</button></div></td></tr>`).join("") : '<tr><td colspan="8" class="muted">Todavía no hay escenarios de presupuesto.</td></tr>';
 }
 
 async function selectBudgetScenario(id) { rrllBudgetSelectedScenarioId = id; await renderBudgetScenarios(); await loadSelectedBudgetScenario(); }
+async function simulateBudgetScenario(id = rrllBudgetSelectedScenarioId) {
+  const scenario = rrllBudgetScenarios.find(item => item.id === id);
+  if (!scenario) return;
+  try {
+    if (!rrllBudgetPromptSimulationYear(scenario)) return;
+    rrllBudgetSelectedScenarioId = id;
+    await renderBudgetScenarios();
+    await loadSelectedBudgetScenario();
+  } catch (error) { alert(error.message); }
+}
+async function recalculateBudgetScenario() { await simulateBudgetScenario(rrllBudgetSelectedScenarioId); }
 async function loadSelectedBudgetScenario() {
   const scenario = rrllBudgetScenario();
   document.getElementById("budgetSelectedScenarioEmpty")?.classList.toggle("budget-form-hidden", !!scenario);
@@ -75,18 +98,67 @@ async function loadSelectedBudgetScenario() {
   await renderBudgetSelectedScenario();
 }
 
-async function renderBudgetSelectedScenario() {
-  const scenario = rrllBudgetScenario(); if (!scenario) return;
+async function rrllBudgetCalculatedExportData() {
+  const scenario = rrllBudgetScenario();
+  rrllBudgetAssert(scenario, "Selecciona y simula un escenario antes de continuar.");
+  const simulationYear = rrllBudgetSimulationYear(scenario);
   const needsTicketCalendars = rrllBudgetTicketGroups.some(group => group.calculation_type === "calendar_people");
   const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
-  const totals = BudgetDomain.calculateBudgetScenarioYear({ manualItems: rrllBudgetManualItems, ticketGroups: rrllBudgetTicketGroups, scenario, context });
+  return BudgetDomain.buildBudgetScenarioExportData({ manualItems: rrllBudgetManualItems, ticketGroups: rrllBudgetTicketGroups, scenario, context, simulationYear });
+}
+
+async function renderBudgetSelectedScenario() {
+  const scenario = rrllBudgetScenario(); if (!scenario) return;
+  const simulationYear = rrllBudgetSimulationYear(scenario);
+  const needsTicketCalendars = rrllBudgetTicketGroups.some(group => group.calculation_type === "calendar_people");
+  const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
+  const totals = BudgetDomain.calculateBudgetScenarioYear({ manualItems: rrllBudgetManualItems, ticketGroups: rrllBudgetTicketGroups, scenario, context, simulationYear });
+  document.getElementById("budgetSimulatedYear").textContent = simulationYear;
+  document.getElementById("budgetMonthlyYear").textContent = simulationYear;
   document.getElementById("budgetSummaryManual").textContent = rrllBudgetMoney(totals.totalManual);
   document.getElementById("budgetSummaryTicket").textContent = rrllBudgetMoney(totals.totalTicket);
   document.getElementById("budgetSummaryTotal").textContent = rrllBudgetMoney(totals.totalScenario);
   document.getElementById("budgetManualItemRows").innerHTML = rrllBudgetManualItems.length ? rrllBudgetManualItems.map(item => `<tr><td>${rrllBudgetEscape(item.concept)}</td><td>${rrllBudgetEscape(item.category)}</td><td>${item.monthly_amount == null ? "—" : rrllBudgetMoney(item.monthly_amount)}</td><td>${item.annual_amount == null ? "—" : `${rrllBudgetMoney(item.annual_amount)} <small>(prevalece)</small>`}</td><td><strong>${rrllBudgetMoney(BudgetDomain.calculateBudgetManualItemYear(item))}</strong></td><td>${rrllBudgetEscape(item.notes)}</td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetManualItem('${item.id}')">Editar</button><button class="danger" type="button" onclick="deleteBudgetManualItem('${item.id}')">Eliminar</button></div></td></tr>`).join("") : '<tr><td colspan="7" class="muted">No hay partidas manuales.</td></tr>';
-  document.getElementById("budgetTicketGroupRows").innerHTML = rrllBudgetTicketGroups.length ? rrllBudgetTicketGroups.map(group => { const annual = BudgetDomain.calculateBudgetTicketGroupYear(group, scenario, context).totalTicket; const absence = group.absence_rate == null ? `General (${rrllBudgetPercent(scenario.absence_rate)})` : rrllBudgetPercent(group.absence_rate); const amount = group.ticket_amount == null ? `Escenario (${rrllBudgetMoney(scenario.ticket_amount)})` : rrllBudgetMoney(group.ticket_amount); return `<tr><td>${rrllBudgetEscape(group.name)}</td><td>${group.people_count}</td><td>${rrllBudgetEscape(group.ticket_calendar || "—")}</td><td>${absence}</td><td>${amount}</td><td>${rrllBudgetEscape(group.calculation_type)}</td><td><strong>${rrllBudgetMoney(annual)}</strong></td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetTicketGroup('${group.id}')">Editar</button><button class="danger" type="button" onclick="deleteBudgetTicketGroup('${group.id}')">Eliminar</button></div></td></tr>`; }).join("") : '<tr><td colspan="8" class="muted">No hay grupos Ticket.</td></tr>';
+  document.getElementById("budgetTicketGroupRows").innerHTML = rrllBudgetTicketGroups.length ? rrllBudgetTicketGroups.map(group => { const annual = BudgetDomain.calculateBudgetTicketGroupYear(group, scenario, context, simulationYear).totalTicket; const absence = group.absence_rate == null ? `General (${rrllBudgetPercent(scenario.absence_rate)})` : rrllBudgetPercent(group.absence_rate); const amount = group.ticket_amount == null ? `Escenario (${rrllBudgetMoney(scenario.ticket_amount)})` : rrllBudgetMoney(group.ticket_amount); return `<tr><td>${rrllBudgetEscape(group.name)}</td><td>${group.people_count}</td><td>${rrllBudgetEscape(group.ticket_calendar || "—")}</td><td>${absence}</td><td>${amount}</td><td>${rrllBudgetEscape(group.calculation_type)}</td><td><strong>${rrllBudgetMoney(annual)}</strong></td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetTicketGroup('${group.id}')">Editar</button><button class="danger" type="button" onclick="deleteBudgetTicketGroup('${group.id}')">Eliminar</button></div></td></tr>`; }).join("") : '<tr><td colspan="8" class="muted">No hay grupos Ticket.</td></tr>';
   document.getElementById("budgetMonthlyRows").innerHTML = totals.byMonth.map(item => `<tr><td>${RRLL_BUDGET_MONTH_NAMES[item.month - 1]}</td><td>${rrllBudgetMoney(item.totalManual)}</td><td>${rrllBudgetMoney(item.totalTicket)}</td><td><strong>${rrllBudgetMoney(item.totalScenario)}</strong></td></tr>`).join("");
-  document.getElementById("budgetYearManual").textContent = rrllBudgetMoney(totals.totalManual); document.getElementById("budgetYearTicket").textContent = rrllBudgetMoney(totals.totalTicket); document.getElementById("budgetYearTotal").textContent = rrllBudgetMoney(totals.totalScenario);
+  document.getElementById("budgetYearManual").textContent = rrllBudgetMoney(totals.totalManual);
+  document.getElementById("budgetYearTicket").textContent = rrllBudgetMoney(totals.totalTicket);
+  document.getElementById("budgetYearTotal").textContent = rrllBudgetMoney(totals.totalScenario);
+}
+
+function rrllBudgetExcelRows(data) {
+  const rows = [];
+  const add = (...cells) => rows.push(cells);
+  add("CABECERA", "Nombre escenario", data.scenario.name);
+  add("CABECERA", "Año simulado", data.scenario.simulationYear);
+  add("CABECERA", "Importe ticket general", data.scenario.ticketAmount);
+  add("CABECERA", "Absentismo general", data.scenario.absenceRate);
+  add("CABECERA", "Observaciones", data.scenario.notes);
+  add("RESUMEN GLOBAL", "Total partidas manuales", data.summary.totalManual);
+  add("RESUMEN GLOBAL", "Total Ticket Restaurante", data.summary.totalTicket);
+  add("RESUMEN GLOBAL", "Total escenario", data.summary.totalScenario);
+  data.monthly.forEach(item => add("RESUMEN MENSUAL", RRLL_BUDGET_MONTH_NAMES[item.month - 1], item.totalManual, item.totalTicket, item.totalScenario));
+  data.manualItems.forEach(item => add("PARTIDA MANUAL", item.concept, item.type, item.monthlyAmount ?? "", item.annualAmount ?? "", item.totalCalculated));
+  data.ticketGroups.forEach(group => add("GRUPO TICKET", group.name, group.calendar, group.type, group.people, group.manualTickets, group.manualAmount, group.ticketAmount, group.absenceRate, group.totalCalculated));
+  return rows;
+}
+async function exportBudgetScenarioExcel() {
+  try {
+    rrllBudgetAssert(typeof exportExcelData === "function", "La exportación Excel no está disponible.");
+    const data = await rrllBudgetCalculatedExportData();
+    exportExcelData({ title: `Presupuesto - ${data.scenario.name} - ${data.scenario.simulationYear}`, filename: `presupuesto-${data.scenario.name}-${data.scenario.simulationYear}`.replace(/[^a-zA-Z0-9_-]/g, "-"), headers: ["Sección", "Campo / concepto", "Tipo / valor", "Mensual / Ticket", "Anual / Personas", "Total / Tickets", "Importe manual", "Importe ticket", "Absentismo", "Total grupo"], rows: rrllBudgetExcelRows(data) });
+  } catch (error) { alert(error.message); }
+}
+function rrllBudgetPrintTable(headers, rows) { return `<table><thead><tr>${headers.map(header => `<th>${rrllBudgetEscape(header)}</th>`).join("")}</tr></thead><tbody>${rows.length ? rows.map(row => `<tr>${row.map(cell => `<td>${rrllBudgetEscape(cell)}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${headers.length}">Sin registros.</td></tr>`}</tbody></table>`; }
+async function printBudgetScenario() {
+  try {
+    rrllBudgetAssert(typeof openPrintPreviewWithHtml === "function", "La impresión no está disponible.");
+    const data = await rrllBudgetCalculatedExportData();
+    const monthlyRows = data.monthly.map(item => [RRLL_BUDGET_MONTH_NAMES[item.month - 1], rrllBudgetMoney(item.totalManual), rrllBudgetMoney(item.totalTicket), rrllBudgetMoney(item.totalScenario)]);
+    const manualRows = data.manualItems.map(item => [item.concept, item.type, item.monthlyAmount == null ? "—" : rrllBudgetMoney(item.monthlyAmount), item.annualAmount == null ? "—" : rrllBudgetMoney(item.annualAmount), rrllBudgetMoney(item.totalCalculated)]);
+    const ticketRows = data.ticketGroups.map(group => [group.name, group.calendar || "—", group.type, group.people, group.manualTickets, rrllBudgetMoney(group.manualAmount), rrllBudgetMoney(group.ticketAmount), rrllBudgetPercent(group.absenceRate), rrllBudgetMoney(group.totalCalculated)]);
+    openPrintPreviewWithHtml(`<h1>Presupuesto · ${rrllBudgetEscape(data.scenario.name)} · ${data.scenario.simulationYear}</h1><h2>Resumen global</h2>${rrllBudgetPrintTable(["Partidas manuales", "Ticket Restaurante", "Total escenario"], [[rrllBudgetMoney(data.summary.totalManual), rrllBudgetMoney(data.summary.totalTicket), rrllBudgetMoney(data.summary.totalScenario)]])}<h2>Resumen mensual</h2>${rrllBudgetPrintTable(["Mes", "Partidas manuales", "Ticket Restaurante", "Total mensual"], monthlyRows)}<h2>Detalle partidas manuales</h2>${rrllBudgetPrintTable(["Concepto", "Tipo", "Importe mensual", "Importe anual", "Total calculado"], manualRows)}<h2>Detalle grupos Ticket</h2>${rrllBudgetPrintTable(["Nombre grupo", "Calendario", "Tipo", "Personas", "Tickets", "Importe manual", "Importe ticket", "Absentismo", "Total anual"], ticketRows)}`);
+  } catch (error) { alert(error.message); }
 }
 
 function openBudgetScenarioForm(scenario = {}) { document.getElementById("budgetScenarioForm").classList.remove("budget-form-hidden"); document.getElementById("budgetScenarioId").value = scenario.id || ""; document.getElementById("budgetScenarioName").value = scenario.name || ""; document.getElementById("budgetScenarioYear").value = scenario.year || new Date().getFullYear(); document.getElementById("budgetScenarioTicketAmount").value = scenario.ticket_amount ?? "0"; document.getElementById("budgetScenarioAbsenceRate").value = scenario.absence_rate == null ? "0" : scenario.absence_rate * 100; document.getElementById("budgetScenarioNotes").value = scenario.notes || ""; }

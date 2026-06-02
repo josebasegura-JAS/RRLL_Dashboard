@@ -22,4 +22,10 @@ const phase4ShowModuleBody = navigationSource.slice(
 assert.match(phase4ShowModuleBody, /gestorId === "gestor-presupuestos"/);
 assert.match(phase4ShowModuleBody, /window\.initializeBudgetModule\(\)/);
 
+assert.match(budgetSource, /function rrllBudgetPromptSimulationYear/);
+assert.match(budgetSource, /simulationYear: rrllBudgetSimulationYear\(row\.scenario\)/);
+assert.match(budgetSource, /BudgetDomain\.buildBudgetScenarioExportData/);
+assert.match(budgetSource, /exportExcelData\(/);
+assert.match(budgetSource, /openPrintPreviewWithHtml\(/);
+
 console.log("budget lazy initialization smoke test passed");
