@@ -30,7 +30,7 @@ function setTicketCalendarManagementNotice(message = "", type = "") {
   notice.className = `ticket-calendar-management-notice${type ? ` ${type}` : ""}`;
 }
 
-async function hydrateTicketCalendarManagement({ force = false } = {}) {
+async function hydrateTicketCalendarManagement({ force = false, render = true } = {}) {
   const finish = typeof rrllTicketRestaurantPerfStart === "function" ? rrllTicketRestaurantPerfStart("hydrateTicketCalendarManagement") : null;
   try {
     ticketCalendarManagementModel = window.rrllDB && typeof window.rrllDB.loadTicketCalendars === "function"
@@ -41,7 +41,7 @@ async function hydrateTicketCalendarManagement({ force = false } = {}) {
     ticketCalendarManagementModel = null;
     setTicketCalendarManagementNotice("No se pudieron cargar los calendarios guardados. Se mantiene el fallback de Ticket Restaurante.", "error");
   }
-  renderTicketCalendarManagement();
+  if (render) renderTicketCalendarManagement();
   if (finish) finish();
 }
 

@@ -7,6 +7,8 @@ let rrllTicketCalendarModelCache = null;
 let rrllTicketCalendarModelLoadedAt = 0;
 let rrllTicketCalendarModelLoadingPromise = null;
 let ticketRestaurantComputeContext = null;
+let ticketRestaurantReadyPromise = null;
+let ticketRestaurantReadyDone = false;
 
 function rrllTicketRestaurantPerfEnabled() {
   try { return window.localStorage && window.localStorage.getItem("rrll_ticket_restaurant_perf_debug") === "1"; } catch { return false; }
@@ -67,6 +69,22 @@ async function hydrateTicketRestaurantCalendars({ force = false } = {}) {
     if (!TICKET_RESTAURANT_CALENDARS.includes(ticketRestaurantSelectedCalendar)) ticketRestaurantSelectedCalendar = TICKET_RESTAURANT_CALENDARS[0];
   } catch (error) {
     console.warn("No se pudieron cargar calendarios Ticket Restaurante desde SQLite; se usa el fallback base.", error);
+  } finally { if (finish) finish(); }
+}
+
+async function ensureTicketRestaurantReady({ force = false } = {}) {
+  const finish = rrllTicketRestaurantPerfStart("ensureTicketRestaurantReady");
+  try {
+    if (ticketRestaurantReadyDone && !force) return;
+    if (ticketRestaurantReadyPromise) return await ticketRestaurantReadyPromise;
+    ticketRestaurantReadyPromise = (async () => {
+      await hydrateTicketRestaurantCalendars({ force });
+      if (typeof hydrateTicketCalendarManagement === "function") await hydrateTicketCalendarManagement({ force, render: false });
+      ticketRestaurantReadyDone = true;
+    })().catch(error => {
+      console.warn("No se pudo preparar Ticket Restaurante; se continúa con fallback.", error);
+    }).finally(() => { ticketRestaurantReadyPromise = null; });
+    return await ticketRestaurantReadyPromise;
   } finally { if (finish) finish(); }
 }
 const TICKET_RESTAURANT_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -209,7 +227,7 @@ function openTicketRestaurantPrintPreview(title, headers, rows) {
 }
 
 
-let ticketRestaurantActiveArea = "compute";
+let ticketRestaurantActiveArea = "calendar";
 
 let ticketRestaurantCalendarYear = new Date().getFullYear();
 let ticketRestaurantEditingEmployee = null;
@@ -859,7 +877,7 @@ function autocompleteTicketRestaurantPersonFromPlantilla(force = false) {
 }
 
 function showTicketRestaurantArea(area) {
-  ticketRestaurantActiveArea = area || "compute";
+  ticketRestaurantActiveArea = area || "calendar";
   document.querySelectorAll(".ticket-restaurant-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.ticketArea === ticketRestaurantActiveArea));
   document.querySelectorAll(".ticket-restaurant-area").forEach(panel => panel.hidden = panel.dataset.ticketArea !== ticketRestaurantActiveArea);
   renderTicketRestaurant();
@@ -867,15 +885,29 @@ function showTicketRestaurantArea(area) {
 
 function renderTicketRestaurant() {
   const finish = rrllTicketRestaurantPerfStart("renderTicketRestaurant");
-  renderTicketRestaurantCalendarSelector();
-  rrllTicketRestaurantPerfCall("renderTicketRestaurantCalendar", () => renderTicketRestaurantCalendar());
-  rrllTicketRestaurantPerfCall("renderTicketRestaurantPeople", () => renderTicketRestaurantPeople());
-  rrllTicketRestaurantPerfCall("renderTicketRestaurantAbsences", () => renderTicketRestaurantAbsences());
-  if (ticketRestaurantActiveArea === "compute") renderTicketRestaurantComputeControls();
-  renderTicketRestaurantConfig();
-  if (typeof renderTicketCalendarManagement === "function") renderTicketCalendarManagement();
-  if (ticketRestaurantActiveArea === "monthly") renderTicketRestaurantMonthlyQuotePreview();
-  if (finish) finish();
+  const areaFinish = rrllTicketRestaurantPerfStart(`renderTicketRestaurant area=${ticketRestaurantActiveArea}`);
+  try {
+    if (ticketRestaurantActiveArea === "calendar") {
+      renderTicketRestaurantCalendarSelector();
+      rrllTicketRestaurantPerfCall("renderTicketRestaurantCalendar", () => renderTicketRestaurantCalendar());
+    } else if (ticketRestaurantActiveArea === "people") {
+      rrllTicketRestaurantPerfCall("renderTicketRestaurantPeople", () => renderTicketRestaurantPeople());
+    } else if (ticketRestaurantActiveArea === "absences") {
+      rrllTicketRestaurantPerfCall("renderTicketRestaurantAbsences", () => renderTicketRestaurantAbsences());
+    } else if (ticketRestaurantActiveArea === "compute") {
+      renderTicketRestaurantComputeControls();
+      renderTicketRestaurantComputePreview();
+    } else if (ticketRestaurantActiveArea === "monthly") {
+      renderTicketRestaurantMonthlyQuotePreview();
+    } else if (ticketRestaurantActiveArea === "config") {
+      renderTicketRestaurantConfig();
+    } else if (ticketRestaurantActiveArea === "calendar-management" && typeof renderTicketCalendarManagement === "function") {
+      renderTicketCalendarManagement();
+    }
+  } finally {
+    if (areaFinish) areaFinish();
+    if (finish) finish();
+  }
 }
 
 function renderTicketRestaurantCalendarSelector() {
@@ -1856,6 +1888,7 @@ function getTicketComputeVisibleMonth() {
 function changeTicketComputeMonth(delta) {
   ticketRestaurantVisibleComputeMonth = addTicketMonths(getTicketComputeVisibleMonth(), delta);
   renderTicketRestaurantComputeControls();
+  renderTicketRestaurantComputePreview();
 }
 
 function renderTicketComputeMonthSelector() {
@@ -1889,7 +1922,6 @@ function renderTicketRestaurantComputeControls() {
     if (field) field.style.display = "none";
   }
   renderTicketComputeMonthSelector();
-  if (ticketRestaurantActiveArea === "compute") renderTicketRestaurantComputePreview();
   if (finish) finish();
 }
 
@@ -2528,6 +2560,7 @@ function printTicketRestaurantMonthlyQuote() {
   openTicketRestaurantPrintPreview(`Cómputo Cotización Mensual - ${TICKET_RESTAURANT_MONTHS[calc.month - 1]} ${calc.year}`, TICKET_RESTAURANT_MONTHLY_QUOTE_HEADERS, rows);
 }
 
+window.ensureTicketRestaurantReady = ensureTicketRestaurantReady;
 window.showTicketRestaurantArea = showTicketRestaurantArea;
 window.setTicketRestaurantCalendar = setTicketRestaurantCalendar;
 window.moveTicketRestaurantCalendarYear = moveTicketRestaurantCalendarYear;
