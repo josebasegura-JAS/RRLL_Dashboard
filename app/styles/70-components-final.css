@@ -29,7 +29,6 @@
   .rrll-module-layout,
   .rrll-grid,
   .rrll-stack,
-  .phase4-view,
   .module-view,
   .dashboard-grid,
   .metrics-grid,
@@ -46,7 +45,6 @@
   .rrll-main,
   .rrll-content,
   .rrll-module-layout,
-  .phase4-view,
   .module-view
 ) {
   background: var(--rrll-theme-bg-app);
@@ -3084,22 +3082,18 @@ html[data-theme="light"] .rrll-pro-table th.sortable.sorted {
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] .phase4-home-dashboard :is(.phase4-card-head h3, .phase4-metric-card strong, .phase4-status-row b, .phase4-list-row b, .phase4-list-row strong) {
+html[data-theme="light"] .phase4-home-dashboard :is(.phase4-card-head h3, .phase4-metric-card strong, .phase4-list-row b, .phase4-list-row strong) {
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] .phase4-home-dashboard :is(.phase4-metric-card span:not(.phase4-metric-icon), .phase4-metric-card small, .phase4-card-head span, .phase4-status-row small, .phase4-list-row small) {
+html[data-theme="light"] .phase4-home-dashboard :is(.phase4-metric-card span:not(.phase4-metric-icon), .phase4-metric-card small, .phase4-card-head span, .phase4-list-row small) {
   color: var(--rrll-text-muted) !important;
 }
 
-html[data-theme="light"] .phase4-home-dashboard :is(.phase4-status-row, .phase4-list-row:not(.danger)) {
+html[data-theme="light"] .phase4-home-dashboard :is(.phase4-list-row:not(.danger)) {
   background: #ffffff !important;
   border-color: var(--rrll-border) !important;
   color: var(--rrll-text-main) !important;
-}
-
-html[data-theme="light"] .phase4-donut::after {
-  background: var(--rrll-surface-card) !important;
 }
 
 html[data-theme="light"] * {

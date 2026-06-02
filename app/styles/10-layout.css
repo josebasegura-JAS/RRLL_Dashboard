@@ -133,43 +133,6 @@
   display: grid;
   gap: 16px;
 }
-.phase4-home-hero {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  padding: 20px 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 22px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.92));
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
-}
-.phase4-home-hero h2 {
-  margin: 2px 0 6px;
-  font-size: 24px;
-  color: #0f172a;
-}
-.phase4-home-hero p {
-  margin: 0;
-  color: #475569;
-}
-.phase4-eyebrow {
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  font-size: 12px;
-  color: #1d4ed8 !important;
-  font-weight: 800;
-}
-.phase4-home-date {
-  min-width: 190px;
-  text-align: center;
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(37, 99, 235, .15);
-  background: #fff;
-  color: #1e293b;
-  font-weight: 700;
-}
 .phase4-metric-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(140px, 1fr));
@@ -218,7 +181,6 @@
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
   min-height: 230px;
 }
-.phase4-dashboard-card-wide { min-height: 250px; }
 .phase4-card-head {
   display: flex;
   align-items: center;
@@ -228,50 +190,6 @@
 }
 .phase4-card-head h3 { margin: 0; font-size: 16px; color: #0f172a; }
 .phase4-card-head span { color: #64748b; font-size: 13px; font-weight: 700; }
-.phase4-status-layout {
-  display: grid;
-  grid-template-columns: 190px 1fr;
-  gap: 18px;
-  align-items: center;
-}
-.phase4-donut {
-  --done: 0%;
-  --progress: 0%;
-  width: 170px;
-  height: 170px;
-  border-radius: 50%;
-  background: conic-gradient(#22c55e 0 var(--done), #3b82f6 var(--done) var(--progress), #f59e0b var(--progress) 100%);
-  position: relative;
-  display: grid;
-  place-items: center;
-  margin: auto;
-}
-.phase4-donut::after {
-  content: "";
-  position: absolute;
-  width: 102px;
-  height: 102px;
-  border-radius: 50%;
-  background: #fff;
-}
-.phase4-donut span, .phase4-donut small { position: relative; z-index: 1; display:block; text-align:center; color:#0f172a; }
-.phase4-donut span { font-size: 28px; font-weight: 900; }
-.phase4-donut small { font-size: 12px; color:#64748b; margin-top: 34px; position:absolute; }
-.phase4-status-list { display: grid; gap: 10px; }
-.phase4-status-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #f8fafc;
-  color: #334155;
-}
-.phase4-status-row::before { content: ""; width: 10px; height: 10px; border-radius: 50%; }
-.phase4-status-row.status-0::before { background: #22c55e; }
-.phase4-status-row.status-1::before { background: #3b82f6; }
-.phase4-status-row.status-2::before { background: #f59e0b; }
 .phase4-list { display: grid; gap: 8px; }
 .phase4-list-row {
   border: 0;
@@ -293,31 +211,13 @@
 .phase4-list-row.warning { background:#fff7ed; }
 .phase4-list-row.info { background:#eff6ff; }
 .phase4-empty { padding: 18px; color: #64748b; background:#f8fafc; border-radius: 12px; }
-.phase4-workload { display: grid; gap: 10px; }
-.phase4-workload button {
-  border: 0;
-  background: transparent;
-  display: grid;
-  grid-template-columns: 105px 1fr 32px;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 0;
-  text-align: left;
-  cursor: pointer;
-  color:#334155;
-}
-.phase4-workload div { height: 9px; border-radius: 999px; background:#e2e8f0; overflow:hidden; }
-.phase4-workload i { display:block; height:100%; border-radius:999px; background:#2563eb; }
-.phase4-workload b { text-align:right; color:#0f172a; }
 @media (max-width: 1280px) {
   .phase4-metric-grid { grid-template-columns: repeat(3, minmax(160px, 1fr)); }
   .phase4-dashboard-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 860px) {
-  .phase4-home-hero { flex-direction: column; align-items: stretch; }
   .phase4-metric-grid { grid-template-columns: 1fr; }
   .phase4-dashboard-grid { grid-template-columns: 1fr; }
-  .phase4-status-layout { grid-template-columns: 1fr; }
 }
 
 
@@ -397,38 +297,21 @@ body {
 .rrll-main .top-strip {
   background: rgba(255,255,255,.92);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--phase4-line);
+  border-bottom: 1px solid var(--rrll-border);
 }
-.rrll-main .top-title h1 { color: var(--phase4-text); letter-spacing: -0.02em; }
-.rrll-main .top-title p { color: var(--phase4-muted); }
+.rrll-main .top-title h1 { color: var(--rrll-text-main); letter-spacing: -0.02em; }
+.rrll-main .top-title p { color: var(--rrll-text-muted); }
 .rrll-main main { padding-top: 18px; }
-
-.phase4-home-hero,
 .phase4-dashboard-card,
 .phase4-metric-card,
 .card {
-  border-color: var(--phase4-line);
+  border-color: var(--rrll-border);
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.075);
 }
-.phase4-home-hero { overflow: hidden; position: relative; }
-.phase4-home-hero::after {
-  content: "";
-  position: absolute;
-  right: -70px;
-  top: -90px;
-  width: 230px;
-  height: 230px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(227,6,19,.13), rgba(227,6,19,0) 70%);
-  pointer-events: none;
-}
-.phase4-home-hero h2 { letter-spacing: -0.03em; }
-.phase4-home-date { box-shadow: 0 8px 20px rgba(15, 23, 42, .06); }
 
 .phase4-metric-card,
 .phase4-dashboard-card,
 .phase4-list-row,
-.phase4-workload button,
 button,
 .launch-button,
 .summary-icon-button {
@@ -436,7 +319,6 @@ button,
 }
 .phase4-metric-card:focus-visible,
 .phase4-list-row:focus-visible,
-.phase4-workload button:focus-visible,
 button:focus-visible,
 .launch-button:focus-visible,
 .summary-icon-button:focus-visible,
@@ -496,7 +378,7 @@ summary {
 }
 .module-title { min-width: 0; }
 .summary-counts {
-  color: var(--phase4-muted);
+  color: var(--rrll-text-muted);
   font-weight: 750;
   white-space: nowrap;
 }
@@ -519,7 +401,7 @@ textarea {
 }
 textarea { resize: vertical; }
 label { color: #334155; font-weight: 750; }
-.muted { color: var(--phase4-muted); }
+.muted { color: var(--rrll-text-muted); }
 
 .item,
 .task-card,
@@ -589,7 +471,6 @@ label { color: #334155; font-weight: 750; }
 
 @media (max-width: 680px) {
   .rrll-main main { padding: 12px; }
-  .phase4-home-hero { padding: 16px; border-radius: 18px; }
   .phase4-dashboard-card, .phase4-metric-card, .card { border-radius: 16px; }
   .summary-actions { width: 100%; justify-content: flex-start; }
   .phase4-list-row { grid-template-columns: 1fr; }
