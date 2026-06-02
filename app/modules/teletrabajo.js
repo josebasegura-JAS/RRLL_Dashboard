@@ -1409,6 +1409,38 @@
     return parseTeleworkCsv(new TextDecoder("utf-8").decode(buffer));
   }
 
+  function parseTeleworkSurveyWorksheetRows(xmlText, sharedStrings) {
+    const doc = new DOMParser().parseFromString(xmlText, "application/xml");
+    return [...doc.querySelectorAll("sheetData row")].map(rowNode => {
+      const row = [];
+      [...rowNode.querySelectorAll("c")].forEach(cell => {
+        const index = columnLettersToIndex(cell.getAttribute("r"));
+        const type = cell.getAttribute("t");
+        let value = "";
+        if (type === "inlineStr") {
+          value = [...cell.querySelectorAll("is t")].map(t => t.textContent || "").join("");
+        } else {
+          value = cell.querySelector("v")?.textContent || "";
+          if (type === "s") value = sharedStrings[Number(value)] || "";
+        }
+        row[index] = String(value ?? "");
+      });
+      return row.map(cell => cell || "");
+    }).filter(row => row.some(value => String(value ?? "").trim()));
+  }
+
+  async function readTeleworkSurveyRows(file) {
+    const name = String(file?.name || "").toLowerCase();
+    const buffer = await file.arrayBuffer();
+    if (name.endsWith(".xlsx")) {
+      const entries = await readTeleworkZipEntries(buffer);
+      const worksheetPath = getFirstTeleworkWorksheetPath(entries);
+      if (!entries[worksheetPath]) throw new Error("No se encontró la primera hoja del Excel.");
+      return parseTeleworkSurveyWorksheetRows(entries[worksheetPath], parseTeleworkSharedStrings(entries["xl/sharedStrings.xml"]));
+    }
+    return parseTeleworkCsv(new TextDecoder("utf-8").decode(buffer));
+  }
+
   function teleworkRowsToRecords(rows) {
     if (rows.length < 2) return { headers: [], records: [] };
     const headers = rows[0].map(teleworkHeaderKey);
@@ -1613,6 +1645,128 @@
       return { added, skipped, invalid };
     }
 
+  function validateTeleworkSurveyHeaders(rows) {
+      const headers = (rows[0] || []).slice(0, 5).map(teleworkHeaderKey);
+      const expected = [
+        ["nempleado", "noempleado", "numeroempleado"],
+        ["apellidosynombre", "nombre"],
+        ["tipodefila", "tipo"],
+        ["respuesta"],
+        ["textolibredelapersona", "observaciones", "texto"]
+      ];
+      return expected.every((aliases, index) => aliases.includes(headers[index]));
+    }
+
+  function buildTeleworkSurveyItem(row, defaultPeriod) {
+      const employeeNumber = String(row[0] ?? "").trim();
+      const nombreCompleto = String(row[1] ?? "").trim();
+      return normalizeTeleworkItem({
+        employeeNumber,
+        nombreCompleto,
+        name: nombreCompleto,
+        period: defaultPeriod,
+        type: "Nuevo",
+        status: "telework-entry",
+        statusManual: true,
+        observations: String(row[4] ?? ""),
+        createdAt: new Date().toISOString()
+      });
+    }
+
+  function applyTeleworkSurveyRows(rows) {
+      if (!Array.isArray(rows) || rows.length < 2) throw new Error("La encuesta no contiene filas importables.");
+      if (!validateTeleworkSurveyHeaders(rows)) throw new Error("El fichero no tiene el formato esperado de la Encuesta de Teletrabajo.");
+
+      const summary = {
+        totalRowsRead: rows.length - 1,
+        totalYesResponses: 0,
+        totalNoResponses: 0,
+        totalScoreRowsIgnored: 0,
+        totalRequestsCreated: 0,
+        totalIncidents: 0
+      };
+      const defaultPeriod = getTeleworkActiveCampaign();
+      const next = [...getTeleworkItems()];
+      const existingKeys = new Set(next.map(getTeleworkDuplicateKey).filter(Boolean));
+      const seenImportKeys = new Set();
+
+      rows.slice(1).forEach(row => {
+        try {
+          if (!Array.isArray(row) || !row.some(value => String(value ?? "").trim())) return;
+          const rowType = normalizeTeleworkLookup(row[2]);
+          const answer = normalizeTeleworkLookup(row[3]);
+          if (rowType === "punt" || rowType === "punt.") {
+            summary.totalScoreRowsIgnored += 1;
+            return;
+          }
+          if (rowType !== "respuesta") {
+            summary.totalIncidents += 1;
+            return;
+          }
+          if (answer === "no") {
+            summary.totalNoResponses += 1;
+            return;
+          }
+          if (answer !== "si") {
+            summary.totalIncidents += 1;
+            return;
+          }
+          summary.totalYesResponses += 1;
+          const item = buildTeleworkSurveyItem(row, defaultPeriod);
+          if (!item.employeeNumber) {
+            summary.totalIncidents += 1;
+            return;
+          }
+          const duplicateKey = getTeleworkDuplicateKey(item);
+          if (!duplicateKey || existingKeys.has(duplicateKey) || seenImportKeys.has(duplicateKey)) {
+            summary.totalIncidents += 1;
+            return;
+          }
+          seenImportKeys.add(duplicateKey);
+          existingKeys.add(duplicateKey);
+          next.unshift(item);
+          summary.totalRequestsCreated += 1;
+        } catch (error) {
+          console.error("Fila de encuesta de teletrabajo ignorada:", error);
+          summary.totalIncidents += 1;
+        }
+      });
+
+      setTeleworkItems(next);
+      refreshTeleworkDependents();
+      return summary;
+    }
+
+  function formatTeleworkSurveySummary(summary) {
+      return [
+        "Importación de Encuesta de Teletrabajo finalizada.",
+        `Total filas leídas: ${summary.totalRowsRead}.`,
+        `Total respuestas Sí: ${summary.totalYesResponses}.`,
+        `Total respuestas No: ${summary.totalNoResponses}.`,
+        `Total filas Punt. ignoradas: ${summary.totalScoreRowsIgnored}.`,
+        `Total solicitudes creadas: ${summary.totalRequestsCreated}.`,
+        `Total incidencias: ${summary.totalIncidents}.`
+      ].join("\n");
+    }
+
+  async function importTeleworkSurvey(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const summary = applyTeleworkSurveyRows(await readTeleworkSurveyRows(file));
+        alert(formatTeleworkSurveySummary(summary));
+      } catch (error) {
+        console.error("Error importando encuesta de teletrabajo:", error);
+        alert(`No se pudo importar la Encuesta de Teletrabajo. Detalle: ${error && error.message ? error.message : "error desconocido"}`);
+      } finally {
+        event.target.value = "";
+      }
+    }
+
+  function teleworkSurveyImportChooseFile() {
+      document.getElementById("teleworkSurveyImportFileInput")?.click();
+    }
+
   function isTeleworkCatalogImport(headers) {
     const catalogColumns = ["puestoorganizativo", "teletrabajosn", "teletrabajo", "direccion", "unidad", "plantilla", "presencialidadminimadepersonasporpuestoparaelnormalfuncionamientodelaunidadpuestos2omaspersonas", "presencialidadminima", "elegible", "apto", "teletrabajable"];
     const hasCatalogColumn = headers.some(h => catalogColumns.includes(h));
@@ -1782,10 +1936,14 @@
     getTeleworkRowsForExport,
     exportTeleworkHistoryExcel,
     importTeleworkData,
+    importTeleworkSurvey,
+    applyTeleworkSurveyRows,
+    formatTeleworkSurveySummary,
     importTeleworkJobCatalog,
     openTeleworkImportModal,
     closeTeleworkImportModal,
     teleworkImportChooseFile,
+    teleworkSurveyImportChooseFile,
     downloadTeleworkTemplate,
     renderTeleworkEligibilityWarning,
     openTeleworkJobCatalogModal,
@@ -1822,10 +1980,12 @@
   window.getTeleworkRowsForExport = getTeleworkRowsForExport;
   window.exportTeleworkHistoryExcel = exportTeleworkHistoryExcel;
   window.importTeleworkData = importTeleworkData;
+  window.importTeleworkSurvey = importTeleworkSurvey;
   window.importTeleworkJobCatalog = importTeleworkJobCatalog;
   window.openTeleworkImportModal = openTeleworkImportModal;
   window.closeTeleworkImportModal = closeTeleworkImportModal;
   window.teleworkImportChooseFile = teleworkImportChooseFile;
+  window.teleworkSurveyImportChooseFile = teleworkSurveyImportChooseFile;
   window.downloadTeleworkTemplate = downloadTeleworkTemplate;
   window.renderTeleworkEligibilityWarning = renderTeleworkEligibilityWarning;
   window.teleworkEmployeeNumberChanged = teleworkEmployeeNumberChanged;

@@ -1,0 +1,15 @@
+{
+  "sheetName": "Solicitud Teletrabajo 20262027",
+  "rows": [
+    ["Nº empleado", "Apellidos y nombre", "Tipo de fila", "Respuesta", "Texto libre de la persona", "Puntuación"],
+    ["1001", "García López, Ana", "Respuesta", "Sí", "martes y jueves\nseptiembre-junio renovación", ""],
+    ["1001", "García López, Ana", "Punt.", "", "", "5"],
+    ["1002", "Martín Ruiz, Bruno", "Respuesta", "No", "miércoles", ""],
+    ["1002", "Martín Ruiz, Bruno", "Punt.", "", "", "3"],
+    ["", "Sin Número, Persona", "Respuesta", "Sí", "periodo completo", ""],
+    ["1003", "Pérez Díaz, Carla", "Respuesta", "Sí", "  un día si no es posible dos  ", ""],
+    [],
+    ["1005", "Fila Errónea, Persona", "Otro", "Sí", "No debe detener la importación", ""],
+    ["1004", "Duplicada, Persona", "Respuesta", "Sí", "renovación", ""]
+  ]
+}
