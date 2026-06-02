@@ -18,15 +18,16 @@ function rrllBudgetInputNumber(id, fallback = null) { const value = document.get
 function rrllBudgetRate(id, fallback = null) { const value = document.getElementById(id).value; return rrllBudgetHasValue(value) ? BudgetDomain.normalizeBudgetRate(value, NaN) : fallback; }
 function rrllBudgetAssert(condition, message) { if (!condition) throw new Error(message); }
 function rrllBudgetResult(result) { if (!result || !result.ok) throw new Error(result && result.message ? result.message : "No se pudo guardar el presupuesto."); return result; }
-function rrllBudgetSimulationYear(scenario = rrllBudgetScenario()) { return scenario ? (rrllBudgetSimulationYears.get(scenario.id) || BudgetDomain.resolveBudgetSimulationYear(scenario)) : 0; }
-function rrllBudgetPromptSimulationYear(scenario = rrllBudgetScenario()) {
+function rrllBudgetSimulationYear(scenario = rrllBudgetScenario()) { return scenario ? (rrllBudgetSimulationYears.get(scenario.id) || BudgetDomain.resolveBudgetSimulationYear(scenario)) : new Date().getFullYear(); }
+function rrllBudgetSimulationYearError(message = "") { const error = document.getElementById("budgetSimulationYearError"); if (!error) return; error.textContent = message; error.classList.toggle("budget-form-hidden", !message); }
+function rrllBudgetSyncSimulationYearInput(scenario = rrllBudgetScenario()) { const input = document.getElementById("budgetSimulationYear"); if (!input) return; input.value = rrllBudgetSimulationYear(scenario); rrllBudgetSimulationYearError(); }
+function rrllBudgetReadSimulationYear(scenario = rrllBudgetScenario()) {
   if (!scenario) return 0;
-  const suggestedYear = rrllBudgetSimulationYear(scenario);
-  const answer = prompt(`Indica el año que deseas simular para “${scenario.name}”.`, suggestedYear);
-  if (answer === null) return 0;
-  const year = Number(String(answer).trim());
+  const input = document.getElementById("budgetSimulationYear");
+  const year = Number(input && String(input.value).trim());
   rrllBudgetAssert(Number.isInteger(year) && year >= 1900 && year <= 9999, "Indica un año de simulación válido.");
   rrllBudgetSimulationYears.set(scenario.id, year);
+  rrllBudgetSimulationYearError();
   return year;
 }
 
@@ -60,6 +61,7 @@ async function initializeBudgetModule() {
 async function refreshBudgetModule() {
   rrllBudgetScenarios = await rrllBudgetBridge().loadBudgetScenarios();
   if (rrllBudgetSelectedScenarioId && !rrllBudgetScenarios.some(item => item.id === rrllBudgetSelectedScenarioId)) rrllBudgetSelectedScenarioId = "";
+  rrllBudgetSyncSimulationYearInput();
   await renderBudgetScenarios();
   await loadSelectedBudgetScenario();
 }
@@ -77,16 +79,16 @@ async function renderBudgetScenarios() {
   body.innerHTML = rows.length ? rows.map(({ scenario, totals }) => `<tr class="${scenario.id === rrllBudgetSelectedScenarioId ? "budget-row-selected" : ""}"><td>${rrllBudgetEscape(scenario.name)}</td><td>${scenario.year}</td><td>${rrllBudgetMoney(scenario.ticket_amount)}</td><td>${rrllBudgetMoney(totals.totalManual)}</td><td>${rrllBudgetMoney(totals.totalTicket)}</td><td><strong>${rrllBudgetMoney(totals.totalScenario)}</strong></td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetScenario('${scenario.id}')">Editar</button><button class="secondary" type="button" onclick="duplicateBudgetScenario('${scenario.id}')">Duplicar</button><button type="button" onclick="simulateBudgetScenario('${scenario.id}')">Simular</button></div></td></tr>`).join("") : '<tr><td colspan="7" class="muted">Todavía no hay escenarios de presupuesto.</td></tr>';
 }
 
-async function selectBudgetScenario(id) { rrllBudgetSelectedScenarioId = id; await renderBudgetScenarios(); await loadSelectedBudgetScenario(); }
+async function selectBudgetScenario(id) { rrllBudgetSelectedScenarioId = id; rrllBudgetSyncSimulationYearInput(); await renderBudgetScenarios(); await loadSelectedBudgetScenario(); }
 async function simulateBudgetScenario(id = rrllBudgetSelectedScenarioId) {
   const scenario = rrllBudgetScenarios.find(item => item.id === id);
   if (!scenario) return;
   try {
-    if (!rrllBudgetPromptSimulationYear(scenario)) return;
+    rrllBudgetReadSimulationYear(scenario);
     rrllBudgetSelectedScenarioId = id;
     await renderBudgetScenarios();
     await loadSelectedBudgetScenario();
-  } catch (error) { alert(error.message); }
+  } catch (error) { rrllBudgetSimulationYearError(error.message); }
 }
 async function recalculateBudgetScenario() { await simulateBudgetScenario(rrllBudgetSelectedScenarioId); }
 async function loadSelectedBudgetScenario() {
@@ -163,7 +165,9 @@ async function printBudgetScenario() {
 function openBudgetScenarioForm(scenario = {}) { document.getElementById("budgetScenarioForm").classList.remove("budget-form-hidden"); document.getElementById("budgetScenarioId").value = scenario.id || ""; document.getElementById("budgetScenarioName").value = scenario.name || ""; document.getElementById("budgetScenarioYear").value = scenario.year || new Date().getFullYear(); document.getElementById("budgetScenarioTicketAmount").value = scenario.ticket_amount ?? "0"; document.getElementById("budgetScenarioNotes").value = scenario.notes || ""; }
 function closeBudgetScenarioForm() { document.getElementById("budgetScenarioForm").classList.add("budget-form-hidden"); }
 function editBudgetScenario(id) { openBudgetScenarioForm(rrllBudgetScenarios.find(item => item.id === id)); }
-async function duplicateBudgetScenario(id) { const scenario = rrllBudgetScenarios.find(item => item.id === id); if (!scenario) return; const name = prompt(`Indica el nombre para la copia de “${scenario.name}”.`, `${scenario.name} (copia)`); if (name === null) return; try { rrllBudgetAssert(name.trim(), "El nombre del nuevo escenario es obligatorio."); const result = rrllBudgetResult(await rrllBudgetBridge().duplicateBudgetScenario(id, name)); rrllBudgetSelectedScenarioId = result.id; await refreshBudgetModule(); } catch (error) { alert(error.message); } }
+function duplicateBudgetScenario(id) { const scenario = rrllBudgetScenarios.find(item => item.id === id); if (!scenario) return; document.getElementById("budgetDuplicateScenarioForm").classList.remove("budget-form-hidden"); document.getElementById("budgetDuplicateScenarioId").value = id; document.getElementById("budgetDuplicateScenarioName").value = `${scenario.name} (copia)`; document.getElementById("budgetDuplicateScenarioName").focus(); }
+function closeBudgetDuplicateScenarioForm() { document.getElementById("budgetDuplicateScenarioForm").classList.add("budget-form-hidden"); }
+async function saveBudgetDuplicateScenarioFromForm(event) { event.preventDefault(); try { const id = document.getElementById("budgetDuplicateScenarioId").value; const name = document.getElementById("budgetDuplicateScenarioName").value; rrllBudgetAssert(name.trim(), "El nombre del nuevo escenario es obligatorio."); const result = rrllBudgetResult(await rrllBudgetBridge().duplicateBudgetScenario(id, name)); rrllBudgetSelectedScenarioId = result.id; closeBudgetDuplicateScenarioForm(); await refreshBudgetModule(); } catch (error) { alert(error.message); } }
 async function saveBudgetScenarioFromForm(event) { event.preventDefault(); try { const year = Number(document.getElementById("budgetScenarioYear").value); const ticket = rrllBudgetInputNumber("budgetScenarioTicketAmount", 0); rrllBudgetAssert(document.getElementById("budgetScenarioName").value.trim(), "El nombre del escenario es obligatorio."); rrllBudgetAssert(Number.isInteger(year), "El año debe ser numérico."); rrllBudgetAssert(Number.isFinite(ticket) && ticket >= 0, "El importe ticket no puede ser negativo."); const result = rrllBudgetResult(await rrllBudgetBridge().saveBudgetScenario({ id: document.getElementById("budgetScenarioId").value || undefined, name: document.getElementById("budgetScenarioName").value, year, ticket_amount: ticket, notes: document.getElementById("budgetScenarioNotes").value })); rrllBudgetSelectedScenarioId = result.id; closeBudgetScenarioForm(); await refreshBudgetModule(); } catch (error) { alert(error.message); } }
 
 function openBudgetManualItemForm(item = {}) { document.getElementById("budgetManualItemForm").classList.remove("budget-form-hidden"); document.getElementById("budgetManualItemId").value = item.id || ""; document.getElementById("budgetManualItemConcept").value = item.concept || ""; document.getElementById("budgetManualItemCategory").value = item.category || ""; document.getElementById("budgetManualItemMonthly").value = item.monthly_amount ?? ""; document.getElementById("budgetManualItemAnnual").value = item.annual_amount ?? ""; document.getElementById("budgetManualItemNotes").value = item.notes || ""; }
