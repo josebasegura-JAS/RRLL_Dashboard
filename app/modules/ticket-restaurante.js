@@ -1,4 +1,4 @@
-const TICKET_RESTAURANT_CALENDARS = ["Servicios Centrales", "Ingeniería Ariz", "Instalaciones Sopela", "Liberados"];
+const TICKET_RESTAURANT_CALENDARS = TicketCalendarDomain.TICKET_CALENDARS;
 const TICKET_RESTAURANT_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const TICKET_RESTAURANT_PERSON_HEADERS = ["Nº empleado", "Nombre", "Apellido1", "Apellido2", "DNI", "Puesto", "Calendario"];
 const TICKET_RESTAURANT_ABSENCE_HEADERS = ["Nº empleado", "Nombre y apellidos", "Desde", "Hasta", "Motivo", "Total días"];
@@ -537,24 +537,11 @@ function normalizeTicketCompactText(value) {
 }
 
 function normalizeTicketCalendar(value) {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
-  const key = normalizeTicketCompactText(text);
-  const calendarAliases = new Map([
-    ["sscc", "Servicios Centrales"],
-    ["servicioscentrales", "Servicios Centrales"],
-    ["serviciocentrales", "Servicios Centrales"],
-    ["sopela", "Instalaciones Sopela"],
-    ["instalacionessopela", "Instalaciones Sopela"],
-    ["instalacionsopela", "Instalaciones Sopela"],
-    ["ariz", "Ingeniería Ariz"],
-    ["ingenieriaariz", "Ingeniería Ariz"],
-    ["liberados", "Liberados"]
-  ]);
-  return calendarAliases.get(key) || TICKET_RESTAURANT_CALENDARS.find(item => normalizeTicketCompactText(item) === key) || text;
+  return TicketCalendarDomain.normalizeTicketCalendar(value);
 }
 
 function isKnownTicketCalendar(value) {
-  return TICKET_RESTAURANT_CALENDARS.includes(normalizeTicketCalendar(value));
+  return TicketCalendarDomain.isKnownTicketCalendar(value);
 }
 
 function parseTicketNumber(value) {
@@ -1906,9 +1893,9 @@ function getEffectiveEmployeeAbsencesForMonth(employeeNumber, month, absences = 
     .filter(item => !month || ticketRestaurantDateIsInVisibleMonth(item.date, month));
 }
 
-function ticketRestaurantGetCalendarMarkSet(calendar) {
+function ticketRestaurantGetCalendarMarkSet(calendar, calendarMarks = getTicketRestaurantCalendarMarks()) {
   const normalizedCalendar = normalizeTicketCalendar(calendar);
-  return new Set(getTicketRestaurantCalendarMarks()
+  return new Set((Array.isArray(calendarMarks) ? calendarMarks : [])
     .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
     .map(item => parseTicketDate(item.date))
     .filter(Boolean));
@@ -1922,14 +1909,12 @@ function findTicketRestaurantPersonByEmployee(employeeNumber) {
 
 function employeeHasTicketRightOnDate(employeeNumber, date, calendar = null) {
   const normalizedCalendar = normalizeTicketCalendar(calendar || (findTicketRestaurantPersonByEmployee(employeeNumber) || {}).calendar);
-  if (!isKnownTicketCalendar(normalizedCalendar)) return false;
   const iso = parseTicketDate(date);
-  if (!iso) return false;
-  const localDate = ticketRestaurantDateToLocalDate(iso);
-  if (!localDate) return false;
-  const weekday = localDate.getDay();
-  if (weekday === 0 || weekday === 6) return false;
-  return !ticketRestaurantGetCalendarMarkSet(normalizedCalendar).has(iso);
+  return TicketCalendarDomain.calendarHasTicketRightOnDate({
+    calendarName: normalizedCalendar,
+    date: iso,
+    noTicketDates: ticketRestaurantGetCalendarMarkSet(normalizedCalendar, getTicketRestaurantCalendarMarks())
+  });
 }
 
 function getEffectiveAbsenceDaysForEmployee(employeeNumber, absence, calendar, visibleMonth = null) {
@@ -1974,42 +1959,21 @@ function formatTicketRestaurantAbsenceImpactDetail(detail) {
 }
 
 function ticketRestaurantWorkingDays(month, year, calendar) {
-  const normalizedCalendar = normalizeTicketCalendar(calendar);
-  if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
-  const marks = new Set(getTicketRestaurantCalendarMarks()
-    .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
-    .map(item => parseTicketDate(item.date))
-    .filter(Boolean));
-  const totalDays = new Date(year, month, 0).getDate();
-  let count = 0;
-  for (let day = 1; day <= totalDays; day += 1) {
-    const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const weekday = new Date(year, month - 1, day).getDay();
-    const weekend = weekday === 0 || weekday === 6;
-    const noTicket = marks.has(date);
-    if (weekend) continue;
-    if (noTicket) continue;
-    count += 1;
-  }
-  return count;
+  return TicketCalendarDomain.countTicketDaysForCalendar({
+    calendarName: calendar,
+    year,
+    month,
+    calendarMarks: getTicketRestaurantCalendarMarks()
+  });
 }
 
 function ticketRestaurantNoTicketWeekdays(month, year, calendar) {
-  const normalizedCalendar = normalizeTicketCalendar(calendar);
-  if (!isKnownTicketCalendar(normalizedCalendar)) return 0;
-  const marks = new Set(getTicketRestaurantCalendarMarks()
-    .filter(item => normalizeTicketCalendar(item && item.calendar) === normalizedCalendar && item && item.noTicket)
-    .map(item => parseTicketDate(item.date))
-    .filter(Boolean));
-  let count = 0;
-  marks.forEach(date => {
-    const markYear = Number(date.slice(0, 4));
-    const markMonth = Number(date.slice(5, 7));
-    if (markYear !== year || markMonth !== month) return;
-    const weekday = new Date(markYear, markMonth - 1, Number(date.slice(8, 10))).getDay();
-    if (weekday !== 0 && weekday !== 6) count += 1;
+  return TicketCalendarDomain.countNoTicketWeekdaysForCalendar({
+    calendarName: calendar,
+    year,
+    month,
+    calendarMarks: getTicketRestaurantCalendarMarks()
   });
-  return count;
 }
 
 function calculateTicketRestaurantCompute(period = null) {
