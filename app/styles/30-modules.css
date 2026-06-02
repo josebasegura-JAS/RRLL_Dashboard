@@ -387,10 +387,10 @@
   font-size: 12px;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .task,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .column,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .workflow-columns,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .workflow-closed-details {
+body.rrll-view-module #gestor-tareas .task,
+body.rrll-view-module #gestor-tareas .column,
+body.rrll-view-module #gestor-tareas .workflow-columns,
+body.rrll-view-module #gestor-tareas .workflow-closed-details {
   display: none !important;
 }
 
@@ -423,8 +423,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .workflow-closed-
 }
 
 /* Fase 4.3 - Peticiones profesionales + dashboard más fino */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas.rrll-pro-module,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones.rrll-pro-module,
+body.rrll-view-module #gestor-tareas.rrll-pro-module,
+body.rrll-view-module #gestor-peticiones.rrll-pro-module,
 #gestor-tareas.rrll-pro-module,
 #gestor-peticiones.rrll-pro-module {
   background: linear-gradient(180deg, rgba(15, 23, 32, .98), rgba(8, 13, 20, .98)) !important;
@@ -434,8 +434,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones.rrll-pro-modu
   color: var(--text) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas.rrll-pro-module > summary,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones.rrll-pro-module > summary,
+body.rrll-view-module #gestor-tareas.rrll-pro-module > summary,
+body.rrll-view-module #gestor-peticiones.rrll-pro-module > summary,
 #gestor-tareas.rrll-pro-module > summary,
 #gestor-peticiones.rrll-pro-module > summary {
   background: rgba(10, 15, 23, .92) !important;
@@ -443,23 +443,23 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones.rrll-pro-modu
   color: var(--text) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .rrll-pro-task-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .rrll-pro-task-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .rrll-pro-list-card,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .rrll-pro-list-card {
+body.rrll-view-module #gestor-tareas .rrll-pro-task-form,
+body.rrll-view-module #gestor-peticiones .rrll-pro-task-form,
+body.rrll-view-module #gestor-tareas .rrll-pro-list-card,
+body.rrll-view-module #gestor-peticiones .rrll-pro-list-card {
   background: rgba(255,255,255,.030) !important;
   border: 1px solid rgba(255,255,255,.08) !important;
   box-shadow: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .rrll-pro-field input,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .rrll-pro-field select,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .rrll-pro-field textarea,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .rrll-pro-field input,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .rrll-pro-field select,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .rrll-pro-field textarea,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .rrll-pro-search-wrap input,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .rrll-pro-search-wrap input {
+body.rrll-view-module #gestor-tareas .rrll-pro-field input,
+body.rrll-view-module #gestor-tareas .rrll-pro-field select,
+body.rrll-view-module #gestor-tareas .rrll-pro-field textarea,
+body.rrll-view-module #gestor-peticiones .rrll-pro-field input,
+body.rrll-view-module #gestor-peticiones .rrll-pro-field select,
+body.rrll-view-module #gestor-peticiones .rrll-pro-field textarea,
+body.rrll-view-module #gestor-tareas .rrll-pro-search-wrap input,
+body.rrll-view-module #gestor-peticiones .rrll-pro-search-wrap input {
   background: rgba(8, 13, 20, .86) !important;
   color: rgba(248,250,252,.94) !important;
   border: 1px solid rgba(255,255,255,.10) !important;
@@ -500,12 +500,12 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .rrll-pro-sea
   accent-color: #ef4444 !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .enhanced-petition-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .petition-type-row,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones > textarea,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .workflow-columns,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .workflow-closed-details,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones > .muted {
+body.rrll-view-module #gestor-peticiones .enhanced-petition-form,
+body.rrll-view-module #gestor-peticiones .petition-type-row,
+body.rrll-view-module #gestor-peticiones > textarea,
+body.rrll-view-module #gestor-peticiones .workflow-columns,
+body.rrll-view-module #gestor-peticiones .workflow-closed-details,
+body.rrll-view-module #gestor-peticiones > .muted {
   display: none !important;
 }
 
@@ -622,8 +622,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones > .muted {
 }
 
 /* Fase 4.4 - Actas y Teletrabajo con formato profesional + dashboard más sobrio */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas.rrll-pro-module,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo.rrll-pro-module,
+body.rrll-view-module #gestor-actas.rrll-pro-module,
+body.rrll-view-module #gestor-teletrabajo.rrll-pro-module,
 #gestor-actas.rrll-pro-module,
 #gestor-teletrabajo.rrll-pro-module {
   background: linear-gradient(180deg, rgba(15, 23, 32, .98), rgba(8, 13, 20, .98)) !important;
@@ -633,8 +633,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo.rrll-pro-mod
   color: var(--text) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas.rrll-pro-module > summary,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo.rrll-pro-module > summary,
+body.rrll-view-module #gestor-actas.rrll-pro-module > summary,
+body.rrll-view-module #gestor-teletrabajo.rrll-pro-module > summary,
 #gestor-actas.rrll-pro-module > summary,
 #gestor-teletrabajo.rrll-pro-module > summary {
   background: rgba(10, 15, 23, .92) !important;
@@ -642,23 +642,23 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo.rrll-pro-mod
   color: var(--text) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas .rrll-pro-task-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-task-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas .rrll-pro-list-card,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-list-card {
+body.rrll-view-module #gestor-actas .rrll-pro-task-form,
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-task-form,
+body.rrll-view-module #gestor-actas .rrll-pro-list-card,
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-card {
   background: rgba(255,255,255,.030) !important;
   border: 1px solid rgba(255,255,255,.08) !important;
   box-shadow: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas .rrll-pro-field input,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas .rrll-pro-field select,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas .rrll-pro-field textarea,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-field input,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-field select,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-field textarea,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas .rrll-pro-search-wrap input,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-search-wrap input {
+body.rrll-view-module #gestor-actas .rrll-pro-field input,
+body.rrll-view-module #gestor-actas .rrll-pro-field select,
+body.rrll-view-module #gestor-actas .rrll-pro-field textarea,
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-field input,
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-field select,
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-field textarea,
+body.rrll-view-module #gestor-actas .rrll-pro-search-wrap input,
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-search-wrap input {
   background: rgba(8, 13, 20, .86) !important;
   color: rgba(248,250,252,.94) !important;
   border: 1px solid rgba(255,255,255,.10) !important;
@@ -718,14 +718,14 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-se
 }
 
 /* Oculta restos del formato antiguo si el HTML anterior sigue en caché o mezclado */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas .minutes-columns,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas > textarea,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas > .form-inline,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas > .muted,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-columns,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo > .telework-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo > .telework-days-row,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo > .muted {
+body.rrll-view-module #gestor-actas .minutes-columns,
+body.rrll-view-module #gestor-actas > textarea,
+body.rrll-view-module #gestor-actas > .form-inline,
+body.rrll-view-module #gestor-actas > .muted,
+body.rrll-view-module #gestor-teletrabajo .telework-columns,
+body.rrll-view-module #gestor-teletrabajo > .telework-form,
+body.rrll-view-module #gestor-teletrabajo > .telework-days-row,
+body.rrll-view-module #gestor-teletrabajo > .muted {
   display: none !important;
 }
 
@@ -797,8 +797,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo > .muted {
 }
 
 /* Fase 4.5 - Comité y Paritaria con formato profesional */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-comite,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria,
+body.rrll-view-module #gestor-comite,
+body.rrll-view-module #gestor-paritaria,
 #gestor-comite,
 #gestor-paritaria {
   background: linear-gradient(180deg, rgba(15, 23, 32, .98), rgba(8, 13, 20, .98)) !important;
@@ -808,8 +808,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria,
   color: var(--text) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-comite > summary,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria > summary,
+body.rrll-view-module #gestor-comite > summary,
+body.rrll-view-module #gestor-paritaria > summary,
 #gestor-comite > summary,
 #gestor-paritaria > summary,
 #gestor-comite .committee-subsection > summary,
@@ -1092,8 +1092,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria > summary,
 
 /* Fase 4.7 - Corrección específica de Sesiones Comité/Paritaria
    Evita superficies blancas heredadas en formularios, importación e históricos. */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria,
+body.rrll-view-module #gestor-sesiones-comite,
+body.rrll-view-module #gestor-sesiones-paritaria,
 #gestor-sesiones-comite,
 #gestor-sesiones-paritaria {
   background: transparent !important;
@@ -1102,8 +1102,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria,
 
 #gestor-sesiones-comite > .session-form,
 #gestor-sesiones-paritaria > .session-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite > .session-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .session-form {
+body.rrll-view-module #gestor-sesiones-comite > .session-form,
+body.rrll-view-module #gestor-sesiones-paritaria > .session-form {
   display: grid !important;
   grid-template-columns: 180px minmax(220px, .8fr) minmax(280px, 1fr) auto !important;
   gap: 12px !important;
@@ -1118,8 +1118,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .se
 
 #gestor-sesiones-comite > .two-buttons,
 #gestor-sesiones-paritaria > .two-buttons,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite > .two-buttons,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .two-buttons {
+body.rrll-view-module #gestor-sesiones-comite > .two-buttons,
+body.rrll-view-module #gestor-sesiones-paritaria > .two-buttons {
   display: flex !important;
   justify-content: flex-start !important;
   gap: 10px !important;
@@ -1132,8 +1132,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .tw
 
 #gestor-sesiones-comite > .two-buttons .secondary,
 #gestor-sesiones-paritaria > .two-buttons .secondary,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite > .two-buttons .secondary,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .two-buttons .secondary {
+body.rrll-view-module #gestor-sesiones-comite > .two-buttons .secondary,
+body.rrll-view-module #gestor-sesiones-paritaria > .two-buttons .secondary {
   width: auto !important;
   min-height: 42px !important;
   padding: 0 16px !important;
@@ -1152,8 +1152,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .tw
 
 #newCommitteeSessionNotes,
 #newParitariaSessionNotes,
-body:is(.rrll-view-module, .phase4-view-module) #newCommitteeSessionNotes,
-body:is(.rrll-view-module, .phase4-view-module) #newParitariaSessionNotes {
+body.rrll-view-module #newCommitteeSessionNotes,
+body.rrll-view-module #newParitariaSessionNotes {
   display: block !important;
   width: calc(100% - 36px) !important;
   min-height: 74px !important;
@@ -1168,8 +1168,8 @@ body:is(.rrll-view-module, .phase4-view-module) #newParitariaSessionNotes {
 
 #gestor-sesiones-comite > .session-columns,
 #gestor-sesiones-paritaria > .session-columns,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite > .session-columns,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .session-columns {
+body.rrll-view-module #gestor-sesiones-comite > .session-columns,
+body.rrll-view-module #gestor-sesiones-paritaria > .session-columns {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
   gap: 16px !important;
@@ -1180,8 +1180,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .se
 
 #gestor-sesiones-comite .session-panel,
 #gestor-sesiones-paritaria .session-panel,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite .session-panel,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .session-panel {
+body.rrll-view-module #gestor-sesiones-comite .session-panel,
+body.rrll-view-module #gestor-sesiones-paritaria .session-panel {
   background: var(--rrll-bg-card-dark) !important;
   border: 1px solid var(--rrll-border-soft-dark) !important;
   border-radius: 16px !important;
@@ -1194,10 +1194,10 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .sess
 #gestor-sesiones-paritaria .session-panel .column-header,
 #gestor-sesiones-comite .session-year-header,
 #gestor-sesiones-paritaria .session-year-header,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite .session-panel .column-header,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .session-panel .column-header,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite .session-year-header,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .session-year-header {
+body.rrll-view-module #gestor-sesiones-comite .session-panel .column-header,
+body.rrll-view-module #gestor-sesiones-paritaria .session-panel .column-header,
+body.rrll-view-module #gestor-sesiones-comite .session-year-header,
+body.rrll-view-module #gestor-sesiones-paritaria .session-year-header {
   background: var(--rrll-bg-table-head-dark) !important;
   border-bottom: 1px solid var(--rrll-border-soft-dark) !important;
   color: var(--rrll-text-main-dark) !important;
@@ -1216,10 +1216,10 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .sess
 #gestor-sesiones-paritaria .session-card,
 #gestor-sesiones-comite .session-card.closed,
 #gestor-sesiones-paritaria .session-card.closed,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite .session-card,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .session-card,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite .session-card.closed,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .session-card.closed {
+body.rrll-view-module #gestor-sesiones-comite .session-card,
+body.rrll-view-module #gestor-sesiones-paritaria .session-card,
+body.rrll-view-module #gestor-sesiones-comite .session-card.closed,
+body.rrll-view-module #gestor-sesiones-paritaria .session-card.closed {
   background: var(--rrll-bg-table-row-dark) !important;
   border: 1px solid var(--rrll-border-soft-dark) !important;
   color: var(--rrll-text-secondary-dark) !important;
@@ -1242,8 +1242,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .sess
 
 #gestor-sesiones-comite .session-year-block,
 #gestor-sesiones-paritaria .session-year-block,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite .session-year-block,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .session-year-block {
+body.rrll-view-module #gestor-sesiones-comite .session-year-block,
+body.rrll-view-module #gestor-sesiones-paritaria .session-year-block {
   background: rgba(255,255,255,.025) !important;
   border: 1px solid rgba(255,255,255,.075) !important;
   border-radius: 14px !important;
@@ -1258,12 +1258,12 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria .sess
 @media (max-width: 1250px) {
   #gestor-sesiones-comite > .session-form,
   #gestor-sesiones-paritaria > .session-form,
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite > .session-form,
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .session-form,
+  body.rrll-view-module #gestor-sesiones-comite > .session-form,
+  body.rrll-view-module #gestor-sesiones-paritaria > .session-form,
   #gestor-sesiones-comite > .session-columns,
   #gestor-sesiones-paritaria > .session-columns,
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-comite > .session-columns,
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-sesiones-paritaria > .session-columns {
+  body.rrll-view-module #gestor-sesiones-comite > .session-columns,
+  body.rrll-view-module #gestor-sesiones-paritaria > .session-columns {
     grid-template-columns: 1fr !important;
   }
 }
@@ -1281,8 +1281,8 @@ body,
 main,
 .content-right,
 .dashboard-layout,
-body:is(.rrll-view-module, .phase4-view-module),
-body:is(.rrll-view-home, .phase4-view-home) {
+body.rrll-view-module,
+body.rrll-view-home {
   background:
     radial-gradient(circle at 18% 0%, rgba(59,130,246,.09), transparent 28%),
     radial-gradient(circle at 88% 8%, rgba(239,68,68,.055), transparent 26%),

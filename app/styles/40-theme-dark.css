@@ -143,19 +143,19 @@ html[data-theme="dark"] .year-title {
 }
 
 /* Interiores de gestores: gris consistente */
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module),
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) > div,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) section,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) article,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .module-body,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .card-body,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .rrll-pro-task-shell,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .workflow-columns,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .minutes-columns,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .telework-columns,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .session-columns,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .committee-section,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .paritaria-section {
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module > div,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module section,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module article,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .module-body,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .card-body,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .rrll-pro-task-shell,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .workflow-columns,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .minutes-columns,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .telework-columns,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .session-columns,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .committee-section,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .paritaria-section {
   background-color: transparent !important;
   color: var(--rrll-text) !important;
 }
@@ -853,7 +853,7 @@ html[data-theme="dark"] .app,
 html[data-theme="dark"] .dashboard-layout,
 html[data-theme="dark"] .rrll-main,
 html[data-theme="dark"] .content-right,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) .content-right {
+html[data-theme="dark"] body.rrll-view-module .content-right {
   background:
     radial-gradient(circle at 18% 0%, rgba(96,165,250,.045), transparent 30%),
     linear-gradient(135deg, #1e2430 0%, var(--rrll-bg-app-dark) 45%, #1b222e 100%) !important;
@@ -907,26 +907,26 @@ html[data-theme="dark"] .modal-card {
   box-shadow: 0 18px 42px rgba(3,7,18,.20) !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module),
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) > div,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) section,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) article,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .rrll-pro-task-shell,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .rrll-pro-table-wrap,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .professional-table-wrap,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .workflow-columns,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .minutes-columns,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .telework-columns,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) .session-columns {
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module > div,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module section,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module article,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .rrll-pro-task-shell,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .rrll-pro-table-wrap,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .professional-table-wrap,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .workflow-columns,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .minutes-columns,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .telework-columns,
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module .session-columns {
   background-color: transparent !important;
   color: var(--text) !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(.rrll-active-module, .phase4-active-module) > summary,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) details.module-card > summary,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) .module-header,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) .professional-header,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) .rrll-pro-list-toolbar {
+html[data-theme="dark"] body.rrll-view-module .rrll-active-module > summary,
+html[data-theme="dark"] body.rrll-view-module details.module-card > summary,
+html[data-theme="dark"] body.rrll-view-module .module-header,
+html[data-theme="dark"] body.rrll-view-module .professional-header,
+html[data-theme="dark"] body.rrll-view-module .rrll-pro-list-toolbar {
   background: linear-gradient(180deg, rgba(47,55,68,.78), rgba(39,46,58,.88)) !important;
   color: var(--text) !important;
   border-color: rgba(148,163,184,.15) !important;
@@ -1113,7 +1113,7 @@ html[data-theme="dark"] *::-webkit-scrollbar-thumb {
 /* =========================================================
    Fase 5.34 — Homogeneización dark por módulos (baseline: Licencias/Excedencias)
    ========================================================= */
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(
+html[data-theme="dark"] body.rrll-view-module :is(
   #gestor-tareas,
   #gestor-peticiones,
   #gestor-actas,
@@ -1155,7 +1155,7 @@ html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(
   color: var(--rrll-text) !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(
+html[data-theme="dark"] body.rrll-view-module :is(
   #gestor-tareas,
   #gestor-peticiones,
   #gestor-actas,
@@ -1374,39 +1374,39 @@ html[data-theme="dark"] #gestor-peticiones :is(.toolbar-actions, .export-buttons
 
 
 /* Ajuste visual localizado: filtros de estado en Puntos Comité (alineado con Actas). */
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-comite .rrll-pro-tabs button {
+html[data-theme="dark"] body.rrll-view-module #gestor-puntos-comite .rrll-pro-tabs button {
   background: rgba(52, 59, 70, 0.72) !important;
   color: var(--rrll-text-main-dark) !important;
   border: 1px solid var(--rrll-border-soft-dark) !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-comite .rrll-pro-tabs button.active,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-comite .rrll-pro-tabs button:hover {
+html[data-theme="dark"] body.rrll-view-module #gestor-puntos-comite .rrll-pro-tabs button.active,
+html[data-theme="dark"] body.rrll-view-module #gestor-puntos-comite .rrll-pro-tabs button:hover {
   background: rgba(239, 43, 45, 0.16) !important;
   color: #ffffff !important;
   border-color: rgba(239, 43, 45, 0.4) !important;
 }
 
 /* Ajuste visual localizado: filtros de estado en Puntos Paritaria (alineado con Actas). */
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-paritaria .rrll-pro-tabs button {
+html[data-theme="dark"] body.rrll-view-module #gestor-puntos-paritaria .rrll-pro-tabs button {
   background: rgba(52, 59, 70, 0.72) !important;
   color: var(--rrll-text-main-dark) !important;
   border: 1px solid var(--rrll-border-soft-dark) !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-paritaria .rrll-pro-tabs button.active,
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-paritaria .rrll-pro-tabs button:hover {
+html[data-theme="dark"] body.rrll-view-module #gestor-puntos-paritaria .rrll-pro-tabs button.active,
+html[data-theme="dark"] body.rrll-view-module #gestor-puntos-paritaria .rrll-pro-tabs button:hover {
   background: rgba(239, 43, 45, 0.16) !important;
   color: #ffffff !important;
   border-color: rgba(239, 43, 45, 0.4) !important;
 }
 
 /* Comité > Sesiones (dark): ocultar cheurones visuales blancos y oscurecer cabeceras de años del histórico. */
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-comite #gestor-sesiones-comite .rrll-session-panel-chevron {
+html[data-theme="dark"] body.rrll-view-module #gestor-comite #gestor-sesiones-comite .rrll-session-panel-chevron {
   display: none !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-comite #gestor-sesiones-comite .session-year-header {
+html[data-theme="dark"] body.rrll-view-module #gestor-comite #gestor-sesiones-comite .session-year-header {
   background: #343b46 !important;
   color: var(--rrll-text-main-dark) !important;
   border: 1px solid var(--rrll-border-soft-dark) !important;
@@ -1414,22 +1414,22 @@ html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-
   padding: 10px 12px !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-comite #gestor-sesiones-comite .session-year-header:hover {
+html[data-theme="dark"] body.rrll-view-module #gestor-comite #gestor-sesiones-comite .session-year-header:hover {
   background: #303746 !important;
   border-color: rgba(148, 163, 184, 0.32) !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-comite #gestor-sesiones-comite .session-year-title {
+html[data-theme="dark"] body.rrll-view-module #gestor-comite #gestor-sesiones-comite .session-year-title {
   background: transparent !important;
   color: var(--rrll-text-main-dark) !important;
 }
 
 /* Paritaria > Sesiones (dark): ocultar controles blancos en cabeceras y oscurecer años del histórico. */
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria #gestor-sesiones-paritaria .rrll-session-panel-chevron {
+html[data-theme="dark"] body.rrll-view-module #gestor-paritaria #gestor-sesiones-paritaria .rrll-session-panel-chevron {
   display: none !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria #gestor-sesiones-paritaria .session-year-header {
+html[data-theme="dark"] body.rrll-view-module #gestor-paritaria #gestor-sesiones-paritaria .session-year-header {
   background: #343b46 !important;
   color: var(--rrll-text-main-dark) !important;
   border: 1px solid var(--rrll-border-soft-dark) !important;
@@ -1437,18 +1437,18 @@ html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-
   padding: 10px 12px !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria #gestor-sesiones-paritaria .session-year-header:hover {
+html[data-theme="dark"] body.rrll-view-module #gestor-paritaria #gestor-sesiones-paritaria .session-year-header:hover {
   background: #303746 !important;
   border-color: rgba(148, 163, 184, 0.32) !important;
 }
 
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) #gestor-paritaria #gestor-sesiones-paritaria .session-year-title {
+html[data-theme="dark"] body.rrll-view-module #gestor-paritaria #gestor-sesiones-paritaria .session-year-title {
   background: transparent !important;
   color: var(--rrll-text-main-dark) !important;
 }
 
 /* Ajuste visual localizado (dark): unificar borde de cabeceras con el acabado de Vinculograma. */
-html[data-theme="dark"] body:is(.rrll-view-module, .phase4-view-module) :is(
+html[data-theme="dark"] body.rrll-view-module :is(
   #gestor-tareas,
   #gestor-peticiones,
   #gestor-actas,

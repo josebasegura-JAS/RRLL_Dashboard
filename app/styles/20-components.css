@@ -151,16 +151,16 @@ body {
   background: linear-gradient(180deg, rgba(18,25,34,.98), rgba(9,14,20,.98)) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right > .module-card:is(.rrll-active-module, .phase4-active-module) {
+body.rrll-view-module .content-right > .module-card.rrll-active-module {
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
   border-radius: 0 !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .module-card > summary,
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > summary,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > summary {
+body.rrll-view-module .module-card > summary,
+body.rrll-view-module .committee-subsection > summary,
+body.rrll-view-module .paritaria-subsection > summary {
   background: linear-gradient(180deg, rgba(16,22,30,.98), rgba(11,16,22,.98)) !important;
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
@@ -271,9 +271,9 @@ select:focus {
   box-shadow: var(--shadow-soft) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .module-card:is(.rrll-active-module, .phase4-active-module) > textarea,
-body:is(.rrll-view-module, .phase4-view-module) .committee-subsection > textarea,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-subsection > textarea {
+body.rrll-view-module .module-card.rrll-active-module > textarea,
+body.rrll-view-module .committee-subsection > textarea,
+body.rrll-view-module .paritaria-subsection > textarea {
   background: rgba(8,13,19,.92) !important;
   min-height: 86px !important;
 }
@@ -542,25 +542,25 @@ th {
 }
 
 /* Densidad visual: menos tarjetas gigantes */
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-task-form,
-body:is(.rrll-view-module, .phase4-view-module) .enhanced-petition-form,
-body:is(.rrll-view-module, .phase4-view-module) .agenda-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .paritaria-form-v18,
-body:is(.rrll-view-module, .phase4-view-module) .session-form,
-body:is(.rrll-view-module, .phase4-view-module) .telework-form,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-actas:is(.rrll-active-module, .phase4-active-module) > .form-inline {
+body.rrll-view-module .enhanced-task-form,
+body.rrll-view-module .enhanced-petition-form,
+body.rrll-view-module .agenda-form-v18,
+body.rrll-view-module .paritaria-form-v18,
+body.rrll-view-module .session-form,
+body.rrll-view-module .telework-form,
+body.rrll-view-module #gestor-actas.rrll-active-module > .form-inline {
   padding: 14px !important;
   gap: 10px !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .content-right {
+body.rrll-view-module .content-right {
   padding: 14px 22px 28px !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) .workflow-columns,
-body:is(.rrll-view-module, .phase4-view-module) .minutes-columns,
-body:is(.rrll-view-module, .phase4-view-module) .telework-columns,
-body:is(.rrll-view-module, .phase4-view-module) .session-columns {
+body.rrll-view-module .workflow-columns,
+body.rrll-view-module .minutes-columns,
+body.rrll-view-module .telework-columns,
+body.rrll-view-module .session-columns {
   margin-top: 14px !important;
 }
 

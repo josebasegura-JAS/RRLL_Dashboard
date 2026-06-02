@@ -205,92 +205,92 @@ html[data-theme="light"] body :is(.modal-overlay, .rrll-pro-modal-overlay) {
 }
 
 /* Criterios RRLL en modo claro: alinear fondos/paneles con el resto de módulos claros. */
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios {
+html[data-theme="light"] body.rrll-view-module #gestor-criterios {
   background: var(--rrll-bg-app-light) !important;
   border-color: var(--rrll-border-light) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios > .rrll-pro-task-shell,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios .rrll-pro-task-head,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios .criteria-list-card,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios .criteria-form,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios .criteria-modal-box {
+html[data-theme="light"] body.rrll-view-module #gestor-criterios > .rrll-pro-task-shell,
+html[data-theme="light"] body.rrll-view-module #gestor-criterios .rrll-pro-task-head,
+html[data-theme="light"] body.rrll-view-module #gestor-criterios .criteria-list-card,
+html[data-theme="light"] body.rrll-view-module #gestor-criterios .criteria-form,
+html[data-theme="light"] body.rrll-view-module #gestor-criterios .criteria-modal-box {
   background: var(--rrll-bg-panel-light) !important;
   color: var(--rrll-text-main-light) !important;
   border-color: var(--rrll-border-light) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios :is(.module-title, .rrll-pro-task-head h2) {
+html[data-theme="light"] body.rrll-view-module #gestor-criterios :is(.module-title, .rrll-pro-task-head h2) {
   color: var(--rrll-text-main-light) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios :is(.rrll-pro-subtitle, .criteria-page-info, .criteria-search) {
+html[data-theme="light"] body.rrll-view-module #gestor-criterios :is(.rrll-pro-subtitle, .criteria-page-info, .criteria-search) {
   color: var(--rrll-text-secondary-light) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios :is(.criteria-toolbar, .rrll-pro-form-actions) {
+html[data-theme="light"] body.rrll-view-module #gestor-criterios :is(.criteria-toolbar, .rrll-pro-form-actions) {
   border-color: var(--rrll-border-light) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .criteria-search input) {
+html[data-theme="light"] body.rrll-view-module #gestor-criterios :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .criteria-search input) {
   background: var(--rrll-light-input-bg) !important;
   color: var(--rrll-text-main-light) !important;
   border-color: var(--rrll-light-border-default) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios :is(.rrll-pro-field input::placeholder, .rrll-pro-field textarea::placeholder, .criteria-search input::placeholder) {
+html[data-theme="light"] body.rrll-view-module #gestor-criterios :is(.rrll-pro-field input::placeholder, .rrll-pro-field textarea::placeholder, .criteria-search input::placeholder) {
   color: var(--rrll-text-muted-light) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-criterios .criteria-page-btn {
+html[data-theme="light"] body.rrll-view-module #gestor-criterios .criteria-page-btn {
   background: var(--rrll-bg-card-light) !important;
   color: var(--rrll-text-main-light) !important;
   border-color: var(--rrll-border-light) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-columns {
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-columns {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 16px !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-column-active {
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-column-active {
   grid-column: 1 / -1 !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-history-card {
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card {
   display: block !important;
   margin-top: 16px !important;
   overflow: hidden !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-history-card > summary.licencias-toolbar {
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar {
   cursor: pointer !important;
   list-style: none !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-history-card > summary.licencias-toolbar::-webkit-details-marker {
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar::-webkit-details-marker {
   display: none !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-history-card > summary.licencias-toolbar h3::before {
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar h3::before {
   content: "▸";
   display: inline-block;
   margin-right: 8px;
   transition: transform .16s ease;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-history-card[open] > summary.licencias-toolbar h3::before {
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card[open] > summary.licencias-toolbar h3::before {
   transform: rotate(90deg);
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-history-card:not([open]) #licHistoryList,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-history-card:not([open]) #licHistoryEmpty {
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card:not([open]) #licHistoryList,
+html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card:not([open]) #licHistoryEmpty {
   display: none !important;
 }
 
 @media (max-width: 1250px) {
-  html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-licencias .licencias-columns {
+  html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-columns {
     grid-template-columns: 1fr !important;
   }
 }
@@ -358,7 +358,7 @@ html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor
   margin-left: auto;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-button.rrll-icon-only {
+body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-button.rrll-icon-only {
   width: 38px !important;
   min-width: 38px !important;
   max-width: 38px !important;
@@ -375,7 +375,7 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .plantilla-too
   flex: 0 0 38px !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-button.rrll-icon-only > span {
+body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-button.rrll-icon-only > span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -384,8 +384,8 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .plantilla-too
   pointer-events: none;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button.plantilla-text-action,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .rrll-pro-task-head .rrll-pro-list-actions .rrll-pro-new-button {
+body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button.plantilla-text-action,
+body.rrll-view-module #gestor-plantilla .rrll-pro-task-head .rrll-pro-list-actions .rrll-pro-new-button {
   width: auto !important;
   max-width: 100%;
   min-width: max-content !important;
@@ -398,7 +398,7 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .rrll-pro-task
   overflow: visible;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button:not(.plantilla-text-action):not(.rrll-pro-new-button) {
+body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button:not(.plantilla-text-action):not(.rrll-pro-new-button) {
   width: 38px !important;
   min-width: 38px !important;
   max-width: 38px !important;
@@ -472,7 +472,7 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla .plantilla-too
 
 /* Plantilla (modo claro): neutraliza fondos grafito heredados sin tocar la tabla principal. */
 html[data-theme="light"] body[data-active-module="gestor-plantilla"] #gestor-plantilla,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-plantilla {
+html[data-theme="light"] body.rrll-view-module #gestor-plantilla {
   background: var(--rrll-light-app-bg) !important;
   border-color: var(--rrll-light-border-soft) !important;
 }
@@ -916,7 +916,7 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
 }
 
 /* Teletrabajo: acciones inferiores limpias y responsive, acotadas al módulo. */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions {
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions {
   display: flex !important;
   flex-wrap: wrap !important;
   justify-content: flex-end !important;
@@ -931,7 +931,7 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-li
   overflow: visible !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button {
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button {
   box-sizing: border-box !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -951,11 +951,11 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-li
   vertical-align: middle !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button:not(.rrll-icon-only) {
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button:not(.rrll-icon-only) {
   min-width: max-content !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-icon-only {
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-icon-only {
   flex: 0 0 42px !important;
   width: 42px !important;
   min-width: 42px !important;
@@ -965,37 +965,37 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-li
   line-height: 1 !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-new-request-icon {
+body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-new-request-icon {
   font-size: 20px !important;
 }
 
 @media (max-width: 1180px) {
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions {
+  body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions {
     justify-content: flex-start !important;
     padding-top: 12px !important;
   }
 }
 
 @media (max-width: 640px) {
-  body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button:not(.rrll-icon-only) {
+  body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button:not(.rrll-icon-only) {
     flex: 1 1 100% !important;
     width: 100% !important;
   }
 }
 
 /* Teletrabajo: distribución de 6 columnas tras retirar Acciones de la tabla principal. */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table th:nth-child(1),
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table td:nth-child(1) { width: 34% !important; }
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table th:nth-child(2),
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table td:nth-child(2) { width: 16% !important; }
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table th:nth-child(3),
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table td:nth-child(3) { width: 13% !important; }
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table th:nth-child(4),
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table td:nth-child(4) { width: 11% !important; }
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table th:nth-child(5),
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table td:nth-child(5) { width: 14% !important; }
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table th:nth-child(6),
-body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-table td:nth-child(6) { width: 12% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(1),
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(1) { width: 34% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(2),
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(2) { width: 16% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(3),
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(3) { width: 13% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(4),
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(4) { width: 11% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(5),
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(5) { width: 14% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(6),
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { width: 12% !important; }
 
 /* Header: logo corporativo horizontal de Relaciones Laborales.
    Regla única para inicio y módulos: evita que al cambiar de vista reaparezca
@@ -1228,47 +1228,47 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .telework-ta
 /* Dashboard/Home density pass for 14" laptop screens.
    Scope is intentionally limited to the Home dashboard so modules, tables,
    sidebar, modals and navigation keep their established sizing. */
-body:is(.rrll-view-home, .phase4-view-home) .rrll-main main {
+body.rrll-view-home .rrll-main main {
   padding: 10px 18px 22px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-main .top-strip,
-body:is(.rrll-view-home, .phase4-view-home) .top-strip {
+body.rrll-view-home .rrll-main .top-strip,
+body.rrll-view-home .top-strip {
   min-height: 48px !important;
   padding-top: 6px !important;
   padding-bottom: 6px !important;
   gap: 17px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .header-logo-wrapper {
+body.rrll-view-home .header-logo-wrapper {
   width: clamp(146px, 22.7vw, 227px) !important;
   max-width: 227px !important;
   min-width: 0 !important;
   padding: 3px 7px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .top-title h1 {
+body.rrll-view-home .top-title h1 {
   font-size: 19px !important;
   line-height: 1.08 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .top-title p {
+body.rrll-view-home .top-title p {
   margin-top: 1px !important;
   font-size: 12px !important;
   line-height: 1.2 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard {
+body.rrll-view-home .rrll-dashboard {
   gap: 12px !important;
   margin-bottom: 12px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-grid {
+body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-grid {
   gap: 10px !important;
   margin-bottom: 10px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card {
+body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card {
   grid-template-columns: 34px minmax(0, 1fr) 38px !important;
   min-height: 112px !important;
   padding: 10px 11px !important;
@@ -1276,200 +1276,200 @@ body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metr
   box-shadow: 0 12px 26px rgba(17, 24, 39, .16) !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card .phase4-metric-icon {
+body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card .phase4-metric-icon {
   width: 30px !important;
   height: 30px !important;
   border-radius: 9px !important;
   font-size: 16px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card span:not(.phase4-metric-icon) {
+body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card span:not(.phase4-metric-icon) {
   font-size: 9.8px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card strong {
+body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card strong {
   font-size: 21px !important;
   line-height: 1 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-card small {
+body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card small {
   font-size: 10.5px !important;
   line-height: 1.18 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-mini-donut {
+body.rrll-view-home .rrll-mini-donut {
   width: 34px !important;
   height: 34px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-mini-donut::after {
+body.rrll-view-home .rrll-mini-donut::after {
   inset: 8px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-metric-legend {
+body.rrll-view-home .rrll-metric-legend {
   gap: 4px 7px !important;
   margin-top: 7px !important;
   padding-top: 7px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-metric-legend-item,
-body:is(.rrll-view-home, .phase4-view-home) .rrll-metric-legend-item b,
-body:is(.rrll-view-home, .phase4-view-home) .rrll-empty-legend {
+body.rrll-view-home .rrll-metric-legend-item,
+body.rrll-view-home .rrll-metric-legend-item b,
+body.rrll-view-home .rrll-empty-legend {
   font-size: 9.5px !important;
   line-height: 1.05 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-grid-layout {
+body.rrll-view-home .rrll-dashboard .rrll-dashboard-grid-layout {
   gap: 12px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-panel {
+body.rrll-view-home .rrll-dashboard .rrll-dashboard-panel {
   padding: 13px !important;
   border-radius: 16px !important;
   box-shadow: 0 13px 28px rgba(17, 24, 39, .16), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-card-head {
+body.rrll-view-home .rrll-dashboard .phase4-card-head {
   gap: 8px !important;
   margin-bottom: 8px !important;
   padding-bottom: 8px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-card-head h3 {
+body.rrll-view-home .rrll-dashboard .phase4-card-head h3 {
   font-size: 14px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-card-head span {
+body.rrll-view-home .rrll-dashboard .phase4-card-head span {
   font-size: 10.5px !important;
   line-height: 1.2 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-due-layout {
+body.rrll-view-home .rrll-due-layout {
   grid-template-columns: minmax(240px, 1fr) 242px !important;
   gap: 11px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list {
+body.rrll-view-home .rrll-dashboard .phase4-list {
   max-height: 328px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row.rrll-dashboard-row {
+body.rrll-view-home .rrll-dashboard .phase4-list-row.rrll-dashboard-row {
   gap: 2px 8px !important;
   min-height: 44px !important;
   padding: 7px 6px !important;
   border-radius: 9px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row span,
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row small,
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row em {
+body.rrll-view-home .rrll-dashboard .phase4-list-row span,
+body.rrll-view-home .rrll-dashboard .phase4-list-row small,
+body.rrll-view-home .rrll-dashboard .phase4-list-row em {
   font-size: 10.5px !important;
   line-height: 1.2 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .phase4-list-row b {
+body.rrll-view-home .rrll-dashboard .phase4-list-row b {
   font-size: 11.5px !important;
   line-height: 1.2 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-card {
+body.rrll-view-home .rrll-calendar-card {
   padding: 10px !important;
   border-radius: 14px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-head {
+body.rrll-view-home .rrll-calendar-head {
   gap: 8px !important;
   margin-bottom: 7px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-head strong {
+body.rrll-view-home .rrll-calendar-head strong {
   font-size: 12.5px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-head small {
+body.rrll-view-home .rrll-calendar-head small {
   font-size: 9.5px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-weekdays,
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-grid {
+body.rrll-view-home .rrll-calendar-weekdays,
+body.rrll-view-home .rrll-calendar-grid {
   gap: 4px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-weekdays {
+body.rrll-view-home .rrll-calendar-weekdays {
   margin-bottom: 4px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-weekdays span {
+body.rrll-view-home .rrll-calendar-weekdays span {
   font-size: 9.5px !important;
   line-height: 1.1 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-day {
+body.rrll-view-home .rrll-calendar-day {
   height: 28px !important;
   padding: 2px !important;
   border-radius: 8px !important;
   grid-template-rows: 1fr 6px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-day b {
+body.rrll-view-home .rrll-calendar-day b {
   font-size: 10.5px !important;
   line-height: 1 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-day span {
+body.rrll-view-home .rrll-calendar-day span {
   gap: 2px !important;
   min-height: 4px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-day i,
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-legend i {
+body.rrll-view-home .rrll-calendar-day i,
+body.rrll-view-home .rrll-calendar-legend i {
   width: 4.5px !important;
   height: 4.5px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .rrll-calendar-legend {
+body.rrll-view-home .rrll-calendar-legend {
   gap: 5px 8px !important;
   margin-top: 8px !important;
   font-size: 9.5px !important;
   line-height: 1.15 !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .dashboard-search-card {
+body.rrll-view-home .dashboard-search-card {
   padding: 10px 12px !important;
 }
 
-body:is(.rrll-view-home, .phase4-view-home) .dashboard-search-header {
+body.rrll-view-home .dashboard-search-header {
   min-height: 36px !important;
   padding-block: 0 !important;
 }
 
 @media (max-width: 1400px) {
-  body:is(.rrll-view-home, .phase4-view-home) .rrll-dashboard .rrll-dashboard-metric-grid {
+  body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-grid {
     grid-template-columns: repeat(3, minmax(160px, 1fr)) !important;
   }
 
-  body:is(.rrll-view-home, .phase4-view-home) .rrll-due-layout {
+  body.rrll-view-home .rrll-due-layout {
     grid-template-columns: minmax(0, 1fr) 242px !important;
   }
 }
 
 @media (max-width: 900px) {
-  body:is(.rrll-view-home, .phase4-view-home) .rrll-main main {
+  body.rrll-view-home .rrll-main main {
     padding-inline: 14px !important;
   }
 
-  body:is(.rrll-view-home, .phase4-view-home) .rrll-due-layout {
+  body.rrll-view-home .rrll-due-layout {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
 /* Ticket Restaurante: overrides finales para que los estados del calendario no hereden
    estilos globales de botones cargados después del módulo. */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .ticket-days-grid .ticket-day {
+body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1486,25 +1486,25 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .tick
   line-height: 1 !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .ticket-days-grid .ticket-day:hover {
+body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day:hover {
   border-color: rgba(148, 163, 184, .42) !important;
   transform: translateY(-1px) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .ticket-days-grid .ticket-day--weekend {
+body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day--weekend {
   background: rgba(96, 165, 250, .16) !important;
   border-color: rgba(96, 165, 250, .28) !important;
   color: var(--muted-color, #64748b) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .ticket-days-grid .ticket-day--today {
+body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day--today {
   border-color: rgba(37, 99, 235, .55) !important;
   box-shadow: inset 0 0 0 1px rgba(37, 99, 235, .25) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .ticket-days-grid .ticket-day--no-ticket,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .ticket-days-grid .ticket-day--no-ticket.ticket-day--weekend,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .ticket-days-grid .ticket-day--no-ticket.ticket-day--today {
+body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day--no-ticket,
+body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day--no-ticket.ticket-day--weekend,
+body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day--no-ticket.ticket-day--today {
   background: #7f1d1d !important;
   border-color: #991b1b !important;
   color: var(--rrll-text-inverse) !important;
@@ -1512,7 +1512,7 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .tick
   box-shadow: none !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .ticket-days-grid .ticket-day-empty {
+body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day-empty {
   background: transparent !important;
   border-color: transparent !important;
   pointer-events: none !important;
@@ -1521,108 +1521,108 @@ body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante .tick
 
 /* Modo claro — corrección final de bloques que en el legado restauraban carbón.
    Se limita a superficies, textos y controles; no altera estructura ni lógica. */
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo).rrll-pro-module,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.module-tasks, .module-petitions, .module-telework).rrll-pro-module,
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo).rrll-pro-module,
+html[data-theme="light"] body.rrll-view-module :is(.module-tasks, .module-petitions, .module-telework).rrll-pro-module,
 html[data-theme="light"] body[data-active-module="gestor-tareas"] #gestor-tareas,
 html[data-theme="light"] body[data-active-module="gestor-peticiones"] #gestor-peticiones,
 html[data-theme="light"] body[data-active-module="gestor-teletrabajo"] #gestor-teletrabajo,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-tareas .rrll-pro-task-shell,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-peticiones .rrll-pro-petition-shell,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-teletrabajo .rrll-pro-task-shell,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .modal-box,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) .rrll-confirm-delete-modal .rrll-confirm-delete-box {
+html[data-theme="light"] body.rrll-view-module #gestor-tareas .rrll-pro-task-shell,
+html[data-theme="light"] body.rrll-view-module #gestor-peticiones .rrll-pro-petition-shell,
+html[data-theme="light"] body.rrll-view-module #gestor-teletrabajo .rrll-pro-task-shell,
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
+html[data-theme="light"] body.rrll-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-task-form, .rrll-pro-petition-form, .rrll-pro-list-card, .rrll-pro-list-toolbar, .rrll-pro-table-wrap),
+html[data-theme="light"] body.rrll-view-module :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .modal-box,
+html[data-theme="light"] body.rrll-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-box {
   background: var(--rrll-surface-card) !important;
   border-color: var(--rrll-border) !important;
   color: var(--rrll-text-main) !important;
   box-shadow: var(--rrll-shadow-soft) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo).rrll-pro-module > summary,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.module-tasks, .module-petitions, .module-telework).rrll-pro-module > summary,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-task-head,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.module-tasks, .module-petitions, .module-telework) .rrll-pro-task-head,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .modal-actions,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) .rrll-confirm-delete-modal .rrll-confirm-delete-actions {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo).rrll-pro-module > summary,
+html[data-theme="light"] body.rrll-view-module :is(.module-tasks, .module-petitions, .module-telework).rrll-pro-module > summary,
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-task-head,
+html[data-theme="light"] body.rrll-view-module :is(.module-tasks, .module-petitions, .module-telework) .rrll-pro-task-head,
+html[data-theme="light"] body.rrll-view-module :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .modal-actions,
+html[data-theme="light"] body.rrll-view-module .rrll-confirm-delete-modal .rrll-confirm-delete-actions {
   background: var(--rrll-surface-header) !important;
   border-color: var(--rrll-border) !important;
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.module-tasks, .module-petitions, .module-telework) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal, .rrll-confirm-delete-modal) :is(h2, h3, h4, label, strong, b),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table :is(td, th),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #petitionUpdateModal .checks .check-option {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
+html[data-theme="light"] body.rrll-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.module-title, .rrll-pro-task-head h2, .rrll-pro-title, label, .rrll-pro-field > span, .rrll-pro-field label),
+html[data-theme="light"] body.rrll-view-module :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal, .rrll-confirm-delete-modal) :is(h2, h3, h4, label, strong, b),
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table,
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table :is(td, th),
+html[data-theme="light"] body.rrll-view-module #petitionUpdateModal .checks .check-option {
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.module-tasks, .module-petitions, .module-telework) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal, .rrll-confirm-delete-modal) :is(p, .muted, small) {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+html[data-theme="light"] body.rrll-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.summary-counts, .rrll-pro-task-head p, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-due-detail, .rrll-pro-update, .rrll-pro-closed-note, .muted),
+html[data-theme="light"] body.rrll-view-module :is(#taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal, .rrll-confirm-delete-modal) :is(p, .muted, small) {
   color: var(--rrll-text-muted) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) select option,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #petitionUpdateModal .checks .check-option input[type="checkbox"] {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) select option,
+html[data-theme="light"] body.rrll-view-module #petitionUpdateModal .checks .check-option input[type="checkbox"] {
   background: var(--rrll-field-bg) !important;
   background-color: var(--rrll-field-bg) !important;
   border-color: var(--rrll-border) !important;
   box-shadow: none !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) :is(.rrll-pro-field input, .rrll-pro-field select, .rrll-pro-field textarea, .rrll-pro-search-wrap input, input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
   background: var(--rrll-field-bg-focus) !important;
   border-color: rgba(37, 99, 235, .45) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) input::placeholder,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) textarea::placeholder,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .rrll-pro-search-wrap input::placeholder {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) input::placeholder,
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) textarea::placeholder,
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo, #taskUpdateModal, #petitionUpdateModal, #teleworkEditModal, #teleworkRequestModal, #teleworkImportModal, #teleworkJobCatalogModal) .rrll-pro-search-wrap input::placeholder {
   color: var(--rrll-text-muted) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table thead th {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table thead th {
   background: var(--rrll-surface-header) !important;
   color: var(--rrll-text-main) !important;
   border-color: var(--rrll-border) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr {
   background: var(--rrll-surface-card) !important;
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr:nth-child(even) {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr:nth-child(even) {
   background: var(--rrll-surface-base) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr:hover,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-task-row, .rrll-petition-row).expanded {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) .rrll-pro-table tbody tr:hover,
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-task-row, .rrll-petition-row).expanded {
   background: var(--rrll-surface-hover) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.summary-counts, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
+html[data-theme="light"] body.rrll-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-tabs button, .rrll-pro-tool-button, .summary-icon-button, .secondary, button.secondary),
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.summary-counts, .rrll-status-pill, .rrll-due-pill, .rrll-priority-pill, .priority-badge, .rrll-pro-source, .petition-source) {
   background: var(--rrll-surface-base) !important;
   border-color: var(--rrll-border) !important;
   color: var(--rrll-text-soft) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #petitionUpdateModal .checks .check-option:focus-within {
+html[data-theme="light"] body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones, #gestor-teletrabajo) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
+html[data-theme="light"] body.rrll-view-module :is(.module-tasks, .module-petitions, .module-telework) :is(.rrll-pro-tabs button.active, .rrll-pro-tabs button:hover, .rrll-pro-tool-button:hover, .summary-icon-button:hover, .secondary:hover, button.secondary:hover),
+html[data-theme="light"] body.rrll-view-module #petitionUpdateModal .checks .check-option:focus-within {
   background: var(--rrll-surface-hover) !important;
   border-color: var(--rrll-border-strong) !important;
   color: var(--rrll-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #petitionUpdateModal .checks .check-option:has(input[type="checkbox"]:checked) {
+html[data-theme="light"] body.rrll-view-module #petitionUpdateModal .checks .check-option:has(input[type="checkbox"]:checked) {
   background: var(--soft-red) !important;
   border-color: rgba(167, 53, 53, .35) !important;
   color: var(--rrll-text-main) !important;
@@ -1643,7 +1643,7 @@ html[data-theme="light"] body {
   -webkit-font-smoothing: antialiased;
 }
 
-html[data-theme="light"] :is(body:is(.rrll-view-home, .phase4-view-home), body:is(.rrll-view-module, .phase4-view-module), .rrll-shell, .rrll-main, main, .content-right, .dashboard-layout, .main-content, .dashboard-home) {
+html[data-theme="light"] :is(body.rrll-view-home, body.rrll-view-module, .rrll-shell, .rrll-main, main, .content-right, .dashboard-layout, .main-content, .dashboard-home) {
   background: linear-gradient(180deg, #f7f8fa 0%, var(--bg-primary) 34%, var(--rrll-light-table-hover) 100%) !important;
   color: var(--text-primary) !important;
 }
@@ -1953,71 +1953,71 @@ html[data-theme="light"] #gestor-ticket-restaurante :is(.ticket-day--no-ticket, 
 
 /* Ticket Restaurante — saneado exclusivo de modo claro.
    Corrige herencias oscuras sin tocar estructura, lógica ni dark mode. */
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante,
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante.rrll-pro-module {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante,
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante.rrll-pro-module {
   background: var(--rrll-light-app-bg) !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.ticket-restaurant-shell, .ticket-restaurant-area, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section, .rrll-pro-list-card, .rrll-pro-table-wrap, .ticket-monthly-quote-panel) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-shell, .ticket-restaurant-area, .ticket-panel, .ticket-calendar-card, .ticket-summary-card, .config-section, .rrll-pro-list-card, .rrll-pro-table-wrap, .ticket-monthly-quote-panel) {
   background: var(--rrll-light-surface) !important;
   border-color: var(--rrll-light-border-soft) !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.rrll-pro-task-head, .rrll-pro-list-toolbar, .ticket-filter-row th, .ticket-table thead th, .rrll-pro-table thead th) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.rrll-pro-task-head, .rrll-pro-list-toolbar, .ticket-filter-row th, .ticket-table thead th, .rrll-pro-table thead th) {
   background: #f1f5f9 !important;
   border-color: var(--rrll-light-border-soft) !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.ticket-restaurant-tab, .ticket-month-navigator button, .ticket-year-nav button, .rrll-icon-only, .ticket-sort-button) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-tab, .ticket-month-navigator button, .ticket-year-nav button, .rrll-icon-only, .ticket-sort-button) {
   background: var(--rrll-light-input-bg) !important;
   border-color: var(--rrll-light-border-default) !important;
   color: var(--rrll-light-text-secondary) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.ticket-restaurant-tab:hover, .ticket-month-navigator button:hover, .ticket-year-nav button:hover, .rrll-icon-only:hover) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.ticket-restaurant-tab:hover, .ticket-month-navigator button:hover, .ticket-year-nav button:hover, .rrll-icon-only:hover) {
   background: #eef2f7 !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .ticket-filter-row input, .rrll-pro-search-wrap input) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .ticket-filter-row input, .rrll-pro-search-wrap input) {
   background: var(--rrll-light-input-bg) !important;
   border-color: var(--rrll-light-border-default) !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(input::placeholder, textarea::placeholder, .ticket-filter-row input::placeholder, .rrll-pro-search-wrap input::placeholder) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(input::placeholder, textarea::placeholder, .ticket-filter-row input::placeholder, .rrll-pro-search-wrap input::placeholder) {
   color: #94a3b8 !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.ticket-month-card, .ticket-summary-pill) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.ticket-month-card, .ticket-summary-pill) {
   background: #fbfbfc !important;
   border-color: var(--rrll-light-border-soft) !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.ticket-weekdays span, .ticket-compute-period, .ticket-import-summary, .ticket-summary-pill small, .ticket-calendar-legend, .muted) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.ticket-weekdays span, .ticket-compute-period, .ticket-import-summary, .ticket-summary-pill small, .ticket-calendar-legend, .muted) {
   color: var(--rrll-light-text-secondary) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.ticket-table tbody tr, .rrll-pro-table tbody tr) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.ticket-table tbody tr, .rrll-pro-table tbody tr) {
   background: #fbfbfc !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.ticket-table tbody tr:nth-child(even), .rrll-pro-table tbody tr:nth-child(even)) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.ticket-table tbody tr:nth-child(even), .rrll-pro-table tbody tr:nth-child(even)) {
   background: var(--rrll-light-input-bg) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.modal-box, .modal-card, .popup-box, .dialog-box, .rrll-pro-modal-box, .config-modal-box, .config-modal-card) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.modal-box, .modal-card, .popup-box, .dialog-box, .rrll-pro-modal-box, .config-modal-box, .config-modal-card) {
   background: var(--rrll-light-surface) !important;
   border-color: var(--rrll-light-border-soft) !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-html[data-theme="light"] body:is(.rrll-view-module, .phase4-view-module) #gestor-ticket-restaurante :is(.modal-actions, .form-actions, .rrll-pro-form-actions, .modal-footer) {
+html[data-theme="light"] body.rrll-view-module #gestor-ticket-restaurante :is(.modal-actions, .form-actions, .rrll-pro-form-actions, .modal-footer) {
   background: var(--rrll-light-input-bg) !important;
   border-color: var(--rrll-light-border-soft) !important;
 }
@@ -2106,51 +2106,51 @@ html[data-theme="light"] #gestor-tareas .rrll-status-pill.progress {
 }
 
 /* Comité y Paritaria: consolidación visual en modo claro (sin afectar modo oscuro). */
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) {
+body.rrll-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) {
   background: var(--rrll-light-app-bg) !important;
   color: var(--rrll-light-text-main) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-comite, #gestor-paritaria) > summary,
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-comite, #gestor-paritaria) :is(.committee-subsection, .paritaria-subsection) > summary {
+body.rrll-view-module :is(#gestor-comite, #gestor-paritaria) > summary,
+body.rrll-view-module :is(#gestor-comite, #gestor-paritaria) :is(.committee-subsection, .paritaria-subsection) > summary {
   background: var(--rrll-light-input-bg) !important;
   color: var(--rrll-light-text-main) !important;
   border: 1px solid var(--rrll-light-border-soft) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-comite, #gestor-paritaria) :is(.rrll-pro-committee-shell, .rrll-pro-paritaria-shell),
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-list-card, .session-panel, .session-year-block, .session-card, .session-item, .session-form, .session-close-list, .session-close-row) {
+body.rrll-view-module :is(#gestor-comite, #gestor-paritaria) :is(.rrll-pro-committee-shell, .rrll-pro-paritaria-shell),
+body.rrll-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-list-card, .session-panel, .session-year-block, .session-card, .session-item, .session-form, .session-close-list, .session-close-row) {
   background: var(--rrll-light-surface) !important;
   color: var(--rrll-light-text-main) !important;
   border-color: var(--rrll-light-border-soft) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.column-header, .session-year-header, .rrll-pro-table th) {
+body.rrll-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.column-header, .session-year-header, .rrll-pro-table th) {
   background: #f1f5f9 !important;
   color: var(--rrll-light-text-main) !important;
   border-color: var(--rrll-light-border-soft) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-table td, .session-meta, .session-item-meta, .muted, small, .rrll-pro-subtitle, .rrll-pro-update, .rrll-pro-created) {
+body.rrll-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(.rrll-pro-table td, .session-meta, .session-item-meta, .muted, small, .rrll-pro-subtitle, .rrll-pro-update, .rrll-pro-created) {
   color: var(--rrll-light-text-secondary) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(input, select, textarea, .rrll-pro-search-wrap, .rrll-pro-search-wrap input) {
+body.rrll-view-module :is(#gestor-comite, #gestor-paritaria, #gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) :is(input, select, textarea, .rrll-pro-search-wrap, .rrll-pro-search-wrap input) {
   background: var(--rrll-light-input-bg) !important;
   color: var(--rrll-light-text-main) !important;
   border-color: var(--rrll-light-border-default) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button,
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary {
+body.rrll-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button,
+body.rrll-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary {
   background: var(--rrll-light-input-bg) !important;
   color: #374151 !important;
   border: 1px solid var(--rrll-light-border-default) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button.active,
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button:hover,
-body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary:hover {
+body.rrll-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button.active,
+body.rrll-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-pro-tabs button:hover,
+body.rrll-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) > .two-buttons .secondary:hover {
   background: #eef2f7 !important;
   color: var(--rrll-light-text-main) !important;
   border-color: #cfd8e3 !important;
@@ -2158,34 +2158,34 @@ body:is(.rrll-view-module, .phase4-view-module) :is(#gestor-sesiones-comite, #ge
 
 
 /* Ajuste visual localizado: filtros de estado en Puntos Comité (alineado con Actas). */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-comite .rrll-pro-tabs button {
+body.rrll-view-module #gestor-puntos-comite .rrll-pro-tabs button {
   background: var(--rrll-light-input-bg) !important;
   color: #374151 !important;
   border: 1px solid var(--rrll-light-border-default) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-comite .rrll-pro-tabs button.active,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-comite .rrll-pro-tabs button:hover {
+body.rrll-view-module #gestor-puntos-comite .rrll-pro-tabs button.active,
+body.rrll-view-module #gestor-puntos-comite .rrll-pro-tabs button:hover {
   background: rgba(239, 43, 45, 0.12) !important;
   color: var(--rrll-light-text-main) !important;
   border-color: rgba(239, 43, 45, 0.35) !important;
 }
 
 /* Ajuste visual localizado: filtros de estado en Puntos Paritaria (alineado con Actas). */
-body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-paritaria .rrll-pro-tabs button {
+body.rrll-view-module #gestor-puntos-paritaria .rrll-pro-tabs button {
   background: var(--rrll-light-input-bg) !important;
   color: #374151 !important;
   border: 1px solid var(--rrll-light-border-default) !important;
 }
 
-body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-paritaria .rrll-pro-tabs button.active,
-body:is(.rrll-view-module, .phase4-view-module) #gestor-puntos-paritaria .rrll-pro-tabs button:hover {
+body.rrll-view-module #gestor-puntos-paritaria .rrll-pro-tabs button.active,
+body.rrll-view-module #gestor-puntos-paritaria .rrll-pro-tabs button:hover {
   background: rgba(239, 43, 45, 0.12) !important;
   color: var(--rrll-light-text-main) !important;
   border-color: rgba(239, 43, 45, 0.35) !important;
 }
-body:is(.rrll-view-module, .phase4-view-module) :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) .modal-box,
-body:is(.rrll-view-module, .phase4-view-module) :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) :is(.session-order-list, .session-order-row, .existing-updates-box, .existing-update-row) {
+body.rrll-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) .modal-box,
+body.rrll-view-module :is(#agendaUpdateModal, #committeeSessionSelectModal, #committeeSessionOrderModal, #paritariaUpdateModal, #paritariaSessionSelectModal, #paritariaSessionOrderModal, #committeeConfirmModal, #paritariaConfirmModal, #committeeSessionCloseModal, #paritariaSessionCloseModal) :is(.session-order-list, .session-order-row, .existing-updates-box, .existing-update-row) {
   background: var(--rrll-light-surface) !important;
   color: var(--rrll-light-text-main) !important;
   border-color: var(--rrll-light-border-soft) !important;
