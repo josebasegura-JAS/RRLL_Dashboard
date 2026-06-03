@@ -25,15 +25,8 @@
     { key: 'residenciaEus', label: 'Residencia EUS', type: 'text' },
     { key: 'puestoCast', label: 'Puesto CAST', type: 'text' },
     { key: 'puestoEus', label: 'Puesto EUS', type: 'text' },
-    { key: 'diasTeletrabajoEus', label: 'Días Teletrabajo EUS', type: 'text' },
-    { key: 'diasTeletrabajoCast', label: 'Días Teletrabajo CAST', type: 'text' },
-    { key: 'porcentajeTeletrabajo', label: 'Porcentaje Teletrabajo', type: 'text' },
     { key: 'fechaOrdenador', label: 'Fecha Ordenador', type: 'date' },
-    { key: 'fechaCascos', label: 'Fecha Cascos', type: 'date' },
-    { key: 'fechaInicioTeletrabajoCast', label: 'Fecha Inicio CAST', type: 'date' },
-    { key: 'fechaFinTeletrabajoCast', label: 'Fecha Fin CAST', type: 'date' },
-    { key: 'fechaInicioTeletrabajoEus', label: 'Fecha Inicio EUS', type: 'date' },
-    { key: 'fechaFinTeletrabajoEus', label: 'Fecha Fin EUS', type: 'date' }
+    { key: 'fechaCascos', label: 'Fecha Cascos', type: 'date' }
   ];
   const TELETRABAJO_FIELD_KEYS = TELETRABAJO_FIELDS.map(field => field.key);
   const TELETRABAJO_DATE_FIELDS = new Set(TELETRABAJO_FIELDS.filter(field => field.type === 'date').map(field => field.key));
