@@ -79,6 +79,7 @@ async function rrllSafeAsyncCall(label, fn) {
       modal.classList.add("open");
       if (typeof renderPetitionOriginSettings === "function") renderPetitionOriginSettings();
       if (typeof renderRRLLFolderConfig === "function") await renderRRLLFolderConfig();
+      if (typeof renderTeleworkAgreementTemplateConfig === "function") await renderTeleworkAgreementTemplateConfig();
       if (typeof renderTicketRestaurantConfig === "function") renderTicketRestaurantConfig();
       await refreshDatabaseInfo();
     }
