@@ -4858,3 +4858,12 @@ body.rrll-view-module #gestor-vinculograma .vinculograma-table .vinculograma-act
 body.rrll-view-module #gestor-vinculograma .vinculograma-table .vinculograma-actions-cell .vinculograma-delete-btn {
   margin-inline: auto !important;
 }
+
+/* Estado visual mínimo mientras un módulo pesado se carga bajo demanda. */
+.module-card.rrll-module-loading > summary::after {
+  content: "Cargando módulo…";
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--muted, #94a3b8);
+  font-weight: 600;
+}

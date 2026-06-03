@@ -330,15 +330,18 @@ function toggleSidebarLeft() {
       phase4SetActiveNav(gestorId);
       preventLegacySummaryToggle();
       forceActiveDetailsOpen();
-      if (gestorId === "gestor-ticket-restaurante") {
-        Promise.resolve(typeof window.ensureTicketRestaurantReady === "function" ? window.ensureTicketRestaurantReady() : undefined)
-          .catch(error => console.warn("No se pudo preparar Ticket Restaurante; se renderiza con fallback.", error))
-          .then(() => { if (typeof window.renderTicketRestaurant === "function") window.renderTicketRestaurant(); });
-      }
-      if (gestorId === "gestor-presupuestos") {
-        Promise.resolve(typeof window.initializeBudgetModule === "function" ? window.initializeBudgetModule() : undefined)
-          .catch(error => console.warn("No se pudo iniciar Presupuestos.", error));
-      }
+      const lazyLoad = typeof window.ensureRRLLModuleLoaded === "function"
+        ? window.ensureRRLLModuleLoaded(gestorId)
+        : Promise.resolve(true);
+      Promise.resolve(lazyLoad)
+        .then(() => {
+          if (typeof window.renderRRLLLazyModule === "function") return window.renderRRLLLazyModule(gestorId);
+          return undefined;
+        })
+        .catch(error => {
+          console.warn(`[RRLL] No se pudo cargar el módulo ${gestorId}:`, error);
+          if (typeof setSaveStatus === "function") setSaveStatus("error", `No se pudo cargar ${gestorId}.`);
+        });
       return true;
     }
 

@@ -23,6 +23,16 @@ async function rrllSafeAsyncCall(label, fn) {
 
     function renderAllDataViews() {
       const rrllRenderFinish = typeof rrllTicketRestaurantPerfStart === "function" ? rrllTicketRestaurantPerfStart("renderAllDataViews") : null;
+      const activeModule = document.body && document.body.dataset ? document.body.dataset.activeModule : "home";
+      const renderActiveLazyModule = () => {
+        if (!activeModule || activeModule === "home") return;
+        if (typeof window.ensureRRLLModuleLoaded === "function") {
+          Promise.resolve(window.ensureRRLLModuleLoaded(activeModule))
+            .then(() => { if (typeof window.renderRRLLLazyModule === "function") return window.renderRRLLLazyModule(activeModule); })
+            .catch(error => console.warn(`[RRLL] No se pudo renderizar el módulo activo ${activeModule}:`, error));
+        }
+      };
+
       rrllSafeCall("fecha", () => renderDate());
       rrllSafeCall("dashboard", () => renderHomeDashboard());
       rrllSafeCall("accesos rápidos", () => renderLinks());
@@ -36,22 +46,11 @@ async function rrllSafeAsyncCall(label, fn) {
       rrllSafeCall("sesiones comité", () => renderCommitteeSessions());
       rrllSafeCall("sesiones paritaria", () => renderParitariaSessions());
       rrllSafeCall("peticiones", () => renderPetitions());
-      rrllSafeCall("teletrabajo", () => renderTelework());
-      rrllSafeCall("vinculograma", () => { if (typeof renderVinculogramas === "function") renderVinculogramas(); });
-      rrllSafeCall("licencias", () => { if (typeof renderLicencias === "function") renderLicencias(); });
-      rrllSafeCall("plantilla", () => { if (typeof renderPlantilla === "function") renderPlantilla(); });
-      rrllSafeCall("criterios RRLL", () => { if (typeof renderCriteria === "function") renderCriteria(); });
-      const ticketModule = document.getElementById("gestor-ticket-restaurante");
-      const isTicketActive = ticketModule
-        && !ticketModule.hidden
-        && ticketModule.classList.contains("rrll-active-module");
-      if (isTicketActive) rrllSafeCall("Ticket Restaurante", () => { if (typeof renderTicketRestaurant === "function") renderTicketRestaurant(); });
-      rrllSafeCall("sorteos", () => { if (typeof renderSorteos === "function") renderSorteos(); });
-      rrllSafeCall("especiales", () => { if (typeof renderEspeciales === "function") renderEspeciales(); });
       rrllSafeCall("papelera", () => renderTrash());
       rrllSafeCall("estado de alertas", () => restoreAlertsPanelState());
       rrllSafeCall("alertas", () => renderAlertsPanel());
       rrllSafeCall("columnas cerradas", () => applyAllClosedColumnStates());
+      renderActiveLazyModule();
       if (rrllRenderFinish) rrllRenderFinish();
     }
 
