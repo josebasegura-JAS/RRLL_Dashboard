@@ -30,6 +30,15 @@
   ];
   const TELETRABAJO_FIELD_KEYS = TELETRABAJO_FIELDS.map(field => field.key);
   const TELETRABAJO_DATE_FIELDS = new Set(TELETRABAJO_FIELDS.filter(field => field.type === 'date').map(field => field.key));
+  const DEPRECATED_PLANTILLA_TELEWORK_FIELDS = [
+    'diasTeletrabajoEus',
+    'diasTeletrabajoCast',
+    'porcentajeTeletrabajo',
+    'fechaInicioTeletrabajoCast',
+    'fechaFinTeletrabajoCast',
+    'fechaInicioTeletrabajoEus',
+    'fechaFinTeletrabajoEus'
+  ];
 
   const PLANTILLA_MODEL_COLUMNS = [
     { key: 'employeeNumber', label: 'Nº empleado' },
