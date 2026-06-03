@@ -4199,7 +4199,8 @@ body.rrll-view-module #gestor-teletrabajo .telework-table .telework-col-actions 
 }
 
 body.rrll-view-module #gestor-teletrabajo .telework-actions-group,
-body.rrll-view-module #gestor-teletrabajo .telework-card-actions {
+body.rrll-view-module #gestor-teletrabajo .telework-card-actions,
+body.rrll-view-module #gestor-teletrabajo .telework-row-actions {
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
@@ -4209,9 +4210,21 @@ body.rrll-view-module #gestor-teletrabajo .telework-card-actions {
 }
 
 body.rrll-view-module #gestor-teletrabajo .telework-actions-group button,
-body.rrll-view-module #gestor-teletrabajo .telework-card-actions button {
+body.rrll-view-module #gestor-teletrabajo .telework-card-actions button,
+body.rrll-view-module #gestor-teletrabajo .telework-row-actions button {
   flex: 0 0 auto !important;
   white-space: nowrap !important;
+}
+
+
+body.rrll-view-module #gestor-teletrabajo .telework-table .telework-col-actions {
+  width: 170px !important;
+  min-width: 150px !important;
+  text-align: right !important;
+}
+
+body.rrll-view-module #gestor-teletrabajo .telework-row-actions {
+  justify-content: flex-end !important;
 }
 
 body.rrll-view-module #gestor-teletrabajo .telework-history-table-wrapper .telework-request-list {
