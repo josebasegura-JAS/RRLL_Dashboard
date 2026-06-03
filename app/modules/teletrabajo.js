@@ -1657,6 +1657,10 @@
       return expected.every((aliases, index) => aliases.includes(headers[index]));
     }
 
+  function findTeleworkSurveyHeaderRowIndex(rows) {
+      return rows.findIndex(row => validateTeleworkSurveyHeaders([row]));
+    }
+
   function buildTeleworkSurveyItem(row, defaultPeriod) {
       const employeeNumber = String(row[0] ?? "").trim();
       const nombreCompleto = String(row[1] ?? "").trim();
@@ -1675,10 +1679,12 @@
 
   function applyTeleworkSurveyRows(rows) {
       if (!Array.isArray(rows) || rows.length < 2) throw new Error("La encuesta no contiene filas importables.");
-      if (!validateTeleworkSurveyHeaders(rows)) throw new Error("El fichero no tiene el formato esperado de la Encuesta de Teletrabajo.");
+      const headerRowIndex = findTeleworkSurveyHeaderRowIndex(rows);
+      if (headerRowIndex === -1) throw new Error("El fichero no tiene el formato esperado de la Encuesta de Teletrabajo.");
+      const importRows = rows.slice(headerRowIndex);
 
       const summary = {
-        totalRowsRead: rows.length - 1,
+        totalRowsRead: importRows.length - 1,
         totalYesResponses: 0,
         totalNoResponses: 0,
         totalScoreRowsIgnored: 0,
@@ -1690,7 +1696,7 @@
       const existingKeys = new Set(next.map(getTeleworkDuplicateKey).filter(Boolean));
       const seenImportKeys = new Set();
 
-      rows.slice(1).forEach(row => {
+      importRows.slice(1).forEach(row => {
         try {
           if (!Array.isArray(row) || !row.some(value => String(value ?? "").trim())) return;
           const rowType = normalizeTeleworkLookup(row[2]);
