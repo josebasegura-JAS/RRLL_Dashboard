@@ -622,6 +622,10 @@
     if (countSignature) countSignature.textContent = signature.length;
     if (countActive) countActive.textContent = active.length;
     if (summary) summary.textContent = `${pending.length} aprobar · ${signature.length} firma · ${active.length} vigentes`;
+    [["licSummaryPending", pending.length + signature.length], ["licSummaryActive", active.length], ["licSummaryFinalized", history.length]].forEach(([id, value]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    });
   }
 
   function printLicencias(scope) {

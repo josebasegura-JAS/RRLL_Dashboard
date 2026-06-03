@@ -495,6 +495,10 @@
       if (directionCount) directionCount.textContent = counts.direction;
       if (allegationsCount) allegationsCount.textContent = counts.allegations;
       if (signatureCount) signatureCount.textContent = counts.signature;
+      [["minuteSummaryTodo", counts.todo], ["minuteSummaryAllegations", counts.allegations], ["minuteSummarySignature", counts.signature]].forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      });
 
       document.querySelectorAll("#gestor-actas .rrll-pro-tabs button").forEach(button => button.classList.remove("active"));
       const activeId = minuteViewFilter === "all" ? "minute-filter-all" : `minute-filter-${minuteViewFilter}`;

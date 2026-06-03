@@ -845,10 +845,20 @@
         const tableBody = document.getElementById("tasksTableBody");
         const empty = document.getElementById("tasksTableEmpty");
 
+        const activeTasks = tasks.filter(task => task.status !== "closed");
         const counts = {
           pending: tasks.filter(task => task.status === "pending").length,
           progress: tasks.filter(task => task.status === "progress").length,
-          closed: tasks.filter(task => task.status === "closed" && isClosedWithinLastMonth(task)).length
+          closed: tasks.filter(task => task.status === "closed" && isClosedWithinLastMonth(task)).length,
+          completed: tasks.filter(task => task.status === "closed").length,
+          upcoming: activeTasks.filter(task => {
+            const due = dueStatus(task.dueDate);
+            return task.dueDate && due.diffDays >= 0 && due.diffDays <= 5;
+          }).length,
+          overdue: activeTasks.filter(task => {
+            const due = dueStatus(task.dueDate);
+            return task.dueDate && due.diffDays < 0;
+          }).length
         };
 
         const pendingEl = document.getElementById("count-pending");
@@ -857,6 +867,10 @@
         if (pendingEl) pendingEl.textContent = counts.pending;
         if (progressEl) progressEl.textContent = counts.progress;
         if (closedEl) closedEl.textContent = counts.closed;
+        [["taskSummaryPending", counts.pending], ["taskSummaryUpcoming", counts.upcoming], ["taskSummaryOverdue", counts.overdue], ["taskSummaryCompleted", counts.completed]].forEach(([id, value]) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = value;
+        });
 
         document.querySelectorAll(".rrll-pro-tabs button").forEach(button => button.classList.remove("active"));
         const activeFilter = document.getElementById(`task-filter-${taskViewFilter}`);
