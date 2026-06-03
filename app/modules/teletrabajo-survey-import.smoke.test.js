@@ -85,15 +85,25 @@ const realExcelHeaderRows = fixtureRows.map((row, index) => index === 0 ? [
 ] : row.slice(0, 5));
 assertSuccessfulSurveyImport(realExcelHeaderRows, "cabeceras reales del Excel aportado");
 
+const shiftedMessyHeaderRows = fixtureRows.map((row, index) => index === 0 ? [
+  "",
+  "  Nº. Emp.  ",
+  "Apellidos\ny Nombre",
+  "Respuesta / Puntuación",
+  "Selecciona si vas a teletrabajar",
+  "Si has respondido anteriormente que sí, por favor, escribe brevemente\nqué tipo de teletrabajo solicitas:"
+] : ["", ...row.slice(0, 5)]);
+assertSuccessfulSurveyImport(shiftedMessyHeaderRows, "cabeceras desplazadas con espacios y saltos de línea");
+
 const { context: invalidContext } = createTeleworkContext();
 assert.throws(
   () => invalidContext.window.TeletrabajoModule.applyTeleworkSurveyRows([
     ["Encuesta de Teletrabajo 2026-2027"],
-    ["Nº empleado", "Nombre", "Tipo", "Contestación", "Texto"],
+    ["Nº empleado", "Nombre", "Columna sin uso", "Otra columna", "Notas internas"],
     ["1001", "García López, Ana", "Respuesta", "Sí", "martes"]
   ]),
-  /El fichero no tiene el formato esperado de la Encuesta de Teletrabajo\./,
-  "cabecera inexistente o con formato incorrecto sigue fallando"
+  /Cabeceras obligatorias no localizadas: Tipo de fila \/ Respuesta-Puntuación, Respuesta de teletrabajo, Texto libre \/ tipo de teletrabajo solicitado.*Cabeceras encontradas: Nº empleado \| Nombre \| Columna sin uso \| Otra columna \| Notas internas/,
+  "cabecera inexistente o con formato incorrecto muestra faltantes y cabeceras encontradas"
 );
 
 assert.match(dashboard, /teleworkSurveyImportChooseFile\(\)/);
