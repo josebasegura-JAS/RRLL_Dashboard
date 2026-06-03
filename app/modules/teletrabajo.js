@@ -13,6 +13,26 @@
   const RENEWAL_VALIDATION_VALUES = ["Pendiente", "Sí", "No", "No aplica"];
   const DIRECTION_VALUES = ["Pendiente", "Aprobada", "Denegada"];
   const DAYS = ["Martes", "Miércoles", "Jueves"];
+  const TELEWORK_REQUEST_TYPES = ["nueva", "renovacion"];
+  const TELEWORK_MASTER_FIELDS = [
+    ["dni", "Dni"],
+    ["direccionTeletrabajo", "DireccionTeletrabajo"],
+    ["residenciaCast", "ResidenciaCast"],
+    ["residenciaEus", "ResidenciaEus"],
+    ["puestoCast", "PuestoCast"],
+    ["puestoEus", "PuestoEus"],
+    ["fechaOrdenador", "FechaOrdenador"],
+    ["fechaCascos", "FechaCascos"]
+  ];
+  const TELEWORK_AGREEMENT_FIELDS = [
+    ["diasTeletrabajoCast", "DiasTeletrabajoCast"],
+    ["diasTeletrabajoEus", "DiasTeletrabajoEus"],
+    ["porcentajeTeletrabajo", "PorcentajeTeletrabajo"],
+    ["fechaInicioTeletrabajoCast", "FechaInicioTeletrabajoCast"],
+    ["fechaFinTeletrabajoCast", "FechaFinTeletrabajoCast"],
+    ["fechaInicioTeletrabajoEus", "FechaInicioTeletrabajoEus"],
+    ["fechaFinTeletrabajoEus", "FechaFinTeletrabajoEus"]
+  ];
   const TELEWORK_JOB_CATALOG_HEADERS = [
     "Puesto Organizativo",
     "Dirección",
@@ -248,6 +268,16 @@
     return Array.isArray(days) ? days.filter(day => DAYS.includes(day)) : [];
   }
 
+  function normalizeTeleworkRequestType(value) {
+    const text = normalizeTeleworkLookup(value).replace(/[^a-z0-9]/g, "");
+    if (["renovacion", "renovar", "renovada"].includes(text)) return "renovacion";
+    return TELEWORK_REQUEST_TYPES.includes(value) ? value : "nueva";
+  }
+
+  function teleworkRequestTypeLabel(value) {
+    return normalizeTeleworkRequestType(value) === "renovacion" ? "Renovación" : "Nuevo";
+  }
+
   function normalizeTeleworkItem(item) {
     const source = item && typeof item === "object" ? item : {};
     const hasNewFlowFields = ["presenceValidation", "favorableReport", "directionValidation", "period", "observations"].some(field => Object.prototype.hasOwnProperty.call(source, field));
@@ -261,8 +291,16 @@
       name: String(source.name || nombreCompleto).trim(),
       job: String(source.job || "").trim(),
       period: normalizeTeleworkPeriod(source.period || source.periodo || source.campaign || source.campaña),
-      type: source.type === "Renovación" ? "Renovación" : "Nuevo",
+      tipoSolicitud: normalizeTeleworkRequestType(source.tipoSolicitud || source.type),
+      type: teleworkRequestTypeLabel(source.tipoSolicitud || source.type),
       days: normalizeDays(source.days),
+      diasTeletrabajoCast: String(source.diasTeletrabajoCast || source["Días Teletrabajo_CAST"] || source["Dias Teletrabajo_CAST"] || "").trim(),
+      diasTeletrabajoEus: String(source.diasTeletrabajoEus || source["Días Teletrabajo_EUS"] || source["Dias Teletrabajo_EUS"] || "").trim(),
+      porcentajeTeletrabajo: String(source.porcentajeTeletrabajo || source.porcentaje || source.Porcentaje || "").trim(),
+      fechaInicioTeletrabajoCast: String(source.fechaInicioTeletrabajoCast || "").trim(),
+      fechaFinTeletrabajoCast: String(source.fechaFinTeletrabajoCast || "").trim(),
+      fechaInicioTeletrabajoEus: String(source.fechaInicioTeletrabajoEus || "").trim(),
+      fechaFinTeletrabajoEus: String(source.fechaFinTeletrabajoEus || "").trim(),
       presenceValidation: validationFromLegacy(source.presenceValidation),
       favorableReport: validationFromLegacy(source.favorableReport ?? source.managerApproval),
       security: validationFromLegacy(source.security),
@@ -375,6 +413,34 @@
     return getPlantillaForTelework().find(person => String(person.employeeNumber || "").trim() === target) || null;
   }
 
+  function readTeleworkField(prefix, suffix) {
+    return String(document.getElementById(`${prefix}Telework${suffix}`)?.value || "").trim();
+  }
+
+  function writeTeleworkField(prefix, suffix, value) {
+    const element = document.getElementById(`${prefix}Telework${suffix}`);
+    if (element) element.value = String(value || "");
+  }
+
+  function fillTeleworkPlantillaData(person, prefix = "new") {
+    TELEWORK_MASTER_FIELDS.forEach(([key, suffix]) => writeTeleworkField(prefix, suffix, person?.[key] || ""));
+    const hint = document.getElementById(`${prefix}TeleworkPlantillaInfo`);
+    if (hint) hint.textContent = person ? "Datos maestros cargados desde Plantilla. Estos campos no se duplican en la solicitud." : "No se ha encontrado la persona en Plantilla.";
+  }
+
+  function saveTeleworkPlantillaData(employeeNumber, prefix = "new") {
+    if (typeof setPlantilla !== "function") return;
+    const items = getPlantillaForTelework();
+    const index = items.findIndex(person => String(person.employeeNumber || "").trim() === String(employeeNumber || "").trim());
+    if (index < 0) return;
+    const now = new Date().toISOString();
+    const updated = { ...items[index], updatedAt: now };
+    TELEWORK_MASTER_FIELDS.forEach(([key, suffix]) => { updated[key] = readTeleworkField(prefix, suffix); });
+    items[index] = updated;
+    setPlantilla(items);
+    if (typeof renderPlantilla === "function") renderPlantilla();
+  }
+
   function fillTeleworkPerson(person, prefix = "new") {
     if (!person) return;
     const employeeEl = document.getElementById(`${prefix}TeleworkEmployeeNumber`);
@@ -383,6 +449,7 @@
     if (employeeEl) employeeEl.value = person.employeeNumber || "";
     if (nameEl) nameEl.value = teleworkPersonFullName(person) || "";
     if (jobEl) jobEl.value = person.job || "";
+    fillTeleworkPlantillaData(person, prefix);
     renderTeleworkEligibilityWarning(prefix);
     hideTeleworkSuggestions(prefix);
   }
@@ -392,6 +459,7 @@
     if (!employeeEl) return;
     const person = findPlantillaByEmployeeNumber(employeeEl.value);
     if (person) fillTeleworkPerson(person, prefix);
+    else fillTeleworkPlantillaData(null, prefix);
   }
 
   function hideTeleworkSuggestions(prefix = "new") {
@@ -483,6 +551,10 @@
     const directionValidation = pick(document.getElementById(`${prefix}TeleworkDirectionValidation`)?.value, DIRECTION_VALUES, "Pendiente");
     const resolutionDate = document.getElementById(`${prefix}TeleworkResolutionDate`)?.value || (directionValidation !== "Pendiente" ? now.slice(0, 10) : "");
     const manualStatus = document.getElementById(`${prefix}TeleworkStatus`)?.value || "auto";
+    const agreementData = TELEWORK_AGREEMENT_FIELDS.reduce((acc, [key, suffix]) => {
+      acc[key] = readTeleworkField(prefix, suffix);
+      return acc;
+    }, {});
 
     const draft = normalizeTeleworkItem({
       ...(previousItem || {}),
@@ -491,8 +563,9 @@
       name: nombreCompleto,
       job,
       period: normalizeTeleworkPeriod(document.getElementById(`${prefix}TeleworkPeriod`)?.value || getTeleworkActiveCampaign()),
-      type: document.getElementById(`${prefix}TeleworkType`)?.value || "Nuevo",
+      tipoSolicitud: document.getElementById(`${prefix}TeleworkType`)?.value || "nueva",
       days: readDays(prefix),
+      ...agreementData,
       presenceValidation: pick(document.getElementById(`${prefix}TeleworkPresenceValidation`)?.value, VALIDATION_VALUES, "Pendiente"),
       favorableReport: pick(document.getElementById(`${prefix}TeleworkFavorableReport`)?.value, VALIDATION_VALUES, "Pendiente"),
       security: pick(document.getElementById(`${prefix}TeleworkSecurity`)?.value, VALIDATION_VALUES, "Pendiente"),
@@ -509,18 +582,19 @@
       statusManual: manualStatus !== "auto"
     });
     draft.status = manualStatus === "auto" ? calculateTeleworkStatus(draft) : pick(manualStatus, STATUS_VALUES, calculateTeleworkStatus(draft));
+    saveTeleworkPlantillaData(employeeNumber, prefix);
     return draft;
   }
 
   function resetTeleworkCreateForm() {
-    ["EmployeeNumber", "Name", "Job", "Observations"].forEach(field => {
+    ["EmployeeNumber", "Name", "Job", "Observations", ...TELEWORK_MASTER_FIELDS.map(([, suffix]) => suffix), ...TELEWORK_AGREEMENT_FIELDS.map(([, suffix]) => suffix)].forEach(field => {
       const el = document.getElementById(`newTelework${field}`);
       if (el) el.value = "";
     });
     const periodEl = document.getElementById("newTeleworkPeriod");
     if (periodEl) periodEl.value = getTeleworkActiveCampaign();
     const typeEl = document.getElementById("newTeleworkType");
-    if (typeEl) typeEl.value = "Nuevo";
+    if (typeEl) typeEl.value = "nueva";
     setDays("new", []);
     ["PresenceValidation", "FavorableReport", "Security", "Prevention", "DirectionValidation"].forEach(field => {
       const el = document.getElementById(`newTelework${field}`);
@@ -651,6 +725,14 @@
       item.job,
       item.period,
       item.type,
+      item.tipoSolicitud,
+      item.diasTeletrabajoCast,
+      item.diasTeletrabajoEus,
+      item.porcentajeTeletrabajo,
+      item.fechaInicioTeletrabajoCast,
+      item.fechaFinTeletrabajoCast,
+      item.fechaInicioTeletrabajoEus,
+      item.fechaFinTeletrabajoEus,
       teleworkStatusLabel(item.status),
       item.presenceValidation,
       item.favorableReport,
@@ -683,6 +765,23 @@
     const clean = String(text || "").trim();
     if (!clean) return "Sin observaciones";
     return clean.length > 150 ? `${clean.slice(0, 150)}…` : clean;
+  }
+
+  function formatTeleworkAgreementDate(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "—";
+    const normalized = normalizeTeleworkImportDate(raw);
+    if (!normalized) return raw;
+    const [year, month, day] = normalized.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  function teleworkAgreementStart(item) {
+    return item.fechaInicioTeletrabajoCast || item.fechaInicioTeletrabajoEus || "";
+  }
+
+  function teleworkAgreementEnd(item) {
+    return item.fechaFinTeletrabajoCast || item.fechaFinTeletrabajoEus || "";
   }
 
   function ensureTeleworkEditModal() {
@@ -741,14 +840,30 @@
         </label>
         <label class="rrll-pro-field">
           <span>Tipo de solicitud</span>
-          <select id="${prefix}TeleworkType"><option>Nuevo</option><option>Renovación</option></select>
+          <select id="${prefix}TeleworkType"><option value="nueva">Nueva</option><option value="renovacion">Renovación</option></select>
         </label>
-        <div class="rrll-pro-field rrll-pro-field-full rrll-pro-days-field">
-          <span>Días solicitados</span>
-          <div class="rrll-pro-checks rrll-pro-inline-checks">
-            ${DAYS.map(day => `<label><input id="${prefix}Telework${day}" type="checkbox" /> ${day}</label>`).join("")}
-          </div>
-        </div>
+      </fieldset>
+      <fieldset class="telework-form-section telework-master-section">
+        <legend>Datos asociados en Plantilla</legend>
+        <div id="${prefix}TeleworkPlantillaInfo" class="telework-master-hint muted">Datos maestros cargados desde Plantilla.</div>
+        <label class="rrll-pro-field"><span>DNI</span><input id="${prefix}TeleworkDni" /></label>
+        <label class="rrll-pro-field"><span>Dirección Teletrabajo</span><input id="${prefix}TeleworkDireccionTeletrabajo" /></label>
+        <label class="rrll-pro-field"><span>Residencia CAST</span><input id="${prefix}TeleworkResidenciaCast" /></label>
+        <label class="rrll-pro-field"><span>Residencia EUS</span><input id="${prefix}TeleworkResidenciaEus" /></label>
+        <label class="rrll-pro-field"><span>Puesto CAST</span><input id="${prefix}TeleworkPuestoCast" /></label>
+        <label class="rrll-pro-field"><span>Puesto EUS</span><input id="${prefix}TeleworkPuestoEus" /></label>
+        <label class="rrll-pro-field"><span>Fecha Ordenador</span><input id="${prefix}TeleworkFechaOrdenador" type="date" /></label>
+        <label class="rrll-pro-field"><span>Fecha Cascos</span><input id="${prefix}TeleworkFechaCascos" type="date" /></label>
+      </fieldset>
+      <fieldset class="telework-form-section telework-agreement-section">
+        <legend>Datos del Acuerdo</legend>
+        <label class="rrll-pro-field"><span>Días Teletrabajo CAST</span><input id="${prefix}TeleworkDiasTeletrabajoCast" /></label>
+        <label class="rrll-pro-field"><span>Días Teletrabajo EUS</span><input id="${prefix}TeleworkDiasTeletrabajoEus" /></label>
+        <label class="rrll-pro-field"><span>Porcentaje Teletrabajo</span><input id="${prefix}TeleworkPorcentajeTeletrabajo" /></label>
+        <label class="rrll-pro-field"><span>Fecha Inicio CAST</span><input id="${prefix}TeleworkFechaInicioTeletrabajoCast" type="date" /></label>
+        <label class="rrll-pro-field"><span>Fecha Fin CAST</span><input id="${prefix}TeleworkFechaFinTeletrabajoCast" type="date" /></label>
+        <label class="rrll-pro-field"><span>Fecha Inicio EUS</span><input id="${prefix}TeleworkFechaInicioTeletrabajoEus" type="date" /></label>
+        <label class="rrll-pro-field"><span>Fecha Fin EUS</span><input id="${prefix}TeleworkFechaFinTeletrabajoEus" type="date" /></label>
       </fieldset>
       <fieldset class="telework-form-section">
         <legend>Validaciones</legend>
@@ -793,10 +908,12 @@
     document.getElementById("editTeleworkEmployeeNumber").value = item.employeeNumber || "";
     document.getElementById("editTeleworkName").value = item.nombreCompleto || item.name || "";
     document.getElementById("editTeleworkJob").value = item.job || "";
+    fillTeleworkPlantillaData(findPlantillaByEmployeeNumber(item.employeeNumber), "edit");
     renderTeleworkEligibilityWarning("edit");
     document.getElementById("editTeleworkPeriod").value = item.period || "";
-    document.getElementById("editTeleworkType").value = item.type || "Nuevo";
+    document.getElementById("editTeleworkType").value = item.tipoSolicitud || "nueva";
     setDays("edit", item.days);
+    TELEWORK_AGREEMENT_FIELDS.forEach(([key, suffix]) => writeTeleworkField("edit", suffix, item[key] || ""));
     document.getElementById("editTeleworkPresenceValidation").value = item.presenceValidation || "Pendiente";
     document.getElementById("editTeleworkFavorableReport").value = item.favorableReport || "Pendiente";
     document.getElementById("editTeleworkSecurity").value = item.security || "Pendiente";
@@ -858,9 +975,6 @@
   function renderTeleworkCard(rawItem) {
     const item = normalizeTeleworkItem(rawItem);
     const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
-    const daysHtml = item.days.length
-      ? item.days.map(day => `<span class="telework-day rrll-pro-source">${escapeHtml(day)}</span>`).join("")
-      : `<span class="telework-day rrll-pro-source">Sin días</span>`;
     const statusClass = teleworkStatusClass(item.status);
     const eligibilityWarnings = getTeleworkJobEligibility(item.job).warnings;
     const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
@@ -877,7 +991,9 @@
         <div class="telework-card-grid">
           <div><span>Periodo</span><strong>${escapeHtml(item.period || "Sin periodo")}</strong></div>
           <div><span>Tipo</span><strong>${escapeHtml(item.type || "Nuevo")}</strong></div>
-          <div><span>Días solicitados</span><div class="telework-days rrll-pro-day-list">${daysHtml}</div></div>
+          <div><span>Porcentaje</span><strong>${escapeHtml(item.porcentajeTeletrabajo || "—")}</strong></div>
+          <div><span>Inicio</span><strong>${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementStart(item)))}</strong></div>
+          <div><span>Fin</span><strong>${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementEnd(item)))}</strong></div>
           <div><span>Creada</span><strong>${escapeHtml(created)}</strong></div>
         </div>
         ${validationSummary(item)}
@@ -895,9 +1011,6 @@
   function renderTeleworkRow(rawItem, indicatorContext) {
     const item = normalizeTeleworkItem(rawItem);
     const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
-    const daysHtml = item.days.length
-      ? item.days.map(day => `<span class="telework-day rrll-pro-source">${escapeHtml(day)}</span>`).join("")
-      : `<span class="telework-day rrll-pro-source">Sin días</span>`;
     const statusClass = teleworkStatusClass(item.status);
     const eligibilityWarnings = getTeleworkJobEligibility(item.job).warnings;
     const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
@@ -917,16 +1030,15 @@
         <td class="telework-col-status"><span class="rrll-status-pill ${statusClass}">${escapeHtml(teleworkStatusLabel(item.status))}</span></td>
         <td class="telework-col-period"><span class="rrll-pro-source">${escapeHtml(item.period || "Sin periodo")}</span></td>
         <td class="telework-col-type"><span class="rrll-pro-source">${escapeHtml(item.type || "Nuevo")}</span></td>
-        <td class="telework-col-days"><div class="telework-days rrll-pro-day-list">${daysHtml}</div></td>
+        <td class="telework-col-percent"><span class="rrll-pro-source">${escapeHtml(item.porcentajeTeletrabajo || "—")}</span></td>
+        <td class="telework-col-start"><span class="rrll-pro-source">${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementStart(item)))}</span></td>
+        <td class="telework-col-end"><span class="rrll-pro-source">${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementEnd(item)))}</span></td>
         <td class="telework-col-created"><span class="rrll-pro-created">${escapeHtml(created)}</span></td>
       </tr>`;
   }
 
   function renderTeleworkHistoryRow(rawItem, indicatorContext) {
     const item = normalizeTeleworkItem(rawItem);
-    const daysHtml = item.days.length
-      ? item.days.map(day => `<span class="telework-day rrll-pro-source">${escapeHtml(day)}</span>`).join("")
-      : `<span class="telework-day rrll-pro-source">Sin días</span>`;
     const statusClass = teleworkStatusClass(item.status);
     const eligibilityWarnings = getTeleworkJobEligibility(item.job).warnings;
     const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
@@ -945,7 +1057,10 @@
         </td>
         <td class="telework-col-status"><span class="rrll-status-pill ${statusClass}">${escapeHtml(teleworkStatusLabel(item.status))}</span></td>
         <td class="telework-col-period"><span class="rrll-pro-source">${escapeHtml(item.period || "Sin periodo")}</span></td>
-        <td class="telework-col-days"><div class="telework-days rrll-pro-day-list">${daysHtml}</div></td>
+        <td class="telework-col-type"><span class="rrll-pro-source">${escapeHtml(item.type || "Nuevo")}</span></td>
+        <td class="telework-col-percent"><span class="rrll-pro-source">${escapeHtml(item.porcentajeTeletrabajo || "—")}</span></td>
+        <td class="telework-col-start"><span class="rrll-pro-source">${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementStart(item)))}</span></td>
+        <td class="telework-col-end"><span class="rrll-pro-source">${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementEnd(item)))}</span></td>
       </tr>`;
   }
 
@@ -1080,7 +1195,10 @@
                 <th>Solicitante</th>
                 <th>Estado</th>
                 <th>Campaña</th>
-                <th>Días</th>
+                <th>Tipo</th>
+                <th>Porcentaje</th>
+                <th>Inicio</th>
+                <th>Fin</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -1137,7 +1255,9 @@
                 <th>Estado</th>
                 <th>Campaña</th>
                 <th>Tipo</th>
-                <th>Días</th>
+                <th>Porcentaje</th>
+                <th>Inicio</th>
+                <th>Fin</th>
                 <th>Creada</th>
               </tr>
             </thead>
@@ -1584,8 +1704,15 @@
         name: teleworkCell(record, ["Nombre completo", "Solicitante", "Nombre", "Nombre y apellidos"]),
         job: teleworkCell(record, ["Puesto de trabajo", "Puesto"]),
         period: teleworkCell(record, ["Periodo", "Campaña", "Campana"]) || defaultPeriod,
-        type: teleworkCell(record, ["Tipo solicitud", "Tipo"]) || "Importada",
+        tipoSolicitud: teleworkCell(record, ["Tipo solicitud", "Tipo"]) || "nueva",
         days,
+        diasTeletrabajoCast: teleworkCell(record, ["Días Teletrabajo_CAST", "Dias Teletrabajo_CAST", "Días Teletrabajo CAST", "Dias Teletrabajo CAST"]),
+        diasTeletrabajoEus: teleworkCell(record, ["Días Teletrabajo_EUS", "Dias Teletrabajo_EUS", "Días Teletrabajo EUS", "Dias Teletrabajo EUS"]),
+        porcentajeTeletrabajo: teleworkCell(record, ["Porcentaje", "Porcentaje Teletrabajo", "% Teletrabajo"]),
+        fechaInicioTeletrabajoCast: normalizeTeleworkImportDate(teleworkCell(record, ["Fecha Inicio_CAST", "Fecha Inicio CAST"])),
+        fechaFinTeletrabajoCast: normalizeTeleworkImportDate(teleworkCell(record, ["Fecha Fin_CAST", "Fecha Fin CAST"])),
+        fechaInicioTeletrabajoEus: normalizeTeleworkImportDate(teleworkCell(record, ["Fecha Inicio_EUS", "Fecha Inicio EUS"])),
+        fechaFinTeletrabajoEus: normalizeTeleworkImportDate(teleworkCell(record, ["Fecha Fin_EUS", "Fecha Fin EUS"])),
         presenceValidation: parseTeleworkBoolean(teleworkCell(record, ["Cumplimiento condiciones presencialidad", "Cumplimiento presencialidad"])) ? "Sí" : "Pendiente",
         favorableReport: parseTeleworkBoolean(teleworkCell(record, ["Informe favorable"])) ? "Sí" : "Pendiente",
         security: parseTeleworkBoolean(teleworkCell(record, ["Seguridad informática", "Seguridad informatica"])) ? "Sí" : "Pendiente",
@@ -1874,7 +2001,7 @@
       requests: {
         sheetName: "Solicitudes Teletrabajo",
         filename: "modelo-solicitudes-teletrabajo.xlsx",
-        rows: [["Nº empleado", "Nombre y apellidos", "Puesto de trabajo", "Periodo", "Tipo solicitud", "Martes", "Miércoles", "Jueves", "Cumplimiento presencialidad", "Informe favorable", "Seguridad informática", "Prevención", "Validación Dirección", "Fecha resolución", "Observaciones"], ["12345", "Nombre Apellido", "Técnico/a RRLL", "2026", "Renovación", "Sí", "Sí", "No", "Sí", "Sí", "Sí", "Sí", "Aprobado", "15/05/2026", "Sin incidencias"]]
+        rows: [["Nº empleado", "Nombre y apellidos", "Puesto de trabajo", "Periodo", "Tipo solicitud", "Días Teletrabajo_CAST", "Días Teletrabajo_EUS", "Porcentaje", "Fecha Inicio_CAST", "Fecha Fin_CAST", "Fecha Inicio_EUS", "Fecha Fin_EUS", "Cumplimiento presencialidad", "Informe favorable", "Seguridad informática", "Prevención", "Validación Dirección", "Fecha resolución", "Observaciones"], ["12345", "Nombre Apellido", "Técnico/a RRLL", "2026", "renovacion", "Martes y jueves", "Asteartea eta osteguna", "40%", "01/01/2026", "31/12/2026", "2026/01/01", "2026/12/31", "Sí", "Sí", "Sí", "Sí", "Aprobado", "15/05/2026", "Sin incidencias"]]
       },
       jobs: {
         sheetName: "Puestos Teletrabajo",

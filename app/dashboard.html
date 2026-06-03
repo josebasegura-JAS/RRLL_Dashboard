@@ -853,7 +853,7 @@
             <div id="teleworkCreateForm" class="rrll-pro-task-form rrll-pro-telework-form telework-professional-form telework-intake-form rrll-create-form-collapsed">
               <div class="telework-intake-note">
                 <strong>Alta inicial de solicitud</strong>
-                <span>Registra solo la persona, la campaña y los días solicitados. Las validaciones, renovación y resolución se completan después con doble clic sobre la solicitud guardada.</span>
+                <span>Registra la persona y los datos del acuerdo. Los datos maestros se cargan desde Plantilla y se mantienen separados de la solicitud.</span>
               </div>
 
               <fieldset class="telework-form-section telework-person-section">
@@ -883,18 +883,34 @@
                 <label class="rrll-pro-field">
                   <span>Tipo de solicitud</span>
                   <select id="newTeleworkType">
-                    <option value="Nuevo">Nuevo</option>
-                    <option value="Renovación">Renovación</option>
+                    <option value="nueva">Nueva</option>
+                    <option value="renovacion">Renovación</option>
                   </select>
                 </label>
-                <div class="rrll-pro-field rrll-pro-field-full rrll-pro-days-field">
-                  <span>Días solicitados</span>
-                  <div class="rrll-pro-checks rrll-pro-inline-checks">
-                    <label><input id="newTeleworkMartes" type="checkbox" /> Martes</label>
-                    <label><input id="newTeleworkMiércoles" type="checkbox" /> Miércoles</label>
-                    <label><input id="newTeleworkJueves" type="checkbox" /> Jueves</label>
-                  </div>
-                </div>
+              </fieldset>
+
+              <fieldset class="telework-form-section telework-master-section">
+                <legend>Datos asociados en Plantilla</legend>
+                <div id="newTeleworkPlantillaInfo" class="telework-master-hint muted">Selecciona una persona de Plantilla para cargar sus datos maestros.</div>
+                <label class="rrll-pro-field"><span>DNI</span><input id="newTeleworkDni" /></label>
+                <label class="rrll-pro-field"><span>Dirección Teletrabajo</span><input id="newTeleworkDireccionTeletrabajo" /></label>
+                <label class="rrll-pro-field"><span>Residencia CAST</span><input id="newTeleworkResidenciaCast" /></label>
+                <label class="rrll-pro-field"><span>Residencia EUS</span><input id="newTeleworkResidenciaEus" /></label>
+                <label class="rrll-pro-field"><span>Puesto CAST</span><input id="newTeleworkPuestoCast" /></label>
+                <label class="rrll-pro-field"><span>Puesto EUS</span><input id="newTeleworkPuestoEus" /></label>
+                <label class="rrll-pro-field"><span>Fecha Ordenador</span><input id="newTeleworkFechaOrdenador" type="date" /></label>
+                <label class="rrll-pro-field"><span>Fecha Cascos</span><input id="newTeleworkFechaCascos" type="date" /></label>
+              </fieldset>
+
+              <fieldset class="telework-form-section telework-agreement-section">
+                <legend>Datos del Acuerdo</legend>
+                <label class="rrll-pro-field"><span>Días Teletrabajo CAST</span><input id="newTeleworkDiasTeletrabajoCast" /></label>
+                <label class="rrll-pro-field"><span>Días Teletrabajo EUS</span><input id="newTeleworkDiasTeletrabajoEus" /></label>
+                <label class="rrll-pro-field"><span>Porcentaje Teletrabajo</span><input id="newTeleworkPorcentajeTeletrabajo" /></label>
+                <label class="rrll-pro-field"><span>Fecha Inicio CAST</span><input id="newTeleworkFechaInicioTeletrabajoCast" type="date" /></label>
+                <label class="rrll-pro-field"><span>Fecha Fin CAST</span><input id="newTeleworkFechaFinTeletrabajoCast" type="date" /></label>
+                <label class="rrll-pro-field"><span>Fecha Inicio EUS</span><input id="newTeleworkFechaInicioTeletrabajoEus" type="date" /></label>
+                <label class="rrll-pro-field"><span>Fecha Fin EUS</span><input id="newTeleworkFechaFinTeletrabajoEus" type="date" /></label>
               </fieldset>
 
               <fieldset class="telework-form-section telework-observations-section">
@@ -1145,40 +1161,12 @@
                     <input id="newPlantpuestoEus" type="text" />
                   </label>
                   <label class="rrll-pro-field">
-                    <span>Días Teletrabajo EUS</span>
-                    <input id="newPlantdiasTeletrabajoEus" type="text" />
-                  </label>
-                  <label class="rrll-pro-field">
-                    <span>Días Teletrabajo CAST</span>
-                    <input id="newPlantdiasTeletrabajoCast" type="text" />
-                  </label>
-                  <label class="rrll-pro-field">
-                    <span>Porcentaje Teletrabajo</span>
-                    <input id="newPlantporcentajeTeletrabajo" type="text" />
-                  </label>
-                  <label class="rrll-pro-field">
                     <span>Fecha Ordenador</span>
                     <input id="newPlantfechaOrdenador" type="date" />
                   </label>
                   <label class="rrll-pro-field">
                     <span>Fecha Cascos</span>
                     <input id="newPlantfechaCascos" type="date" />
-                  </label>
-                  <label class="rrll-pro-field">
-                    <span>Fecha Inicio CAST</span>
-                    <input id="newPlantfechaInicioTeletrabajoCast" type="date" />
-                  </label>
-                  <label class="rrll-pro-field">
-                    <span>Fecha Fin CAST</span>
-                    <input id="newPlantfechaFinTeletrabajoCast" type="date" />
-                  </label>
-                  <label class="rrll-pro-field">
-                    <span>Fecha Inicio EUS</span>
-                    <input id="newPlantfechaInicioTeletrabajoEus" type="date" />
-                  </label>
-                  <label class="rrll-pro-field">
-                    <span>Fecha Fin EUS</span>
-                    <input id="newPlantfechaFinTeletrabajoEus" type="date" />
                   </label>
                 </div>
               </details>
