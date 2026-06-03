@@ -1349,8 +1349,8 @@ body[data-theme="light"] .rrll-autocomplete-empty {
 }
 body[data-theme="light"] .rrll-pro-table th.sortable:hover,
 body[data-theme="light"] .rrll-pro-table th.sortable.sorted {
-  background: #e7edf5 !important;
-  color: #1f2937 !important;
+  background: #e7edf5;
+  color: #1f2937;
 }
 
 /* Fase 5.33 - Licencias: fechas autocalculadas */
@@ -1445,7 +1445,7 @@ html[data-theme="dark"] body.rrll-view-module #gestor-actas .rrll-pro-field text
 html[data-theme="dark"] body.rrll-view-module #gestor-teletrabajo .rrll-pro-field input:focus,
 html[data-theme="dark"] body.rrll-view-module #gestor-teletrabajo .rrll-pro-field select:focus,
 html[data-theme="dark"] body.rrll-view-module #gestor-teletrabajo .rrll-pro-field textarea:focus {
-  background: var(--rrll-field-bg-focus) !important;   /* #3a4152 — gris foco */
+  background: var(--rrll-field-bg-focus);   /* #3a4152 — gris foco */
   background-color: var(--rrll-field-bg-focus) !important;
   color: var(--rrll-text-main) !important;
   border-color: rgba(59,130,246,.58) !important;
@@ -1522,10 +1522,10 @@ tbody td:first-child,
 .sessions-header h2,
 .points-header h1,
 .points-header h2 {
-    font-size: 1.02rem !important;
-    line-height: 1.2 !important;
-    font-weight: 800 !important;
-    margin: 0 !important;
+    font-size: 1.02rem;
+    line-height: 1.2;
+    font-weight: 800;
+    margin: 0;
 }
 
 .committee-header .module-kpi,
@@ -3926,9 +3926,9 @@ body.rrll-view-module #gestor-sesiones-comite > .session-columns,
 /* Fix: al plegar Sesiones Comité/Paritaria, el panel no debe conservar altura vacía */
 body.rrll-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) .session-columns.rrll-session-stack > .session-panel,
 body.rrll-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) .session-columns.rrll-session-stack > .column.session-panel {
-  flex: 0 0 auto !important;
-  min-height: 0 !important;
-  height: auto !important;
+  flex: 0 0 auto;
+  min-height: 0;
+  height: auto;
   align-self: stretch !important;
 }
 
@@ -3940,9 +3940,9 @@ body.rrll-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) .
 }
 
 body.rrll-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) .session-panel.rrll-session-panel-collapsed-full .session-content {
-  display: none !important;
-  height: 0 !important;
-  min-height: 0 !important;
+  display: none;
+  height: 0;
+  min-height: 0;
   max-height: 0 !important;
   overflow: hidden !important;
   margin: 0 !important;
@@ -3956,12 +3956,12 @@ body.rrll-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) .
 body.rrll-view-module #gestor-sesiones-paritaria #paritaria-session-columns.session-columns,
 body.rrll-view-module #gestor-sesiones-paritaria > #paritaria-session-columns.session-columns,
 body.rrll-view-module #gestor-sesiones-paritaria #paritaria-session-columns.session-columns.rrll-session-stack {
-  display: flex !important;
-  flex-direction: column !important;
-  grid-template-columns: none !important;
-  grid-auto-flow: row !important;
-  gap: 12px !important;
-  max-width: 100% !important;
+  display: flex;
+  flex-direction: column;
+  grid-template-columns: none;
+  grid-auto-flow: row;
+  gap: 12px;
+  max-width: 100%;
   overflow-x: hidden !important;
 }
 
@@ -3999,20 +3999,20 @@ body.rrll-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll
 
 body.rrll-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria) .rrll-pro-actions button,
 body.rrll-view-module :is(#gestor-sesiones-comite, #gestor-sesiones-paritaria) .session-card :is(.task-actions, .session-card-toolbar) button {
-  display: inline-flex !important;
+  display: inline-flex;
   align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
+  justify-content: center;
+  text-align: center;
 }
 
 body.rrll-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-delete-icon-button {
   width: 28px !important;
   min-width: 28px !important;
   height: 28px !important;
-  padding: 0 !important;
-  color: #fecaca !important;
-  background: rgba(220, 38, 38, .16) !important;
-  border-color: rgba(248, 113, 113, .36) !important;
+  padding: 0;
+  color: #fecaca;
+  background: rgba(220, 38, 38, .16);
+  border-color: rgba(248, 113, 113, .36);
 }
 
 body.rrll-view-module :is(#gestor-puntos-comite, #gestor-puntos-paritaria, #gestor-sesiones-comite, #gestor-sesiones-paritaria) .rrll-delete-icon-button:hover {
@@ -4434,7 +4434,7 @@ body[data-active-module="gestor-criterios"] #gestor-criterios {
 }
 
 body.rrll-view-module #gestor-criterios .criteria-table {
-  width: 100% !important;
+  width: 100%;
   table-layout: fixed;
 }
 
@@ -4555,7 +4555,7 @@ body.rrll-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-origin-headi
 body.rrll-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-origin-cell,
 body.rrll-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-pro-table th:nth-child(2),
 body.rrll-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-pro-table td:nth-child(2) {
-  text-align: center !important;
+  text-align: center;
 }
 
 .petition-origin-badge,
@@ -4597,7 +4597,7 @@ body.rrll-view-module :is(#gestor-peticiones, #gestor-tareas) .rrll-pro-table td
 }
 
 .rrll-legacy-source-checks {
-  display: none !important;
+  display: none;
 }
 
 html[data-theme="light"] .petition-origin-badge,
