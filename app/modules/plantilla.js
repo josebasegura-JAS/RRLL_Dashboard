@@ -757,6 +757,16 @@
     if (empty) empty.style.display = rows.length ? 'none' : 'block';
     if (count) count.textContent = rows.length;
     if (summary) summary.textContent = `${rows.length} personas`;
+    const genderCounts = rows.reduce((acc, item) => {
+      const sexo = resolveSexo(item).toLowerCase();
+      if (/^(mujer|femenino|f)$/.test(sexo)) acc.women += 1;
+      if (/^(hombre|masculino|m)$/.test(sexo)) acc.men += 1;
+      return acc;
+    }, { women: 0, men: 0 });
+    [["plantillaSummaryActive", rows.length], ["plantillaSummaryWomen", genderCounts.women], ["plantillaSummaryMen", genderCounts.men]].forEach(([id, value]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    });
     document.querySelectorAll('#gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button').forEach(button => {
       const label = normalizeText(button.textContent);
       const isTextAction = ['Elecciones sindicales', 'Importar RRLL', '+ Crear plantilla', 'Crear plantilla', 'Descargar modelo'].includes(label);

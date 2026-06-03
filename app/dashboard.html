@@ -346,9 +346,15 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Gestor de tareas</h2>
-                <p>Alta rápida, seguimiento y control de estados en formato listado.</p>
+                <p class="module-subtitle">Organización y seguimiento de actividad pendiente.</p>
               </div>
               <button class="rrll-pro-primary" type="button" onclick="toggleTaskCreateForm()">+ Nueva tarea</button>
+            </div>
+            <div class="module-summary-grid" aria-label="Resumen de tareas">
+              <div class="module-summary-card"><span>Pendientes</span><strong id="taskSummaryPending">0</strong></div>
+              <div class="module-summary-card"><span>Próximas a vencer</span><strong id="taskSummaryUpcoming">0</strong></div>
+              <div class="module-summary-card"><span>Vencidas</span><strong id="taskSummaryOverdue">0</strong></div>
+              <div class="module-summary-card"><span>Completadas</span><strong id="taskSummaryCompleted">0</strong></div>
             </div>
 
             <div id="taskCreateForm" class="rrll-pro-task-form rrll-create-form-collapsed">
@@ -449,9 +455,14 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Peticiones</h2>
-                <p>Registro compacto de solicitudes, origen, estado y seguimiento.</p>
+                <p class="module-subtitle">Solicitudes recibidas desde la representación social y áreas internas.</p>
               </div>
               <button class="rrll-pro-primary" type="button" onclick="togglePetitionCreateForm()">+ Nueva petición</button>
+            </div>
+            <div class="module-summary-grid" aria-label="Resumen de peticiones">
+              <div class="module-summary-card"><span>Pendientes</span><strong id="petitionSummaryPending">0</strong></div>
+              <div class="module-summary-card"><span>En estudio</span><strong id="petitionSummaryStudy">0</strong></div>
+              <div class="module-summary-card"><span>Cerradas</span><strong id="petitionSummaryClosed">0</strong></div>
             </div>
 
             <div id="petitionCreateForm" class="rrll-pro-task-form rrll-pro-petition-form rrll-create-form-collapsed">
@@ -546,10 +557,11 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Gestor de puntos del Comité</h2>
-                <p>Seguimiento de asuntos, peticionarios, estado y vinculación con sesiones.</p>
+                <p class="module-subtitle">Seguimiento de puntos abiertos, sesiones y actas.</p>
               </div>
               <button type="button" class="rrll-pro-primary" onclick="toggleAgendaCreateForm(true)">+ Nuevo punto</button>
             </div>
+            <p class="module-context-note">Los puntos cerrados permanecen disponibles en el histórico.</p>
 
             <div id="agendaCreateForm" class="rrll-pro-task-form rrll-pro-committee-form rrll-create-form-collapsed">
               <label class="rrll-pro-field">
@@ -661,10 +673,11 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Gestor de puntos de Paritaria</h2>
-                <p>Control de asuntos, peticionarios, estado y vinculación con sesiones.</p>
+                <p class="module-subtitle">Interpretación, aplicación y seguimiento del convenio colectivo.</p>
               </div>
               <button type="button" class="rrll-pro-primary" onclick="toggleParitariaCreateForm(true)">+ Nuevo punto</button>
             </div>
+            <p class="module-context-note">Los asuntos cerrados permanecen disponibles para consulta posterior.</p>
 
             <div id="paritariaCreateForm" class="rrll-pro-task-form rrll-pro-committee-form rrll-create-form-collapsed">
               <label class="rrll-pro-field">
@@ -775,9 +788,14 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Gestor de actas</h2>
-                <p>Control de elaboración, Dirección, alegaciones y firma.</p>
+                <p class="module-subtitle">Redacción, seguimiento y control del ciclo de vida de las actas.</p>
               </div>
               <button type="button" class="rrll-pro-primary" onclick="toggleMinuteCreateForm(true)">+ Nueva acta</button>
+            </div>
+            <div class="module-summary-grid" aria-label="Resumen de actas">
+              <div class="module-summary-card"><span>Pendientes de redactar</span><strong id="minuteSummaryTodo">0</strong></div>
+              <div class="module-summary-card"><span>Pendientes de alegaciones</span><strong id="minuteSummaryAllegations">0</strong></div>
+              <div class="module-summary-card"><span>Pendientes de firma</span><strong id="minuteSummarySignature">0</strong></div>
             </div>
 
             <div id="minuteCreateForm" class="rrll-pro-task-form rrll-pro-minute-form rrll-create-form-collapsed">
@@ -965,7 +983,7 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Vinculograma</h2>
-                <p>Registro de solicitudes, vigencias automáticas y vencimientos a 3 años.</p>
+                <p class="module-subtitle">Registro de personas vinculadas de la plantilla.</p>
               </div>
               <button type="button" class="rrll-pro-primary" onclick="toggleVinculogramaCreateForm(true)">+ Nuevo vinculograma</button>
             </div>
@@ -1050,13 +1068,19 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Plantilla</h2>
-                <p>Registro de personas, puestos de trabajo y nivel retributivo.</p>
+                <p class="module-subtitle">Información maestra utilizada por el resto de módulos.</p>
               </div>
               <div class="rrll-pro-list-actions">
                 <button type="button" class="rrll-pro-tool-button" onclick="togglePlantillaElectoralView(true)">Elecciones sindicales</button>
                 <button type="button" class="rrll-pro-primary rrll-pro-new-button" onclick="togglePlantillaCreateForm(true)">+ Crear plantilla</button>
               </div>
             </div>
+            <div class="module-summary-grid" aria-label="Resumen de plantilla">
+              <div class="module-summary-card"><span>Personas activas</span><strong id="plantillaSummaryActive">0</strong></div>
+              <div class="module-summary-card"><span>Mujeres</span><strong id="plantillaSummaryWomen">0</strong></div>
+              <div class="module-summary-card"><span>Hombres</span><strong id="plantillaSummaryMen">0</strong></div>
+            </div>
+            <p class="module-context-note">La información de Plantilla alimenta otros módulos de la aplicación.</p>
 
             <div id="plantillaCreateForm" class="rrll-pro-task-form rrll-pro-plantilla-form rrll-create-form-collapsed">
               <label class="rrll-pro-field">
@@ -1298,6 +1322,12 @@
         
         <details class="card module-card rrll-pro-module" id="gestor-especiales"><summary><span class="module-title"><span class="module-icon">✉</span>Especiales</span><span class="summary-counts">Outlook · Borrador manual</span></summary>
           <div class="card-body">
+            <div class="module-heading-inline">
+              <div>
+                <h2>Especiales</h2>
+                <p class="module-subtitle">Generación asistida de comunicaciones Outlook para servicios especiales.</p>
+              </div>
+            </div>
             <div class="module-toolbar especiales-actions-top">
               <button id="especialesGenerateDraftBtn" type="button" onclick="generateEspecialesDraft()">Generar borrador en Outlook</button>
               <button type="button" class="secondary" onclick="clearEspecialesForm()">Limpiar</button>
@@ -1365,9 +1395,14 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Licencias sin sueldo y excedencias</h2>
-                <p>Seguimiento de solicitudes desde aprobación hasta firma, vigencia e histórico anual.</p>
+                <p class="module-subtitle">Gestión de solicitudes, situaciones vigentes e histórico.</p>
               </div>
               <button type="button" class="rrll-pro-primary" onclick="toggleLicenciaCreateForm(true)">+ Nueva solicitud</button>
+            </div>
+            <div class="module-summary-grid" aria-label="Resumen de licencias y excedencias">
+              <div class="module-summary-card"><span>Pendientes</span><strong id="licSummaryPending">0</strong></div>
+              <div class="module-summary-card"><span>Vigentes</span><strong id="licSummaryActive">0</strong></div>
+              <div class="module-summary-card"><span>Finalizadas</span><strong id="licSummaryFinalized">0</strong></div>
             </div>
 
             <div id="licenciaCreateForm" class="rrll-pro-task-form rrll-pro-licencias-form rrll-create-form-collapsed">
@@ -1448,6 +1483,10 @@
 
         <details class="card module-card rrll-pro-module budget-module" id="gestor-presupuestos"><summary><span class="module-title"><span class="module-icon">€</span>Presupuestos RRLL</span><span class="summary-counts">Escenarios · Simulación · Resultados · Avanzado</span></summary>
           <div class="budget-shell">
+            <section class="module-intro-card">
+              <h2>Presupuestos RRLL</h2>
+              <p class="module-subtitle">Planificación, simulación y seguimiento presupuestario de Relaciones Laborales.</p>
+            </section>
             <section class="budget-section budget-section-primary">
               <div class="budget-section-heading"><div><span class="budget-step">1 · Escenarios</span><h3>Escenarios de presupuesto</h3><p class="muted">Selecciona el escenario de trabajo antes de configurar hipótesis, simular o analizar resultados.</p></div><div class="budget-actions-inline"><button type="button" onclick="openBudgetScenarioForm()">Nuevo escenario</button></div></div>
               <div class="table-wrap"><table class="budget-table"><thead><tr><th>Escenario</th><th>Año sugerido</th><th>Importe ticket</th><th>Partidas manuales</th><th>Ticket Restaurante</th><th>Total global</th><th>Acciones</th></tr></thead><tbody id="budgetScenarioRows"></tbody></table></div>
@@ -1512,9 +1551,10 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Ticket Restaurante</h2>
-                <p>Gestión mensual de calendarios, personas con derecho, ausencias y generación del Excel de cómputo.</p>
+                <p class="module-subtitle">Gestión de pedidos de tickets restaurante.</p>
               </div>
             </div>
+            <p class="module-context-note">Los pedidos se calculan utilizando calendarios, ausencias y parámetros vigentes.</p>
 
             <div class="ticket-restaurant-tabs" role="tablist" aria-label="Áreas de Ticket Restaurante">
               <button type="button" class="ticket-restaurant-tab" data-ticket-area="compute" onclick="showTicketRestaurantArea('compute')">Generar Cómputo</button>
@@ -1636,8 +1676,13 @@
             <div class="rrll-pro-task-head">
               <div>
                 <h2>Sorteos</h2>
-                <p>Gestión de participantes, exclusiones y ganadores por sorteo.</p>
+                <p class="module-subtitle">Gestión de sorteos, exclusiones e histórico de adjudicaciones.</p>
               </div>
+            </div>
+            <div class="module-summary-grid" aria-label="Resumen de sorteos">
+              <div class="module-summary-card"><span>Disponibles</span><strong id="drawSummaryAvailable">0</strong></div>
+              <div class="module-summary-card"><span>Excluidos</span><strong id="drawSummaryExcluded">0</strong></div>
+              <div class="module-summary-card"><span>Histórico</span><strong id="drawSummaryHistory">0</strong></div>
             </div>
 
             <div class="rrll-pro-form-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));align-items:end;">

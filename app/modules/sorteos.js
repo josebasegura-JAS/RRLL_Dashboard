@@ -66,10 +66,15 @@
     if (exEl) exEl.textContent = String(exclusions.length);
     if (avEl) avEl.textContent = String(available.length);
 
+    const draws = getDraws();
+    [["drawSummaryAvailable", available.length], ["drawSummaryExcluded", exclusions.length], ["drawSummaryHistory", draws.length]].forEach(([id, value]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    });
+
     const exToggle = document.getElementById('drawExclusionsToggle');
     if (exToggle) exToggle.textContent = `Exclusiones (${exclusions.length}) ▾`;
     const historyToggle = document.getElementById('drawHistoryToggle');
-    const draws = getDraws();
     if (historyToggle) historyToggle.textContent = `Histórico de sorteos (${draws.length}) ▾`;
 
     const emptyWarn = document.getElementById('drawsNoTemplateWarning');

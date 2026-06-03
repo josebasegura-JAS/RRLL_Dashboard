@@ -498,3 +498,83 @@ body.rrll-view-module .rrll-main main {
 *::-webkit-scrollbar-thumb:hover {
   background: rgba(170,179,194,.48) !important;
 }
+
+/* UX transversal de módulos: subtítulos, resúmenes y ayudas discretas. */
+.module-subtitle {
+  margin: .2rem 0 0;
+  color: var(--muted, #94a3b8);
+  font-size: .88rem;
+  line-height: 1.35;
+}
+
+.module-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: .65rem;
+  margin-top: -.25rem;
+}
+
+.module-summary-card {
+  display: grid;
+  gap: .28rem;
+  min-height: 58px;
+  padding: .72rem .85rem;
+  border: 1px solid var(--border-color, rgba(255,255,255,.12));
+  border-radius: .75rem;
+  background: var(--surface-soft, rgba(255,255,255,.035));
+}
+
+.module-summary-card span {
+  color: var(--muted, #94a3b8);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.module-summary-card strong {
+  color: var(--text, #f8fafc);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.module-context-note {
+  margin: -.15rem 0 0;
+  padding: .65rem .8rem;
+  border: 1px solid var(--border-color, rgba(255,255,255,.10));
+  border-radius: .75rem;
+  background: rgba(255,255,255,.025);
+  color: var(--muted, #94a3b8);
+  font-size: .85rem;
+}
+
+.module-intro-card,
+.module-heading-inline {
+  display: grid;
+  gap: .25rem;
+}
+
+.module-intro-card {
+  padding: .85rem 1rem;
+  border: 1px solid var(--border-color, rgba(255,255,255,.12));
+  border-radius: .75rem;
+  background: var(--surface-soft, rgba(255,255,255,.035));
+}
+
+.module-intro-card h2,
+.module-heading-inline h2 {
+  margin: 0;
+  color: var(--text, #f8fafc);
+  font-size: 1.25rem;
+  letter-spacing: -.02em;
+}
+
+.module-heading-inline {
+  margin-bottom: .8rem;
+}
+
+@media (max-width: 900px) {
+  .module-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
