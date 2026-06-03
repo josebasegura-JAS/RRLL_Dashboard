@@ -96,6 +96,11 @@ function getRRLLFolderConfigPath() {
   return path.join(app.getPath("userData"), "rrll-folder-config.json");
 }
 
+function ts() {
+  const now = new Date();
+  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
+}
+
 function getTeleworkAgreementConfigPath() {
   return path.join(app.getPath("userData"), "rrll-telework-agreement-config.json");
 }
