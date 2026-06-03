@@ -820,22 +820,38 @@
     hideTeleworkSuggestions("new");
   }
 
-  function addTelework() {
-    const draft = readTeleworkForm("new");
-    if (!draft) return;
-    const items = getTeleworkItems();
-    const duplicateKey = getTeleworkDuplicateKey(draft);
-    const duplicate = duplicateKey ? items.find(item => getTeleworkDuplicateKey(item) === duplicateKey) : null;
-    if (duplicate) {
-      const message = `Ya existe una solicitud para Nº empleado ${draft.employeeNumber} en la campaña ${draft.period}. Abre la solicitud existente para editarla o confirma si quieres crear un duplicado manual.`;
-      if (!confirm(message)) return;
+  async function addTelework() {
+    console.debug("[Teletrabajo] Inicio alta de solicitud");
+    try {
+      const draft = readTeleworkForm("new");
+      if (!draft) return;
+      console.debug("[Teletrabajo] Borrador de solicitud generado", {
+        employeeNumber: draft.employeeNumber,
+        period: draft.period,
+        status: draft.status
+      });
+
+      const items = getTeleworkItems();
+      const duplicateKey = getTeleworkDuplicateKey(draft);
+      const duplicate = duplicateKey ? items.find(item => getTeleworkDuplicateKey(item) === duplicateKey) : null;
+      if (duplicate) {
+        const message = `Ya existe una solicitud para Nº empleado ${draft.employeeNumber} en la campaña ${draft.period}. Abre la solicitud existente para editarla o confirma si quieres crear un duplicado manual.`;
+        if (!confirm(message)) return;
+      }
+
+      const id = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : String(Date.now());
+      const nextItems = [{ ...draft, id }, ...items];
+      await setTeleworkItems(nextItems, { rejectOnError: true });
+      if (typeof window.waitForPendingSaves === "function") await window.waitForPendingSaves();
+      console.debug("[Teletrabajo] Solicitud guardada correctamente", { id, employeeNumber: draft.employeeNumber, period: draft.period });
+
+      resetTeleworkCreateForm();
+      toggleTeleworkCreateForm(false);
+      refreshTeleworkDependents();
+    } catch (error) {
+      console.error("[Teletrabajo] No se pudo guardar la solicitud:", error);
+      alert(error && error.message ? error.message : "No se pudo guardar la solicitud de teletrabajo. Revisa la consola para más detalle.");
     }
-    const id = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : String(Date.now());
-    items.unshift({ ...draft, id });
-    setTeleworkItems(items);
-    resetTeleworkCreateForm();
-    toggleTeleworkCreateForm(false);
-    refreshTeleworkDependents();
   }
 
   function executeMoveTeleworkToProcessing(id) {
@@ -1327,6 +1343,17 @@
     }
   }
 
+  function renderTeleworkActions(item) {
+    return `
+      <div class="rrll-pro-actions telework-row-actions" onclick="event.stopPropagation()">
+        ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
+        ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
+        ${item.status === "telework-approved" ? `<button class="small secondary telework-word-action" onclick="generateTeleworkAgreement('${escapeJs(item.id)}')" title="Generar acuerdo Word" aria-label="Generar acuerdo Word"><span aria-hidden="true">W</span></button>` : ""}
+        <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
+        <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
+      </div>`;
+  }
+
   function renderTeleworkCard(rawItem) {
     const item = normalizeTeleworkItem(rawItem);
     const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
@@ -1354,13 +1381,7 @@
         ${validationSummary(item)}
         ${eligibilityHtml}
         <p class="telework-observations-preview">${escapeHtml(observationsPreview(item.observations))}</p>
-        <div class="rrll-pro-actions telework-card-actions" onclick="event.stopPropagation()">
-          ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
-          ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
-          ${item.status === "telework-approved" ? `<button class="small secondary telework-word-action" onclick="generateTeleworkAgreement('${escapeJs(item.id)}')" title="Generar acuerdo Word" aria-label="Generar acuerdo Word"><span aria-hidden="true">W</span></button>` : ""}
-          <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
-          <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
-        </div>
+        ${renderTeleworkActions(item)}
       </article>`;
   }
 
@@ -1372,7 +1393,7 @@
     const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
 
     return `
-      <tr id="rrll-telework-${escapeHtml(item.id)}" class="rrll-pro-row telework-request-row status-${statusClass}" ondblclick="event.preventDefault(); event.stopPropagation(); openTeleworkEditModal('${escapeJs(item.id)}')" title="Doble clic para editar la ficha completa">
+      <tr id="rrll-telework-${escapeHtml(item.id)}" class="rrll-pro-row telework-request-row status-${statusClass}" onclick="openTeleworkEditModal('${escapeJs(item.id)}')" ondblclick="event.preventDefault(); event.stopPropagation(); openTeleworkEditModal('${escapeJs(item.id)}')" title="Clic para editar la ficha completa">
         <td class="rrll-pro-main-cell telework-col-person">
           <div class="telework-person-with-indicator">
             ${renderTeleworkPositionIndicator(item, indicatorContext)}
@@ -1390,6 +1411,7 @@
         <td class="telework-col-start"><span class="rrll-pro-source">${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementStart(item)))}</span></td>
         <td class="telework-col-end"><span class="rrll-pro-source">${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementEnd(item)))}</span></td>
         <td class="telework-col-created"><span class="rrll-pro-created">${escapeHtml(created)}</span></td>
+        <td class="telework-col-actions">${renderTeleworkActions(item)}</td>
       </tr>`;
   }
 
@@ -1400,7 +1422,7 @@
     const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
 
     return `
-      <tr id="rrll-telework-history-${escapeHtml(item.id)}" class="rrll-pro-row telework-request-row telework-history-row status-${statusClass}" ondblclick="event.preventDefault(); event.stopPropagation(); openTeleworkEditModal('${escapeJs(item.id)}')" title="Doble clic para editar la ficha completa">
+      <tr id="rrll-telework-history-${escapeHtml(item.id)}" class="rrll-pro-row telework-request-row telework-history-row status-${statusClass}" onclick="openTeleworkEditModal('${escapeJs(item.id)}')" ondblclick="event.preventDefault(); event.stopPropagation(); openTeleworkEditModal('${escapeJs(item.id)}')" title="Clic para editar la ficha completa">
         <td class="rrll-pro-main-cell telework-col-person">
           <div class="telework-person-with-indicator">
             ${renderTeleworkPositionIndicator(item, indicatorContext)}
@@ -1417,6 +1439,7 @@
         <td class="telework-col-percent"><span class="rrll-pro-source">${escapeHtml(item.porcentajeTeletrabajo || "—")}</span></td>
         <td class="telework-col-start"><span class="rrll-pro-source">${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementStart(item)))}</span></td>
         <td class="telework-col-end"><span class="rrll-pro-source">${escapeHtml(formatTeleworkAgreementDate(teleworkAgreementEnd(item)))}</span></td>
+        <td class="telework-col-actions">${renderTeleworkActions(item)}</td>
       </tr>`;
   }
 
@@ -1556,6 +1579,7 @@
                 <th>Porcentaje</th>
                 <th>Inicio</th>
                 <th>Fin</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -1619,6 +1643,7 @@
                 <th>Inicio</th>
                 <th>Fin</th>
                 <th>Creada</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>${filtered.map(item => renderTeleworkRow(item, indicatorContext)).join("")}</tbody>
