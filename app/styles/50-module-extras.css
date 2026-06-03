@@ -234,9 +234,6 @@ textarea[id^="newParitariaSession"] {
 .rrll-sidebar {
   padding-top: 14px !important;
 }
-.rrll-nav:first-of-type {
-  margin-top: 0 !important;
-}
 
 /* Todas las vistas de gestor deben seguir el patrón Vinculograma/Licencias: gris-carbón, sin negro profundo. */
 body.rrll-view-module .content-right {

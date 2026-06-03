@@ -1066,18 +1066,12 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
   width: 5px !important;
   height: 5px !important;
 }
-.rrll-sidebar::-webkit-scrollbar-track {
-  background: transparent !important;
-}
 .rrll-sidebar::-webkit-scrollbar-thumb {
   background: rgba(203, 213, 225, .22) !important;
   border-radius: 999px !important;
 }
 .rrll-sidebar::-webkit-scrollbar-thumb:hover {
   background: rgba(203, 213, 225, .32) !important;
-}
-.rrll-nav {
-  gap: 4px !important;
 }
 .rrll-nav-item,
 .rrll-nav-subitem,
@@ -1149,11 +1143,6 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
   margin: auto 8px 8px !important;
   padding: 6px 8px !important;
   border-radius: 11px !important;
-}
-.rrll-sidebar-sync .save-status-dot {
-  width: 8px !important;
-  height: 8px !important;
-  margin-top: 0 !important;
 }
 .rrll-sidebar-sync .save-status-text {
   grid-column: 2 !important;

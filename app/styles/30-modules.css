@@ -1660,7 +1660,6 @@ td,
   scrollbar-width: thin;
   scrollbar-color: rgba(148,163,184,.42) rgba(36,42,54,.48);
 }
-*::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-track { background: rgba(36,42,54,.48); }
 *::-webkit-scrollbar-thumb {
   background: rgba(148,163,184,.42);
