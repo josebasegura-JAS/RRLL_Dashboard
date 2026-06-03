@@ -219,8 +219,8 @@
       residencia: getTeleworkPersonValue(person, ["residencia", "residenciaCast", "residenciaEus"]),
       residenciaCast: getTeleworkPersonValue(person, ["residenciaCast", "residencia"]),
       residenciaEus: getTeleworkPersonValue(person, ["residenciaEus", "residenciaCast", "residencia"]),
-      puestoCast: getTeleworkPersonValue(person, ["puestoCast"]),
-      puestoEus: getTeleworkPersonValue(person, ["puestoEus", "puestoCast"]),
+      puestoCast: getTeleworkPersonValue(person, ["puestoCast", "job", "puesto", "position", "jobTitle", "puestoTrabajo", "puesto_de_trabajo"]),
+      puestoEus: getTeleworkPersonValue(person, ["puestoEus", "puestoCast", "job", "puesto", "position", "jobTitle", "puestoTrabajo", "puesto_de_trabajo"]),
       fechaOrdenador: getTeleworkPersonValue(person, ["fechaOrdenador"]),
       fechaCascos: getTeleworkPersonValue(person, ["fechaCascos"])
     };
@@ -595,15 +595,16 @@
   }
 
   function fillTeleworkPlantillaData(person, prefix = "new") {
-    TELEWORK_MASTER_FIELDS.forEach(([key, suffix]) => writeTeleworkField(prefix, suffix, person?.[key] || ""));
     const snapshot = buildTeleworkPersonSnapshot(person);
+    writeTeleworkField(prefix, "Dni", String(snapshot?.dni || person?.dni || "").replace(/^ES(?=[A-Z0-9])/i, ""));
+    writeTeleworkField(prefix, "DireccionTeletrabajo", snapshot?.direccionTeletrabajo || person?.direccionTeletrabajo || "");
+    writeTeleworkField(prefix, "ResidenciaCast", snapshot?.residenciaCast || snapshot?.residencia || person?.residenciaCast || "");
+    writeTeleworkField(prefix, "ResidenciaEus", snapshot?.residenciaEus || snapshot?.residenciaCast || snapshot?.residencia || person?.residenciaEus || "");
+    writeTeleworkField(prefix, "PuestoCast", snapshot?.puestoCast || snapshot?.job || person?.puestoCast || person?.job || "");
+    writeTeleworkField(prefix, "PuestoEus", snapshot?.puestoEus || snapshot?.puestoCast || snapshot?.job || person?.puestoEus || person?.puestoCast || person?.job || "");
+    writeTeleworkField(prefix, "FechaOrdenador", snapshot?.fechaOrdenador || person?.fechaOrdenador || "");
+    writeTeleworkField(prefix, "FechaCascos", snapshot?.fechaCascos || person?.fechaCascos || "");
     writeTeleworkField(prefix, "DireccionArea", snapshot?.direccionArea || "");
-    if (snapshot) {
-      writeTeleworkField(prefix, "ResidenciaCast", snapshot.residenciaCast || snapshot.residencia || "");
-      writeTeleworkField(prefix, "ResidenciaEus", snapshot.residenciaEus || snapshot.residenciaCast || snapshot.residencia || "");
-      if (!readTeleworkField(prefix, "PuestoCast")) writeTeleworkField(prefix, "PuestoCast", snapshot.puestoCast || snapshot.job || "");
-      if (!readTeleworkField(prefix, "PuestoEus")) writeTeleworkField(prefix, "PuestoEus", snapshot.puestoEus || snapshot.puestoCast || snapshot.job || "");
-    }
     const hint = document.getElementById(`${prefix}TeleworkPlantillaInfo`);
     if (hint) hint.textContent = person ? "Datos maestros cargados desde Plantilla. Estos campos no se duplican en la solicitud." : "No se ha encontrado la persona en Plantilla.";
   }
@@ -620,8 +621,10 @@
 
     TELEWORK_MASTER_FIELDS.forEach(([key, suffix]) => {
       let value = readTeleworkField(prefix, suffix);
+      if (key === "dni") value = String(value || "").replace(/^ES(?=[A-Z0-9])/i, "");
       if (key === "residenciaEus" && !value) value = readTeleworkField(prefix, "ResidenciaCast");
-      if (key === "puestoEus" && !value) value = readTeleworkField(prefix, "PuestoCast");
+      if (key === "puestoCast" && !value) value = readTeleworkField(prefix, "Job");
+      if (key === "puestoEus" && !value) value = readTeleworkField(prefix, "PuestoCast") || readTeleworkField(prefix, "Job");
       if (String(updated[key] || "") !== String(value || "")) {
         updated[key] = value;
         changed = true;

@@ -4,7 +4,7 @@
   'use strict';
 
   const KEY = 'rrll_plantilla';
-  const LEVELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'JU'];
+  const LEVELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'JU', 'N-A', 'N-B', 'N-C', 'N-D', 'N-E', 'N-F', 'N-G', 'N-J', 'N-JU', 'N-L'];
   const PLANTILLA_PAGE_SIZE = 30;
   let plantillaCurrentPage = 1;
   const ELECTORAL_MESAS = ['Mesa 1', 'Mesa 2', 'Mesa 3', 'Mesa 4', 'Mesa 5'];
@@ -227,7 +227,30 @@
 
   function normalizeLevel(value) {
     const raw = normalizeText(value).toUpperCase();
-    return raw || '';
+    if (!raw) return 'A';
+    return LEVELS.includes(raw) ? raw : raw;
+  }
+
+  function normalizePlantillaDni(value) {
+    const raw = normalizeText(value).replace(/\s+/g, '').toUpperCase();
+    return raw.replace(/^ES(?=[A-Z0-9])/, '');
+  }
+
+  function readMappedCell(row, map, key) {
+    return map[key] == null ? '' : normalizeText(row[map[key]]);
+  }
+
+  function buildPlantillaTeleworkAddress(row, map) {
+    const explicit = readMappedCell(row, map, 'direccionTeletrabajo');
+    if (explicit) return explicit;
+    const calle = readMappedCell(row, map, 'calle');
+    const numero = readMappedCell(row, map, 'numeroVia');
+    const piso = readMappedCell(row, map, 'piso');
+    const codigoPostal = readMappedCell(row, map, 'codigoPostal');
+    const poblacion = readMappedCell(row, map, 'poblacion');
+    const provincia = readMappedCell(row, map, 'provincia');
+    const via = [calle, numero].filter(Boolean).join(' ');
+    return [via, piso, codigoPostal, poblacion, provincia].filter(Boolean).join(', ');
   }
   function normalizeBoolean(value) {
     const text = normalizeHeader(value);
@@ -235,26 +258,6 @@
     if (['si', 'sí', 's', 'true', '1', 'yes'].includes(text)) return true;
     if (['no', 'false', '0'].includes(text)) return false;
     return false;
-  }
-
-  function normalizeDniFromImport(value) {
-    return normalizeText(value).replace(/^ES\s*/i, '').trim().toUpperCase();
-  }
-
-  function buildDireccionTeletrabajoFromImport(row, map) {
-    const parts = [];
-    const calle = map.calle == null ? '' : normalizeText(row[map.calle]);
-    const numero = map.numeroDireccion == null ? '' : normalizeText(row[map.numeroDireccion]);
-    const piso = map.piso == null ? '' : normalizeText(row[map.piso]);
-    const codigoPostal = map.codigoPostal == null ? '' : normalizeText(row[map.codigoPostal]);
-    const poblacion = map.poblacion == null ? '' : normalizeText(row[map.poblacion]);
-    const provincia = map.provincia == null ? '' : normalizeText(row[map.provincia]);
-    if (calle) parts.push(calle);
-    if (numero) parts.push(`nº ${numero}`);
-    if (piso) parts.push(piso);
-    if (codigoPostal || poblacion) parts.push([codigoPostal, poblacion].filter(Boolean).join(' '));
-    if (provincia) parts.push(provincia);
-    return parts.join(', ');
   }
   function normalizeMesaElectoral(value) {
     const text = normalizeText(value);
@@ -845,35 +848,35 @@
 
   function getPlantillaFieldAliases() {
     return {
-      employeeNumber: ['empleado', 'no empleado', 'n empleado', 'numero empleado', 'num empleado', 'numero de empleado', 'no', 'n', 'numero', 'num'],
+      employeeNumber: ['empleado', 'no empleado', 'n empleado', 'numero empleado', 'num empleado', 'numero de empleado', 'no empleado', 'nº empleado'],
       name: ['nombre'],
       lastName: ['apellidos'],
-      nombreCompleto: ['nombre completo', 'nombre y apellidos', 'apellidos y nombre', 'persona', 'empleado nombre'],
-      job: ['puesto', 'puesto de trabajo', 'puesto nomina', 'puesto nómina', 'cargo'],
-      sexo: ['sexo', 'unidad'],
+      nombreCompleto: ['nombre completo', 'nombre y apellidos', 'apellidos y nombre', 'persona'],
+      job: ['puesto nomina', 'puesto nómina', 'puesto', 'puesto de trabajo', 'cargo'],
+      dni: ['nif', 'dni'],
+      direccionTeletrabajo: ['direccion teletrabajo'],
+      calle: ['calle'],
+      numeroVia: ['no', 'nº', 'numero', 'n'],
+      piso: ['piso'],
+      codigoPostal: ['cod postal', 'cod.postal', 'codigo postal', 'c postal', 'cp'],
+      poblacion: ['poblacion', 'población'],
+      provincia: ['provincia'],
+      residenciaCast: ['residencia cast', 'residencia'],
+      residenciaEus: ['residencia eus'],
+      puestoCast: ['puesto cast', 'puesto castellano'],
+      puestoEus: ['puesto eus', 'puesto euskera'],
+      fechaOrdenador: ['fecha ordenador'],
+      fechaCascos: ['fecha cascos'],
+      sexo: ['sexo'],
       positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antig puesto', 'fecha antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
-      level: ['nivel', 'nivel retributivo', 'grupo'],
+      level: ['nivel retributivo', 'nivel'],
       colegioElectoral: ['colegio electoral'],
       mesaElectoral: ['mesa electoral'],
       sindicato: ['sindicato'],
       participacionEstimada: ['participacion estimada'],
       recorridoActivo: ['recorrido activo'],
       estacionBase: ['estacion base'],
-      observacionesRecorrido: ['observaciones recorrido'],
-      dni: ['dni', 'nif'],
-      direccionTeletrabajo: ['direccion teletrabajo', 'dirección teletrabajo', 'direccion', 'dirección'],
-      residenciaCast: ['residencia', 'residencia cast', 'residencia castellano'],
-      residenciaEus: ['residencia eus', 'residencia euskera'],
-      puestoCast: ['puesto cast', 'puesto castellano'],
-      puestoEus: ['puesto eus', 'puesto euskera'],
-      fechaOrdenador: ['fecha ordenador'],
-      fechaCascos: ['fecha cascos'],
-      calle: ['calle'],
-      numeroDireccion: ['no', 'n', 'numero', 'nº'],
-      piso: ['piso'],
-      codigoPostal: ['cod postal', 'cod postal', 'codigo postal', 'c postal', 'cp'],
-      poblacion: ['poblacion', 'población'],
-      provincia: ['provincia']
+      observacionesRecorrido: ['observaciones recorrido']
     };
   }
 
@@ -1064,7 +1067,7 @@
         nombreCompleto: fullName,
         fullName,
         job: map.job == null ? '' : normalizeText(row[map.job]),
-                sexo: map.sexo == null ? '' : normalizeText(row[map.sexo]),
+        sexo: map.sexo == null ? '' : normalizeText(row[map.sexo]),
         positionSeniority: map.positionSeniority == null ? '' : normalizePlantillaDateOrText(row[map.positionSeniority]),
         level: map.level == null ? '' : normalizeText(row[map.level]).toUpperCase()
         ,colegioElectoral: map.colegioElectoral == null ? '' : normalizeText(row[map.colegioElectoral])
@@ -1074,18 +1077,26 @@
         ,recorridoActivo: map.recorridoActivo == null ? false : normalizeBoolean(row[map.recorridoActivo])
         ,estacionBase: map.estacionBase == null ? '' : normalizeText(row[map.estacionBase])
         ,observacionesRecorrido: map.observacionesRecorrido == null ? '' : normalizeText(row[map.observacionesRecorrido])
-        ,dni: map.dni == null ? '' : normalizeDniFromImport(row[map.dni])
-        ,direccionTeletrabajo: buildDireccionTeletrabajoFromImport(row, map) || (map.direccionTeletrabajo == null ? '' : normalizeText(row[map.direccionTeletrabajo]))
+        ,dni: map.dni == null ? '' : normalizePlantillaDni(row[map.dni])
+        ,direccionTeletrabajo: buildPlantillaTeleworkAddress(row, map)
         ,residenciaCast: map.residenciaCast == null ? '' : normalizeText(row[map.residenciaCast])
-        ,residenciaEus: map.residenciaEus == null ? (map.residenciaCast == null ? '' : normalizeText(row[map.residenciaCast])) : normalizeText(row[map.residenciaEus])
-        ,puestoCast: map.puestoCast == null ? (map.job == null ? '' : normalizeText(row[map.job])) : normalizeText(row[map.puestoCast])
-        ,puestoEus: map.puestoEus == null ? (map.puestoCast == null ? (map.job == null ? '' : normalizeText(row[map.job])) : normalizeText(row[map.puestoCast])) : normalizeText(row[map.puestoEus])
+        ,residenciaEus: map.residenciaEus == null ? '' : normalizeText(row[map.residenciaEus])
+        ,puestoCast: map.puestoCast == null ? '' : normalizeText(row[map.puestoCast])
+        ,puestoEus: map.puestoEus == null ? '' : normalizeText(row[map.puestoEus])
         ,fechaOrdenador: map.fechaOrdenador == null ? '' : normalizePlantillaDateOrText(row[map.fechaOrdenador])
         ,fechaCascos: map.fechaCascos == null ? '' : normalizePlantillaDateOrText(row[map.fechaCascos])
       };
+      if (!imported.residenciaEus && imported.residenciaCast) imported.residenciaEus = imported.residenciaCast;
+      if (!imported.puestoCast && imported.job) imported.puestoCast = imported.job;
+      if (!imported.puestoEus && imported.puestoCast) imported.puestoEus = imported.puestoCast;
       TELETRABAJO_FIELD_KEYS.forEach(field => {
-        imported[field] = map[field] == null ? '' : normalizePlantillaTeletrabajoValue(field, row[map[field]]);
+        if (!imported[field] && map[field] != null) {
+          imported[field] = normalizePlantillaTeletrabajoValue(field, row[map[field]]);
+        }
       });
+      if (!imported.residenciaEus && imported.residenciaCast) imported.residenciaEus = imported.residenciaCast;
+      if (!imported.puestoCast && imported.job) imported.puestoCast = imported.job;
+      if (!imported.puestoEus && imported.puestoCast) imported.puestoEus = imported.puestoCast;
       const hasRecorridoActivoValue = map.recorridoActivo != null && !!normalizeText(row[map.recorridoActivo]);
       const key = normalizeEmployeeKey(employeeNumber);
       const fullNameKey = normalizeHeader(fullName);
