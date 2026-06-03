@@ -1648,11 +1648,11 @@
   function validateTeleworkSurveyHeaders(rows) {
       const headers = (rows[0] || []).slice(0, 5).map(teleworkHeaderKey);
       const expected = [
-        ["nempleado", "noempleado", "numeroempleado"],
+        ["nempleado", "noempleado", "numeroempleado", "nemp"],
         ["apellidosynombre", "nombre"],
-        ["tipodefila", "tipo"],
-        ["respuesta"],
-        ["textolibredelapersona", "observaciones", "texto"]
+        ["tipodefila", "tipo", "respuestapuntuacion"],
+        ["respuesta", "seleccionasivasateletrabajar"],
+        ["textolibredelapersona", "observaciones", "texto", "sihasrespondidoanteriormentequesiporfavorescribebrevementequetipodeteletrabajosolicitas"]
       ];
       return expected.every((aliases, index) => aliases.includes(headers[index]));
     }
