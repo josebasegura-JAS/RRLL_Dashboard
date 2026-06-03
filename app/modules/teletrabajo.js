@@ -41,6 +41,21 @@
     "Teletrabajo S/N",
     "Presencialidad mínima de personas por puesto para el normal funcionamiento de la unidad Puestos 2 o mas personas"
   ];
+  const TELEWORK_AGREEMENT_REQUIRED_FIELDS = [
+    ["dni", "DNI"],
+    ["direccionTeletrabajo", "Dirección Teletrabajo"],
+    ["residenciaCast", "Residencia CAST"],
+    ["residenciaEus", "Residencia EUS"],
+    ["puestoCast", "Puesto CAST"],
+    ["puestoEus", "Puesto EUS"],
+    ["fechaInicioTeletrabajoCast", "Fecha inicio CAST"],
+    ["fechaFinTeletrabajoCast", "Fecha fin CAST"],
+    ["fechaInicioTeletrabajoEus", "Fecha inicio EUS"],
+    ["fechaFinTeletrabajoEus", "Fecha fin EUS"],
+    ["diasTeletrabajoCast", "Días de teletrabajo CAST"],
+    ["diasTeletrabajoEus", "Días de teletrabajo EUS"],
+    ["porcentajeTeletrabajo", "Porcentaje"]
+  ];
 
   let teleworkViewFilter = "all";
   let editingTeleworkId = null;
@@ -972,6 +987,139 @@
     try { return new Date(value).toLocaleString("es-ES"); } catch { return "Sin fecha"; }
   }
 
+
+  function getTeleworkAgreementBridge() {
+    return window.rrllTeleworkAgreement && typeof window.rrllTeleworkAgreement === "object" ? window.rrllTeleworkAgreement : null;
+  }
+
+  function showTeleworkAgreementTemplateMessage(message, type = "error") {
+    const box = document.getElementById("teleworkAgreementTemplateMessage");
+    if (!box) return;
+    box.textContent = message || "";
+    box.classList.remove("success", "error");
+    if (message) box.classList.add(type === "success" ? "success" : "error");
+  }
+
+  async function renderTeleworkAgreementTemplateConfig() {
+    const input = document.getElementById("teleworkAgreementTemplatePathInput");
+    const selectBtn = document.getElementById("teleworkAgreementSelectTemplateBtn");
+    const changeBtn = document.getElementById("teleworkAgreementChangeTemplateBtn");
+    const bridge = getTeleworkAgreementBridge();
+    if (!input) return;
+    if (!bridge || typeof bridge.getTemplateConfig !== "function") {
+      input.value = "";
+      showTeleworkAgreementTemplateMessage("No está disponible el selector de plantilla Word en este entorno.", "error");
+      return;
+    }
+    try {
+      const config = await bridge.getTemplateConfig();
+      input.value = config && config.templatePath ? config.templatePath : "";
+      if (selectBtn) selectBtn.style.display = input.value ? "none" : "";
+      if (changeBtn) changeBtn.style.display = input.value ? "" : "none";
+      if (input.value && config && !config.exists) showTeleworkAgreementTemplateMessage("La plantilla configurada no existe o la ruta es inválida. Selecciona una nueva.", "error");
+      else showTeleworkAgreementTemplateMessage(input.value ? "Plantilla Word configurada correctamente." : "No hay plantilla Word configurada.", input.value ? "success" : "error");
+    } catch (error) {
+      console.error("No se pudo cargar la plantilla de acuerdo de teletrabajo:", error);
+      showTeleworkAgreementTemplateMessage("No se pudo cargar la configuración de plantilla Word.", "error");
+    }
+  }
+
+  async function selectTeleworkAgreementTemplate() {
+    const bridge = getTeleworkAgreementBridge();
+    if (!bridge || typeof bridge.chooseTemplate !== "function") {
+      showTeleworkAgreementTemplateMessage("No está disponible el selector de plantilla Word en este entorno.", "error");
+      return null;
+    }
+    try {
+      const result = await bridge.chooseTemplate();
+      await renderTeleworkAgreementTemplateConfig();
+      if (result && !result.canceled) showTeleworkAgreementTemplateMessage("Plantilla Word guardada para futuras generaciones.", "success");
+      return result;
+    } catch (error) {
+      console.error("No se pudo seleccionar la plantilla de acuerdo de teletrabajo:", error);
+      showTeleworkAgreementTemplateMessage(error && error.message ? error.message : "No se pudo guardar la plantilla Word.", "error");
+      return null;
+    }
+  }
+
+  function buildTeleworkAgreementPayload(item, plantillaPerson) {
+    return {
+      plantilla: {
+        employeeNumber: plantillaPerson?.employeeNumber || item.employeeNumber || "",
+        nombreCompleto: teleworkPersonFullName(plantillaPerson) || item.nombreCompleto || item.name || "",
+        firstName: plantillaPerson?.firstName || plantillaPerson?.nombre || "",
+        surname1: plantillaPerson?.surname1 || plantillaPerson?.apellido1 || "",
+        surname2: plantillaPerson?.surname2 || plantillaPerson?.apellido2 || "",
+        dni: plantillaPerson?.dni || "",
+        direccionTeletrabajo: plantillaPerson?.direccionTeletrabajo || "",
+        residenciaCast: plantillaPerson?.residenciaCast || "",
+        residenciaEus: plantillaPerson?.residenciaEus || "",
+        puestoCast: plantillaPerson?.puestoCast || "",
+        puestoEus: plantillaPerson?.puestoEus || "",
+        fechaOrdenador: plantillaPerson?.fechaOrdenador || "",
+        fechaCascos: plantillaPerson?.fechaCascos || ""
+      },
+      telework: {
+        employeeNumber: item.employeeNumber || plantillaPerson?.employeeNumber || "",
+        nombreCompleto: item.nombreCompleto || item.name || teleworkPersonFullName(plantillaPerson) || "",
+        diasTeletrabajoCast: item.diasTeletrabajoCast || "",
+        diasTeletrabajoEus: item.diasTeletrabajoEus || "",
+        porcentajeTeletrabajo: item.porcentajeTeletrabajo || "",
+        fechaInicioTeletrabajoCast: item.fechaInicioTeletrabajoCast || "",
+        fechaFinTeletrabajoCast: item.fechaFinTeletrabajoCast || "",
+        fechaInicioTeletrabajoEus: item.fechaInicioTeletrabajoEus || "",
+        fechaFinTeletrabajoEus: item.fechaFinTeletrabajoEus || "",
+        tipoSolicitud: item.tipoSolicitud || item.type || ""
+      }
+    };
+  }
+
+  function validateTeleworkAgreementPayload(payload) {
+    const data = { ...(payload.plantilla || {}), ...(payload.telework || {}) };
+    return TELEWORK_AGREEMENT_REQUIRED_FIELDS
+      .filter(([key]) => !String(data[key] == null ? "" : data[key]).trim())
+      .map(([, label]) => label);
+  }
+
+  async function generateTeleworkAgreement(id, retryAfterTemplateSelection = false) {
+    const bridge = getTeleworkAgreementBridge();
+    if (!bridge || typeof bridge.generate !== "function") {
+      alert("No está disponible la generación de acuerdos Word en este entorno.");
+      return;
+    }
+    const item = getTeleworkItems().find(entry => entry.id === id);
+    if (!item) return;
+    if (item.status !== "telework-approved") {
+      alert("El acuerdo Word solo se puede generar para solicitudes aprobadas.");
+      return;
+    }
+    const plantillaPerson = findPlantillaByEmployeeNumber(item.employeeNumber);
+    if (!plantillaPerson) {
+      alert(`No se ha encontrado la persona ${item.employeeNumber || "sin número"} en Plantilla. No se puede recuperar DNI, dirección, residencia y puesto.`);
+      return;
+    }
+    const payload = buildTeleworkAgreementPayload(item, plantillaPerson);
+    const missing = validateTeleworkAgreementPayload(payload);
+    if (missing.length) {
+      alert(`No se puede generar el acuerdo. Faltan datos obligatorios:\n\n- ${missing.join("\n- ")}`);
+      return;
+    }
+
+    try {
+      const result = await bridge.generate(payload);
+      if (result && result.missingTemplate) {
+        alert(result.message || "No hay plantilla Word configurada. Selecciona la plantilla oficial.");
+        const selected = await selectTeleworkAgreementTemplate();
+        if (selected && !selected.canceled && !retryAfterTemplateSelection) await generateTeleworkAgreement(id, true);
+        return;
+      }
+      if (result && result.message) alert(result.message);
+    } catch (error) {
+      console.error("No se pudo generar el acuerdo de teletrabajo:", error);
+      alert(error && error.message ? error.message : "No se pudo generar el acuerdo de teletrabajo.");
+    }
+  }
+
   function renderTeleworkCard(rawItem) {
     const item = normalizeTeleworkItem(rawItem);
     const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
@@ -1002,6 +1150,7 @@
         <div class="rrll-pro-actions telework-card-actions" onclick="event.stopPropagation()">
           ${item.status !== "telework-approved" ? `<button class="small" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-approved')">Aprobar</button>` : ""}
           ${item.status !== "telework-denied" ? `<button class="small secondary" onclick="resolveTelework('${escapeJs(item.id)}', 'telework-denied')">Denegar</button>` : ""}
+          ${item.status === "telework-approved" ? `<button class="small secondary telework-word-action" onclick="generateTeleworkAgreement('${escapeJs(item.id)}')" title="Generar acuerdo Word" aria-label="Generar acuerdo Word"><span aria-hidden="true">W</span></button>` : ""}
           <button class="small secondary" onclick="openTeleworkEditModal('${escapeJs(item.id)}')">Editar</button>
           <button class="small danger rrll-delete-icon-button" onclick="deleteTelework('${escapeJs(item.id)}')" title="Eliminar solicitud" aria-label="Eliminar solicitud"><span aria-hidden="true">🗑️</span></button>
         </div>
@@ -2082,6 +2231,9 @@
     openTeleworkJobCatalogModal,
     closeTeleworkJobCatalogModal,
     renderTeleworkJobCatalogModal,
+    renderTeleworkAgreementTemplateConfig,
+    selectTeleworkAgreementTemplate,
+    generateTeleworkAgreement,
     addTeleworkCatalogRow,
     deleteTeleworkCatalogRow,
     saveTeleworkJobCatalogModal
@@ -2128,6 +2280,9 @@
   window.openTeleworkJobCatalogModal = openTeleworkJobCatalogModal;
   window.closeTeleworkJobCatalogModal = closeTeleworkJobCatalogModal;
   window.renderTeleworkJobCatalogModal = renderTeleworkJobCatalogModal;
+  window.renderTeleworkAgreementTemplateConfig = renderTeleworkAgreementTemplateConfig;
+  window.selectTeleworkAgreementTemplate = selectTeleworkAgreementTemplate;
+  window.generateTeleworkAgreement = generateTeleworkAgreement;
   window.addTeleworkCatalogRow = addTeleworkCatalogRow;
   window.deleteTeleworkCatalogRow = deleteTeleworkCatalogRow;
   window.saveTeleworkJobCatalogModal = saveTeleworkJobCatalogModal;

@@ -1955,6 +1955,20 @@
         <p id="rrllFolderConfigMessage" class="muted rrll-folder-config-message" aria-live="polite"></p>
       </div>
 
+      <div class="config-section telework-agreement-template-config">
+        <h4>Teletrabajo → Plantilla Acuerdo Word</h4>
+        <p class="muted">Selecciona una única vez la plantilla DOCX oficial. Se conservará la ruta y se usará automáticamente al generar acuerdos aprobados.</p>
+        <div class="dynamic-access-form telework-template-path-form">
+          <label class="rrll-pro-field rrll-pro-field-full">
+            <span>Ruta plantilla DOCX</span>
+            <input id="teleworkAgreementTemplatePathInput" type="text" placeholder="Selecciona la plantilla oficial .docx" readonly />
+          </label>
+          <button id="teleworkAgreementSelectTemplateBtn" type="button" onclick="selectTeleworkAgreementTemplate()">Seleccionar plantilla</button>
+          <button id="teleworkAgreementChangeTemplateBtn" type="button" class="secondary" onclick="selectTeleworkAgreementTemplate()">Cambiar plantilla</button>
+        </div>
+        <p id="teleworkAgreementTemplateMessage" class="muted rrll-folder-config-message" aria-live="polite"></p>
+      </div>
+
       <div class="config-section">
         <h4>Copias manuales JSON</h4>
         <p class="muted">Exporta una copia manual antes de cambios importantes o importa una copia JSON si necesitas recuperar datos.</p>

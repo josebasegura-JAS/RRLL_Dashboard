@@ -57,6 +57,12 @@ contextBridge.exposeInMainWorld("rrllFolder", {
   open: () => ipcRenderer.invoke("rrllFolder:open")
 });
 
+contextBridge.exposeInMainWorld("rrllTeleworkAgreement", {
+  getTemplateConfig: () => ipcRenderer.invoke("teleworkAgreement:getTemplateConfig"),
+  chooseTemplate: () => ipcRenderer.invoke("teleworkAgreement:chooseTemplate"),
+  generate: payload => ipcRenderer.invoke("teleworkAgreement:generate", payload)
+});
+
 
 contextBridge.exposeInMainWorld("rrllAttachments", {
   selectFiles: () => ipcRenderer.invoke("attachments:selectFiles"),

@@ -23,6 +23,10 @@ const {
   runOutlookScript
 } = require("./main/outlook-helpers");
 const { parseOutlookMsgBuffer } = require("./main/msg-parser-helpers");
+const {
+  buildTeleworkAgreementFileName,
+  replaceTeleworkAgreementMarkersInDocx
+} = require("./main/telework-agreement-docx");
 
 let lastBackupAt = 0;
 let dirtySinceLastBackup = false;
@@ -90,6 +94,10 @@ function getMirrorMetaPath() {
 
 function getRRLLFolderConfigPath() {
   return path.join(app.getPath("userData"), "rrll-folder-config.json");
+}
+
+function getTeleworkAgreementConfigPath() {
+  return path.join(app.getPath("userData"), "rrll-telework-agreement-config.json");
 }
 
 function getBackupsDir() {
@@ -1228,6 +1236,78 @@ async function openRRLLFolder() {
   return { ok: true, path: folderPath };
 }
 
+function readTeleworkAgreementConfig() {
+  try {
+    const file = getTeleworkAgreementConfigPath();
+    if (!fs.existsSync(file)) return { templatePath: "" };
+    const parsed = JSON.parse(fs.readFileSync(file, "utf-8") || "{}");
+    return { templatePath: normalizeRRLLFolderPath(parsed && parsed.templatePath) };
+  } catch {
+    return { templatePath: "" };
+  }
+}
+
+function writeTeleworkAgreementConfig(templatePath) {
+  const safePath = normalizeRRLLFolderPath(templatePath);
+  writeJsonAtomically(getTeleworkAgreementConfigPath(), {
+    templatePath: safePath,
+    updatedAt: new Date().toISOString(),
+    updatedBy: getWindowsUser()
+  });
+  return safePath;
+}
+
+function validateTeleworkAgreementTemplatePath(templatePath) {
+  const safePath = normalizeRRLLFolderPath(templatePath);
+  if (!safePath) throw new Error("No hay plantilla Word configurada. Selecciona la plantilla oficial en Ajustes > Teletrabajo.");
+  if (path.extname(safePath).toLowerCase() !== ".docx") throw new Error("La plantilla de Teletrabajo debe ser un archivo Word con extensión .docx.");
+  if (!fs.existsSync(safePath)) throw new Error("La plantilla Word configurada no existe o la ruta ya no es válida. Selecciona una nueva plantilla en Ajustes > Teletrabajo.");
+  return safePath;
+}
+
+async function getTeleworkAgreementTemplateConfig() {
+  const config = readTeleworkAgreementConfig();
+  const exists = !!(config.templatePath && fs.existsSync(config.templatePath));
+  return { templatePath: config.templatePath || "", exists };
+}
+
+async function chooseTeleworkAgreementTemplate() {
+  const result = await dialog.showOpenDialog({
+    title: "Seleccionar plantilla oficial del Acuerdo de Teletrabajo",
+    properties: ["openFile"],
+    filters: [{ name: "Plantillas Word", extensions: ["docx"] }]
+  });
+  if (result.canceled || !result.filePaths || !result.filePaths[0]) return { canceled: true, templatePath: readTeleworkAgreementConfig().templatePath || "" };
+  const templatePath = validateTeleworkAgreementTemplatePath(result.filePaths[0]);
+  writeTeleworkAgreementConfig(templatePath);
+  return { canceled: false, templatePath, exists: true };
+}
+
+async function generateTeleworkAgreementDocx(_event, payload = {}) {
+  const config = readTeleworkAgreementConfig();
+  let templatePath;
+  try {
+    templatePath = validateTeleworkAgreementTemplatePath(config.templatePath);
+  } catch (error) {
+    return { missingTemplate: true, message: error && error.message ? error.message : String(error), templatePath: config.templatePath || "" };
+  }
+
+  const outputDir = path.join(app.getPath("documents"), "RRLL Dashboard", "Teletrabajo");
+  fs.mkdirSync(outputDir, { recursive: true });
+  let outputPath = path.join(outputDir, buildTeleworkAgreementFileName(payload));
+  if (fs.existsSync(outputPath)) {
+    const parsed = path.parse(outputPath);
+    outputPath = path.join(parsed.dir, `${parsed.name}_${ts()}.docx`);
+  }
+
+  const docxResult = replaceTeleworkAgreementMarkersInDocx(templatePath, outputPath, payload);
+  const openError = await shell.openPath(outputPath);
+  if (openError) {
+    return { ...docxResult, opened: false, message: `El acuerdo se generó correctamente, pero no se pudo abrir automáticamente: ${openError}` };
+  }
+  return { ...docxResult, opened: true };
+}
+
 async function chooseSharedDirectory() {
   const result = await dialog.showOpenDialog({
     title: "Seleccionar carpeta compartida para la base de datos",
@@ -1924,6 +2004,9 @@ ipcMain.handle("db:generateCommitteeMinutesDraft", generateCommitteeMinutesDraft
 ipcMain.handle("rrllFolder:getPath", getRRLLFolderPath);
 ipcMain.handle("rrllFolder:setPath", setRRLLFolderPath);
 ipcMain.handle("rrllFolder:open", openRRLLFolder);
+ipcMain.handle("teleworkAgreement:getTemplateConfig", getTeleworkAgreementTemplateConfig);
+ipcMain.handle("teleworkAgreement:chooseTemplate", chooseTeleworkAgreementTemplate);
+ipcMain.handle("teleworkAgreement:generate", generateTeleworkAgreementDocx);
 ipcMain.handle("ticketRestaurant:importSpreadsheet", importTicketRestaurantSpreadsheet);
 ipcMain.handle("ticketRestaurant:exportWorkbook", exportTicketRestaurantWorkbook);
 ipcMain.handle("attachments:selectFiles", selectAttachmentFiles);
