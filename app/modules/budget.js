@@ -91,7 +91,10 @@ async function renderBudgetScenarios() {
   const needsTicketCalendars = rows.some(({ ticketGroups }) => ticketGroups.some(group => group.calculation_type === "calendar_people"));
   const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
   rows.forEach(row => { row.totals = BudgetDomain.calculateBudgetScenarioYear({ ...row, context, simulationYear: rrllBudgetSimulationYear(row.scenario) }); });
-  body.innerHTML = rows.length ? rows.map(({ scenario, totals }) => `<tr class="${scenario.id === rrllBudgetSelectedScenarioId ? "budget-row-selected" : ""}"><td>${rrllBudgetEscape(scenario.name)}</td><td>${scenario.year}</td><td>${rrllBudgetMoney(scenario.ticket_amount)}</td><td>${rrllBudgetMoney(totals.totalManual)}</td><td>${rrllBudgetMoney(totals.totalTicket)}</td><td><strong>${rrllBudgetMoney(totals.totalScenario)}</strong></td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetScenario('${scenario.id}')">Editar</button><button class="secondary" type="button" onclick="duplicateBudgetScenario('${scenario.id}')">Duplicar</button><button type="button" onclick="simulateBudgetScenario('${scenario.id}')">Simular</button></div></td></tr>`).join("") : '<tr><td colspan="7" class="muted">Todavía no hay escenarios de presupuesto.</td></tr>';
+  body.innerHTML = rows.length ? rows.map(({ scenario, totals }) => {
+    const selected = scenario.id === rrllBudgetSelectedScenarioId;
+    return `<tr class="${selected ? "budget-row-selected" : ""}"><td><strong>${rrllBudgetEscape(scenario.name)}</strong>${selected ? '<span class="budget-active-badge">Activo</span>' : ""}</td><td>${scenario.year}</td><td>${rrllBudgetMoney(scenario.ticket_amount)}</td><td>${rrllBudgetMoney(totals.totalManual)}</td><td>${rrllBudgetMoney(totals.totalTicket)}</td><td><strong>${rrllBudgetMoney(totals.totalScenario)}</strong></td><td><div class="budget-actions-inline"><button type="button" onclick="selectBudgetScenario('${scenario.id}')">Seleccionar</button><button class="secondary" type="button" onclick="editBudgetScenario('${scenario.id}')">Editar</button><button class="secondary" type="button" onclick="duplicateBudgetScenario('${scenario.id}')">Duplicar</button><button class="secondary" type="button" onclick="simulateBudgetScenario('${scenario.id}')">Simular</button></div></td></tr>`;
+  }).join("") : '<tr><td colspan="7" class="muted">Todavía no hay escenarios de presupuesto.</td></tr>';
 }
 
 async function selectBudgetScenario(id) { rrllBudgetSelectedScenarioId = id; rrllBudgetSyncSimulationYearInput(); await renderBudgetScenarios(); await loadSelectedBudgetScenario(); }
@@ -154,6 +157,10 @@ function rrllBudgetRenderScenarioTotals({ totals, simulationYear }, { markCalcul
 
 async function renderBudgetSelectedScenario() {
   const scenario = rrllBudgetScenario(); if (!scenario) return;
+  document.getElementById("budgetActiveScenarioName").textContent = scenario.name || "Escenario activo";
+  document.getElementById("budgetActiveScenarioNotes").textContent = scenario.notes || "Configura las hipótesis del escenario y simula el coste para el año seleccionado.";
+  document.getElementById("budgetActiveScenarioYear").textContent = scenario.year || "—";
+  document.getElementById("budgetActiveScenarioTicket").textContent = rrllBudgetMoney(scenario.ticket_amount);
   const calculated = await rrllBudgetCalculateScenarioTotals();
   if (!calculated) return;
   rrllBudgetRenderScenarioTotals(calculated);
