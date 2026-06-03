@@ -863,7 +863,7 @@
                   <span>Campaña</span>
                   <select id="teleworkCampaignSelector" onchange="changeTeleworkCampaign(this.value)"></select>
                 </label>
-                <button class="rrll-pro-tool-button telework-add-campaign" type="button" onclick="event.preventDefault(); event.stopPropagation(); addTeleworkCampaignOption()" title="Crear una nueva campaña de teletrabajo">Añadir</button>
+                <button class="rrll-pro-tool-button telework-add-campaign" type="button" onclick="event.preventDefault(); event.stopPropagation(); openTeleworkCampaignModal()" title="Crear una nueva campaña de teletrabajo">Añadir</button>
                 <button class="rrll-pro-tool-button telework-delete-campaign" type="button" onclick="event.preventDefault(); event.stopPropagation(); deleteTeleworkCampaignOption()" title="Eliminar la campaña seleccionada si no tiene solicitudes">Eliminar</button>
                 <button type="button" class="rrll-pro-primary telework-new-request" onclick="event.preventDefault(); event.stopPropagation(); toggleTeleworkCreateForm(true)">+ Nueva solicitud</button>
               </div>
@@ -1805,6 +1805,30 @@
           </div>
         </section>
       </div>
+    </div>
+  </div>
+
+
+  <div id="teleworkCampaignModal" class="modal-backdrop telework-campaign-modal" onclick="if (event.target === this) closeTeleworkCampaignModal()" aria-hidden="true">
+    <div class="modal-box telework-campaign-box" role="dialog" aria-modal="true" aria-labelledby="teleworkCampaignModalTitle" onclick="event.stopPropagation()">
+      <div class="telework-import-head">
+        <div>
+          <h3 id="teleworkCampaignModalTitle">Nueva campaña de teletrabajo</h3>
+          <p class="muted">Crea una campaña manual para pruebas o para planificar solicitudes futuras.</p>
+        </div>
+        <button class="telework-import-close" type="button" onclick="closeTeleworkCampaignModal()" aria-label="Cerrar campaña">×</button>
+      </div>
+      <form class="telework-campaign-form" onsubmit="event.preventDefault(); createTeleworkCampaignFromModal()">
+        <label class="rrll-pro-field full" for="teleworkCampaignNameInput">
+          <span>Nombre de campaña</span>
+          <input id="teleworkCampaignNameInput" type="text" placeholder="Ej. 2027-2028 o Prueba 2026" autocomplete="off" />
+        </label>
+        <p class="telework-campaign-form-note">Para campañas ordinarias se recomienda el formato 2027-2028. También puedes crear campañas de prueba con nombre libre.</p>
+        <div class="modal-actions telework-campaign-actions">
+          <button class="secondary" type="button" onclick="closeTeleworkCampaignModal()">Cancelar</button>
+          <button type="submit">Crear campaña</button>
+        </div>
+      </form>
     </div>
   </div>
 

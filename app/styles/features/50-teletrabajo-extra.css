@@ -1030,3 +1030,29 @@ html[data-theme="light"] #gestor-teletrabajo .telework-header-actions .telework-
 #gestor-teletrabajo .telework-table tbody tr {
   min-height: 60px !important;
 }
+
+/* Modal de alta manual de campañas de teletrabajo */
+.telework-campaign-modal.open {
+  display: flex;
+}
+
+.telework-campaign-box {
+  width: min(520px, calc(100vw - 32px));
+}
+
+.telework-campaign-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.telework-campaign-form-note {
+  margin: -4px 0 0;
+  color: var(--text-muted, #64748b);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.telework-campaign-actions {
+  margin-top: 4px;
+}

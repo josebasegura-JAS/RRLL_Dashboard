@@ -113,7 +113,7 @@
   }
 
   function setTeleworkActiveCampaign(period) {
-    save(CAMPAIGN_KEY, normalizeTeleworkPeriod(period));
+    return save(CAMPAIGN_KEY, normalizeTeleworkPeriod(period), { rejectOnError: true });
   }
 
   function getTeleworkManualCampaigns() {
@@ -127,7 +127,7 @@
     const unique = Array.from(new Set((Array.isArray(campaigns) ? campaigns : [])
       .map(normalizeTeleworkPeriod)
       .filter(period => period && period !== TELEWORK_NO_PERIOD)));
-    save(MANUAL_CAMPAIGNS_KEY, unique.sort(compareTeleworkCampaignsDesc));
+    return save(MANUAL_CAMPAIGNS_KEY, unique.sort(compareTeleworkCampaignsDesc), { rejectOnError: true });
   }
 
   function teleworkCampaignStart(period) {
@@ -1535,28 +1535,79 @@
     refreshTeleworkDependents();
   }
 
-  function addTeleworkCampaignOption() {
-    const suggested = normalizeTeleworkPeriod(getTeleworkCampaignInfo().suggested);
-    const entered = prompt("Nueva campaña de teletrabajo\n\nCampaña (ej. 2027-2028):", suggested === TELEWORK_NO_PERIOD ? "" : suggested);
-    if (entered === null) return;
-    const raw = String(entered || "").trim();
-    if (!raw) {
-      alert("La campaña es obligatoria.");
+  function getSuggestedNextTeleworkCampaign() {
+    const campaigns = getTeleworkCampaigns()
+      .map(normalizeTeleworkPeriod)
+      .filter(period => Number.isFinite(teleworkCampaignStart(period)));
+    const starts = campaigns.map(teleworkCampaignStart);
+    const activeStart = teleworkCampaignStart(getTeleworkCampaignInfo().active);
+    const base = Math.max(activeStart, ...starts.filter(Number.isFinite));
+    const next = Number.isFinite(base) ? base + 1 : new Date().getFullYear() + 1;
+    return `${next}-${next + 1}`;
+  }
+
+  function openTeleworkCampaignModal() {
+    const modal = document.getElementById("teleworkCampaignModal");
+    const input = document.getElementById("teleworkCampaignNameInput");
+    if (!modal || !input) {
+      addTeleworkCampaignOption();
       return;
     }
-    const normalized = normalizeTeleworkPeriod(raw);
-    const start = teleworkCampaignStart(normalized);
-    if (!Number.isFinite(start)) {
-      alert("Introduce una campaña con formato 2027-2028.");
-      return;
+    input.value = getSuggestedNextTeleworkCampaign();
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 0);
+  }
+
+  function closeTeleworkCampaignModal() {
+    const modal = document.getElementById("teleworkCampaignModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  async function createTeleworkCampaignFromModal() {
+    const input = document.getElementById("teleworkCampaignNameInput");
+    const raw = String(input?.value || "").trim();
+    const ok = await addTeleworkCampaignOption(raw, { silent: true });
+    if (ok) closeTeleworkCampaignModal();
+  }
+
+  async function addTeleworkCampaignOption(value, options = {}) {
+    try {
+      const raw = String(value || "").trim();
+      if (!raw) {
+        alert("La campaña es obligatoria.");
+        return false;
+      }
+      const normalized = normalizeTeleworkPeriod(raw);
+      if (!normalized || normalized === TELEWORK_NO_PERIOD) {
+        alert("Introduce un nombre de campaña válido.");
+        return false;
+      }
+      if (isTeleworkHistoricalCampaign(normalized)) {
+        alert(`La campaña ${normalized} es histórica y no se puede crear como campaña activa.`);
+        return false;
+      }
+      const exists = getTeleworkCampaigns().some(period => normalizeTeleworkPeriod(period).toLowerCase() === normalized.toLowerCase());
+      if (!exists) {
+        await setTeleworkManualCampaigns([...getTeleworkManualCampaigns(), normalized]);
+      }
+      await setTeleworkActiveCampaign(normalized);
+      const periodEl = document.getElementById("newTeleworkPeriod");
+      if (periodEl) periodEl.value = normalized;
+      ensureTeleworkPeriodControls();
+      refreshTeleworkDependents();
+      alert(exists ? `La campaña ${normalized} ya existía y se ha seleccionado.` : `Campaña ${normalized} creada y seleccionada.`);
+      return true;
+    } catch (error) {
+      console.error("Error creando campaña de teletrabajo:", error);
+      alert(`No se pudo crear la campaña: ${error?.message || error}`);
+      return false;
     }
-    if (isTeleworkHistoricalCampaign(normalized)) {
-      alert(`La campaña ${normalized} es histórica y no se puede crear como campaña activa.`);
-      return;
-    }
-    const exists = getTeleworkCampaigns().some(period => normalizeTeleworkPeriod(period).toLowerCase() === normalized.toLowerCase());
-    if (!exists) setTeleworkManualCampaigns([...getTeleworkManualCampaigns(), normalized]);
-    changeTeleworkCampaign(normalized);
   }
 
   function deleteTeleworkCampaignOption() {
@@ -2619,6 +2670,9 @@
     renderTelework,
     setTeleworkViewFilter,
     changeTeleworkCampaign,
+    openTeleworkCampaignModal,
+    closeTeleworkCampaignModal,
+    createTeleworkCampaignFromModal,
     addTeleworkCampaignOption,
     deleteTeleworkCampaignOption,
     getTeleworkActiveCampaign,
@@ -2671,6 +2725,9 @@
   window.renderTelework = renderTelework;
   window.setTeleworkViewFilter = setTeleworkViewFilter;
   window.changeTeleworkCampaign = changeTeleworkCampaign;
+  window.openTeleworkCampaignModal = openTeleworkCampaignModal;
+  window.closeTeleworkCampaignModal = closeTeleworkCampaignModal;
+  window.createTeleworkCampaignFromModal = createTeleworkCampaignFromModal;
   window.addTeleworkCampaignOption = addTeleworkCampaignOption;
   window.deleteTeleworkCampaignOption = deleteTeleworkCampaignOption;
   window.getTeleworkActiveCampaign = getTeleworkActiveCampaign;
