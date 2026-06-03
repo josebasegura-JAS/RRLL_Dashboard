@@ -703,6 +703,10 @@
       if (pendingEl) pendingEl.textContent = counts["petition-pending"];
       if (progressEl) progressEl.textContent = counts["petition-progress"];
       if (closedEl) closedEl.textContent = counts["petition-closed"];
+      [["petitionSummaryPending", counts["petition-pending"]], ["petitionSummaryStudy", counts["petition-progress"]], ["petitionSummaryClosed", counts["petition-closed"]]].forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      });
 
       document.querySelectorAll("#gestor-peticiones .rrll-pro-tabs button").forEach(button => button.classList.remove("active"));
       const activeId = petitionViewFilter === "all" ? "petition-filter-all" : `petition-filter-${petitionViewFilter.replace("petition-", "")}`;
