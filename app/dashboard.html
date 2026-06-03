@@ -857,45 +857,21 @@
               </div>
 
               <fieldset class="telework-form-section telework-person-section">
-                <legend>Datos persona</legend>
-                <label class="rrll-pro-field">
-                  <span>Nº empleado</span>
-                  <input id="newTeleworkEmployeeNumber" placeholder="Ej. 12345" oninput="teleworkEmployeeNumberChanged('new')" onblur="teleworkEmployeeNumberChanged('new')" />
-                </label>
-                <label class="rrll-pro-field rrll-autocomplete-field">
-                  <span>Solicitante</span>
-                  <input id="newTeleworkName" placeholder="Empieza a escribir para buscar en Plantilla" autocomplete="off" oninput="teleworkNameAutocomplete('new')" onfocus="teleworkNameAutocomplete('new')" onblur="hideTeleworkSuggestionsDelayed('new')" />
-                  <div id="newTeleworkPersonSuggestions" class="rrll-autocomplete-list" role="listbox"></div>
-                </label>
-                <label class="rrll-pro-field rrll-pro-field-full">
-                  <span>Puesto de trabajo</span>
-                  <input id="newTeleworkJob" placeholder="Puesto snapshot de la solicitud" oninput="renderTeleworkEligibilityWarning('new')" />
-                </label>
+                <legend>DATOS PERSONALES</legend>
+                <label class="rrll-pro-field"><span>Nº empleado</span><input id="newTeleworkEmployeeNumber" placeholder="Ej. 12345" oninput="teleworkEmployeeNumberChanged('new')" onblur="teleworkEmployeeNumberChanged('new')" /></label>
+                <label class="rrll-pro-field rrll-autocomplete-field"><span>Nombre completo</span><input id="newTeleworkName" placeholder="Empieza a escribir para buscar en Plantilla" autocomplete="off" oninput="teleworkNameAutocomplete('new')" onfocus="teleworkNameAutocomplete('new')" onblur="hideTeleworkSuggestionsDelayed('new')" /><div id="newTeleworkPersonSuggestions" class="rrll-autocomplete-list" role="listbox"></div></label>
+                <label class="rrll-pro-field"><span>Puesto</span><input id="newTeleworkJob" placeholder="Puesto snapshot de la solicitud" oninput="renderTeleworkEligibilityWarning('new')" /></label>
+                <label class="rrll-pro-field"><span>Dirección / Área</span><input id="newTeleworkDireccionArea" readonly /></label>
                 <div id="newTeleworkEligibilityWarning" class="telework-eligibility-warning" aria-live="polite"></div>
               </fieldset>
 
-              <fieldset class="telework-form-section telework-request-section">
-                <legend>Solicitud</legend>
-                <label class="rrll-pro-field">
-                  <span>Periodo / campaña</span>
-                  <input id="newTeleworkPeriod" placeholder="Ej. 2025-2026" />
-                </label>
-                <label class="rrll-pro-field">
-                  <span>Tipo de solicitud</span>
-                  <select id="newTeleworkType">
-                    <option value="nueva">Nueva</option>
-                    <option value="renovacion">Renovación</option>
-                  </select>
-                </label>
-              </fieldset>
-
               <fieldset class="telework-form-section telework-master-section">
-                <legend>Datos asociados en Plantilla</legend>
+                <legend>DATOS WORD NORMALIZADOS</legend>
                 <div id="newTeleworkPlantillaInfo" class="telework-master-hint muted">Selecciona una persona de Plantilla para cargar sus datos maestros.</div>
                 <label class="rrll-pro-field"><span>DNI</span><input id="newTeleworkDni" /></label>
                 <label class="rrll-pro-field"><span>Dirección Teletrabajo</span><input id="newTeleworkDireccionTeletrabajo" /></label>
-                <label class="rrll-pro-field"><span>Residencia CAST</span><input id="newTeleworkResidenciaCast" /></label>
-                <label class="rrll-pro-field"><span>Residencia EUS</span><input id="newTeleworkResidenciaEus" /></label>
+                <label class="rrll-pro-field"><span>Residencia</span><input id="newTeleworkResidenciaCast" /></label>
+                <input id="newTeleworkResidenciaEus" type="hidden" />
                 <label class="rrll-pro-field"><span>Puesto CAST</span><input id="newTeleworkPuestoCast" /></label>
                 <label class="rrll-pro-field"><span>Puesto EUS</span><input id="newTeleworkPuestoEus" /></label>
                 <label class="rrll-pro-field"><span>Fecha Ordenador</span><input id="newTeleworkFechaOrdenador" type="date" /></label>
@@ -903,22 +879,35 @@
               </fieldset>
 
               <fieldset class="telework-form-section telework-agreement-section">
-                <legend>Datos del Acuerdo</legend>
-                <label class="rrll-pro-field"><span>Días Teletrabajo CAST</span><input id="newTeleworkDiasTeletrabajoCast" /></label>
-                <label class="rrll-pro-field"><span>Días Teletrabajo EUS</span><input id="newTeleworkDiasTeletrabajoEus" /></label>
+                <legend>ACUERDO</legend>
+                <label class="rrll-pro-field"><span>Hasiera</span><input id="newTeleworkFechaInicioTeletrabajoCast" type="date" onchange="writeTeleworkField('new', 'FechaInicioTeletrabajoEus', this.value)" /></label>
+                <label class="rrll-pro-field"><span>Amaiera</span><input id="newTeleworkFechaFinTeletrabajoCast" type="date" onchange="writeTeleworkField('new', 'FechaFinTeletrabajoEus', this.value)" /></label>
+                <input id="newTeleworkFechaInicioTeletrabajoEus" type="hidden" />
+                <input id="newTeleworkFechaFinTeletrabajoEus" type="hidden" />
+                <label class="rrll-pro-field"><span>Modalidad</span><select id="newTeleworkType"><option value="nueva">Nueva</option><option value="renovacion">Renovación</option></select></label>
+                <label class="rrll-pro-field"><span>Periodo / campaña</span><input id="newTeleworkPeriod" placeholder="Ej. 2025-2026" /></label>
                 <label class="rrll-pro-field"><span>Porcentaje Teletrabajo</span><input id="newTeleworkPorcentajeTeletrabajo" /></label>
-                <label class="rrll-pro-field"><span>Fecha Inicio CAST</span><input id="newTeleworkFechaInicioTeletrabajoCast" type="date" /></label>
-                <label class="rrll-pro-field"><span>Fecha Fin CAST</span><input id="newTeleworkFechaFinTeletrabajoCast" type="date" /></label>
-                <label class="rrll-pro-field"><span>Fecha Inicio EUS</span><input id="newTeleworkFechaInicioTeletrabajoEus" type="date" /></label>
-                <label class="rrll-pro-field"><span>Fecha Fin EUS</span><input id="newTeleworkFechaFinTeletrabajoEus" type="date" /></label>
+                <div class="rrll-pro-field rrll-pro-field-full telework-day-checks" role="group" aria-label="Días de teletrabajo">
+                  <label class="telework-day-check" title="Lunes / Astelehena"><input id="newTeleworkDayL" type="checkbox" onchange="teleworkDaysChanged('new')" /><span>L</span></label>
+                  <label class="telework-day-check" title="Martes / Asteartea"><input id="newTeleworkDayM" type="checkbox" onchange="teleworkDaysChanged('new')" /><span>M</span></label>
+                  <label class="telework-day-check" title="Miércoles / Asteazkena"><input id="newTeleworkDayX" type="checkbox" onchange="teleworkDaysChanged('new')" /><span>X</span></label>
+                  <label class="telework-day-check" title="Jueves / Osteguna"><input id="newTeleworkDayJ" type="checkbox" onchange="teleworkDaysChanged('new')" /><span>J</span></label>
+                </div>
+                <input id="newTeleworkDiasTeletrabajoCast" type="hidden" />
+                <input id="newTeleworkDiasTeletrabajoEus" type="hidden" />
+                <label class="rrll-pro-field rrll-pro-field-full"><span>Observaciones</span><textarea id="newTeleworkObservations" placeholder="Observaciones iniciales, contexto o incidencias de la solicitud"></textarea></label>
               </fieldset>
 
-              <fieldset class="telework-form-section telework-observations-section">
-                <legend>Observaciones</legend>
-                <label class="rrll-pro-field rrll-pro-field-full">
-                  <span>Observaciones editables</span>
-                  <textarea id="newTeleworkObservations" placeholder="Observaciones iniciales, contexto o incidencias de la solicitud"></textarea>
-                </label>
+              <fieldset class="telework-form-section telework-validation-section">
+                <legend>VALIDACIONES</legend>
+                <label class="rrll-pro-field"><span>Seguridad Informática</span><select id="newTeleworkSecurity"><option>Pendiente</option><option>Sí</option><option>No</option></select></label>
+                <label class="rrll-pro-field"><span>Prevención</span><select id="newTeleworkPrevention"><option>Pendiente</option><option>Sí</option><option>No</option></select></label>
+                <label class="rrll-pro-field"><span>Jefatura</span><select id="newTeleworkFavorableReport"><option>Pendiente</option><option>Sí</option><option>No</option></select></label>
+                <label class="rrll-pro-field"><span>Cumplimiento condiciones presencialidad</span><select id="newTeleworkPresenceValidation"><option>Pendiente</option><option>Sí</option><option>No</option></select></label>
+                <label class="rrll-pro-field"><span>Año anterior teletrabajado</span><select id="newTeleworkPreviousYear"><option>No aplica</option><option>Sí</option><option>No</option></select></label>
+                <label class="rrll-pro-field"><span>Validación Jefatura de Unidad a repetir</span><select id="newTeleworkUnitHeadRepeat"><option>No aplica</option><option>Pendiente</option><option>Sí</option><option>No</option></select></label>
+                <label class="rrll-pro-field"><span>Validación Dirección</span><select id="newTeleworkDirectionValidation"><option>Pendiente</option><option>Aprobada</option><option>Denegada</option></select></label>
+                <label class="rrll-pro-field"><span>Fecha resolución</span><input id="newTeleworkResolutionDate" type="date" /></label>
               </fieldset>
 
               <div class="rrll-pro-form-actions telework-sticky-actions">

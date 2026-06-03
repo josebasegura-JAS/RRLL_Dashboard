@@ -705,3 +705,72 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
   border-style: dashed;
   background: rgba(59, 130, 246, .08);
 }
+
+/* Fase Teletrabajo: edición por bloques, checks bilingües y tabla compacta. */
+.telework-person-section,
+.telework-agreement-section,
+.telework-validation-section,
+.telework-master-section {
+  align-content: start;
+}
+
+.telework-form-section legend {
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.telework-day-checks {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+
+.telework-day-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 54px;
+  padding: 8px 11px;
+  border: 1px solid rgba(148, 163, 184, .32);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, .06);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.telework-day-check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--rrll-primary, #2563eb);
+}
+
+.telework-request-list {
+  max-height: 42vh;
+  min-height: 220px;
+  overflow: auto;
+  padding: 8px;
+}
+
+.telework-table-wrap {
+  max-height: 38vh;
+  overflow: auto;
+}
+
+.telework-table th,
+.telework-table td {
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+.telework-request-row .rrll-pro-title,
+.telework-history-row .rrll-pro-title {
+  line-height: 1.15;
+}
+
+.telework-request-row .rrll-pro-subtitle,
+.telework-history-row .rrll-pro-subtitle {
+  line-height: 1.2;
+}
