@@ -17,6 +17,27 @@
   let plantillaLoadDiagnosticsShown = false;
   const RRLL_IMPORT_KEY = 'rrll_recorridos_mesa';
   const MESAS_KEY = 'rrll_mesas_electorales';
+
+  const TELETRABAJO_FIELDS = [
+    { key: 'dni', label: 'DNI', type: 'text' },
+    { key: 'direccionTeletrabajo', label: 'Dirección Teletrabajo', type: 'text' },
+    { key: 'residenciaCast', label: 'Residencia CAST', type: 'text' },
+    { key: 'residenciaEus', label: 'Residencia EUS', type: 'text' },
+    { key: 'puestoCast', label: 'Puesto CAST', type: 'text' },
+    { key: 'puestoEus', label: 'Puesto EUS', type: 'text' },
+    { key: 'diasTeletrabajoEus', label: 'Días Teletrabajo EUS', type: 'text' },
+    { key: 'diasTeletrabajoCast', label: 'Días Teletrabajo CAST', type: 'text' },
+    { key: 'porcentajeTeletrabajo', label: 'Porcentaje Teletrabajo', type: 'text' },
+    { key: 'fechaOrdenador', label: 'Fecha Ordenador', type: 'date' },
+    { key: 'fechaCascos', label: 'Fecha Cascos', type: 'date' },
+    { key: 'fechaInicioTeletrabajoCast', label: 'Fecha Inicio CAST', type: 'date' },
+    { key: 'fechaFinTeletrabajoCast', label: 'Fecha Fin CAST', type: 'date' },
+    { key: 'fechaInicioTeletrabajoEus', label: 'Fecha Inicio EUS', type: 'date' },
+    { key: 'fechaFinTeletrabajoEus', label: 'Fecha Fin EUS', type: 'date' }
+  ];
+  const TELETRABAJO_FIELD_KEYS = TELETRABAJO_FIELDS.map(field => field.key);
+  const TELETRABAJO_DATE_FIELDS = new Set(TELETRABAJO_FIELDS.filter(field => field.type === 'date').map(field => field.key));
+
   const PLANTILLA_MODEL_COLUMNS = [
     { key: 'employeeNumber', label: 'Nº empleado' },
     { key: 'nombreCompleto', label: 'Nombre completo' },
@@ -29,7 +50,8 @@
     { key: 'participacionEstimada', label: 'Participación estimada' },
     { key: 'recorridoActivo', label: 'Recorrido activo' },
     { key: 'estacionBase', label: 'Estación base' },
-    { key: 'observacionesRecorrido', label: 'Observaciones recorrido' }
+    { key: 'observacionesRecorrido', label: 'Observaciones recorrido' },
+    ...TELETRABAJO_FIELDS.map(({ key, label }) => ({ key, label }))
   ];
 
 
@@ -218,6 +240,54 @@
     return '';
   }
 
+  function normalizePlantillaTeletrabajoValue(key, value) {
+    const raw = normalizeText(value);
+    if (!raw) return '';
+    return TELETRABAJO_DATE_FIELDS.has(key) ? normalizePlantillaDateOrText(raw) : raw;
+  }
+
+  function getPlantillaTeletrabajoData(source = {}, prefix = '') {
+    return TELETRABAJO_FIELDS.reduce((acc, field) => {
+      const element = document.getElementById(`${prefix}${field.key}`);
+      const value = element ? element.value : getField(source, field.key);
+      acc[field.key] = normalizePlantillaTeletrabajoValue(field.key, value);
+      return acc;
+    }, {});
+  }
+
+  function applyPlantillaTeletrabajoValues(item, prefix = '') {
+    TELETRABAJO_FIELDS.forEach(field => {
+      const element = document.getElementById(`${prefix}${field.key}`);
+      if (!element) return;
+      const value = getField(item, field.key);
+      element.value = TELETRABAJO_DATE_FIELDS.has(field.key) ? normalizePlantillaDate(value) : normalizeText(value);
+    });
+  }
+
+  function resetPlantillaTeletrabajoForm(prefix = '') {
+    TELETRABAJO_FIELDS.forEach(field => {
+      const element = document.getElementById(`${prefix}${field.key}`);
+      if (element) element.value = '';
+    });
+  }
+
+  function plantillaTeletrabajoFieldsHtml(prefix = '') {
+    return TELETRABAJO_FIELDS.map(field => `
+      <label class="rrll-pro-field">
+        <span>${escapeHtml(field.label)}</span>
+        <input id="${prefix}${field.key}" type="${field.type === 'date' ? 'date' : 'text'}" />
+      </label>
+    `).join('');
+  }
+
+  function mergeNonEmptyPlantillaFields(current, imported, fields) {
+    return fields.reduce((acc, field) => {
+      const value = imported[field];
+      acc[field] = value === '' || value == null ? getField(current, field) : value;
+      return acc;
+    }, {});
+  }
+
 
   function getPlantillaNombreCompleto(persona) {
     const fromCanonical = normalizeText(getField(persona, 'nombreCompleto'));
@@ -347,7 +417,7 @@
 
   function addPlantilla() {
     const employeeEl = document.getElementById('newPlantEmployeeNumber');
-    const nameEl = document.getElementById('newPlantNombreCompleto');
+    const nameEl = document.getElementById('newPlantNombreCompleto') || document.getElementById('newPlantName');
     const jobEl = document.getElementById('newPlantJob');
     const ageEl = document.getElementById('newPlantPositionSeniority');
     const levelEl = document.getElementById('newPlantLevel');
@@ -365,6 +435,7 @@
     const recorridoActivo = !!document.getElementById('newPlantRecorridoActivo')?.checked;
     const estacionBase = normalizeText(document.getElementById('newPlantEstacionBase')?.value);
     const observacionesRecorrido = normalizeText(document.getElementById('newPlantObservacionesRecorrido')?.value);
+    const teletrabajoData = getPlantillaTeletrabajoData({}, 'newPlant');
 
     if (!employeeNumber || !name || !job) {
       alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
@@ -374,7 +445,7 @@
     const now = new Date().toISOString();
     const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `plant-${Date.now()}`;
     const items = getPlantilla();
-    items.push({ id, employeeNumber, nombreCompleto: name, fullName: name, name, colegioElectoral, colegio_electoral: colegioElectoral, mesaElectoral, mesa_electoral: mesaElectoral, sindicato, participacionEstimada, participacion_estimada: participacionEstimada, recorridoActivo, recorrido_activo: recorridoActivo, estacionBase, estacion_base: estacionBase, observacionesRecorrido, observaciones_recorrido: observacionesRecorrido, job, positionSeniority, level, createdAt: now, updatedAt: now });
+    items.push({ id, employeeNumber, nombreCompleto: name, fullName: name, name, colegioElectoral, colegio_electoral: colegioElectoral, mesaElectoral, mesa_electoral: mesaElectoral, sindicato, participacionEstimada, participacion_estimada: participacionEstimada, recorridoActivo, recorrido_activo: recorridoActivo, estacionBase, estacion_base: estacionBase, observacionesRecorrido, observaciones_recorrido: observacionesRecorrido, job, positionSeniority, level, ...teletrabajoData, createdAt: now, updatedAt: now });
     setPlantilla(items);
 
     employeeEl.value = '';
@@ -382,6 +453,7 @@
     jobEl.value = '';
     if (ageEl) ageEl.value = '';
     levelEl.value = 'A';
+    resetPlantillaTeletrabajoForm('newPlant');
     togglePlantillaCreateForm(false);
 
     renderPlantilla();
@@ -447,6 +519,12 @@
               ${LEVELS.map(level => `<option value="${level}">${level}</option>`).join('')}
             </select>
           </label>
+          <details class="rrll-pro-fieldset full">
+            <summary>Datos Teletrabajo</summary>
+            <div class="rrll-pro-task-form rrll-pro-teletrabajo-fields">
+              ${plantillaTeletrabajoFieldsHtml('editPlant')}
+            </div>
+          </details>
         </div>
         <div class="modal-actions">
           <button type="button" class="secondary" onclick="closePlantillaEditModal()">Cancelar</button>
@@ -485,6 +563,7 @@
     document.getElementById('editPlantJob').value = item.job || '';
     document.getElementById('editPlantPositionSeniority').value = normalizePlantillaDate(item.positionSeniority);
     document.getElementById('editPlantLevel').value = normalizeLevel(item.level);
+    applyPlantillaTeletrabajoValues(item, 'editPlant');
     modal.classList.add('open');
     setTimeout(() => document.getElementById('editPlantEmployeeNumber')?.focus(), 0);
   }
@@ -520,6 +599,7 @@
     const recorridoActivo = !!document.getElementById('editPlantRecorridoActivo')?.checked;
     const estacionBase = normalizeText(document.getElementById('editPlantEstacionBase')?.value);
     const observacionesRecorrido = normalizeText(document.getElementById('editPlantObservacionesRecorrido')?.value);
+    const teletrabajoData = getPlantillaTeletrabajoData({}, 'editPlant');
     if (!employeeNumber || !name || !job) {
       alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
       return;
@@ -534,6 +614,7 @@
       job,
       positionSeniority,
       level,
+      ...teletrabajoData,
       updatedAt: new Date().toISOString()
     } : item));
     closePlantillaEditModal();
@@ -708,6 +789,21 @@
       lastName: ['apellidos'],
       nombreCompleto: ['nombre completo', 'nombre y apellidos', 'apellidos y nombre', 'persona', 'empleado'],
       job: ['puesto', 'puesto de trabajo', 'cargo'],
+      dni: ['dni'],
+      direccionTeletrabajo: ['direccion teletrabajo', 'direccion'],
+      residenciaCast: ['residencia cast'],
+      residenciaEus: ['residencia eus'],
+      puestoCast: ['puesto cast'],
+      puestoEus: ['puesto eus'],
+      diasTeletrabajoEus: ['dias teletrabajo eus'],
+      diasTeletrabajoCast: ['dias teletrabajo cast'],
+      porcentajeTeletrabajo: ['porcentaje teletrabajo', 'porcentaje'],
+      fechaOrdenador: ['fecha ordenador'],
+      fechaCascos: ['fecha cascos'],
+      fechaInicioTeletrabajoCast: ['fecha inicio cast'],
+      fechaFinTeletrabajoCast: ['fecha fin cast'],
+      fechaInicioTeletrabajoEus: ['fecha inicio eus'],
+      fechaFinTeletrabajoEus: ['fecha fin eus'],
       sexo: ['sexo', 'unidad'],
       positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antig puesto', 'fecha antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
       level: ['nivel', 'nivel retributivo', 'grupo'],
@@ -881,9 +977,9 @@
     const map = buildPlantillaColumnMap(headers);
     const now = new Date().toISOString();
     const items = getPlantilla();
-    const byEmployee = new Map(items.map((item, index) => [normalizeEmployeeKey(item.employeeNumber), index]));
+    const byEmployee = new Map(items.map((item, index) => [normalizeEmployeeKey(item.employeeNumber), index]).filter(([key]) => key));
     const byFullName = new Map(items.map((item, index) => {
-      const fullName = normalizeHeader(getField(item, 'fullName') || [getField(item, 'name'), getField(item, 'lastName')].filter(Boolean).join(' '));
+      const fullName = normalizeHeader(resolveNombreCompleto(item));
       return [fullName, index];
     }).filter(([k]) => k));
     rows.slice(1).forEach(row => {
@@ -919,8 +1015,13 @@
         ,estacionBase: map.estacionBase == null ? '' : normalizeText(row[map.estacionBase])
         ,observacionesRecorrido: map.observacionesRecorrido == null ? '' : normalizeText(row[map.observacionesRecorrido])
       };
+      TELETRABAJO_FIELD_KEYS.forEach(field => {
+        imported[field] = map[field] == null ? '' : normalizePlantillaTeletrabajoValue(field, row[map[field]]);
+      });
+      const hasRecorridoActivoValue = map.recorridoActivo != null && !!normalizeText(row[map.recorridoActivo]);
       const key = normalizeEmployeeKey(employeeNumber);
-      const existingIndex = byEmployee.get(key) ?? byFullName.get(normalizeHeader(fullName));
+      const fullNameKey = normalizeHeader(fullName);
+      const existingIndex = (key && byEmployee.has(key)) ? byEmployee.get(key) : byFullName.get(fullNameKey);
       if (existingIndex != null) {
         const current = items[existingIndex];
         const merged = {
@@ -944,12 +1045,13 @@
           sindicato: imported.sindicato || normalizeText(getField(current, 'sindicato')),
           participacionEstimada: imported.participacionEstimada || normalizeText(getField(current, 'participacionEstimada', 'participacion_estimada')),
           participacion_estimada: imported.participacionEstimada || normalizeText(getField(current, 'participacionEstimada', 'participacion_estimada')),
-          recorridoActivo: map.recorridoActivo == null ? !!getField(current, 'recorridoActivo', 'recorrido_activo') : imported.recorridoActivo,
-          recorrido_activo: map.recorridoActivo == null ? !!getField(current, 'recorridoActivo', 'recorrido_activo') : imported.recorridoActivo,
+          recorridoActivo: hasRecorridoActivoValue ? imported.recorridoActivo : !!getField(current, 'recorridoActivo', 'recorrido_activo'),
+          recorrido_activo: hasRecorridoActivoValue ? imported.recorridoActivo : !!getField(current, 'recorridoActivo', 'recorrido_activo'),
           estacionBase: imported.estacionBase || normalizeText(getField(current, 'estacionBase', 'estacion_base')),
           estacion_base: imported.estacionBase || normalizeText(getField(current, 'estacionBase', 'estacion_base')),
           observacionesRecorrido: imported.observacionesRecorrido || normalizeText(getField(current, 'observacionesRecorrido', 'observaciones_recorrido')),
           observaciones_recorrido: imported.observacionesRecorrido || normalizeText(getField(current, 'observacionesRecorrido', 'observaciones_recorrido')),
+          ...mergeNonEmptyPlantillaFields(current, imported, TELETRABAJO_FIELD_KEYS),
           updatedAt: now
         };
         items[existingIndex] = merged;
@@ -983,6 +1085,7 @@
           estacion_base: imported.estacionBase,
           observacionesRecorrido: imported.observacionesRecorrido,
           observaciones_recorrido: imported.observacionesRecorrido,
+          ...mergeNonEmptyPlantillaFields({}, imported, TELETRABAJO_FIELD_KEYS),
           createdAt: now,
           updatedAt: now
         });
@@ -1054,11 +1157,25 @@
 
   function exportPlantillaExcel() {
     const rows = sortedPlantilla();
+    const teletrabajoHeaders = TELETRABAJO_FIELDS.map(field => field.label);
     const excelData = {
       title: 'Plantilla',
       filename: 'plantilla',
-      headers: ['Nº empleado', 'Nombre completo', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Puesto de trabajo', 'Antig. Puesto', 'Nivel retributivo'],
-      rows: rows.map(item => [item.employeeNumber || '', resolveNombreCompleto(item) || '', item.job || '', resolveSexo(item) || '', item.level || '', getField(item, 'colegioElectoral', 'colegio_electoral') || '', getField(item, 'mesaElectoral', 'mesa_electoral') || '', getField(item, 'sindicato') || '', item.job || '', formatPlantillaDate(item.positionSeniority), item.level || ''])
+      headers: ['Nº empleado', 'Nombre completo', 'Puesto', 'Sexo', 'Nivel', 'Colegio electoral', 'Mesa electoral', 'Sindicato', 'Puesto de trabajo', 'Antig. Puesto', 'Nivel retributivo', ...teletrabajoHeaders],
+      rows: rows.map(item => [
+        item.employeeNumber || '',
+        resolveNombreCompleto(item) || '',
+        item.job || '',
+        resolveSexo(item) || '',
+        item.level || '',
+        getField(item, 'colegioElectoral', 'colegio_electoral') || '',
+        getField(item, 'mesaElectoral', 'mesa_electoral') || '',
+        getField(item, 'sindicato') || '',
+        item.job || '',
+        formatPlantillaDate(item.positionSeniority),
+        item.level || '',
+        ...TELETRABAJO_FIELDS.map(field => TELETRABAJO_DATE_FIELDS.has(field.key) ? formatPlantillaDate(getField(item, field.key)) : normalizeText(getField(item, field.key)))
+      ])
     };
     if (typeof exportExcelData === 'function') exportExcelData(excelData);
   }
