@@ -6,6 +6,7 @@
   const KEY = "rrll_telework";
   const CAMPAIGN_KEY = "rrll_telework_selected_period";
   const JOB_CATALOG_KEY = "rrll_telework_job_catalog";
+  const MANUAL_CAMPAIGNS_KEY = "rrll_telework_manual_campaigns";
   const TELEWORK_NO_PERIOD = "Sin periodo";
   const STATUS_VALUES = ["telework-entry", "telework-processing", "telework-direction", "telework-approved", "telework-denied"];
   const VALIDATION_VALUES = ["Pendiente", "Sí", "No"];
@@ -113,6 +114,20 @@
 
   function setTeleworkActiveCampaign(period) {
     save(CAMPAIGN_KEY, normalizeTeleworkPeriod(period));
+  }
+
+  function getTeleworkManualCampaigns() {
+    const campaigns = load(MANUAL_CAMPAIGNS_KEY, []);
+    return Array.isArray(campaigns)
+      ? campaigns.map(normalizeTeleworkPeriod).filter(Boolean)
+      : [];
+  }
+
+  function setTeleworkManualCampaigns(campaigns) {
+    const unique = Array.from(new Set((Array.isArray(campaigns) ? campaigns : [])
+      .map(normalizeTeleworkPeriod)
+      .filter(period => period && period !== TELEWORK_NO_PERIOD)));
+    save(MANUAL_CAMPAIGNS_KEY, unique.sort(compareTeleworkCampaignsDesc));
   }
 
   function teleworkCampaignStart(period) {
@@ -1478,6 +1493,10 @@
     const info = getTeleworkCampaignInfo();
     const activeStart = teleworkCampaignStart(info.active);
     const campaigns = new Set([info.active, info.suggested, getTeleworkActiveCampaign()]);
+    getTeleworkManualCampaigns().forEach(period => {
+      const start = teleworkCampaignStart(period);
+      if (Number.isFinite(start) && start >= activeStart) campaigns.add(period);
+    });
     getTeleworkItems().forEach(item => {
       const period = normalizeTeleworkPeriod(item.period);
       const start = teleworkCampaignStart(period);
@@ -1527,12 +1546,37 @@
       return;
     }
     const normalized = normalizeTeleworkPeriod(raw);
-    const exists = getTeleworkCampaigns().some(period => normalizeTeleworkPeriod(period).toLowerCase() === normalized.toLowerCase());
-    if (exists) {
-      alert(`La campaña ${normalized} ya existe.`);
+    const start = teleworkCampaignStart(normalized);
+    if (!Number.isFinite(start)) {
+      alert("Introduce una campaña con formato 2027-2028.");
       return;
     }
+    if (isTeleworkHistoricalCampaign(normalized)) {
+      alert(`La campaña ${normalized} es histórica y no se puede crear como campaña activa.`);
+      return;
+    }
+    const exists = getTeleworkCampaigns().some(period => normalizeTeleworkPeriod(period).toLowerCase() === normalized.toLowerCase());
+    if (!exists) setTeleworkManualCampaigns([...getTeleworkManualCampaigns(), normalized]);
     changeTeleworkCampaign(normalized);
+  }
+
+  function deleteTeleworkCampaignOption() {
+    const campaign = getTeleworkActiveCampaign();
+    const active = getTeleworkCampaignInfo().active;
+    if (normalizeTeleworkPeriod(campaign) === normalizeTeleworkPeriod(active)) {
+      alert("No se puede eliminar la campaña vigente calculada automáticamente.");
+      return;
+    }
+    const linked = getTeleworkItems().filter(item => normalizeTeleworkPeriod(item.period) === normalizeTeleworkPeriod(campaign));
+    if (linked.length) {
+      alert(`No se puede eliminar la campaña ${campaign} porque tiene ${linked.length} solicitud(es) asociada(s).`);
+      return;
+    }
+    if (!confirm(`¿Eliminar la campaña ${campaign}?`)) return;
+    setTeleworkManualCampaigns(getTeleworkManualCampaigns().filter(period => normalizeTeleworkPeriod(period) !== normalizeTeleworkPeriod(campaign)));
+    setTeleworkActiveCampaign(active);
+    ensureTeleworkPeriodControls();
+    refreshTeleworkDependents();
   }
 
   function getTeleworkVisibleItems(items = getTeleworkItems()) {
@@ -2577,6 +2621,7 @@
     setTeleworkViewFilter,
     changeTeleworkCampaign,
     addTeleworkCampaignOption,
+    deleteTeleworkCampaignOption,
     getTeleworkActiveCampaign,
     getTeleworkCampaignInfo,
     getTeleworkRowsForExport,
@@ -2628,6 +2673,7 @@
   window.setTeleworkViewFilter = setTeleworkViewFilter;
   window.changeTeleworkCampaign = changeTeleworkCampaign;
   window.addTeleworkCampaignOption = addTeleworkCampaignOption;
+  window.deleteTeleworkCampaignOption = deleteTeleworkCampaignOption;
   window.getTeleworkActiveCampaign = getTeleworkActiveCampaign;
   window.getTeleworkCampaignInfo = getTeleworkCampaignInfo;
   window.getTeleworkRowsForExport = getTeleworkRowsForExport;
