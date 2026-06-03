@@ -842,3 +842,139 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
       "validation";
   }
 }
+
+/* Teletrabajo: tabla principal compacta para portátil 14". */
+#gestor-teletrabajo .telework-table-wrap,
+#gestor-teletrabajo .telework-history-table-wrapper {
+  max-height: min(54vh, 520px);
+  overflow: auto;
+}
+
+#gestor-teletrabajo .telework-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 1120px;
+}
+
+#gestor-teletrabajo .telework-table th,
+#gestor-teletrabajo .telework-table td {
+  padding: 7px 9px !important;
+  vertical-align: middle !important;
+  line-height: 1.2 !important;
+}
+
+#gestor-teletrabajo .telework-table tbody tr {
+  height: auto !important;
+  min-height: 42px !important;
+}
+
+#gestor-teletrabajo .telework-table th:nth-child(1),
+#gestor-teletrabajo .telework-table td:nth-child(1) { width: 270px; }
+#gestor-teletrabajo .telework-table th:nth-child(2),
+#gestor-teletrabajo .telework-table td:nth-child(2) { width: 118px; }
+#gestor-teletrabajo .telework-table th:nth-child(3),
+#gestor-teletrabajo .telework-table td:nth-child(3) { width: 92px; }
+#gestor-teletrabajo .telework-table th:nth-child(4),
+#gestor-teletrabajo .telework-table td:nth-child(4) { width: 82px; }
+#gestor-teletrabajo .telework-table th:nth-child(5),
+#gestor-teletrabajo .telework-table td:nth-child(5) { width: 86px; }
+#gestor-teletrabajo .telework-table th:nth-child(6),
+#gestor-teletrabajo .telework-table td:nth-child(6),
+#gestor-teletrabajo .telework-table th:nth-child(7),
+#gestor-teletrabajo .telework-table td:nth-child(7) { width: 92px; }
+#gestor-teletrabajo .telework-table th:nth-child(8),
+#gestor-teletrabajo .telework-table td:nth-child(8) { width: 96px; }
+#gestor-teletrabajo .telework-table th:nth-child(9),
+#gestor-teletrabajo .telework-table td:nth-child(9) { width: 250px; }
+
+#gestor-teletrabajo .telework-table .rrll-pro-title,
+#gestor-teletrabajo .telework-table .rrll-pro-subtitle {
+  line-height: 1.25 !important;
+}
+
+#gestor-teletrabajo .telework-table .rrll-pro-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+#gestor-teletrabajo .telework-table .rrll-pro-subtitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  font-size: 11px !important;
+}
+
+#gestor-teletrabajo .telework-col-status,
+#gestor-teletrabajo .telework-col-period,
+#gestor-teletrabajo .telework-col-type,
+#gestor-teletrabajo .telework-col-percent,
+#gestor-teletrabajo .telework-col-start,
+#gestor-teletrabajo .telework-col-end,
+#gestor-teletrabajo .telework-col-created {
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#gestor-teletrabajo .telework-col-actions {
+  white-space: nowrap !important;
+}
+
+#gestor-teletrabajo .telework-col-actions .rrll-pro-row-actions,
+#gestor-teletrabajo .telework-actions-inline,
+#gestor-teletrabajo .telework-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+#gestor-teletrabajo .telework-col-actions button,
+#gestor-teletrabajo .telework-actions-inline button {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 4px 9px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+
+#gestor-teletrabajo .rrll-status-pill,
+#gestor-teletrabajo .rrll-pro-source,
+#gestor-teletrabajo .rrll-pro-created {
+  max-width: 100%;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#gestor-teletrabajo .telework-eligibility-warning {
+  margin-top: 5px;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+#gestor-teletrabajo .telework-header-actions .telework-add-campaign,
+#gestor-teletrabajo .telework-header-actions .telework-delete-campaign {
+  min-height: 34px;
+  padding: 7px 10px;
+}
+
+#gestor-teletrabajo .telework-header-actions .telework-delete-campaign {
+  border-color: rgba(239, 68, 68, .26);
+  color: #fca5a5;
+}
+
+html[data-theme="light"] #gestor-teletrabajo .telework-header-actions .telework-delete-campaign {
+  color: #b91c1c;
+}
+
+#gestor-teletrabajo .telework-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
