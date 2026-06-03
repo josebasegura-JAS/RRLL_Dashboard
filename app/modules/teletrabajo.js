@@ -217,8 +217,12 @@
       dni: getTeleworkPersonValue(person, ["dni", "DNI", "nif", "documentNumber"]),
       direccionTeletrabajo: getTeleworkPersonValue(person, ["direccionTeletrabajo"]),
       residencia: getTeleworkPersonValue(person, ["residencia", "residenciaCast", "residenciaEus"]),
+      residenciaCast: getTeleworkPersonValue(person, ["residenciaCast", "residencia"]),
+      residenciaEus: getTeleworkPersonValue(person, ["residenciaEus", "residenciaCast", "residencia"]),
       puestoCast: getTeleworkPersonValue(person, ["puestoCast"]),
-      puestoEus: getTeleworkPersonValue(person, ["puestoEus"])
+      puestoEus: getTeleworkPersonValue(person, ["puestoEus", "puestoCast"]),
+      fechaOrdenador: getTeleworkPersonValue(person, ["fechaOrdenador"]),
+      fechaCascos: getTeleworkPersonValue(person, ["fechaCascos"])
     };
   }
 
@@ -594,25 +598,49 @@
     TELEWORK_MASTER_FIELDS.forEach(([key, suffix]) => writeTeleworkField(prefix, suffix, person?.[key] || ""));
     const snapshot = buildTeleworkPersonSnapshot(person);
     writeTeleworkField(prefix, "DireccionArea", snapshot?.direccionArea || "");
-    if (snapshot?.residencia) {
-      writeTeleworkField(prefix, "ResidenciaCast", snapshot.residencia);
-      writeTeleworkField(prefix, "ResidenciaEus", snapshot.residencia);
+    if (snapshot) {
+      writeTeleworkField(prefix, "ResidenciaCast", snapshot.residenciaCast || snapshot.residencia || "");
+      writeTeleworkField(prefix, "ResidenciaEus", snapshot.residenciaEus || snapshot.residenciaCast || snapshot.residencia || "");
+      if (!readTeleworkField(prefix, "PuestoCast")) writeTeleworkField(prefix, "PuestoCast", snapshot.puestoCast || snapshot.job || "");
+      if (!readTeleworkField(prefix, "PuestoEus")) writeTeleworkField(prefix, "PuestoEus", snapshot.puestoEus || snapshot.puestoCast || snapshot.job || "");
     }
     const hint = document.getElementById(`${prefix}TeleworkPlantillaInfo`);
     if (hint) hint.textContent = person ? "Datos maestros cargados desde Plantilla. Estos campos no se duplican en la solicitud." : "No se ha encontrado la persona en Plantilla.";
   }
 
   function saveTeleworkPlantillaData(employeeNumber, prefix = "new") {
-    if (typeof setPlantilla !== "function") return;
+    if (typeof setPlantilla !== "function") return false;
     const items = getPlantillaForTelework();
     const index = items.findIndex(person => String(person.employeeNumber || "").trim() === String(employeeNumber || "").trim());
-    if (index < 0) return;
-    const now = new Date().toISOString();
-    const updated = { ...items[index], updatedAt: now };
-    TELEWORK_MASTER_FIELDS.forEach(([key, suffix]) => { updated[key] = readTeleworkField(prefix, suffix); });
+    if (index < 0) return false;
+
+    const current = items[index] || {};
+    const updated = { ...current };
+    let changed = false;
+
+    TELEWORK_MASTER_FIELDS.forEach(([key, suffix]) => {
+      let value = readTeleworkField(prefix, suffix);
+      if (key === "residenciaEus" && !value) value = readTeleworkField(prefix, "ResidenciaCast");
+      if (key === "puestoEus" && !value) value = readTeleworkField(prefix, "PuestoCast");
+      if (String(updated[key] || "") !== String(value || "")) {
+        updated[key] = value;
+        changed = true;
+      }
+    });
+
+    if (!changed) return false;
+
+    updated.updatedAt = new Date().toISOString();
     items[index] = updated;
     setPlantilla(items);
+
+    // La ficha de Plantilla se consulta mediante una snapshot en memoria.
+    // Si no se invalida, la generación Word puede leer la versión anterior
+    // y avisar falsamente de que faltan DNI/Dirección/Residencia.
+    teleworkRuntimeSnapshot = null;
+
     if (typeof renderPlantilla === "function") renderPlantilla();
+    return true;
   }
 
   function fillTeleworkPerson(person, prefix = "new") {
@@ -1068,8 +1096,8 @@
         <div id="${prefix}TeleworkPlantillaInfo" class="telework-master-hint muted">Datos maestros cargados desde Plantilla.</div>
         <label class="rrll-pro-field"><span>DNI</span><input id="${prefix}TeleworkDni" /></label>
         <label class="rrll-pro-field"><span>Dirección Teletrabajo</span><input id="${prefix}TeleworkDireccionTeletrabajo" /></label>
-        <label class="rrll-pro-field"><span>Residencia</span><input id="${prefix}TeleworkResidenciaCast" /></label>
-        <input id="${prefix}TeleworkResidenciaEus" type="hidden" />
+        <label class="rrll-pro-field"><span>Residencia CAST</span><input id="${prefix}TeleworkResidenciaCast" oninput="if(!document.getElementById('${prefix}TeleworkResidenciaEus')?.value) writeTeleworkField('${prefix}', 'ResidenciaEus', this.value)" /></label>
+        <label class="rrll-pro-field"><span>Residencia EUS</span><input id="${prefix}TeleworkResidenciaEus" /></label>
         <label class="rrll-pro-field"><span>Puesto CAST</span><input id="${prefix}TeleworkPuestoCast" /></label>
         <label class="rrll-pro-field"><span>Puesto EUS</span><input id="${prefix}TeleworkPuestoEus" /></label>
         <label class="rrll-pro-field"><span>Fecha Ordenador</span><input id="${prefix}TeleworkFechaOrdenador" type="date" /></label>
