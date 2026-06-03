@@ -107,8 +107,11 @@
   function getTeleworkActiveCampaign() {
     const active = getTeleworkCampaignInfo().active;
     const selected = normalizeTeleworkPeriod(String(load(CAMPAIGN_KEY, "") || "").trim());
+    if (!selected || selected === TELEWORK_NO_PERIOD) return active;
     const selectedStart = teleworkCampaignStart(selected);
     const activeStart = teleworkCampaignStart(active);
+    const manualCampaigns = getTeleworkManualCampaigns().map(period => normalizeTeleworkPeriod(period).toLowerCase());
+    if (manualCampaigns.includes(selected.toLowerCase())) return selected;
     return Number.isFinite(selectedStart) && selectedStart >= activeStart ? selected : active;
   }
 
@@ -136,7 +139,14 @@
   }
 
   function compareTeleworkCampaignsDesc(a, b) {
-    return teleworkCampaignStart(b) - teleworkCampaignStart(a) || String(b).localeCompare(String(a), "es");
+    const startA = teleworkCampaignStart(a);
+    const startB = teleworkCampaignStart(b);
+    const finiteA = Number.isFinite(startA);
+    const finiteB = Number.isFinite(startB);
+    if (finiteA && finiteB) return startB - startA || String(b).localeCompare(String(a), "es");
+    if (finiteA && !finiteB) return -1;
+    if (!finiteA && finiteB) return 1;
+    return String(a).localeCompare(String(b), "es");
   }
 
   function getTeleworkActiveHistoryBoundary() {
@@ -1494,12 +1504,12 @@
     const campaigns = new Set([info.active, info.suggested, getTeleworkActiveCampaign()]);
     getTeleworkManualCampaigns().forEach(period => {
       const start = teleworkCampaignStart(period);
-      if (Number.isFinite(start) && start >= activeStart) campaigns.add(period);
+      if (!Number.isFinite(start) || start >= activeStart) campaigns.add(period);
     });
     getTeleworkItems().forEach(item => {
       const period = normalizeTeleworkPeriod(item.period);
       const start = teleworkCampaignStart(period);
-      if (Number.isFinite(start) && start >= activeStart) campaigns.add(period);
+      if (!Number.isFinite(start) || start >= activeStart) campaigns.add(period);
     });
     return Array.from(campaigns).filter(Boolean).sort(compareTeleworkCampaignsDesc);
   }
