@@ -22,11 +22,16 @@ const TELEWORK_AGREEMENT_MARKER_MAP = [
   ["«Fecha_Fin_CAST»", "fechaFinTeletrabajoCastFormatted"],
   ["«Fecha_Inicio_EUS»", "fechaInicioTeletrabajoEusFormatted"],
   ["«Fecha_Fin_EUS»", "fechaFinTeletrabajoEusFormatted"],
-  ["U/H/E", "employeeNumber"],
+  ["«U/H/E»", "currentDateEusNumeric"],
+  ["U/H/E", "currentDateEusNumeric"],
+  ["«D/M/A»", "currentDateNumeric"],
   ["D/M/A", "currentDateNumeric"],
-  ["M_1ºdata", "currentDateEus"],
-  ["M_2ºdata", "currentDateEus"],
-  ["fecha", "currentDateCast"]
+  ["«M_1ºdata»", "fechaInicioTeletrabajoEusFormatted"],
+  ["M_1ºdata", "fechaInicioTeletrabajoEusFormatted"],
+  ["«M_2ºdata»", "fechaFinTeletrabajoEusFormatted"],
+  ["M_2ºdata", "fechaFinTeletrabajoEusFormatted"],
+  ["«fecha»", "fechaPeriodoCast"],
+  ["fecha", "fechaPeriodoCast"]
 ];
 
 const TELEWORK_AGREEMENT_REQUIRED_FIELDS = [
@@ -82,6 +87,19 @@ function formatDateNumeric(value) {
   return `${String(parts.day).padStart(2, "0")}/${String(parts.month).padStart(2, "0")}/${parts.year}`;
 }
 
+function formatDateEusNumeric(value) {
+  const parts = parseDateOnly(value);
+  if (!parts) return String(value || "").trim();
+  return `${parts.year}/${String(parts.month).padStart(2, "0")}/${String(parts.day).padStart(2, "0")}`;
+}
+
+function formatDatePeriodCast(startValue, endValue) {
+  const start = formatDateCast(startValue);
+  const end = formatDateCast(endValue);
+  if (start && end) return `${start} y el ${end}`;
+  return start || end || "";
+}
+
 function escapeDocxXmlText(value) {
   return String(value == null ? "" : value)
     .replace(/&/g, "&amp;")
@@ -119,7 +137,9 @@ function buildTeleworkAgreementData(payload = {}, now = new Date()) {
     fechaFinTeletrabajoCastFormatted: formatDateCast(telework.fechaFinTeletrabajoCast),
     fechaInicioTeletrabajoEusFormatted: formatDateEus(telework.fechaInicioTeletrabajoEus),
     fechaFinTeletrabajoEusFormatted: formatDateEus(telework.fechaFinTeletrabajoEus),
+    fechaPeriodoCast: formatDatePeriodCast(telework.fechaInicioTeletrabajoCast, telework.fechaFinTeletrabajoCast),
     currentDateNumeric: formatDateNumeric(currentIso),
+    currentDateEusNumeric: formatDateEusNumeric(currentIso),
     currentDateCast: formatDateCast(currentIso),
     currentDateEus: formatDateEus(currentIso)
   };
