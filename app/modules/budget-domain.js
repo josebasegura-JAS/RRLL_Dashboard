@@ -1,6 +1,6 @@
 const BudgetDomain = (() => {
   const MONTHS = Object.freeze(Array.from({ length: 12 }, (_, index) => index + 1));
-  const CALCULATION_TYPES = Object.freeze(["calendar_people", "manual_tickets", "manual_amount"]);
+  const CALCULATION_TYPES = Object.freeze(["calendar_people", "manual_tickets", "manual_amount", "annual_tickets"]);
   const ACTUAL_BLOCKS = Object.freeze(["Ticket Restaurante", "Formación", "Vestuario", "Consultoría", "Reconocimientos médicos", "Gastos sindicales", "Otros"]);
 
   function hasValue(value) {
@@ -62,6 +62,10 @@ const BudgetDomain = (() => {
     return normalizeBudgetRate(getValue(group, "absentismoPropio", "absence_rate"));
   }
 
+  function getAnnualTickets(group = {}) {
+    return normalizeBudgetNumber(getValue(group, "ticketsAnuales", "annual_tickets"));
+  }
+
   function resolveBudgetSimulationYear(scenario = {}, simulationYear) {
     const explicitYear = Number(simulationYear);
     if (Number.isInteger(explicitYear)) return explicitYear;
@@ -75,6 +79,7 @@ const BudgetDomain = (() => {
     const type = normalizeCalculationType(group);
     if (type === "manual_amount") return normalizeBudgetNumber(getValue(group, "importeManualMensual", "manual_monthly_amount"));
     const ticketAmount = getTicketAmount(group, scenario);
+    if (type === "annual_tickets") return (getAnnualTickets(group) * ticketAmount) / 12;
     if (type === "manual_tickets") return normalizeBudgetNumber(getValue(group, "ticketsManuales", "manual_tickets")) * ticketAmount;
     const rawCalendar = getValue(group, "calendarioTicket", "ticket_calendar");
     const calendar = typeof context.normalizeTicketCalendar === "function" ? context.normalizeTicketCalendar(rawCalendar) : rawCalendar;
@@ -118,6 +123,22 @@ const BudgetDomain = (() => {
     return { simulationYear: resolvedSimulationYear, totalManual, totalTicket: ticket.totalTicket, totalScenario: totalManual + ticket.totalTicket, byMonth, byManualItem, byGroup: ticket.byGroup };
   }
 
+  function buildBudgetTicketGroupExportRow(group = {}, scenario = {}, totalTicket = 0) {
+    const type = normalizeCalculationType(group);
+    return {
+      name: getValue(group, "nombre", "name") || "",
+      calendar: type === "calendar_people" ? getValue(group, "calendarioTicket", "ticket_calendar") || "" : "",
+      type,
+      people: type === "calendar_people" ? normalizeBudgetNumber(getValue(group, "numeroPersonas", "people_count")) : 0,
+      annualTickets: type === "annual_tickets" ? getAnnualTickets(group) : 0,
+      manualTickets: type === "manual_tickets" ? normalizeBudgetNumber(getValue(group, "ticketsManuales", "manual_tickets")) : 0,
+      manualAmount: type === "manual_amount" ? normalizeBudgetNumber(getValue(group, "importeManualMensual", "manual_monthly_amount")) : 0,
+      ticketAmount: type === "manual_amount" ? 0 : getTicketAmount(group, scenario),
+      absenceRate: type === "calendar_people" ? getAbsenceRate(group, scenario) : 0,
+      totalCalculated: totalTicket
+    };
+  }
+
   function buildBudgetScenarioExportData({ manualItems = [], ticketGroups = [], scenario = {}, context = {}, simulationYear } = {}) {
     const totals = calculateBudgetScenarioYear({ manualItems, ticketGroups, scenario, context, simulationYear });
     return {
@@ -130,7 +151,7 @@ const BudgetDomain = (() => {
       summary: { totalManual: totals.totalManual, totalTicket: totals.totalTicket, totalScenario: totals.totalScenario },
       monthly: totals.byMonth.map(item => ({ month: item.month, totalManual: item.totalManual, totalTicket: item.totalTicket, totalScenario: item.totalScenario })),
       manualItems: totals.byManualItem.map(({ item, totalManual }) => ({ concept: getValue(item, "concepto", "concept") || "", type: getValue(item, "categoría", "category") || "", monthlyAmount: getValue(item, "importeMensual", "monthly_amount"), annualAmount: getValue(item, "importeAnual", "annual_amount"), totalCalculated: totalManual })),
-      ticketGroups: totals.byGroup.map(({ group, totalTicket }) => ({ name: getValue(group, "nombre", "name") || "", calendar: getValue(group, "calendarioTicket", "ticket_calendar") || "", type: normalizeCalculationType(group), people: normalizeBudgetNumber(getValue(group, "numeroPersonas", "people_count")), manualTickets: normalizeBudgetNumber(getValue(group, "ticketsManuales", "manual_tickets")), manualAmount: normalizeBudgetNumber(getValue(group, "importeManualMensual", "manual_monthly_amount")), ticketAmount: getTicketAmount(group, scenario), absenceRate: getAbsenceRate(group, scenario), totalCalculated: totalTicket }))
+      ticketGroups: totals.byGroup.map(({ group, totalTicket }) => buildBudgetTicketGroupExportRow(group, scenario, totalTicket))
     };
   }
 

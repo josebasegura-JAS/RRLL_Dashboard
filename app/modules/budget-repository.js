@@ -17,6 +17,11 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
     return rows("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?", [name]).length > 0;
   }
 
+  function hasColumn(table, column) {
+    if (!hasTable(table)) return false;
+    return rows(`PRAGMA table_info(${table})`).some(row => row.name === column);
+  }
+
   function ensureBudgetSchema() {
     const names = ["budget_scenarios", "budget_manual_items", "budget_ticket_groups", "budget_actuals"];
     const created = names.filter(name => !hasTable(name));
@@ -31,13 +36,14 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
     db.run(`CREATE TABLE IF NOT EXISTS budget_ticket_groups (
       id TEXT PRIMARY KEY, scenario_id TEXT NOT NULL, name TEXT NOT NULL, people_count REAL NOT NULL DEFAULT 0,
       ticket_calendar TEXT, absence_rate REAL, ticket_amount REAL, calculation_type TEXT NOT NULL DEFAULT 'calendar_people',
-      manual_tickets REAL, manual_monthly_amount REAL, notes TEXT, display_order INTEGER NOT NULL DEFAULT 0,
+      manual_tickets REAL, annual_tickets REAL, manual_monthly_amount REAL, notes TEXT, display_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL
     )`);
     db.run(`CREATE TABLE IF NOT EXISTS budget_actuals (
       id TEXT PRIMARY KEY, year INTEGER NOT NULL, month INTEGER NOT NULL, block TEXT NOT NULL, concept TEXT NOT NULL,
       amount REAL NOT NULL DEFAULT 0, notes TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
     )`);
+    if (!hasColumn("budget_ticket_groups", "annual_tickets")) db.run("ALTER TABLE budget_ticket_groups ADD COLUMN annual_tickets REAL");
     // Compatibilidad no destructiva: materializa en cada grupo histórico el antiguo fallback del escenario.
     db.run(`UPDATE budget_ticket_groups
       SET absence_rate = COALESCE((SELECT absence_rate FROM budget_scenarios WHERE budget_scenarios.id = budget_ticket_groups.scenario_id), 0)
@@ -104,19 +110,21 @@ function createBudgetRepository({ db, now = () => new Date().toISOString(), crea
     const scenarioId = requireText(input, "scenarioId", "scenario_id", "El escenario del grupo es obligatorio.");
     const name = requireText(input, "nombre", "name", "El nombre del grupo es obligatorio.");
     const calculationType = String(value(input, "tipoCalculo", "calculation_type", "calendar_people"));
-    if (!["calendar_people", "manual_tickets", "manual_amount"].includes(calculationType)) throw new Error("El tipo de cálculo Ticket no es válido.");
+    if (!["calendar_people", "manual_tickets", "manual_amount", "annual_tickets"].includes(calculationType)) throw new Error("El tipo de cálculo Ticket no es válido.");
     const people = Number(value(input, "numeroPersonas", "people_count", 0));
     const absence = optionalNumber(input, "absentismoPropio", "absence_rate");
     const ticketAmount = optionalNumber(input, "importeTicketPropio", "ticket_amount");
     const manualTickets = optionalNumber(input, "ticketsManuales", "manual_tickets");
+    const annualTickets = optionalNumber(input, "ticketsAnuales", "annual_tickets");
     const manualAmount = optionalNumber(input, "importeManualMensual", "manual_monthly_amount");
     if (!Number.isFinite(people) || people < 0) throw new Error("El número de personas no puede ser negativo.");
     if (absence !== null && (!Number.isFinite(absence) || absence < 0 || absence > 1)) throw new Error("El absentismo propio debe estar entre 0 y 1.");
     if (ticketAmount !== null && (!Number.isFinite(ticketAmount) || ticketAmount < 0)) throw new Error("El importe ticket propio no puede ser negativo.");
     if (manualTickets !== null && (!Number.isFinite(manualTickets) || manualTickets < 0)) throw new Error("Los tickets manuales no pueden ser negativos.");
+    if (annualTickets !== null && (!Number.isFinite(annualTickets) || annualTickets < 0)) throw new Error("Los tickets anualizados no pueden ser negativos.");
     if (manualAmount !== null && (!Number.isFinite(manualAmount) || manualAmount < 0)) throw new Error("El importe mensual manual no puede ser negativo.");
-    db.run(`INSERT OR REPLACE INTO budget_ticket_groups (id, scenario_id, name, people_count, ticket_calendar, absence_rate, ticket_amount, calculation_type, manual_tickets, manual_monthly_amount, notes, display_order, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [id, scenarioId, name, people, value(input, "calendarioTicket", "ticket_calendar", ""), absence, ticketAmount, calculationType, manualTickets, manualAmount, value(input, "observaciones", "notes", ""), Number(value(input, "displayOrder", "display_order", 0)) || 0, existing ? existing.created_at : timestamp, timestamp]);
+    db.run(`INSERT OR REPLACE INTO budget_ticket_groups (id, scenario_id, name, people_count, ticket_calendar, absence_rate, ticket_amount, calculation_type, manual_tickets, annual_tickets, manual_monthly_amount, notes, display_order, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [id, scenarioId, name, people, value(input, "calendarioTicket", "ticket_calendar", ""), absence, ticketAmount, calculationType, manualTickets, annualTickets, manualAmount, value(input, "observaciones", "notes", ""), Number(value(input, "displayOrder", "display_order", 0)) || 0, existing ? existing.created_at : timestamp, timestamp]);
     return id;
   }
   function deleteBudgetTicketGroup(id) { db.run("DELETE FROM budget_ticket_groups WHERE id = ?", [id]); return id; }
