@@ -3,7 +3,10 @@ let rrllBudgetScenarios = [];
 let rrllBudgetManualItems = [];
 let rrllBudgetTicketGroups = [];
 let rrllBudgetSelectedScenarioId = "";
+let rrllBudgetSelectedDataScenarioId = "";
 let rrllBudgetCalendarFallback = false;
+let rrllBudgetCalendarContextCache = null;
+let rrllBudgetCalendarContextPromise = null;
 let rrllBudgetInitialized = false;
 let rrllBudgetInitializePromise = null;
 const rrllBudgetSimulationYears = new Map();
@@ -44,18 +47,25 @@ function rrllBudgetReadSimulationYear(scenario = rrllBudgetScenario()) {
 }
 
 async function rrllBudgetCalendarContext() {
-  if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars();
-  const runtime = typeof getTicketRestaurantCalendarRuntime === "function" ? getTicketRestaurantCalendarRuntime() : null;
-  const domain = window.TicketCalendarDomain;
-  return {
-    calendars: runtime && runtime.calendars ? runtime.calendars : (typeof TICKET_RESTAURANT_CALENDARS !== "undefined" ? [...TICKET_RESTAURANT_CALENDARS] : []),
-    normalizeTicketCalendar(calendar) { return typeof normalizeTicketCalendar === "function" ? normalizeTicketCalendar(calendar) : domain.normalizeTicketCalendar(calendar, runtime && runtime.optionsForDomain); },
-    isKnownTicketCalendar(calendar) { return typeof isKnownTicketCalendar === "function" ? isKnownTicketCalendar(calendar) : domain.isKnownTicketCalendar(calendar, runtime && runtime.optionsForDomain); },
-    countTicketDaysForCalendar(calendar, year, month) {
-      if (!domain || typeof domain.countTicketDaysForCalendar !== "function") return 0;
-      return domain.countTicketDaysForCalendar({ calendarName: calendar, year, month, calendarMarks: runtime && runtime.calendarMarks, ...(runtime && runtime.optionsForDomain ? runtime.optionsForDomain : {}) });
-    }
-  };
+  if (rrllBudgetCalendarContextCache) return rrllBudgetCalendarContextCache;
+  if (rrllBudgetCalendarContextPromise) return await rrllBudgetCalendarContextPromise;
+  rrllBudgetCalendarContextPromise = (async () => {
+    if (typeof hydrateTicketRestaurantCalendars === "function") await hydrateTicketRestaurantCalendars();
+    const runtime = typeof getTicketRestaurantCalendarRuntime === "function" ? getTicketRestaurantCalendarRuntime() : null;
+    const domain = window.TicketCalendarDomain;
+    return {
+      calendars: runtime && runtime.calendars ? runtime.calendars : (typeof TICKET_RESTAURANT_CALENDARS !== "undefined" ? [...TICKET_RESTAURANT_CALENDARS] : []),
+      normalizeTicketCalendar(calendar) { return typeof normalizeTicketCalendar === "function" ? normalizeTicketCalendar(calendar) : domain.normalizeTicketCalendar(calendar, runtime && runtime.optionsForDomain); },
+      isKnownTicketCalendar(calendar) { return typeof isKnownTicketCalendar === "function" ? isKnownTicketCalendar(calendar) : domain.isKnownTicketCalendar(calendar, runtime && runtime.optionsForDomain); },
+      countTicketDaysForCalendar(calendar, year, month) {
+        if (!domain || typeof domain.countTicketDaysForCalendar !== "function") return 0;
+        return domain.countTicketDaysForCalendar({ calendarName: calendar, year, month, calendarMarks: runtime && runtime.calendarMarks, ...(runtime && runtime.optionsForDomain ? runtime.optionsForDomain : {}) });
+      }
+    };
+  })()
+    .then(context => { rrllBudgetCalendarContextCache = context; return context; })
+    .finally(() => { rrllBudgetCalendarContextPromise = null; });
+  return await rrllBudgetCalendarContextPromise;
 }
 
 async function initializeBudgetModule() {
@@ -81,41 +91,85 @@ async function refreshBudgetModule() {
   await loadSelectedBudgetScenario();
 }
 
+function rrllBudgetScenarioRowHtml(scenario, totals) {
+  const selected = scenario.id === rrllBudgetSelectedScenarioId;
+  return `<tr data-budget-scenario-row="${rrllBudgetEscape(scenario.id)}" class="${selected ? "budget-row-selected" : ""}"><td><strong>${rrllBudgetEscape(scenario.name)}</strong>${selected ? '<span class="budget-active-badge">Activo</span>' : ""}</td><td>${scenario.year}</td><td>${rrllBudgetMoney(scenario.ticket_amount)}</td><td>${rrllBudgetMoney(totals.totalManual)}</td><td>${rrllBudgetMoney(totals.totalTicket)}</td><td><strong>${rrllBudgetMoney(totals.totalScenario)}</strong></td><td><div class="budget-actions-inline"><button type="button" onclick="selectBudgetScenario('${scenario.id}')">Seleccionar</button><button class="secondary" type="button" onclick="editBudgetScenario('${scenario.id}')">Editar</button><button class="secondary" type="button" onclick="duplicateBudgetScenario('${scenario.id}')">Duplicar</button><button class="secondary" type="button" onclick="simulateBudgetScenario('${scenario.id}')">Simular</button></div></td></tr>`;
+}
+async function rrllBudgetLoadScenarioData(scenarioId, options = {}) {
+  const hasSelectedCache = rrllBudgetSelectedDataScenarioId === scenarioId;
+  const shouldLoadManualItems = options.manualItems ?? !hasSelectedCache;
+  const shouldLoadTicketGroups = options.ticketGroups ?? !hasSelectedCache;
+  const [loadedManualItems, loadedTicketGroups] = await Promise.all([
+    shouldLoadManualItems ? rrllBudgetBridge().loadBudgetManualItems(scenarioId) : Promise.resolve(rrllBudgetManualItems),
+    shouldLoadTicketGroups ? rrllBudgetBridge().loadBudgetTicketGroups(scenarioId) : Promise.resolve(rrllBudgetTicketGroups)
+  ]);
+  if (rrllBudgetSelectedScenarioId === scenarioId) {
+    rrllBudgetManualItems = loadedManualItems;
+    rrllBudgetTicketGroups = loadedTicketGroups;
+    rrllBudgetSelectedDataScenarioId = scenarioId;
+  }
+  return { manualItems: loadedManualItems, ticketGroups: loadedTicketGroups };
+}
 async function renderBudgetScenarios() {
   const body = document.getElementById("budgetScenarioRows");
   if (!body) return;
   const rows = await Promise.all(rrllBudgetScenarios.map(async scenario => {
-    const [manualItems, ticketGroups] = await Promise.all([rrllBudgetBridge().loadBudgetManualItems(scenario.id), rrllBudgetBridge().loadBudgetTicketGroups(scenario.id)]);
-    return { scenario, manualItems, ticketGroups };
+    const data = await rrllBudgetLoadScenarioData(scenario.id, { manualItems: true, ticketGroups: true });
+    return { scenario, ...data };
   }));
   const needsTicketCalendars = rows.some(({ ticketGroups }) => ticketGroups.some(group => group.calculation_type === "calendar_people"));
   const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
   rows.forEach(row => { row.totals = BudgetDomain.calculateBudgetScenarioYear({ ...row, context, simulationYear: rrllBudgetSimulationYear(row.scenario) }); });
-  body.innerHTML = rows.length ? rows.map(({ scenario, totals }) => {
-    const selected = scenario.id === rrllBudgetSelectedScenarioId;
-    return `<tr class="${selected ? "budget-row-selected" : ""}"><td><strong>${rrllBudgetEscape(scenario.name)}</strong>${selected ? '<span class="budget-active-badge">Activo</span>' : ""}</td><td>${scenario.year}</td><td>${rrllBudgetMoney(scenario.ticket_amount)}</td><td>${rrllBudgetMoney(totals.totalManual)}</td><td>${rrllBudgetMoney(totals.totalTicket)}</td><td><strong>${rrllBudgetMoney(totals.totalScenario)}</strong></td><td><div class="budget-actions-inline"><button type="button" onclick="selectBudgetScenario('${scenario.id}')">Seleccionar</button><button class="secondary" type="button" onclick="editBudgetScenario('${scenario.id}')">Editar</button><button class="secondary" type="button" onclick="duplicateBudgetScenario('${scenario.id}')">Duplicar</button><button class="secondary" type="button" onclick="simulateBudgetScenario('${scenario.id}')">Simular</button></div></td></tr>`;
-  }).join("") : '<tr><td colspan="7" class="muted">Todavía no hay escenarios de presupuesto.</td></tr>';
+  body.innerHTML = rows.length ? rows.map(({ scenario, totals }) => rrllBudgetScenarioRowHtml(scenario, totals)).join("") : '<tr><td colspan="7" class="muted">Todavía no hay escenarios de presupuesto.</td></tr>';
 }
-
-async function selectBudgetScenario(id) { rrllBudgetSelectedScenarioId = id; rrllBudgetSyncSimulationYearInput(); await renderBudgetScenarios(); await loadSelectedBudgetScenario(); }
+function renderBudgetScenarioSelectionState() {
+  document.querySelectorAll("[data-budget-scenario-row]").forEach(row => {
+    const selected = row.dataset.budgetScenarioRow === rrllBudgetSelectedScenarioId;
+    row.classList.toggle("budget-row-selected", selected);
+    const title = row.querySelector("td:first-child");
+    const badge = title && title.querySelector(".budget-active-badge");
+    if (selected && title && !badge) title.insertAdjacentHTML("beforeend", '<span class="budget-active-badge">Activo</span>');
+    if (!selected && badge) badge.remove();
+  });
+}
+async function refreshBudgetScenarioRowTotals() {
+  const scenario = rrllBudgetScenario();
+  const row = scenario ? Array.from(document.querySelectorAll("[data-budget-scenario-row]")).find(item => item.dataset.budgetScenarioRow === scenario.id) : null;
+  if (!scenario || !row) return;
+  const calculated = await rrllBudgetCalculateScenarioTotals();
+  if (calculated) row.outerHTML = rrllBudgetScenarioRowHtml(scenario, calculated.totals);
+}
+async function selectBudgetScenario(id) { rrllBudgetSelectedScenarioId = id; rrllBudgetSyncSimulationYearInput(); renderBudgetScenarioSelectionState(); await loadSelectedBudgetScenario(); }
 async function simulateBudgetScenario(id = rrllBudgetSelectedScenarioId) {
   const scenario = rrllBudgetScenarios.find(item => item.id === id);
   if (!scenario) return;
   try {
     rrllBudgetReadSimulationYear(scenario);
     rrllBudgetSelectedScenarioId = id;
-    await renderBudgetScenarios();
+    rrllBudgetSyncSimulationYearInput(scenario);
+    renderBudgetScenarioSelectionState();
     await loadSelectedBudgetScenario();
+    await refreshBudgetScenarioRowTotals();
   } catch (error) { rrllBudgetSimulationYearError(error.message); }
 }
 async function recalculateBudgetScenario() { await simulateBudgetScenario(rrllBudgetSelectedScenarioId); }
+async function refreshBudgetSelectedScenarioData(options) {
+  const scenario = rrllBudgetScenario();
+  if (!scenario) return;
+  await rrllBudgetLoadScenarioData(scenario.id, options);
+}
 async function loadSelectedBudgetScenario() {
   const scenario = rrllBudgetScenario();
   document.getElementById("budgetSelectedScenarioEmpty")?.classList.toggle("budget-form-hidden", !!scenario);
   document.getElementById("budgetSelectedScenario")?.classList.toggle("budget-form-hidden", !scenario);
   if (!scenario) return;
-  [rrllBudgetManualItems, rrllBudgetTicketGroups] = await Promise.all([rrllBudgetBridge().loadBudgetManualItems(scenario.id), rrllBudgetBridge().loadBudgetTicketGroups(scenario.id)]);
+  await refreshBudgetSelectedScenarioData();
   await renderBudgetSelectedScenario();
+}
+async function refreshBudgetSelectedScenarioView(options) {
+  await refreshBudgetSelectedScenarioData(options);
+  await renderBudgetSelectedScenario();
+  await refreshBudgetScenarioRowTotals();
 }
 
 async function rrllBudgetCalculatedExportData() {
@@ -312,8 +366,8 @@ async function saveBudgetScenarioFromForm(event) { event.preventDefault(); try {
 function openBudgetManualItemForm(item = {}) { document.getElementById("budgetManualItemForm").classList.remove("budget-form-hidden"); document.getElementById("budgetManualItemId").value = item.id || ""; document.getElementById("budgetManualItemConcept").value = item.concept || ""; document.getElementById("budgetManualItemCategory").value = item.category || ""; document.getElementById("budgetManualItemMonthly").value = item.monthly_amount ?? ""; document.getElementById("budgetManualItemAnnual").value = item.annual_amount ?? ""; document.getElementById("budgetManualItemNotes").value = item.notes || ""; }
 function closeBudgetManualItemForm() { document.getElementById("budgetManualItemForm").classList.add("budget-form-hidden"); }
 function editBudgetManualItem(id) { openBudgetManualItemForm(rrllBudgetManualItems.find(item => item.id === id)); }
-async function saveBudgetManualItemFromForm(event) { event.preventDefault(); try { const monthly = rrllBudgetInputNumber("budgetManualItemMonthly"); const annual = rrllBudgetInputNumber("budgetManualItemAnnual"); rrllBudgetAssert(document.getElementById("budgetManualItemConcept").value.trim(), "El concepto es obligatorio."); rrllBudgetAssert(monthly !== null || annual !== null, "Indica un importe mensual o anual."); rrllBudgetAssert((monthly === null || monthly >= 0) && (annual === null || annual >= 0), "Los importes no pueden ser negativos."); rrllBudgetResult(await rrllBudgetBridge().saveBudgetManualItem({ id: document.getElementById("budgetManualItemId").value || undefined, scenario_id: rrllBudgetSelectedScenarioId, concept: document.getElementById("budgetManualItemConcept").value, category: document.getElementById("budgetManualItemCategory").value, monthly_amount: monthly, annual_amount: annual, notes: document.getElementById("budgetManualItemNotes").value })); closeBudgetManualItemForm(); await refreshBudgetModule(); } catch (error) { alert(error.message); } }
-async function deleteBudgetManualItem(id) { if (!confirm("¿Eliminar esta partida manual?")) return; rrllBudgetResult(await rrllBudgetBridge().deleteBudgetManualItem(id)); await refreshBudgetModule(); }
+async function saveBudgetManualItemFromForm(event) { event.preventDefault(); try { const monthly = rrllBudgetInputNumber("budgetManualItemMonthly"); const annual = rrllBudgetInputNumber("budgetManualItemAnnual"); rrllBudgetAssert(document.getElementById("budgetManualItemConcept").value.trim(), "El concepto es obligatorio."); rrllBudgetAssert(monthly !== null || annual !== null, "Indica un importe mensual o anual."); rrllBudgetAssert((monthly === null || monthly >= 0) && (annual === null || annual >= 0), "Los importes no pueden ser negativos."); rrllBudgetResult(await rrllBudgetBridge().saveBudgetManualItem({ id: document.getElementById("budgetManualItemId").value || undefined, scenario_id: rrllBudgetSelectedScenarioId, concept: document.getElementById("budgetManualItemConcept").value, category: document.getElementById("budgetManualItemCategory").value, monthly_amount: monthly, annual_amount: annual, notes: document.getElementById("budgetManualItemNotes").value })); closeBudgetManualItemForm(); await refreshBudgetSelectedScenarioView({ manualItems: true, ticketGroups: false }); } catch (error) { alert(error.message); } }
+async function deleteBudgetManualItem(id) { if (!confirm("¿Eliminar esta partida manual?")) return; rrllBudgetResult(await rrllBudgetBridge().deleteBudgetManualItem(id)); await refreshBudgetSelectedScenarioView({ manualItems: true, ticketGroups: false }); }
 
 
 function rrllBudgetTicketDraftFromForm() {
@@ -375,7 +429,7 @@ async function openBudgetTicketGroupForm(group) { bindBudgetTicketGroupAutoRecal
 function closeBudgetTicketGroupForm() { resetBudgetTicketGroupForm(); document.getElementById("budgetTicketGroupForm").classList.add("budget-form-hidden"); rrllBudgetClearTicketRecalculateTimer(); rrllBudgetRecalculateTicketDraftTotals(); }
 function editBudgetTicketGroup(id) { openBudgetTicketGroupForm(rrllBudgetTicketGroups.find(item => item.id === id)); }
 function renderBudgetTicketGroupFieldVisibility(schedule = true) { const type = document.getElementById("budgetTicketGroupType").value; const shown = type === "calendar_people" ? ["people", "calendar", "absence", "ticket-amount"] : type === "manual_tickets" ? ["manual-tickets", "ticket-amount"] : type === "annual_tickets" ? ["annual-tickets", "ticket-amount"] : ["manual-amount"]; document.querySelectorAll("[data-budget-ticket-field]").forEach(node => node.classList.toggle("budget-form-hidden", !shown.includes(node.dataset.budgetTicketField))); if (schedule) scheduleBudgetTicketGroupRecalculation(); }
-async function saveBudgetTicketGroupFromForm(event) { event.preventDefault(); try { const type = document.getElementById("budgetTicketGroupType").value; const people = rrllBudgetInputNumber("budgetTicketGroupPeople", 0); const absence = rrllBudgetRate("budgetTicketGroupAbsence", 0); const ticketAmount = rrllBudgetInputNumber("budgetTicketGroupAmount"); const manualTickets = rrllBudgetInputNumber("budgetTicketGroupManualTickets"); const annualTickets = rrllBudgetInputNumber("budgetTicketGroupAnnualTickets"); const manualAmount = rrllBudgetInputNumber("budgetTicketGroupManualAmount"); const calendar = document.getElementById("budgetTicketGroupCalendar").value; const context = type === "calendar_people" ? await rrllBudgetCalendarContext() : null; rrllBudgetAssert(document.getElementById("budgetTicketGroupName").value.trim(), "El nombre del grupo es obligatorio."); rrllBudgetAssert(["calendar_people", "manual_tickets", "manual_amount", "annual_tickets"].includes(type), "Selecciona un tipo de cálculo válido."); rrllBudgetAssert(Number.isFinite(people) && people >= 0, "El número de personas no puede ser negativo."); rrllBudgetAssert(absence === null || (Number.isFinite(absence) && absence >= 0 && absence <= 1), "El absentismo propio debe estar entre 0 % y 100 %."); rrllBudgetAssert(ticketAmount === null || (Number.isFinite(ticketAmount) && ticketAmount >= 0), "El importe ticket propio no puede ser negativo."); if (type === "calendar_people") { rrllBudgetAssert(calendar, "Selecciona un calendario Ticket."); rrllBudgetAssert(context.isKnownTicketCalendar(calendar) || rrllBudgetCalendarFallback, "El calendario Ticket seleccionado no está disponible."); } if (type === "manual_tickets") rrllBudgetAssert(Number.isFinite(manualTickets) && manualTickets >= 0, "Indica tickets manuales válidos."); if (type === "annual_tickets") rrllBudgetAssert(Number.isFinite(annualTickets) && annualTickets >= 0, "Indica tickets anuales válidos."); if (type === "manual_amount") rrllBudgetAssert(Number.isFinite(manualAmount) && manualAmount >= 0, "Indica un importe mensual manual válido."); rrllBudgetResult(await rrllBudgetBridge().saveBudgetTicketGroup({ id: document.getElementById("budgetTicketGroupId").value || undefined, scenario_id: rrllBudgetSelectedScenarioId, name: document.getElementById("budgetTicketGroupName").value, people_count: people, ticket_calendar: calendar, absence_rate: absence, ticket_amount: ticketAmount, calculation_type: type, manual_tickets: manualTickets, annual_tickets: annualTickets, manual_monthly_amount: manualAmount, notes: document.getElementById("budgetTicketGroupNotes").value })); closeBudgetTicketGroupForm(); await refreshBudgetModule(); } catch (error) { alert(error.message); } }
-async function deleteBudgetTicketGroup(id) { if (!confirm("¿Eliminar este grupo Ticket?")) return; rrllBudgetResult(await rrllBudgetBridge().deleteBudgetTicketGroup(id)); closeBudgetTicketGroupForm(); await refreshBudgetModule(); }
+async function saveBudgetTicketGroupFromForm(event) { event.preventDefault(); try { const type = document.getElementById("budgetTicketGroupType").value; const people = rrllBudgetInputNumber("budgetTicketGroupPeople", 0); const absence = rrllBudgetRate("budgetTicketGroupAbsence", 0); const ticketAmount = rrllBudgetInputNumber("budgetTicketGroupAmount"); const manualTickets = rrllBudgetInputNumber("budgetTicketGroupManualTickets"); const annualTickets = rrllBudgetInputNumber("budgetTicketGroupAnnualTickets"); const manualAmount = rrllBudgetInputNumber("budgetTicketGroupManualAmount"); const calendar = document.getElementById("budgetTicketGroupCalendar").value; const context = type === "calendar_people" ? await rrllBudgetCalendarContext() : null; rrllBudgetAssert(document.getElementById("budgetTicketGroupName").value.trim(), "El nombre del grupo es obligatorio."); rrllBudgetAssert(["calendar_people", "manual_tickets", "manual_amount", "annual_tickets"].includes(type), "Selecciona un tipo de cálculo válido."); rrllBudgetAssert(Number.isFinite(people) && people >= 0, "El número de personas no puede ser negativo."); rrllBudgetAssert(absence === null || (Number.isFinite(absence) && absence >= 0 && absence <= 1), "El absentismo propio debe estar entre 0 % y 100 %."); rrllBudgetAssert(ticketAmount === null || (Number.isFinite(ticketAmount) && ticketAmount >= 0), "El importe ticket propio no puede ser negativo."); if (type === "calendar_people") { rrllBudgetAssert(calendar, "Selecciona un calendario Ticket."); rrllBudgetAssert(context.isKnownTicketCalendar(calendar) || rrllBudgetCalendarFallback, "El calendario Ticket seleccionado no está disponible."); } if (type === "manual_tickets") rrllBudgetAssert(Number.isFinite(manualTickets) && manualTickets >= 0, "Indica tickets manuales válidos."); if (type === "annual_tickets") rrllBudgetAssert(Number.isFinite(annualTickets) && annualTickets >= 0, "Indica tickets anuales válidos."); if (type === "manual_amount") rrllBudgetAssert(Number.isFinite(manualAmount) && manualAmount >= 0, "Indica un importe mensual manual válido."); rrllBudgetResult(await rrllBudgetBridge().saveBudgetTicketGroup({ id: document.getElementById("budgetTicketGroupId").value || undefined, scenario_id: rrllBudgetSelectedScenarioId, name: document.getElementById("budgetTicketGroupName").value, people_count: people, ticket_calendar: calendar, absence_rate: absence, ticket_amount: ticketAmount, calculation_type: type, manual_tickets: manualTickets, annual_tickets: annualTickets, manual_monthly_amount: manualAmount, notes: document.getElementById("budgetTicketGroupNotes").value })); closeBudgetTicketGroupForm(); await refreshBudgetSelectedScenarioView({ manualItems: false, ticketGroups: true }); } catch (error) { alert(error.message); } }
+async function deleteBudgetTicketGroup(id) { if (!confirm("¿Eliminar este grupo Ticket?")) return; rrllBudgetResult(await rrllBudgetBridge().deleteBudgetTicketGroup(id)); closeBudgetTicketGroupForm(); await refreshBudgetSelectedScenarioView({ manualItems: false, ticketGroups: true }); }
 
 window.initializeBudgetModule = initializeBudgetModule;
