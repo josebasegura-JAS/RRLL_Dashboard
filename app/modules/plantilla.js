@@ -141,9 +141,9 @@
     return sanitized;
   }
 
-  function setPlantilla(items) {
+  function setPlantilla(items, options = {}) {
     const sanitizedItems = Array.isArray(items) ? items.map(stripDeprecatedPlantillaTeleworkFields) : [];
-    save(KEY, sanitizedItems);
+    return save(KEY, sanitizedItems, options);
   }
 
   function normalizeEmployeeNumber(value) {

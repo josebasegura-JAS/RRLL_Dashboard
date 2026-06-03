@@ -624,7 +624,7 @@
     if (hint) hint.textContent = person ? "Datos maestros cargados desde Plantilla. Estos campos no se duplican en la solicitud." : "No se ha encontrado la persona en Plantilla.";
   }
 
-  function saveTeleworkPlantillaData(employeeNumber, prefix = "new") {
+  async function saveTeleworkPlantillaData(employeeNumber, prefix = "new") {
     if (typeof setPlantilla !== "function") return false;
     const items = getPlantillaForTelework();
     const index = items.findIndex(person => String(person.employeeNumber || "").trim() === String(employeeNumber || "").trim());
@@ -650,14 +650,14 @@
 
     updated.updatedAt = new Date().toISOString();
     items[index] = updated;
-    setPlantilla(items);
+
+    // Persistimos Plantilla sin renderizar toda la pantalla de Plantilla desde Teletrabajo.
+    // Ese render era el principal cuello de botella al guardar/editar solicitudes.
+    await setPlantilla(items, { rejectOnError: true });
 
     // La ficha de Plantilla se consulta mediante una snapshot en memoria.
-    // Si no se invalida, la generación Word puede leer la versión anterior
-    // y avisar falsamente de que faltan DNI/Dirección/Residencia.
+    // Si no se invalida, la generación Word puede leer la versión anterior.
     teleworkRuntimeSnapshot = null;
-
-    if (typeof renderPlantilla === "function") renderPlantilla();
     return true;
   }
 
@@ -839,7 +839,6 @@
       statusManual: manualStatus !== "auto"
     });
     draft.status = manualStatus === "auto" ? calculateTeleworkStatus(draft) : pick(manualStatus, STATUS_VALUES, calculateTeleworkStatus(draft));
-    saveTeleworkPlantillaData(employeeNumber, prefix);
     return draft;
   }
 
@@ -886,9 +885,9 @@
       }
 
       const id = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : String(Date.now());
+      await saveTeleworkPlantillaData(draft.employeeNumber, "new");
       const nextItems = [{ ...draft, id }, ...items];
       await setTeleworkItems(nextItems, { rejectOnError: true });
-      if (typeof window.waitForPendingSaves === "function") await window.waitForPendingSaves();
       console.debug("[Teletrabajo] Solicitud guardada correctamente", { id, employeeNumber: draft.employeeNumber, period: draft.period });
 
       resetTeleworkCreateForm();
@@ -1230,8 +1229,8 @@
 
     const nextItems = getTeleworkItems().map(item => item.id === id ? { ...draft, id } : item);
     try {
+      await saveTeleworkPlantillaData(draft.employeeNumber, "edit");
       await setTeleworkItems(nextItems, { rejectOnError: true });
-      if (typeof window.waitForPendingSaves === "function") await window.waitForPendingSaves();
     } catch (error) {
       console.error("No se pudo guardar la solicitud de teletrabajo:", error);
       alert(error && error.message ? error.message : "No se pudo guardar la solicitud de teletrabajo.");
