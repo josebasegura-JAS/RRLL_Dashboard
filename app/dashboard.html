@@ -870,8 +870,8 @@
                 <div id="newTeleworkPlantillaInfo" class="telework-master-hint muted">Selecciona una persona de Plantilla para cargar sus datos maestros.</div>
                 <label class="rrll-pro-field"><span>DNI</span><input id="newTeleworkDni" /></label>
                 <label class="rrll-pro-field"><span>Dirección Teletrabajo</span><input id="newTeleworkDireccionTeletrabajo" /></label>
-                <label class="rrll-pro-field"><span>Residencia</span><input id="newTeleworkResidenciaCast" /></label>
-                <input id="newTeleworkResidenciaEus" type="hidden" />
+                <label class="rrll-pro-field"><span>Residencia CAST</span><input id="newTeleworkResidenciaCast" oninput="if(!document.getElementById('newTeleworkResidenciaEus')?.value) writeTeleworkField('new', 'ResidenciaEus', this.value)" /></label>
+                <label class="rrll-pro-field"><span>Residencia EUS</span><input id="newTeleworkResidenciaEus" /></label>
                 <label class="rrll-pro-field"><span>Puesto CAST</span><input id="newTeleworkPuestoCast" /></label>
                 <label class="rrll-pro-field"><span>Puesto EUS</span><input id="newTeleworkPuestoEus" /></label>
                 <label class="rrll-pro-field"><span>Fecha Ordenador</span><input id="newTeleworkFechaOrdenador" type="date" /></label>
