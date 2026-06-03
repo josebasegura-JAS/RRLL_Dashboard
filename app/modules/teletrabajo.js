@@ -1921,25 +1921,108 @@
       return { added, skipped, invalid };
     }
 
+  const TELEWORK_SURVEY_HEADER_FIELDS = [
+      {
+        key: "employeeNumber",
+        label: "Nº empleado",
+        exactAliases: ["nempleado", "noempleado", "numeroempleado", "nemp", "numempleado", "empleado"],
+        partialAliases: []
+      },
+      {
+        key: "fullName",
+        label: "Apellidos y nombre",
+        exactAliases: ["apellidosynombre", "nombreyapellidos", "apellidosnombre", "nombre", "solicitante", "personasolicitante"],
+        partialAliases: [["apellido", "nombre"]]
+      },
+      {
+        key: "rowType",
+        label: "Tipo de fila / Respuesta-Puntuación",
+        exactAliases: ["tipodefila", "tipo", "respuestapuntuacion", "respuestaopuntuacion", "respuestapunt", "tipoentrada"],
+        partialAliases: [["respuesta", "puntuacion"], ["respuesta", "punt"]]
+      },
+      {
+        key: "answer",
+        label: "Respuesta de teletrabajo",
+        exactAliases: ["respuesta", "seleccionasivasateletrabajar", "vasateletrabajar", "teletrabajar", "solicitasteletrabajo"],
+        partialAliases: [["selecciona", "teletrabajar"], ["vas", "teletrabajar"], ["solicita", "teletrabajo"]]
+      },
+      {
+        key: "observations",
+        label: "Texto libre / tipo de teletrabajo solicitado",
+        exactAliases: ["textolibredelapersona", "observaciones", "texto", "comentarios", "tipodeteletrabajosolicitado"],
+        partialAliases: [["tipo", "teletrabajo", "solicitas"], ["teletrabajo", "solicita"], ["texto", "libre"], ["observacion"]]
+      }
+    ];
+
+  function teleworkSurveyHeaderText(value) {
+      return normalizeTeleworkLookup(value)
+        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+  function teleworkSurveyHeaderMatchesField(header, field) {
+      const headerKey = teleworkHeaderKey(header);
+      const headerText = teleworkSurveyHeaderText(header);
+      if (!headerKey && !headerText) return false;
+      if (field.exactAliases.some(alias => headerKey === teleworkHeaderKey(alias))) return true;
+      return field.partialAliases.some(tokens => tokens.every(token => headerText.includes(teleworkSurveyHeaderText(token))));
+    }
+
+  function mapTeleworkSurveyColumns(row) {
+      const mappedColumns = {};
+      const usedIndexes = new Set();
+      TELEWORK_SURVEY_HEADER_FIELDS.forEach(field => {
+        const index = (row || []).findIndex((header, candidateIndex) => !usedIndexes.has(candidateIndex) && teleworkSurveyHeaderMatchesField(header, field));
+        if (index !== -1) {
+          mappedColumns[field.key] = index;
+          usedIndexes.add(index);
+        }
+      });
+      return mappedColumns;
+    }
+
+  function getTeleworkSurveyMissingHeaders(mappedColumns) {
+      return TELEWORK_SURVEY_HEADER_FIELDS
+        .filter(field => !Number.isInteger(mappedColumns[field.key]))
+        .map(field => field.label);
+    }
+
+  function describeTeleworkSurveyHeaderDetection(rows) {
+      let best = { headerRowIndex: -1, detectedHeaders: [], mappedColumns: {}, missingHeaders: TELEWORK_SURVEY_HEADER_FIELDS.map(field => field.label), matchedCount: 0 };
+      (rows || []).forEach((row, index) => {
+        const mappedColumns = mapTeleworkSurveyColumns(row);
+        const missingHeaders = getTeleworkSurveyMissingHeaders(mappedColumns);
+        const detectedHeaders = (row || []).map(value => String(value ?? "").replace(/[\r\n\t]+/g, " ").trim()).filter(Boolean);
+        const matchedCount = TELEWORK_SURVEY_HEADER_FIELDS.length - missingHeaders.length;
+        if (missingHeaders.length === 0 && best.headerRowIndex === -1) {
+          best = { headerRowIndex: index, detectedHeaders, mappedColumns, missingHeaders, matchedCount };
+          return;
+        }
+        if (best.headerRowIndex === -1 && matchedCount > best.matchedCount) {
+          best = { headerRowIndex: -1, detectedHeaders, mappedColumns, missingHeaders, matchedCount, candidateRowIndex: index };
+        }
+      });
+      return best;
+    }
+
+  function formatTeleworkSurveyHeaderError(detection) {
+      const missing = detection.missingHeaders.length ? detection.missingHeaders.join(", ") : "ninguna";
+      const found = detection.detectedHeaders.length ? detection.detectedHeaders.join(" | ") : "no se encontraron cabeceras candidatas";
+      return `El fichero no tiene el formato esperado de la Encuesta de Teletrabajo. Cabeceras obligatorias no localizadas: ${missing}. Cabeceras encontradas: ${found}.`;
+    }
+
   function validateTeleworkSurveyHeaders(rows) {
-      const headers = (rows[0] || []).slice(0, 5).map(teleworkHeaderKey);
-      const expected = [
-        ["nempleado", "noempleado", "numeroempleado", "nemp"],
-        ["apellidosynombre", "nombre"],
-        ["tipodefila", "tipo", "respuestapuntuacion"],
-        ["respuesta", "seleccionasivasateletrabajar"],
-        ["textolibredelapersona", "observaciones", "texto", "sihasrespondidoanteriormentequesiporfavorescribebrevementequetipodeteletrabajosolicitas"]
-      ];
-      return expected.every((aliases, index) => aliases.includes(headers[index]));
+      return getTeleworkSurveyMissingHeaders(mapTeleworkSurveyColumns((rows && rows[0]) || [])).length === 0;
     }
 
   function findTeleworkSurveyHeaderRowIndex(rows) {
-      return rows.findIndex(row => validateTeleworkSurveyHeaders([row]));
+      return describeTeleworkSurveyHeaderDetection(rows).headerRowIndex;
     }
 
-  function buildTeleworkSurveyItem(row, defaultPeriod) {
-      const employeeNumber = String(row[0] ?? "").trim();
-      const nombreCompleto = String(row[1] ?? "").trim();
+  function buildTeleworkSurveyItem(row, defaultPeriod, mappedColumns) {
+      const employeeNumber = String(row[mappedColumns.employeeNumber] ?? "").trim();
+      const nombreCompleto = String(row[mappedColumns.fullName] ?? "").trim();
       return normalizeTeleworkItem({
         employeeNumber,
         nombreCompleto,
@@ -1948,15 +2031,24 @@
         type: "Nuevo",
         status: "telework-entry",
         statusManual: true,
-        observations: String(row[4] ?? ""),
+        observations: String(row[mappedColumns.observations] ?? ""),
         createdAt: new Date().toISOString()
       });
     }
 
   function applyTeleworkSurveyRows(rows) {
       if (!Array.isArray(rows) || rows.length < 2) throw new Error("La encuesta no contiene filas importables.");
-      const headerRowIndex = findTeleworkSurveyHeaderRowIndex(rows);
-      if (headerRowIndex === -1) throw new Error("El fichero no tiene el formato esperado de la Encuesta de Teletrabajo.");
+      const detection = describeTeleworkSurveyHeaderDetection(rows);
+      const { headerRowIndex, detectedHeaders, mappedColumns } = detection;
+      console.log(
+        'Teletrabajo import:',
+        {
+          headerRowIndex,
+          detectedHeaders,
+          mappedColumns
+        }
+      );
+      if (headerRowIndex === -1) throw new Error(formatTeleworkSurveyHeaderError(detection));
       const importRows = rows.slice(headerRowIndex);
 
       const summary = {
@@ -1975,8 +2067,8 @@
       importRows.slice(1).forEach(row => {
         try {
           if (!Array.isArray(row) || !row.some(value => String(value ?? "").trim())) return;
-          const rowType = normalizeTeleworkLookup(row[2]);
-          const answer = normalizeTeleworkLookup(row[3]);
+          const rowType = normalizeTeleworkLookup(row[mappedColumns.rowType]);
+          const answer = normalizeTeleworkLookup(row[mappedColumns.answer]);
           if (rowType === "punt" || rowType === "punt.") {
             summary.totalScoreRowsIgnored += 1;
             return;
@@ -1994,7 +2086,7 @@
             return;
           }
           summary.totalYesResponses += 1;
-          const item = buildTeleworkSurveyItem(row, defaultPeriod);
+          const item = buildTeleworkSurveyItem(row, defaultPeriod, mappedColumns);
           if (!item.employeeNumber) {
             summary.totalIncidents += 1;
             return;
