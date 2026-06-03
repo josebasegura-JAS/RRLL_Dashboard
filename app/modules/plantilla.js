@@ -132,8 +132,16 @@
     return Array.isArray(resolved.items) ? resolved.items : [];
   }
 
+  function stripDeprecatedPlantillaTeleworkFields(item) {
+    if (!item || typeof item !== 'object') return item;
+    const sanitized = { ...item };
+    DEPRECATED_PLANTILLA_TELEWORK_FIELDS.forEach(field => { delete sanitized[field]; });
+    return sanitized;
+  }
+
   function setPlantilla(items) {
-    save(KEY, Array.isArray(items) ? items : []);
+    const sanitizedItems = Array.isArray(items) ? items.map(stripDeprecatedPlantillaTeleworkFields) : [];
+    save(KEY, sanitizedItems);
   }
 
   function normalizeEmployeeNumber(value) {
@@ -308,6 +316,36 @@
       ...(Object.prototype.hasOwnProperty.call(persona, 'fullName') ? {} : { fullName: nombreCompleto }),
       ...(Object.prototype.hasOwnProperty.call(persona, 'name') ? {} : { name: nombreCompleto })
     };
+  }
+
+  function readPermanentTeleworkFields(prefix) {
+    return {
+      dni: normalizeText(document.getElementById(`${prefix}Dni`)?.value),
+      direccionTeletrabajo: normalizeText(document.getElementById(`${prefix}DireccionTeletrabajo`)?.value),
+      residenciaCast: normalizeText(document.getElementById(`${prefix}ResidenciaCast`)?.value),
+      residenciaEus: normalizeText(document.getElementById(`${prefix}ResidenciaEus`)?.value),
+      puestoCast: normalizeText(document.getElementById(`${prefix}PuestoCast`)?.value),
+      puestoEus: normalizeText(document.getElementById(`${prefix}PuestoEus`)?.value),
+      fechaOrdenador: normalizePlantillaDate(document.getElementById(`${prefix}FechaOrdenador`)?.value),
+      fechaCascos: normalizePlantillaDate(document.getElementById(`${prefix}FechaCascos`)?.value)
+    };
+  }
+
+  function fillPermanentTeleworkFields(prefix, item) {
+    const fields = {
+      Dni: getField(item, 'dni'),
+      DireccionTeletrabajo: getField(item, 'direccionTeletrabajo'),
+      ResidenciaCast: getField(item, 'residenciaCast'),
+      ResidenciaEus: getField(item, 'residenciaEus'),
+      PuestoCast: getField(item, 'puestoCast'),
+      PuestoEus: getField(item, 'puestoEus'),
+      FechaOrdenador: normalizePlantillaDate(getField(item, 'fechaOrdenador')),
+      FechaCascos: normalizePlantillaDate(getField(item, 'fechaCascos'))
+    };
+    Object.entries(fields).forEach(([suffix, value]) => {
+      const input = document.getElementById(`${prefix}${suffix}`);
+      if (input) input.value = value || '';
+    });
   }
 
   function resolveNombreCompleto(item) {
@@ -813,7 +851,15 @@
       participacionEstimada: ['participacion estimada'],
       recorridoActivo: ['recorrido activo'],
       estacionBase: ['estacion base'],
-      observacionesRecorrido: ['observaciones recorrido']
+      observacionesRecorrido: ['observaciones recorrido'],
+      dni: ['dni'],
+      direccionTeletrabajo: ['direccion teletrabajo', 'direccion', 'dirección'],
+      residenciaCast: ['residencia cast', 'residencia cast', 'residencia castellano'],
+      residenciaEus: ['residencia eus', 'residencia euskera'],
+      puestoCast: ['puesto cast', 'puesto castellano'],
+      puestoEus: ['puesto eus', 'puesto euskera'],
+      fechaOrdenador: ['fecha ordenador'],
+      fechaCascos: ['fecha cascos']
     };
   }
 
@@ -1014,6 +1060,14 @@
         ,recorridoActivo: map.recorridoActivo == null ? false : normalizeBoolean(row[map.recorridoActivo])
         ,estacionBase: map.estacionBase == null ? '' : normalizeText(row[map.estacionBase])
         ,observacionesRecorrido: map.observacionesRecorrido == null ? '' : normalizeText(row[map.observacionesRecorrido])
+        ,dni: map.dni == null ? '' : normalizeText(row[map.dni])
+        ,direccionTeletrabajo: map.direccionTeletrabajo == null ? '' : normalizeText(row[map.direccionTeletrabajo])
+        ,residenciaCast: map.residenciaCast == null ? '' : normalizeText(row[map.residenciaCast])
+        ,residenciaEus: map.residenciaEus == null ? '' : normalizeText(row[map.residenciaEus])
+        ,puestoCast: map.puestoCast == null ? '' : normalizeText(row[map.puestoCast])
+        ,puestoEus: map.puestoEus == null ? '' : normalizeText(row[map.puestoEus])
+        ,fechaOrdenador: map.fechaOrdenador == null ? '' : normalizePlantillaDateOrText(row[map.fechaOrdenador])
+        ,fechaCascos: map.fechaCascos == null ? '' : normalizePlantillaDateOrText(row[map.fechaCascos])
       };
       TELETRABAJO_FIELD_KEYS.forEach(field => {
         imported[field] = map[field] == null ? '' : normalizePlantillaTeletrabajoValue(field, row[map[field]]);
