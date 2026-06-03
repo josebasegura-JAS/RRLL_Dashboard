@@ -774,3 +774,71 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
 .telework-history-row .rrll-pro-subtitle {
   line-height: 1.2;
 }
+
+
+/* Ajuste específico del modal de edición de Teletrabajo.
+   Mantiene la estética existente, pero reparte los bloques para evitar
+   que las validaciones caigan al final de una columna larga. */
+.telework-edit-modal .telework-modal-box {
+  width: min(1180px, calc(100vw - 40px)) !important;
+  max-height: calc(100vh - 40px) !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.telework-edit-modal .telework-professional-form {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-template-areas:
+    "person validation"
+    "master validation"
+    "agreement agreement";
+  gap: 14px !important;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.telework-edit-modal .telework-person-section {
+  grid-area: person;
+}
+
+.telework-edit-modal .telework-master-section {
+  grid-area: master;
+}
+
+.telework-edit-modal .telework-validation-section {
+  grid-area: validation;
+  align-self: start;
+}
+
+.telework-edit-modal .telework-agreement-section {
+  grid-area: agreement;
+}
+
+.telework-edit-modal .telework-form-section {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+}
+
+.telework-edit-modal .telework-agreement-section .rrll-pro-days-field,
+.telework-edit-modal .telework-agreement-section .rrll-pro-field-full,
+.telework-edit-modal .telework-eligibility-warning,
+.telework-edit-modal .telework-master-hint,
+.telework-edit-modal .telework-observation-history {
+  grid-column: 1 / -1;
+}
+
+.telework-edit-modal .telework-sticky-actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 980px) {
+  .telework-edit-modal .telework-professional-form {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "person"
+      "master"
+      "agreement"
+      "validation";
+  }
+}
