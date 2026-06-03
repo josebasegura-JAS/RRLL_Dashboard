@@ -66,8 +66,8 @@
     return Array.isArray(items) ? items.map(normalizeTeleworkItem) : [];
   }
 
-  function setTeleworkItems(items) {
-    save(KEY, Array.isArray(items) ? items.map(normalizeTeleworkItem) : []);
+  function setTeleworkItems(items, options = {}) {
+    return save(KEY, Array.isArray(items) ? items.map(normalizeTeleworkItem) : [], options);
   }
 
   function currentTeleworkPeriod(date = new Date()) {
@@ -527,7 +527,11 @@
     if (person) fillTeleworkPerson(person, prefix);
   }
 
-  function readDays(prefix) {
+  function readDays(prefix, fallback = []) {
+    const controls = DAYS
+      .map(day => document.getElementById(`${prefix}Telework${day}`))
+      .filter(Boolean);
+    if (!controls.length) return normalizeDays(fallback);
     return DAYS.filter(day => document.getElementById(`${prefix}Telework${day}`)?.checked);
   }
 
@@ -579,7 +583,7 @@
       job,
       period: normalizeTeleworkPeriod(document.getElementById(`${prefix}TeleworkPeriod`)?.value || getTeleworkActiveCampaign()),
       tipoSolicitud: document.getElementById(`${prefix}TeleworkType`)?.value || "nueva",
-      days: readDays(prefix),
+      days: readDays(prefix, previousItem?.days),
       ...agreementData,
       presenceValidation: pick(document.getElementById(`${prefix}TeleworkPresenceValidation`)?.value, VALIDATION_VALUES, "Pendiente"),
       favorableReport: pick(document.getElementById(`${prefix}TeleworkFavorableReport`)?.value, VALIDATION_VALUES, "Pendiente"),
@@ -965,12 +969,23 @@
     teleworkEmployeeNumberChanged("edit");
   }
 
-  function saveEditingTelework() {
+  async function saveEditingTelework() {
     if (!editingTeleworkId) return;
-    const previous = getTeleworkItems().find(item => item.id === editingTeleworkId);
+    const id = editingTeleworkId;
+    const previous = getTeleworkItems().find(item => item.id === id);
     const draft = readTeleworkForm("edit", previous);
     if (!draft) return;
-    setTeleworkItems(getTeleworkItems().map(item => item.id === editingTeleworkId ? { ...draft, id: editingTeleworkId } : item));
+
+    const nextItems = getTeleworkItems().map(item => item.id === id ? { ...draft, id } : item);
+    try {
+      await setTeleworkItems(nextItems, { rejectOnError: true });
+      if (typeof window.waitForPendingSaves === "function") await window.waitForPendingSaves();
+    } catch (error) {
+      console.error("No se pudo guardar la solicitud de teletrabajo:", error);
+      alert(error && error.message ? error.message : "No se pudo guardar la solicitud de teletrabajo.");
+      return;
+    }
+
     closeTeleworkEditModal();
     refreshTeleworkDependents();
   }
