@@ -76,6 +76,15 @@ assertSuccessfulSurveyImport([
   ...fixtureRows
 ], "cabecera en fila 3");
 
+const realExcelHeaderRows = fixtureRows.map((row, index) => index === 0 ? [
+  "Nº. Emp.",
+  "Apellidos y Nombre",
+  "Respuesta/Puntuación",
+  "Selecciona si vas a Teletrabajar",
+  "Si has respondido anteriormente que sí, por favor, escribe brevemente qué tipo de teletrabajo solicitas:"
+] : row.slice(0, 5));
+assertSuccessfulSurveyImport(realExcelHeaderRows, "cabeceras reales del Excel aportado");
+
 const { context: invalidContext } = createTeleworkContext();
 assert.throws(
   () => invalidContext.window.TeletrabajoModule.applyTeleworkSurveyRows([
