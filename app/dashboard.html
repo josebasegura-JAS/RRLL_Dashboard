@@ -846,6 +846,7 @@
                   <select id="teleworkCampaignSelector" onchange="changeTeleworkCampaign(this.value)"></select>
                 </label>
                 <button class="rrll-pro-tool-button telework-add-campaign" type="button" onclick="event.preventDefault(); event.stopPropagation(); addTeleworkCampaignOption()" title="Crear una nueva campaña de teletrabajo">Añadir</button>
+                <button class="rrll-pro-tool-button telework-delete-campaign" type="button" onclick="event.preventDefault(); event.stopPropagation(); deleteTeleworkCampaignOption()" title="Eliminar la campaña seleccionada si no tiene solicitudes">Eliminar</button>
                 <button type="button" class="rrll-pro-primary telework-new-request" onclick="event.preventDefault(); event.stopPropagation(); toggleTeleworkCreateForm(true)">+ Nueva solicitud</button>
               </div>
             </div>
