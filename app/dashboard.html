@@ -1059,7 +1059,7 @@
               </label>
               <label class="rrll-pro-field">
                 <span>Nombre y apellidos</span>
-                <input id="newPlantName" placeholder="Nombre y apellidos" />
+                <input id="newPlantNombreCompleto" placeholder="Nombre y apellidos" />
               </label>
               <label class="rrll-pro-field">
                 <span>Colegio electoral</span>
@@ -1117,6 +1117,43 @@
                   <option value="JU">JU</option>
                 </select>
               </label>
+              <details class="rrll-pro-field full plantilla-telework-details">
+                <summary>Datos Teletrabajo</summary>
+                <div class="rrll-pro-task-form rrll-pro-plantilla-form">
+                  <label class="rrll-pro-field">
+                    <span>DNI</span>
+                    <input id="newPlantDni" />
+                  </label>
+                  <label class="rrll-pro-field">
+                    <span>Dirección Teletrabajo</span>
+                    <input id="newPlantDireccionTeletrabajo" />
+                  </label>
+                  <label class="rrll-pro-field">
+                    <span>Residencia CAST</span>
+                    <input id="newPlantResidenciaCast" />
+                  </label>
+                  <label class="rrll-pro-field">
+                    <span>Residencia EUS</span>
+                    <input id="newPlantResidenciaEus" />
+                  </label>
+                  <label class="rrll-pro-field">
+                    <span>Puesto CAST</span>
+                    <input id="newPlantPuestoCast" />
+                  </label>
+                  <label class="rrll-pro-field">
+                    <span>Puesto EUS</span>
+                    <input id="newPlantPuestoEus" />
+                  </label>
+                  <label class="rrll-pro-field">
+                    <span>Fecha Ordenador</span>
+                    <input id="newPlantFechaOrdenador" type="date" />
+                  </label>
+                  <label class="rrll-pro-field">
+                    <span>Fecha Cascos</span>
+                    <input id="newPlantFechaCascos" type="date" />
+                  </label>
+                </div>
+              </details>
               <div class="rrll-pro-form-actions">
                 <button type="button" class="rrll-pro-primary" onclick="addPlantilla()">Guardar</button>
                 <button type="button" class="secondary" onclick="togglePlantillaCreateForm(false)">Cancelar</button>
