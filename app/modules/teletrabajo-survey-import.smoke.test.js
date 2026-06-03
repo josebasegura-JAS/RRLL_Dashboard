@@ -23,6 +23,10 @@ function createTeleworkContext() {
     setTimeout: callback => callback(),
     load: (key, fallback) => storage.has(key) ? storage.get(key) : fallback,
     save: (key, value) => { savedKeys.push(key); storage.set(key, value); },
+    getPlantilla: () => [
+      { employeeNumber: "1001", nombreCompleto: "García López, Ana", job: "Técnico/a RRLL", direccion: "Personas", unidad: "RRLL" },
+      { employeeNumber: "1003", nombreCompleto: "Carla Importada", job: "Atención presencial", direccion: "Operaciones", unidad: "Oficina" }
+    ],
     document: { getElementById: () => null, querySelectorAll: () => [] },
     window: { crypto: { randomUUID: () => `fixture-${++uuid}` } }
   };
@@ -51,6 +55,9 @@ function assertSuccessfulSurveyImport(rows, message) {
   assert.equal(items.length, 3, "solo crea las dos solicitudes válidas y conserva la preexistente");
   assert.equal(ana.nombreCompleto, "García López, Ana");
   assert.equal(ana.name, "García López, Ana");
+  assert.equal(ana.job, "Técnico/a RRLL", "enriquece el puesto desde Plantilla usando Nº empleado");
+  assert.equal(ana.direccionArea, "Personas", "guarda Dirección / Área desde Plantilla");
+  assert.equal(ana.unidad, "RRLL", "guarda Unidad desde Plantilla");
   assert.equal(ana.observations, "martes y jueves\nseptiembre-junio renovación");
   assert.deepEqual(Array.from(ana.days), [], "no interpreta martes y jueves");
   assert.equal(ana.status, "telework-entry");

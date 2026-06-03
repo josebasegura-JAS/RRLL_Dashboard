@@ -12,7 +12,14 @@
   const RENEWAL_VALUES = ["Sí", "No", "No aplica"];
   const RENEWAL_VALIDATION_VALUES = ["Pendiente", "Sí", "No", "No aplica"];
   const DIRECTION_VALUES = ["Pendiente", "Aprobada", "Denegada"];
-  const DAYS = ["Martes", "Miércoles", "Jueves"];
+  const TELEWORK_DAY_OPTIONS = [
+    { code: "L", cast: "Lunes", eus: "Astelehena" },
+    { code: "M", cast: "Martes", eus: "Asteartea" },
+    { code: "X", cast: "Miércoles", eus: "Asteazkena" },
+    { code: "J", cast: "Jueves", eus: "Osteguna" }
+  ];
+  const DAYS = TELEWORK_DAY_OPTIONS.map(day => day.code);
+  const TELEWORK_DAY_BY_CODE = Object.fromEntries(TELEWORK_DAY_OPTIONS.map(day => [day.code, day]));
   const TELEWORK_REQUEST_TYPES = ["nueva", "renovacion"];
   const TELEWORK_MASTER_FIELDS = [
     ["dni", "Dni"],
@@ -60,6 +67,9 @@
   let teleworkViewFilter = "all";
   let editingTeleworkId = null;
   let teleworkCatalogDraft = null;
+  let teleworkRuntimeSnapshot = null;
+  let teleworkRepairCompleted = false;
+  let teleworkRenderSignature = "";
 
   function getTeleworkItems() {
     const items = load(KEY, []);
@@ -143,6 +153,113 @@
 
   function setTeleworkJobCatalog(items) {
     save(JOB_CATALOG_KEY, Array.isArray(items) ? items.map(normalizeTeleworkCatalogItem).filter(item => item.jobKey) : []);
+    invalidateTeleworkRuntimeSnapshot();
+  }
+
+  function invalidateTeleworkRuntimeSnapshot() {
+    teleworkRuntimeSnapshot = null;
+  }
+
+  function readTeleworkPlantillaItems() {
+    try {
+      if (typeof getPlantilla === "function") {
+        const items = getPlantilla();
+        return Array.isArray(items) ? items : [];
+      }
+    } catch {
+      return [];
+    }
+    return [];
+  }
+
+  function normalizeTeleworkEmployeeKey(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function getTeleworkPersonValue(person, keys) {
+    for (const key of keys) {
+      const value = person && person[key];
+      if (value != null && String(value).trim()) return String(value).trim();
+    }
+    return "";
+  }
+
+  function getTeleworkRuntimeSnapshot(options = {}) {
+    if (options.force || !teleworkRuntimeSnapshot) {
+      const plantilla = readTeleworkPlantillaItems();
+      const plantillaByEmployee = new Map();
+      plantilla.forEach(person => {
+        const key = normalizeTeleworkEmployeeKey(person && person.employeeNumber);
+        if (key && !plantillaByEmployee.has(key)) plantillaByEmployee.set(key, person);
+      });
+      const catalog = getTeleworkJobCatalog();
+      const catalogByJob = new Map();
+      catalog.forEach(item => {
+        if (item.jobKey && !catalogByJob.has(item.jobKey)) catalogByJob.set(item.jobKey, item);
+      });
+      teleworkRuntimeSnapshot = { plantilla, plantillaByEmployee, catalog, catalogByJob };
+    }
+    return teleworkRuntimeSnapshot;
+  }
+
+  function buildTeleworkPersonSnapshot(person) {
+    if (!person) return null;
+    const nombreCompleto = teleworkPersonFullName(person);
+    const job = getTeleworkPersonValue(person, ["job", "puesto", "position", "jobTitle", "puestoTrabajo", "puesto_de_trabajo"]);
+    const direccionArea = getTeleworkPersonValue(person, ["direccionArea", "direccion", "area", "área", "direction", "department", "departamento"]);
+    const unidad = getTeleworkPersonValue(person, ["unidad", "unit", "unidadOrganizativa", "organizationalUnit"]);
+    return {
+      employeeNumber: getTeleworkPersonValue(person, ["employeeNumber", "numeroEmpleado", "numEmpleado", "nEmpleado", "empleado"]),
+      nombreCompleto,
+      job,
+      direccionArea,
+      unidad,
+      dni: getTeleworkPersonValue(person, ["dni", "DNI", "nif", "documentNumber"]),
+      direccionTeletrabajo: getTeleworkPersonValue(person, ["direccionTeletrabajo"]),
+      residencia: getTeleworkPersonValue(person, ["residencia", "residenciaCast", "residenciaEus"]),
+      puestoCast: getTeleworkPersonValue(person, ["puestoCast"]),
+      puestoEus: getTeleworkPersonValue(person, ["puestoEus"])
+    };
+  }
+
+  function enrichTeleworkItemFromPlantilla(item, context = getTeleworkRuntimeSnapshot()) {
+    const employeeKey = normalizeTeleworkEmployeeKey(item && item.employeeNumber);
+    if (!employeeKey) return item;
+    const person = context.plantillaByEmployee.get(employeeKey);
+    const snapshot = buildTeleworkPersonSnapshot(person);
+    if (!snapshot) return item;
+    const enriched = {
+      ...item,
+      nombreCompleto: item.nombreCompleto || item.name || snapshot.nombreCompleto || "",
+      name: item.name || item.nombreCompleto || snapshot.nombreCompleto || "",
+      job: item.job || snapshot.job || "",
+      direccionArea: item.direccionArea || snapshot.direccionArea || "",
+      unidad: item.unidad || snapshot.unidad || "",
+      plantillaSnapshot: {
+        ...(item.plantillaSnapshot || {}),
+        ...Object.fromEntries(Object.entries(snapshot).filter(([, value]) => String(value || "").trim()))
+      }
+    };
+    return enriched;
+  }
+
+  function repairTeleworkItemsFromPlantilla(force = false) {
+    if (teleworkRepairCompleted && !force) return { repaired: 0 };
+    teleworkRepairCompleted = true;
+    const items = getTeleworkItems();
+    if (!items.length) return { repaired: 0 };
+    const context = getTeleworkRuntimeSnapshot();
+    let repaired = 0;
+    const next = items.map(item => {
+      const needsRepair = !!item.employeeNumber && (!item.job || !item.nombreCompleto || !item.direccionArea || !item.unidad || !item.diasTeletrabajoCast || !item.diasTeletrabajoEus);
+      if (!needsRepair) return item;
+      const enriched = normalizeTeleworkItem(enrichTeleworkItemFromPlantilla(item, context));
+      const changed = JSON.stringify(enriched) !== JSON.stringify(item);
+      if (changed) repaired += 1;
+      return enriched;
+    });
+    if (repaired) setTeleworkItems(next, { silent: true });
+    return { repaired };
   }
 
   function parseCatalogEligibility(value) {
@@ -185,10 +302,11 @@
     return normalized;
   }
 
-  function getTeleworkJobEligibility(job) {
+  function getTeleworkJobEligibility(job, context = getTeleworkRuntimeSnapshot()) {
     const key = normalizeTeleworkLookup(job);
     if (!key) return { eligible: true, warnings: [] };
-    const match = getTeleworkJobCatalog().find(item => item.jobKey === key || key.includes(item.jobKey) || item.jobKey.includes(key));
+    const exact = context.catalogByJob && context.catalogByJob.get(key);
+    const match = exact || context.catalog.find(item => item.jobKey === key || key.includes(item.jobKey) || item.jobKey.includes(key));
     if (!match) return { eligible: true, warnings: [] };
     const warnings = [];
     if (!match.eligible) warnings.push("Puesto marcado como no elegible en el catálogo.");
@@ -196,7 +314,7 @@
     return { eligible: match.eligible, warnings };
   }
 
-  function getTeleworkCatalogMatchByJob(job, catalog = getTeleworkJobCatalog()) {
+  function getTeleworkCatalogMatchByJob(job, catalog = getTeleworkRuntimeSnapshot().catalog) {
     const key = normalizeTeleworkLookup(job);
     if (!key) return null;
     return catalog.find(item => item.jobKey === key) || null;
@@ -221,8 +339,9 @@
   }
 
   function getTeleworkPositionIndicator(item, context = {}) {
-    const catalog = context.catalog || getTeleworkJobCatalog();
-    const countsByJob = context.countsByJob || buildTeleworkRequestCountByJob(getTeleworkVisibleItems());
+    const snapshot = getTeleworkRuntimeSnapshot();
+    const catalog = context.catalog || snapshot.catalog;
+    const countsByJob = context.countsByJob || {};
     const key = normalizeTeleworkLookup(item.job);
     const match = getTeleworkCatalogMatchByJob(item.job, catalog);
     if (!key || !match || match.teletrabajoSN === "N" || !match.eligible) {
@@ -279,8 +398,35 @@
     return "Pendiente";
   }
 
+  function splitTeleworkDayText(value) {
+    if (Array.isArray(value)) return value;
+    return String(value || "").split(/[;,|]+|\sy\s|\seta\s/iu).map(part => part.trim()).filter(Boolean);
+  }
+
+  function normalizeTeleworkDayCode(value) {
+    const raw = String(value || "").trim();
+    const upper = raw.toUpperCase();
+    if (DAYS.includes(upper)) return upper;
+    const key = normalizeTeleworkLookup(raw);
+    const match = TELEWORK_DAY_OPTIONS.find(day => normalizeTeleworkLookup(day.cast) === key || normalizeTeleworkLookup(day.eus) === key);
+    return match ? match.code : "";
+  }
+
   function normalizeDays(days) {
-    return Array.isArray(days) ? days.filter(day => DAYS.includes(day)) : [];
+    const values = Array.isArray(days) ? days : splitTeleworkDayText(days);
+    const codes = values.map(normalizeTeleworkDayCode).filter(Boolean);
+    return DAYS.filter(code => codes.includes(code));
+  }
+
+  function buildTeleworkBilingualDays(days) {
+    const codes = normalizeDays(days);
+    return {
+      days: codes,
+      diasCastellano: codes.map(code => TELEWORK_DAY_BY_CODE[code].cast),
+      diasEuskera: codes.map(code => TELEWORK_DAY_BY_CODE[code].eus),
+      diasTeletrabajoCast: codes.map(code => TELEWORK_DAY_BY_CODE[code].cast).join(", "),
+      diasTeletrabajoEus: codes.map(code => TELEWORK_DAY_BY_CODE[code].eus).join(", ")
+    };
   }
 
   function normalizeTeleworkRequestType(value) {
@@ -308,14 +454,19 @@
       period: normalizeTeleworkPeriod(source.period || source.periodo || source.campaign || source.campaña),
       tipoSolicitud: normalizeTeleworkRequestType(source.tipoSolicitud || source.type),
       type: teleworkRequestTypeLabel(source.tipoSolicitud || source.type),
-      days: normalizeDays(source.days),
+      days: normalizeDays(source.days || source.diasCastellano || source.diasTeletrabajoCast || source["Días Teletrabajo_CAST"] || source["Dias Teletrabajo_CAST"]),
+      diasCastellano: Array.isArray(source.diasCastellano) ? source.diasCastellano.filter(Boolean).map(String) : [],
+      diasEuskera: Array.isArray(source.diasEuskera) ? source.diasEuskera.filter(Boolean).map(String) : [],
       diasTeletrabajoCast: String(source.diasTeletrabajoCast || source["Días Teletrabajo_CAST"] || source["Dias Teletrabajo_CAST"] || "").trim(),
       diasTeletrabajoEus: String(source.diasTeletrabajoEus || source["Días Teletrabajo_EUS"] || source["Dias Teletrabajo_EUS"] || "").trim(),
       porcentajeTeletrabajo: String(source.porcentajeTeletrabajo || source.porcentaje || source.Porcentaje || "").trim(),
-      fechaInicioTeletrabajoCast: String(source.fechaInicioTeletrabajoCast || "").trim(),
-      fechaFinTeletrabajoCast: String(source.fechaFinTeletrabajoCast || "").trim(),
-      fechaInicioTeletrabajoEus: String(source.fechaInicioTeletrabajoEus || "").trim(),
-      fechaFinTeletrabajoEus: String(source.fechaFinTeletrabajoEus || "").trim(),
+      fechaInicioTeletrabajoCast: String(source.fechaInicioTeletrabajoCast || source.fechaInicio || "").trim(),
+      fechaFinTeletrabajoCast: String(source.fechaFinTeletrabajoCast || source.fechaFin || "").trim(),
+      fechaInicioTeletrabajoEus: String(source.fechaInicioTeletrabajoEus || source.fechaInicioTeletrabajoCast || source.fechaInicio || "").trim(),
+      fechaFinTeletrabajoEus: String(source.fechaFinTeletrabajoEus || source.fechaFinTeletrabajoCast || source.fechaFin || "").trim(),
+      direccionArea: String(source.direccionArea || source.direccion || source.area || "").trim(),
+      unidad: String(source.unidad || "").trim(),
+      plantillaSnapshot: source.plantillaSnapshot && typeof source.plantillaSnapshot === "object" ? source.plantillaSnapshot : {},
       presenceValidation: validationFromLegacy(source.presenceValidation),
       favorableReport: validationFromLegacy(source.favorableReport ?? source.managerApproval),
       security: validationFromLegacy(source.security),
@@ -331,6 +482,14 @@
       resolvedAt: source.resolvedAt || null,
       statusManual: source.statusManual === true || (source.statusManual !== false && !hasNewFlowFields && STATUS_VALUES.includes(source.status))
     };
+    const bilingualDays = buildTeleworkBilingualDays(normalized.days.length ? normalized.days : normalized.diasCastellano.length ? normalized.diasCastellano : normalized.diasTeletrabajoCast);
+    normalized.days = bilingualDays.days;
+    normalized.diasCastellano = normalized.diasCastellano.length ? normalized.diasCastellano : bilingualDays.diasCastellano;
+    normalized.diasEuskera = normalized.diasEuskera.length ? normalized.diasEuskera : bilingualDays.diasEuskera;
+    normalized.diasTeletrabajoCast = normalized.diasTeletrabajoCast || bilingualDays.diasTeletrabajoCast;
+    normalized.diasTeletrabajoEus = normalized.diasTeletrabajoEus || bilingualDays.diasTeletrabajoEus;
+    normalized.fechaInicioTeletrabajoEus = normalized.fechaInicioTeletrabajoEus || normalized.fechaInicioTeletrabajoCast;
+    normalized.fechaFinTeletrabajoEus = normalized.fechaFinTeletrabajoEus || normalized.fechaFinTeletrabajoCast;
     normalized.status = STATUS_VALUES.includes(source.status) ? source.status : calculateTeleworkStatus(normalized);
     if (!normalized.statusManual) normalized.status = calculateTeleworkStatus(normalized);
     return normalized;
@@ -394,13 +553,7 @@
   }
 
   function getPlantillaForTelework() {
-    try {
-      if (typeof getPlantilla !== "function") return [];
-      const items = getPlantilla();
-      return Array.isArray(items) ? items : [];
-    } catch {
-      return [];
-    }
+    return getTeleworkRuntimeSnapshot().plantilla;
   }
 
 
@@ -422,10 +575,10 @@
       .trim();
   }
 
-  function findPlantillaByEmployeeNumber(value) {
-    const target = String(value || "").trim();
+  function findPlantillaByEmployeeNumber(value, context = getTeleworkRuntimeSnapshot()) {
+    const target = normalizeTeleworkEmployeeKey(value);
     if (!target) return null;
-    return getPlantillaForTelework().find(person => String(person.employeeNumber || "").trim() === target) || null;
+    return context.plantillaByEmployee.get(target) || null;
   }
 
   function readTeleworkField(prefix, suffix) {
@@ -439,6 +592,12 @@
 
   function fillTeleworkPlantillaData(person, prefix = "new") {
     TELEWORK_MASTER_FIELDS.forEach(([key, suffix]) => writeTeleworkField(prefix, suffix, person?.[key] || ""));
+    const snapshot = buildTeleworkPersonSnapshot(person);
+    writeTeleworkField(prefix, "DireccionArea", snapshot?.direccionArea || "");
+    if (snapshot?.residencia) {
+      writeTeleworkField(prefix, "ResidenciaCast", snapshot.residencia);
+      writeTeleworkField(prefix, "ResidenciaEus", snapshot.residencia);
+    }
     const hint = document.getElementById(`${prefix}TeleworkPlantillaInfo`);
     if (hint) hint.textContent = person ? "Datos maestros cargados desde Plantilla. Estos campos no se duplican en la solicitud." : "No se ha encontrado la persona en Plantilla.";
   }
@@ -529,30 +688,54 @@
 
   function readDays(prefix, fallback = []) {
     const controls = DAYS
-      .map(day => document.getElementById(`${prefix}Telework${day}`))
+      .map(code => document.getElementById(`${prefix}TeleworkDay${code}`))
       .filter(Boolean);
     if (!controls.length) return normalizeDays(fallback);
-    return DAYS.filter(day => document.getElementById(`${prefix}Telework${day}`)?.checked);
+    return DAYS.filter(code => document.getElementById(`${prefix}TeleworkDay${code}`)?.checked);
   }
 
   function setDays(prefix, days) {
-    DAYS.forEach(day => {
-      const el = document.getElementById(`${prefix}Telework${day}`);
-      if (el) el.checked = Array.isArray(days) && days.includes(day);
+    const normalized = normalizeDays(days);
+    DAYS.forEach(code => {
+      const el = document.getElementById(`${prefix}TeleworkDay${code}`);
+      if (el) el.checked = normalized.includes(code);
     });
+    writeTeleworkBilingualDays(prefix, normalized);
+  }
+
+  function teleworkDayChecksHtml(prefix) {
+    return `<div class="rrll-pro-field rrll-pro-field-full telework-day-checks" role="group" aria-label="Días de teletrabajo">${TELEWORK_DAY_OPTIONS.map(day => `
+      <label class="telework-day-check" title="${escapeHtml(day.cast)} / ${escapeHtml(day.eus)}">
+        <input id="${prefix}TeleworkDay${day.code}" type="checkbox" onchange="teleworkDaysChanged('${prefix}')" />
+        <span>${escapeHtml(day.code)}</span>
+      </label>`).join("")}</div>`;
+  }
+
+  function writeTeleworkBilingualDays(prefix, days) {
+    const bilingual = buildTeleworkBilingualDays(days);
+    writeTeleworkField(prefix, "DiasTeletrabajoCast", bilingual.diasTeletrabajoCast);
+    writeTeleworkField(prefix, "DiasTeletrabajoEus", bilingual.diasTeletrabajoEus);
+  }
+
+  function teleworkDaysChanged(prefix = "new") {
+    writeTeleworkBilingualDays(prefix, readDays(prefix));
   }
 
   function readTeleworkForm(prefix, previousItem = null) {
     const employeeNumber = (document.getElementById(`${prefix}TeleworkEmployeeNumber`)?.value || "").trim();
     const nameEl = document.getElementById(`${prefix}TeleworkName`);
-    const matchedPerson = findPlantillaByEmployeeNumber(employeeNumber);
+    const snapshot = getTeleworkRuntimeSnapshot();
+    const matchedPerson = findPlantillaByEmployeeNumber(employeeNumber, snapshot);
+    const personSnapshot = buildTeleworkPersonSnapshot(matchedPerson);
     if (matchedPerson) {
-      if (!String(nameEl?.value || "").trim()) nameEl.value = teleworkPersonFullName(matchedPerson) || "";
+      if (!String(nameEl?.value || "").trim()) nameEl.value = personSnapshot?.nombreCompleto || "";
       const jobEl = document.getElementById(`${prefix}TeleworkJob`);
-      if (jobEl && !jobEl.value.trim()) jobEl.value = matchedPerson.job || "";
+      if (jobEl && !jobEl.value.trim()) jobEl.value = personSnapshot?.job || "";
     }
     const nombreCompleto = (nameEl?.value || "").trim();
     const job = (document.getElementById(`${prefix}TeleworkJob`)?.value || "").trim();
+    const selectedDays = readDays(prefix, previousItem?.days);
+    const bilingualDays = buildTeleworkBilingualDays(selectedDays);
     if (!employeeNumber || !nombreCompleto) {
       alert("Introduce al menos número de empleado y solicitante.");
       return null;
@@ -583,8 +766,17 @@
       job,
       period: normalizeTeleworkPeriod(document.getElementById(`${prefix}TeleworkPeriod`)?.value || getTeleworkActiveCampaign()),
       tipoSolicitud: document.getElementById(`${prefix}TeleworkType`)?.value || "nueva",
-      days: readDays(prefix, previousItem?.days),
+      days: bilingualDays.days,
+      diasCastellano: bilingualDays.diasCastellano,
+      diasEuskera: bilingualDays.diasEuskera,
       ...agreementData,
+      diasTeletrabajoCast: bilingualDays.diasTeletrabajoCast,
+      diasTeletrabajoEus: bilingualDays.diasTeletrabajoEus,
+      fechaInicioTeletrabajoEus: agreementData.fechaInicioTeletrabajoEus || agreementData.fechaInicioTeletrabajoCast,
+      fechaFinTeletrabajoEus: agreementData.fechaFinTeletrabajoEus || agreementData.fechaFinTeletrabajoCast,
+      direccionArea: personSnapshot?.direccionArea || previousItem?.direccionArea || "",
+      unidad: personSnapshot?.unidad || previousItem?.unidad || "",
+      plantillaSnapshot: personSnapshot || previousItem?.plantillaSnapshot || {},
       presenceValidation: pick(document.getElementById(`${prefix}TeleworkPresenceValidation`)?.value, VALIDATION_VALUES, "Pendiente"),
       favorableReport: pick(document.getElementById(`${prefix}TeleworkFavorableReport`)?.value, VALIDATION_VALUES, "Pendiente"),
       security: pick(document.getElementById(`${prefix}TeleworkSecurity`)?.value, VALIDATION_VALUES, "Pendiente"),
@@ -606,7 +798,7 @@
   }
 
   function resetTeleworkCreateForm() {
-    ["EmployeeNumber", "Name", "Job", "Observations", ...TELEWORK_MASTER_FIELDS.map(([, suffix]) => suffix), ...TELEWORK_AGREEMENT_FIELDS.map(([, suffix]) => suffix)].forEach(field => {
+    ["EmployeeNumber", "Name", "Job", "DireccionArea", "Observations", ...TELEWORK_MASTER_FIELDS.map(([, suffix]) => suffix), ...TELEWORK_AGREEMENT_FIELDS.map(([, suffix]) => suffix)].forEach(field => {
       const el = document.getElementById(`newTelework${field}`);
       if (el) el.value = "";
     });
@@ -792,7 +984,7 @@
     const normalized = normalizeTeleworkImportDate(raw);
     if (!normalized) return raw;
     const [year, month, day] = normalized.split("-");
-    return `${day}/${month}/${year}`;
+    return `${year}/${month}/${day}`;
   }
 
   function teleworkAgreementStart(item) {
@@ -834,84 +1026,80 @@
   function teleworkFormBlocks(prefix) {
     const isEdit = prefix === "edit";
     return `
-      <fieldset class="telework-form-section">
-        <legend>Datos persona</legend>
+      <fieldset class="telework-form-section telework-person-section">
+        <legend>DATOS PERSONALES</legend>
         <label class="rrll-pro-field">
           <span>Nº empleado</span>
           <input id="${prefix}TeleworkEmployeeNumber" placeholder="Ej. 12345" oninput="teleworkEmployeeNumberChanged('${prefix}')" onblur="teleworkEmployeeNumberChanged('${prefix}')" />
         </label>
         <label class="rrll-pro-field rrll-autocomplete-field">
-          <span>Solicitante</span>
+          <span>Nombre completo</span>
           <input id="${prefix}TeleworkName" placeholder="Empieza a escribir para buscar en Plantilla" autocomplete="off" oninput="teleworkNameAutocomplete('${prefix}')" onfocus="teleworkNameAutocomplete('${prefix}')" onblur="hideTeleworkSuggestionsDelayed('${prefix}')" />
           <div id="${prefix}TeleworkPersonSuggestions" class="rrll-autocomplete-list" role="listbox"></div>
         </label>
         <label class="rrll-pro-field">
-          <span>Puesto de trabajo</span>
+          <span>Puesto</span>
           <input id="${prefix}TeleworkJob" placeholder="Puesto snapshot de la solicitud" oninput="renderTeleworkEligibilityWarning('${prefix}')" />
+        </label>
+        <label class="rrll-pro-field">
+          <span>Dirección / Área</span>
+          <input id="${prefix}TeleworkDireccionArea" readonly />
         </label>
         <div id="${prefix}TeleworkEligibilityWarning" class="telework-eligibility-warning" aria-live="polite"></div>
       </fieldset>
-      <fieldset class="telework-form-section">
-        <legend>Solicitud</legend>
-        <label class="rrll-pro-field">
-          <span>Periodo / campaña</span>
-          <input id="${prefix}TeleworkPeriod" placeholder="Ej. 2025-2026" />
-        </label>
-        <label class="rrll-pro-field">
-          <span>Tipo de solicitud</span>
-          <select id="${prefix}TeleworkType"><option value="nueva">Nueva</option><option value="renovacion">Renovación</option></select>
-        </label>
-      </fieldset>
       <fieldset class="telework-form-section telework-master-section">
-        <legend>Datos asociados en Plantilla</legend>
+        <legend>DATOS WORD NORMALIZADOS</legend>
         <div id="${prefix}TeleworkPlantillaInfo" class="telework-master-hint muted">Datos maestros cargados desde Plantilla.</div>
         <label class="rrll-pro-field"><span>DNI</span><input id="${prefix}TeleworkDni" /></label>
         <label class="rrll-pro-field"><span>Dirección Teletrabajo</span><input id="${prefix}TeleworkDireccionTeletrabajo" /></label>
-        <label class="rrll-pro-field"><span>Residencia CAST</span><input id="${prefix}TeleworkResidenciaCast" /></label>
-        <label class="rrll-pro-field"><span>Residencia EUS</span><input id="${prefix}TeleworkResidenciaEus" /></label>
+        <label class="rrll-pro-field"><span>Residencia</span><input id="${prefix}TeleworkResidenciaCast" /></label>
+        <input id="${prefix}TeleworkResidenciaEus" type="hidden" />
         <label class="rrll-pro-field"><span>Puesto CAST</span><input id="${prefix}TeleworkPuestoCast" /></label>
         <label class="rrll-pro-field"><span>Puesto EUS</span><input id="${prefix}TeleworkPuestoEus" /></label>
         <label class="rrll-pro-field"><span>Fecha Ordenador</span><input id="${prefix}TeleworkFechaOrdenador" type="date" /></label>
         <label class="rrll-pro-field"><span>Fecha Cascos</span><input id="${prefix}TeleworkFechaCascos" type="date" /></label>
       </fieldset>
       <fieldset class="telework-form-section telework-agreement-section">
-        <legend>Datos del Acuerdo</legend>
-        <label class="rrll-pro-field"><span>Días Teletrabajo CAST</span><input id="${prefix}TeleworkDiasTeletrabajoCast" /></label>
-        <label class="rrll-pro-field"><span>Días Teletrabajo EUS</span><input id="${prefix}TeleworkDiasTeletrabajoEus" /></label>
-        <label class="rrll-pro-field"><span>Porcentaje Teletrabajo</span><input id="${prefix}TeleworkPorcentajeTeletrabajo" /></label>
-        <label class="rrll-pro-field"><span>Fecha Inicio CAST</span><input id="${prefix}TeleworkFechaInicioTeletrabajoCast" type="date" /></label>
-        <label class="rrll-pro-field"><span>Fecha Fin CAST</span><input id="${prefix}TeleworkFechaFinTeletrabajoCast" type="date" /></label>
-        <label class="rrll-pro-field"><span>Fecha Inicio EUS</span><input id="${prefix}TeleworkFechaInicioTeletrabajoEus" type="date" /></label>
-        <label class="rrll-pro-field"><span>Fecha Fin EUS</span><input id="${prefix}TeleworkFechaFinTeletrabajoEus" type="date" /></label>
-      </fieldset>
-      <fieldset class="telework-form-section">
-        <legend>Validaciones</legend>
-        ${teleworkSelectField(prefix, "PresenceValidation", "Cumplimiento condiciones presencialidad", VALIDATION_VALUES)}
-        ${teleworkSelectField(prefix, "FavorableReport", "Informe favorable", VALIDATION_VALUES)}
-        ${teleworkSelectField(prefix, "Security", "Seguridad Informática", VALIDATION_VALUES)}
-        ${teleworkSelectField(prefix, "Prevention", "Prevención", VALIDATION_VALUES)}
-      </fieldset>
-      <fieldset class="telework-form-section">
-        <legend>Renovación</legend>
-        ${teleworkSelectField(prefix, "PreviousYear", "Año anterior teletrabajado", RENEWAL_VALUES)}
-        ${teleworkSelectField(prefix, "UnitHeadRepeat", "Validación Jefatura de Unidad a repetir", RENEWAL_VALIDATION_VALUES)}
-      </fieldset>
-      <fieldset class="telework-form-section">
-        <legend>Resolución</legend>
-        ${teleworkSelectField(prefix, "DirectionValidation", "Validación ordinaria de la Dirección", DIRECTION_VALUES)}
+        <legend>ACUERDO</legend>
         <label class="rrll-pro-field">
-          <span>Fecha resolución</span>
-          <input id="${prefix}TeleworkResolutionDate" type="date" />
+          <span>Hasiera</span>
+          <input id="${prefix}TeleworkFechaInicioTeletrabajoCast" type="date" onchange="writeTeleworkField('${prefix}', 'FechaInicioTeletrabajoEus', this.value)" />
         </label>
-        ${isEdit ? `<label class="rrll-pro-field"><span>Estado manual (opcional)</span><select id="${prefix}TeleworkStatus"><option value="auto">Automático según validaciones</option>${STATUS_VALUES.map(status => `<option value="${status}">${teleworkStatusLabel(status)}</option>`).join("")}</select></label>` : ""}
-      </fieldset>
-      <fieldset class="telework-form-section telework-observations-section">
-        <legend>Observaciones</legend>
+        <label class="rrll-pro-field">
+          <span>Amaiera</span>
+          <input id="${prefix}TeleworkFechaFinTeletrabajoCast" type="date" onchange="writeTeleworkField('${prefix}', 'FechaFinTeletrabajoEus', this.value)" />
+        </label>
+        <input id="${prefix}TeleworkFechaInicioTeletrabajoEus" type="hidden" />
+        <input id="${prefix}TeleworkFechaFinTeletrabajoEus" type="hidden" />
+        <label class="rrll-pro-field">
+          <span>Modalidad</span>
+          <select id="${prefix}TeleworkType"><option value="nueva">Nueva</option><option value="renovacion">Renovación</option></select>
+        </label>
+        <label class="rrll-pro-field">
+          <span>Periodo / campaña</span>
+          <input id="${prefix}TeleworkPeriod" placeholder="Ej. 2025-2026" />
+        </label>
+        <label class="rrll-pro-field"><span>Porcentaje Teletrabajo</span><input id="${prefix}TeleworkPorcentajeTeletrabajo" /></label>
+        ${teleworkDayChecksHtml(prefix)}
+        <input id="${prefix}TeleworkDiasTeletrabajoCast" type="hidden" />
+        <input id="${prefix}TeleworkDiasTeletrabajoEus" type="hidden" />
         <label class="rrll-pro-field rrll-pro-field-full">
-          <span>Observaciones editables</span>
+          <span>Observaciones</span>
           <textarea id="${prefix}TeleworkObservations" placeholder="Observaciones, seguimiento, incidencias o contexto de la solicitud"></textarea>
         </label>
-        ${isEdit ? `<div id="editTeleworkObservationHistory" class="telework-observation-history"></div>` : ""}
+        ${isEdit ? `<div id="editTeleworkObservationHistory" class="telework-observation-history rrll-pro-field-full"></div>` : ""}
+      </fieldset>
+      <fieldset class="telework-form-section telework-validation-section">
+        <legend>VALIDACIONES</legend>
+        ${teleworkSelectField(prefix, "Security", "Seguridad Informática", VALIDATION_VALUES)}
+        ${teleworkSelectField(prefix, "Prevention", "Prevención", VALIDATION_VALUES)}
+        ${teleworkSelectField(prefix, "FavorableReport", "Jefatura", VALIDATION_VALUES)}
+        ${teleworkSelectField(prefix, "PresenceValidation", "Cumplimiento condiciones presencialidad", VALIDATION_VALUES)}
+        ${teleworkSelectField(prefix, "PreviousYear", "Año anterior teletrabajado", RENEWAL_VALUES)}
+        ${teleworkSelectField(prefix, "UnitHeadRepeat", "Validación Jefatura de Unidad a repetir", RENEWAL_VALIDATION_VALUES)}
+        ${teleworkSelectField(prefix, "DirectionValidation", "Validación Dirección", DIRECTION_VALUES)}
+        <label class="rrll-pro-field"><span>Fecha resolución</span><input id="${prefix}TeleworkResolutionDate" type="date" /></label>
+        ${isEdit ? `<label class="rrll-pro-field"><span>Estado manual (opcional)</span><select id="${prefix}TeleworkStatus"><option value="auto">Automático según validaciones</option>${STATUS_VALUES.map(status => `<option value="${status}">${teleworkStatusLabel(status)}</option>`).join("")}</select></label>` : ""}
       </fieldset>`;
   }
 
@@ -933,6 +1121,8 @@
     document.getElementById("editTeleworkType").value = item.tipoSolicitud || "nueva";
     setDays("edit", item.days);
     TELEWORK_AGREEMENT_FIELDS.forEach(([key, suffix]) => writeTeleworkField("edit", suffix, item[key] || ""));
+    writeTeleworkField("edit", "DireccionArea", item.direccionArea || item.plantillaSnapshot?.direccionArea || "");
+    writeTeleworkBilingualDays("edit", item.days);
     document.getElementById("editTeleworkPresenceValidation").value = item.presenceValidation || "Pendiente";
     document.getElementById("editTeleworkFavorableReport").value = item.favorableReport || "Pendiente";
     document.getElementById("editTeleworkSecurity").value = item.security || "Pendiente";
@@ -1067,16 +1257,18 @@
         surname2: plantillaPerson?.surname2 || plantillaPerson?.apellido2 || "",
         dni: plantillaPerson?.dni || "",
         direccionTeletrabajo: plantillaPerson?.direccionTeletrabajo || "",
-        residenciaCast: plantillaPerson?.residenciaCast || "",
-        residenciaEus: plantillaPerson?.residenciaEus || "",
-        puestoCast: plantillaPerson?.puestoCast || "",
-        puestoEus: plantillaPerson?.puestoEus || "",
+        residenciaCast: plantillaPerson?.residenciaCast || item.plantillaSnapshot?.residencia || "",
+        residenciaEus: plantillaPerson?.residenciaEus || plantillaPerson?.residenciaCast || item.plantillaSnapshot?.residencia || "",
+        puestoCast: plantillaPerson?.puestoCast || item.job || "",
+        puestoEus: plantillaPerson?.puestoEus || plantillaPerson?.puestoCast || item.job || "",
         fechaOrdenador: plantillaPerson?.fechaOrdenador || "",
         fechaCascos: plantillaPerson?.fechaCascos || ""
       },
       telework: {
         employeeNumber: item.employeeNumber || plantillaPerson?.employeeNumber || "",
         nombreCompleto: item.nombreCompleto || item.name || teleworkPersonFullName(plantillaPerson) || "",
+        diasCastellano: Array.isArray(item.diasCastellano) ? item.diasCastellano : [],
+        diasEuskera: Array.isArray(item.diasEuskera) ? item.diasEuskera : [],
         diasTeletrabajoCast: item.diasTeletrabajoCast || "",
         diasTeletrabajoEus: item.diasTeletrabajoEus || "",
         porcentajeTeletrabajo: item.porcentajeTeletrabajo || "",
@@ -1176,7 +1368,7 @@
     const item = normalizeTeleworkItem(rawItem);
     const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : "Sin fecha";
     const statusClass = teleworkStatusClass(item.status);
-    const eligibilityWarnings = getTeleworkJobEligibility(item.job).warnings;
+    const eligibilityWarnings = getTeleworkJobEligibility(item.job, { catalog: indicatorContext?.catalog || getTeleworkRuntimeSnapshot().catalog, catalogByJob: indicatorContext?.catalogByJob || getTeleworkRuntimeSnapshot().catalogByJob }).warnings;
     const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
 
     return `
@@ -1204,7 +1396,7 @@
   function renderTeleworkHistoryRow(rawItem, indicatorContext) {
     const item = normalizeTeleworkItem(rawItem);
     const statusClass = teleworkStatusClass(item.status);
-    const eligibilityWarnings = getTeleworkJobEligibility(item.job).warnings;
+    const eligibilityWarnings = getTeleworkJobEligibility(item.job, { catalog: indicatorContext?.catalog || getTeleworkRuntimeSnapshot().catalog, catalogByJob: indicatorContext?.catalogByJob || getTeleworkRuntimeSnapshot().catalogByJob }).warnings;
     const eligibilityHtml = eligibilityWarnings.length ? `<div class="telework-eligibility-warning visible">${eligibilityWarnings.map(warning => `<span>⚠️ ${escapeHtml(warning)}</span>`).join("")}</div>` : "";
 
     return `
@@ -1344,6 +1536,7 @@
       const periodItems = grouped[period];
       const indicatorContext = {
         catalog,
+        catalogByJob: new Map(catalog.map(entry => [entry.jobKey, entry])),
         countsByJob: buildTeleworkRequestCountByJob(periodItems)
       };
       const rows = [...periodItems]
@@ -1382,7 +1575,9 @@
   }
 
   function renderTelework() {
+    repairTeleworkItemsFromPlantilla();
     const items = getTeleworkItems();
+    const snapshot = getTeleworkRuntimeSnapshot();
     ensureTeleworkPeriodControls();
     const selectedItems = items.filter(item => normalizeTeleworkPeriod(item.period) === getTeleworkActiveCampaign());
     const counts = Object.fromEntries(STATUS_VALUES.map(status => [status, 0]));
@@ -1404,13 +1599,14 @@
 
     const filtered = getTeleworkVisibleItems(items);
     const indicatorContext = {
-      catalog: getTeleworkJobCatalog(),
+      catalog: snapshot.catalog,
+      catalogByJob: snapshot.catalogByJob,
       countsByJob: buildTeleworkRequestCountByJob(selectedItems)
     };
     const list = document.getElementById("teleworkListBody") || document.getElementById("teleworkTableBody");
     const empty = document.getElementById("teleworkTableEmpty");
     if (list) {
-      list.innerHTML = `
+      const nextTableHtml = `
         <div class="rrll-pro-table-wrap telework-table-wrap">
           <table class="rrll-pro-table telework-table">
             <thead>
@@ -1428,6 +1624,7 @@
             <tbody>${filtered.map(item => renderTeleworkRow(item, indicatorContext)).join("")}</tbody>
           </table>
         </div>`;
+      if (list.innerHTML !== nextTableHtml) list.innerHTML = nextTableHtml;
     }
     if (empty) empty.style.display = filtered.length ? "none" : "block";
     renderTeleworkHistory(items);
@@ -1853,15 +2050,18 @@
 
   function buildTeleworkImportItem(record, defaultPeriod) {
       const original = teleworkCell(record, ["Petición original", "Peticion original", "Días solicitados", "Dias solicitados"]);
-      const days = ["Martes", "Miércoles", "Jueves"].filter(day => parseTeleworkBoolean(teleworkCell(record, [day])));
+      const days = TELEWORK_DAY_OPTIONS.filter(day => parseTeleworkBoolean(teleworkCell(record, [day.cast, day.code]))).map(day => day.code);
       if (!days.length && original) {
-        ["Martes", "Miércoles", "Jueves"].forEach(day => { if (normalizeTeleworkLookup(original).includes(normalizeTeleworkLookup(day))) days.push(day); });
+        TELEWORK_DAY_OPTIONS.forEach(day => {
+          const text = normalizeTeleworkLookup(original);
+          if (text.includes(normalizeTeleworkLookup(day.cast)) || text.includes(normalizeTeleworkLookup(day.eus))) days.push(day.code);
+        });
       }
       const directionApproved = parseTeleworkBoolean(teleworkCell(record, ["Validación Dirección", "Validacion Direccion"]));
       const importedStatus = teleworkStatusFromImport(record);
       const resolvedAt = teleworkCell(record, ["Fecha resolución", "Fecha resolucion"]);
       const absenceDate = normalizeTeleworkImportDate(teleworkCell(record, ["Fecha ausencia", "Fecha ausencias", "Dia", "Día", "Fecha", "Fecha solicitud", "Fecha peticion", "Fecha petición"]) || resolvedAt);
-      return normalizeTeleworkItem({
+      return normalizeTeleworkItem(enrichTeleworkItemFromPlantilla({
         id: (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
         employeeNumber: teleworkCell(record, ["Nº empleado", "No empleado", "N empleado", "Numero empleado"]),
         nombreCompleto: teleworkCell(record, ["Nombre completo", "Solicitante", "Nombre", "Nombre y apellidos"]),
@@ -1891,7 +2091,7 @@
         resolvedAt: resolvedAt || null,
         observations: teleworkCell(record, ["Observaciones", "Notas"]),
         createdAt: new Date().toISOString()
-      });
+      }));
     }
 
   function applyTeleworkDataRows(rows) {
@@ -2035,10 +2235,10 @@
       return describeTeleworkSurveyHeaderDetection(rows).headerRowIndex;
     }
 
-  function buildTeleworkSurveyItem(row, defaultPeriod, mappedColumns) {
+  function buildTeleworkSurveyItem(row, defaultPeriod, mappedColumns, context = getTeleworkRuntimeSnapshot()) {
       const employeeNumber = String(row[mappedColumns.employeeNumber] ?? "").trim();
       const nombreCompleto = String(row[mappedColumns.fullName] ?? "").trim();
-      return normalizeTeleworkItem({
+      return normalizeTeleworkItem(enrichTeleworkItemFromPlantilla({
         employeeNumber,
         nombreCompleto,
         name: nombreCompleto,
@@ -2048,7 +2248,7 @@
         statusManual: true,
         observations: String(row[mappedColumns.observations] ?? ""),
         createdAt: new Date().toISOString()
-      });
+      }, context));
     }
 
   function applyTeleworkSurveyRows(rows) {
@@ -2075,6 +2275,7 @@
         totalIncidents: 0
       };
       const defaultPeriod = getTeleworkActiveCampaign();
+      const context = getTeleworkRuntimeSnapshot();
       const next = [...getTeleworkItems()];
       const existingKeys = new Set(next.map(getTeleworkDuplicateKey).filter(Boolean));
       const seenImportKeys = new Set();
@@ -2101,7 +2302,7 @@
             return;
           }
           summary.totalYesResponses += 1;
-          const item = buildTeleworkSurveyItem(row, defaultPeriod, mappedColumns);
+          const item = buildTeleworkSurveyItem(row, defaultPeriod, mappedColumns, context);
           if (!item.employeeNumber) {
             summary.totalIncidents += 1;
             return;
@@ -2343,7 +2544,11 @@
     generateTeleworkAgreement,
     addTeleworkCatalogRow,
     deleteTeleworkCatalogRow,
-    saveTeleworkJobCatalogModal
+    saveTeleworkJobCatalogModal,
+    teleworkDaysChanged,
+    writeTeleworkField,
+    repairTeleworkItemsFromPlantilla,
+    getTeleworkRuntimeSnapshot
   };
 
   window.TeletrabajoModule = api;
@@ -2393,4 +2598,6 @@
   window.addTeleworkCatalogRow = addTeleworkCatalogRow;
   window.deleteTeleworkCatalogRow = deleteTeleworkCatalogRow;
   window.saveTeleworkJobCatalogModal = saveTeleworkJobCatalogModal;
+  window.teleworkDaysChanged = teleworkDaysChanged;
+  window.writeTeleworkField = writeTeleworkField;
 })();

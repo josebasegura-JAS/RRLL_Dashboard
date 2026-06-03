@@ -122,8 +122,10 @@ async function run() {
 
   await context.window.TeletrabajoModule.openTeleworkEditModal("tw-1");
   elements.get("editTeleworkType").value = "renovacion";
-  elements.get("editTeleworkDiasTeletrabajoCast").value = "Miércoles y jueves";
-  elements.get("editTeleworkDiasTeletrabajoEus").value = "Asteazkena eta osteguna";
+  elements.get("editTeleworkDayM").checked = false;
+  elements.get("editTeleworkDayX").checked = true;
+  elements.get("editTeleworkDayJ").checked = true;
+  context.window.TeletrabajoModule.teleworkDaysChanged("edit");
   elements.get("editTeleworkPorcentajeTeletrabajo").value = "50%";
   elements.get("editTeleworkFechaInicioTeletrabajoCast").value = "2026-10-01";
   elements.get("editTeleworkFechaFinTeletrabajoCast").value = "2027-07-31";
@@ -142,9 +144,11 @@ async function run() {
   const stored = context.window.TeletrabajoModule.getTeleworkItems()[0];
   assert.equal(stored.tipoSolicitud, "renovacion");
   assert.equal(stored.type, "Renovación");
-  assert.deepEqual(stored.days, ["Martes", "Jueves"], "conserva días importados cuando no hay controles de días en el formulario");
-  assert.equal(stored.diasTeletrabajoCast, "Miércoles y jueves");
-  assert.equal(stored.diasTeletrabajoEus, "Asteazkena eta osteguna");
+  assert.deepEqual(JSON.parse(JSON.stringify(stored.days)), ["X", "J"], "guarda los códigos visuales seleccionados en los checks");
+  assert.deepEqual(JSON.parse(JSON.stringify(stored.diasCastellano)), ["Miércoles", "Jueves"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(stored.diasEuskera)), ["Asteazkena", "Osteguna"]);
+  assert.equal(stored.diasTeletrabajoCast, "Miércoles, Jueves");
+  assert.equal(stored.diasTeletrabajoEus, "Asteazkena, Osteguna");
   assert.equal(stored.porcentajeTeletrabajo, "50%");
   assert.equal(stored.fechaInicioTeletrabajoCast, "2026-10-01");
   assert.equal(stored.fechaFinTeletrabajoCast, "2027-07-31");
@@ -164,12 +168,13 @@ async function run() {
   const reopenedContext = createTeleworkEditContext();
   reopenedContext.storage.set("rrll_telework", JSON.parse(JSON.stringify(storage.get("rrll_telework"))));
   const reopened = reopenedContext.context.window.TeletrabajoModule.getTeleworkItems()[0];
-  assert.equal(reopened.diasTeletrabajoCast, "Miércoles y jueves");
+  assert.equal(reopened.diasTeletrabajoCast, "Miércoles, Jueves");
   assert.equal(reopened.porcentajeTeletrabajo, "50%");
   assert.equal(reopened.fechaFinTeletrabajoCast, "2027-07-31");
   assert.equal(reopened.observations, "Observación modificada");
   assert.equal(reopened.status, "telework-approved");
-  assert.deepEqual(reopened.days, ["Martes", "Jueves"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(reopened.days)), ["X", "J"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(reopened.diasEuskera)), ["Asteazkena", "Osteguna"]);
 }
 
 run().then(() => console.log("teletrabajo edit persistence smoke test passed"));
