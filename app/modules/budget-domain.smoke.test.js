@@ -32,6 +32,8 @@ assert.equal(BudgetDomain.calculateBudgetTicketGroupYear(calendarGroup, legacySc
 assert.equal(BudgetDomain.calculateBudgetTicketGroupMonth({ ...calendarGroup, absence_rate: 0.1 }, legacyScenario, 1, context), 180);
 assert.equal(BudgetDomain.calculateBudgetTicketGroupMonth({ ...calendarGroup, ticket_amount: 15 }, legacyScenario, 1, context), 282);
 assert.equal(BudgetDomain.calculateBudgetTicketGroupMonth({ calculation_type: "manual_tickets", manual_tickets: 50 }, legacyScenario, 1, context), 500);
+assert.equal(BudgetDomain.calculateBudgetTicketGroupMonth({ calculation_type: "annual_tickets", annual_tickets: 120 }, legacyScenario, 1, context), 100);
+assert.equal(BudgetDomain.calculateBudgetTicketGroupYear({ calculation_type: "annual_tickets", annual_tickets: 120, ticket_amount: 12 }, legacyScenario, { countTicketDaysForCalendar: () => { throw new Error("No debe consultar calendario"); } }).totalTicket, 1440);
 assert.equal(BudgetDomain.calculateBudgetTicketGroupMonth({ calculation_type: "manual_amount", manual_monthly_amount: 650 }, legacyScenario, 1, context), 650);
 
 // El mismo escenario se simula en otro año sin duplicarlo y agosto queda explícitamente a cero por calendario.
@@ -56,5 +58,8 @@ assert.equal(exportable.summary.totalScenario, 3042.4);
 assert.equal(exportable.monthly[7].totalTicket, 0);
 assert.deepEqual(exportable.manualItems[0], { concept: "Formación", type: "Desarrollo", monthlyAmount: 100, annualAmount: undefined, totalCalculated: 1200 });
 assert.equal(exportable.ticketGroups[0].totalCalculated, 1842.4);
+const annualExportable = BudgetDomain.buildBudgetScenarioExportData({ ticketGroups: [{ name: "Estimación", calculation_type: "annual_tickets", annual_tickets: 120, ticket_amount: 12, people_count: 99, absence_rate: 0.5, ticket_calendar: "No usado" }], scenario: legacyScenario, context: { countTicketDaysForCalendar: () => { throw new Error("No debe consultar calendario"); } }, simulationYear: 2027 });
+assert.equal(annualExportable.summary.totalTicket, 1440);
+assert.deepEqual(annualExportable.ticketGroups[0], { name: "Estimación", calendar: "", type: "annual_tickets", people: 0, annualTickets: 120, manualTickets: 0, manualAmount: 0, ticketAmount: 12, absenceRate: 0, totalCalculated: 1440 });
 
 console.log("budget-domain smoke test passed");

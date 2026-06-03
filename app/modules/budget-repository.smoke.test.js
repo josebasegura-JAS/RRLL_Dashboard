@@ -23,7 +23,9 @@ const { createBudgetRepository } = require("./budget-repository");
   assert.equal(repository.getBudgetManualItems(scenarioId)[0].concept, "Formación");
 
   const groupId = repository.saveBudgetTicketGroup({ scenario_id: scenarioId, name: "Oficinas", people_count: 10, ticket_calendar: "Servicios Centrales", absence_rate: 0.08, calculation_type: "calendar_people" });
+  const annualGroupId = repository.saveBudgetTicketGroup({ scenario_id: scenarioId, name: "Estimación anual", calculation_type: "annual_tickets", annual_tickets: 240, ticket_amount: 12, notes: "Preliminar" });
   assert.equal(repository.getBudgetTicketGroups(scenarioId)[0].absence_rate, 0.08);
+  assert.equal(repository.getBudgetTicketGroups(scenarioId).find(group => group.id === annualGroupId).annual_tickets, 240);
 
   const duplicateId = repository.duplicateBudgetScenario(scenarioId, "Presupuesto duplicado");
   assert.notEqual(duplicateId, scenarioId);
@@ -33,10 +35,11 @@ const { createBudgetRepository } = require("./budget-repository");
   const duplicateItems = repository.getBudgetManualItems(duplicateId);
   const duplicateGroups = repository.getBudgetTicketGroups(duplicateId);
   assert.equal(duplicateItems.length, 1);
-  assert.equal(duplicateGroups.length, 1);
+  assert.equal(duplicateGroups.length, 2);
   assert.notEqual(duplicateItems[0].id, itemId);
   assert.notEqual(duplicateGroups[0].id, groupId);
   assert.equal(duplicateGroups[0].absence_rate, 0.08);
+  assert.equal(duplicateGroups.find(group => group.name === "Estimación anual").annual_tickets, 240);
 
   repository.saveBudgetManualItem({ id: duplicateItems[0].id, scenario_id: duplicateId, concept: "Copia independiente", monthly_amount: 100 });
   repository.saveBudgetTicketGroup({ id: duplicateGroups[0].id, scenario_id: duplicateId, name: "Copia", people_count: 5, ticket_calendar: "Servicios Centrales", absence_rate: 0.03, calculation_type: "calendar_people" });
@@ -53,6 +56,7 @@ const { createBudgetRepository } = require("./budget-repository");
 
   repository.deleteBudgetManualItem(itemId);
   repository.deleteBudgetTicketGroup(groupId);
+  repository.deleteBudgetTicketGroup(annualGroupId);
   assert.equal(repository.getBudgetManualItems(scenarioId).length, 0);
   assert.equal(repository.getBudgetTicketGroups(scenarioId).length, 0);
   assert.deepEqual(db.exec("SELECT id, value FROM untouched_module")[0].values, [["keep", "intact"]]);
