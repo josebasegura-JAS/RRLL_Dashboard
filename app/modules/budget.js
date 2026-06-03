@@ -13,6 +13,9 @@ let rrllBudgetActualComparisonData = null;
 let rrllBudgetActualDashboardData = null;
 const RRLL_BUDGET_ACTUAL_BLOCKS = ["Ticket Restaurante", "Formación", "Vestuario", "Consultoría", "Reconocimientos médicos", "Gastos sindicales", "Otros"];
 const RRLL_BUDGET_TICKET_TYPE_LABELS = Object.freeze({ calendar_people: "Calendario × personas", manual_tickets: "Tickets manuales / mes", manual_amount: "Importe mensual manual", annual_tickets: "Tickets anuales" });
+const RRLL_BUDGET_TICKET_RECALCULATE_DEBOUNCE_MS = 400;
+let rrllBudgetTicketRecalculateTimer = null;
+let rrllBudgetTicketRecalculateSequence = 0;
 
 function rrllBudgetBridge() { return window.rrllDB || null; }
 function rrllBudgetScenario() { return rrllBudgetScenarios.find(item => item.id === rrllBudgetSelectedScenarioId) || null; }
@@ -25,6 +28,8 @@ function rrllBudgetRate(id, fallback = null) { const value = document.getElement
 function rrllBudgetAssert(condition, message) { if (!condition) throw new Error(message); }
 function rrllBudgetTicketTypeLabel(type) { return RRLL_BUDGET_TICKET_TYPE_LABELS[type] || type || "—"; }
 function rrllBudgetResult(result) { if (!result || !result.ok) throw new Error(result && result.message ? result.message : "No se pudo guardar el presupuesto."); return result; }
+function rrllBudgetClearTicketRecalculateTimer() { const clearTimer = window.clearTimeout || (typeof clearTimeout === "function" ? clearTimeout : null); if (clearTimer && rrllBudgetTicketRecalculateTimer) clearTimer(rrllBudgetTicketRecalculateTimer); rrllBudgetTicketRecalculateTimer = null; }
+function rrllBudgetSetTicketRecalculateTimer(callback) { const setTimer = window.setTimeout || (typeof setTimeout === "function" ? setTimeout : null); rrllBudgetTicketRecalculateTimer = setTimer ? setTimer(callback, RRLL_BUDGET_TICKET_RECALCULATE_DEBOUNCE_MS) : null; }
 function rrllBudgetSimulationYear(scenario = rrllBudgetScenario()) { return scenario ? (rrllBudgetSimulationYears.get(scenario.id) || BudgetDomain.resolveBudgetSimulationYear(scenario)) : new Date().getFullYear(); }
 function rrllBudgetSimulationYearError(message = "") { const error = document.getElementById("budgetSimulationYearError"); if (!error) return; error.textContent = message; error.classList.toggle("budget-form-hidden", !message); }
 function rrllBudgetSyncSimulationYearInput(scenario = rrllBudgetScenario()) { const input = document.getElementById("budgetSimulationYear"); if (!input) return; input.value = rrllBudgetSimulationYear(scenario); rrllBudgetSimulationYearError(); }
@@ -119,17 +124,40 @@ async function rrllBudgetCalculatedExportData() {
   return BudgetDomain.buildBudgetScenarioExportData({ manualItems: rrllBudgetManualItems, ticketGroups: rrllBudgetTicketGroups, scenario, context, simulationYear });
 }
 
-async function renderBudgetSelectedScenario() {
-  const scenario = rrllBudgetScenario(); if (!scenario) return;
+function rrllBudgetCalculationTime(date = new Date()) { return date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
+function rrllBudgetCalculationFeedback(message, { calculated = false } = {}) {
+  const feedback = document.getElementById("budgetCalculationFeedback");
+  const lastCalculation = document.getElementById("budgetLastCalculation");
+  if (feedback) feedback.textContent = message;
+  if (calculated && lastCalculation) lastCalculation.textContent = rrllBudgetCalculationTime();
+}
+async function rrllBudgetCalculateScenarioTotals(ticketGroups = rrllBudgetTicketGroups) {
+  const scenario = rrllBudgetScenario(); if (!scenario) return null;
   const simulationYear = rrllBudgetSimulationYear(scenario);
-  const needsTicketCalendars = rrllBudgetTicketGroups.some(group => group.calculation_type === "calendar_people");
+  const groups = Array.isArray(ticketGroups) ? ticketGroups : rrllBudgetTicketGroups;
+  const needsTicketCalendars = groups.some(group => group.calculation_type === "calendar_people");
   const context = needsTicketCalendars ? await rrllBudgetCalendarContext() : {};
-  const totals = BudgetDomain.calculateBudgetScenarioYear({ manualItems: rrllBudgetManualItems, ticketGroups: rrllBudgetTicketGroups, scenario, context, simulationYear });
+  return { simulationYear, context, totals: BudgetDomain.calculateBudgetScenarioYear({ manualItems: rrllBudgetManualItems, ticketGroups: groups, scenario, context, simulationYear }) };
+}
+function rrllBudgetRenderScenarioTotals({ totals, simulationYear }, { markCalculated = true } = {}) {
   document.getElementById("budgetSimulatedYear").textContent = simulationYear;
   document.getElementById("budgetMonthlyYear").textContent = simulationYear;
   document.getElementById("budgetSummaryManual").textContent = rrllBudgetMoney(totals.totalManual);
   document.getElementById("budgetSummaryTicket").textContent = rrllBudgetMoney(totals.totalTicket);
   document.getElementById("budgetSummaryTotal").textContent = rrllBudgetMoney(totals.totalScenario);
+  document.getElementById("budgetMonthlyRows").innerHTML = totals.byMonth.map(item => `<tr><td>${RRLL_BUDGET_MONTH_NAMES[item.month - 1]}</td><td>${rrllBudgetMoney(item.totalManual)}</td><td>${rrllBudgetMoney(item.totalTicket)}</td><td><strong>${rrllBudgetMoney(item.totalScenario)}</strong></td></tr>`).join("");
+  document.getElementById("budgetYearManual").textContent = rrllBudgetMoney(totals.totalManual);
+  document.getElementById("budgetYearTicket").textContent = rrllBudgetMoney(totals.totalTicket);
+  document.getElementById("budgetYearTotal").textContent = rrllBudgetMoney(totals.totalScenario);
+  if (markCalculated) rrllBudgetCalculationFeedback("Ticket Restaurante y Total escenario actualizados.", { calculated: true });
+}
+
+async function renderBudgetSelectedScenario() {
+  const scenario = rrllBudgetScenario(); if (!scenario) return;
+  const calculated = await rrllBudgetCalculateScenarioTotals();
+  if (!calculated) return;
+  rrllBudgetRenderScenarioTotals(calculated);
+  const { context, simulationYear } = calculated;
   document.getElementById("budgetManualItemRows").innerHTML = rrllBudgetManualItems.length ? rrllBudgetManualItems.map(item => `<tr><td>${rrllBudgetEscape(item.concept)}</td><td>${rrllBudgetEscape(item.category)}</td><td>${item.monthly_amount == null ? "—" : rrllBudgetMoney(item.monthly_amount)}</td><td>${item.annual_amount == null ? "—" : `${rrllBudgetMoney(item.annual_amount)} <small>(prevalece)</small>`}</td><td><strong>${rrllBudgetMoney(BudgetDomain.calculateBudgetManualItemYear(item))}</strong></td><td>${rrllBudgetEscape(item.notes)}</td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetManualItem('${item.id}')">Editar</button><button class="danger" type="button" onclick="deleteBudgetManualItem('${item.id}')">Eliminar</button></div></td></tr>`).join("") : '<tr><td colspan="7" class="muted">No hay partidas manuales.</td></tr>';
   document.getElementById("budgetTicketGroupRows").innerHTML = rrllBudgetTicketGroups.length ? rrllBudgetTicketGroups.map(group => {
     const type = group.calculation_type || "calendar_people";
@@ -140,10 +168,6 @@ async function renderBudgetSelectedScenario() {
     const calendar = type === "calendar_people" ? group.ticket_calendar : "";
     return `<tr><td>${rrllBudgetEscape(group.name)}</td><td>${type === "calendar_people" ? group.people_count : "—"}</td><td>${rrllBudgetEscape(calendar || "—")}</td><td>${absence}</td><td>${amount}</td><td>${rrllBudgetEscape(rrllBudgetTicketTypeLabel(type))}</td><td>${tickets}</td><td><strong>${rrllBudgetMoney(annual)}</strong></td><td><div class="budget-actions-inline"><button class="secondary" type="button" onclick="editBudgetTicketGroup('${group.id}')">Editar</button><button class="danger" type="button" onclick="deleteBudgetTicketGroup('${group.id}')">Eliminar</button></div></td></tr>`;
   }).join("") : '<tr><td colspan="9" class="muted">No hay grupos Ticket.</td></tr>';
-  document.getElementById("budgetMonthlyRows").innerHTML = totals.byMonth.map(item => `<tr><td>${RRLL_BUDGET_MONTH_NAMES[item.month - 1]}</td><td>${rrllBudgetMoney(item.totalManual)}</td><td>${rrllBudgetMoney(item.totalTicket)}</td><td><strong>${rrllBudgetMoney(item.totalScenario)}</strong></td></tr>`).join("");
-  document.getElementById("budgetYearManual").textContent = rrllBudgetMoney(totals.totalManual);
-  document.getElementById("budgetYearTicket").textContent = rrllBudgetMoney(totals.totalTicket);
-  document.getElementById("budgetYearTotal").textContent = rrllBudgetMoney(totals.totalScenario);
 }
 
 function rrllBudgetExcelRows(data) {
@@ -284,12 +308,66 @@ function editBudgetManualItem(id) { openBudgetManualItemForm(rrllBudgetManualIte
 async function saveBudgetManualItemFromForm(event) { event.preventDefault(); try { const monthly = rrllBudgetInputNumber("budgetManualItemMonthly"); const annual = rrllBudgetInputNumber("budgetManualItemAnnual"); rrllBudgetAssert(document.getElementById("budgetManualItemConcept").value.trim(), "El concepto es obligatorio."); rrllBudgetAssert(monthly !== null || annual !== null, "Indica un importe mensual o anual."); rrllBudgetAssert((monthly === null || monthly >= 0) && (annual === null || annual >= 0), "Los importes no pueden ser negativos."); rrllBudgetResult(await rrllBudgetBridge().saveBudgetManualItem({ id: document.getElementById("budgetManualItemId").value || undefined, scenario_id: rrllBudgetSelectedScenarioId, concept: document.getElementById("budgetManualItemConcept").value, category: document.getElementById("budgetManualItemCategory").value, monthly_amount: monthly, annual_amount: annual, notes: document.getElementById("budgetManualItemNotes").value })); closeBudgetManualItemForm(); await refreshBudgetModule(); } catch (error) { alert(error.message); } }
 async function deleteBudgetManualItem(id) { if (!confirm("¿Eliminar esta partida manual?")) return; rrllBudgetResult(await rrllBudgetBridge().deleteBudgetManualItem(id)); await refreshBudgetModule(); }
 
+
+function rrllBudgetTicketDraftFromForm() {
+  const id = document.getElementById("budgetTicketGroupId").value || "";
+  return {
+    id: id || "__budget_ticket_group_draft__",
+    name: document.getElementById("budgetTicketGroupName").value.trim() || "Grupo Ticket sin guardar",
+    people_count: rrllBudgetInputNumber("budgetTicketGroupPeople", 0),
+    ticket_calendar: document.getElementById("budgetTicketGroupCalendar").value,
+    absence_rate: rrllBudgetRate("budgetTicketGroupAbsence", 0),
+    ticket_amount: rrllBudgetInputNumber("budgetTicketGroupAmount"),
+    calculation_type: document.getElementById("budgetTicketGroupType").value,
+    manual_tickets: rrllBudgetInputNumber("budgetTicketGroupManualTickets"),
+    annual_tickets: rrllBudgetInputNumber("budgetTicketGroupAnnualTickets"),
+    manual_monthly_amount: rrllBudgetInputNumber("budgetTicketGroupManualAmount"),
+    notes: document.getElementById("budgetTicketGroupNotes").value
+  };
+}
+function rrllBudgetTicketGroupsWithDraft() {
+  const form = document.getElementById("budgetTicketGroupForm");
+  if (!form || form.classList.contains("budget-form-hidden")) return rrllBudgetTicketGroups;
+  const draft = rrllBudgetTicketDraftFromForm();
+  const savedIndex = rrllBudgetTicketGroups.findIndex(group => group.id === draft.id);
+  if (savedIndex >= 0) return rrllBudgetTicketGroups.map((group, index) => index === savedIndex ? { ...group, ...draft } : group);
+  return [...rrllBudgetTicketGroups, draft];
+}
+async function rrllBudgetRecalculateTicketDraftTotals() {
+  const sequence = ++rrllBudgetTicketRecalculateSequence;
+  try {
+    const calculated = await rrllBudgetCalculateScenarioTotals(rrllBudgetTicketGroupsWithDraft());
+    if (!calculated || sequence !== rrllBudgetTicketRecalculateSequence) return;
+    rrllBudgetRenderScenarioTotals(calculated);
+  } catch (error) {
+    if (sequence === rrllBudgetTicketRecalculateSequence) rrllBudgetCalculationFeedback(error.message || "No se pudo recalcular el resumen Ticket.");
+  }
+}
+function scheduleBudgetTicketGroupRecalculation() {
+  rrllBudgetClearTicketRecalculateTimer();
+  rrllBudgetCalculationFeedback(`Actualizando resumen en ${RRLL_BUDGET_TICKET_RECALCULATE_DEBOUNCE_MS} ms…`);
+  rrllBudgetSetTicketRecalculateTimer(rrllBudgetRecalculateTicketDraftTotals);
+}
+function bindBudgetTicketGroupAutoRecalculation() {
+  const form = document.getElementById("budgetTicketGroupForm");
+  if (!form) return;
+  form.dataset = form.dataset || {};
+  if (form.dataset.autoRecalculateBound === "1") return;
+  form.dataset.autoRecalculateBound = "1";
+  ["budgetTicketGroupPeople", "budgetTicketGroupAnnualTickets", "budgetTicketGroupAmount", "budgetTicketGroupAbsence", "budgetTicketGroupCalendar", "budgetTicketGroupType", "budgetTicketGroupManualTickets", "budgetTicketGroupManualAmount"].forEach(id => {
+    const node = document.getElementById(id);
+    if (!node || typeof node.addEventListener !== "function") return;
+    node.addEventListener("input", scheduleBudgetTicketGroupRecalculation);
+    node.addEventListener("change", scheduleBudgetTicketGroupRecalculation);
+  });
+}
+
 async function populateBudgetTicketCalendars(selected = "") { const context = await rrllBudgetCalendarContext(); const select = document.getElementById("budgetTicketGroupCalendar"); rrllBudgetCalendarFallback = !context.calendars.length; const calendars = context.calendars.length ? context.calendars : [selected].filter(Boolean); select.innerHTML = '<option value="">Selecciona calendario</option>' + calendars.map(calendar => `<option value="${rrllBudgetEscape(calendar)}">${rrllBudgetEscape(calendar)}</option>`).join(""); select.value = selected || ""; }
-function resetBudgetTicketGroupForm() { document.getElementById("budgetTicketGroupId").value = ""; document.getElementById("budgetTicketGroupName").value = ""; document.getElementById("budgetTicketGroupType").value = "calendar_people"; document.getElementById("budgetTicketGroupPeople").value = 0; document.getElementById("budgetTicketGroupCalendar").value = ""; document.getElementById("budgetTicketGroupAbsence").value = 0; document.getElementById("budgetTicketGroupAmount").value = ""; document.getElementById("budgetTicketGroupManualTickets").value = ""; document.getElementById("budgetTicketGroupAnnualTickets").value = ""; document.getElementById("budgetTicketGroupManualAmount").value = ""; document.getElementById("budgetTicketGroupNotes").value = ""; document.querySelectorAll("#budgetTicketGroupForm input, #budgetTicketGroupForm select, #budgetTicketGroupForm textarea").forEach(node => { node.disabled = false; }); renderBudgetTicketGroupFieldVisibility(); }
-async function openBudgetTicketGroupForm(group) { if (!group) resetBudgetTicketGroupForm(); document.getElementById("budgetTicketGroupForm").classList.remove("budget-form-hidden"); if (!group) { await populateBudgetTicketCalendars(); return; } document.getElementById("budgetTicketGroupId").value = group.id || ""; document.getElementById("budgetTicketGroupName").value = group.name || ""; document.getElementById("budgetTicketGroupType").value = group.calculation_type || "calendar_people"; document.getElementById("budgetTicketGroupPeople").value = group.people_count ?? 0; await populateBudgetTicketCalendars(group.ticket_calendar || ""); document.getElementById("budgetTicketGroupAbsence").value = group.absence_rate == null ? "0" : group.absence_rate * 100; document.getElementById("budgetTicketGroupAmount").value = group.ticket_amount ?? ""; document.getElementById("budgetTicketGroupManualTickets").value = group.manual_tickets ?? ""; document.getElementById("budgetTicketGroupAnnualTickets").value = group.annual_tickets ?? ""; document.getElementById("budgetTicketGroupManualAmount").value = group.manual_monthly_amount ?? ""; document.getElementById("budgetTicketGroupNotes").value = group.notes || ""; renderBudgetTicketGroupFieldVisibility(); }
-function closeBudgetTicketGroupForm() { resetBudgetTicketGroupForm(); document.getElementById("budgetTicketGroupForm").classList.add("budget-form-hidden"); }
+function resetBudgetTicketGroupForm() { rrllBudgetClearTicketRecalculateTimer(); document.getElementById("budgetTicketGroupId").value = ""; document.getElementById("budgetTicketGroupName").value = ""; document.getElementById("budgetTicketGroupType").value = "calendar_people"; document.getElementById("budgetTicketGroupPeople").value = 0; document.getElementById("budgetTicketGroupCalendar").value = ""; document.getElementById("budgetTicketGroupAbsence").value = 0; document.getElementById("budgetTicketGroupAmount").value = ""; document.getElementById("budgetTicketGroupManualTickets").value = ""; document.getElementById("budgetTicketGroupAnnualTickets").value = ""; document.getElementById("budgetTicketGroupManualAmount").value = ""; document.getElementById("budgetTicketGroupNotes").value = ""; document.querySelectorAll("#budgetTicketGroupForm input, #budgetTicketGroupForm select, #budgetTicketGroupForm textarea").forEach(node => { node.disabled = false; }); renderBudgetTicketGroupFieldVisibility(false); }
+async function openBudgetTicketGroupForm(group) { bindBudgetTicketGroupAutoRecalculation(); if (!group) resetBudgetTicketGroupForm(); document.getElementById("budgetTicketGroupForm").classList.remove("budget-form-hidden"); if (!group) { await populateBudgetTicketCalendars(); return; } document.getElementById("budgetTicketGroupId").value = group.id || ""; document.getElementById("budgetTicketGroupName").value = group.name || ""; document.getElementById("budgetTicketGroupType").value = group.calculation_type || "calendar_people"; document.getElementById("budgetTicketGroupPeople").value = group.people_count ?? 0; await populateBudgetTicketCalendars(group.ticket_calendar || ""); document.getElementById("budgetTicketGroupAbsence").value = group.absence_rate == null ? "0" : group.absence_rate * 100; document.getElementById("budgetTicketGroupAmount").value = group.ticket_amount ?? ""; document.getElementById("budgetTicketGroupManualTickets").value = group.manual_tickets ?? ""; document.getElementById("budgetTicketGroupAnnualTickets").value = group.annual_tickets ?? ""; document.getElementById("budgetTicketGroupManualAmount").value = group.manual_monthly_amount ?? ""; document.getElementById("budgetTicketGroupNotes").value = group.notes || ""; renderBudgetTicketGroupFieldVisibility(false); scheduleBudgetTicketGroupRecalculation(); }
+function closeBudgetTicketGroupForm() { resetBudgetTicketGroupForm(); document.getElementById("budgetTicketGroupForm").classList.add("budget-form-hidden"); rrllBudgetClearTicketRecalculateTimer(); rrllBudgetRecalculateTicketDraftTotals(); }
 function editBudgetTicketGroup(id) { openBudgetTicketGroupForm(rrllBudgetTicketGroups.find(item => item.id === id)); }
-function renderBudgetTicketGroupFieldVisibility() { const type = document.getElementById("budgetTicketGroupType").value; const shown = type === "calendar_people" ? ["people", "calendar", "absence", "ticket-amount"] : type === "manual_tickets" ? ["manual-tickets", "ticket-amount"] : type === "annual_tickets" ? ["annual-tickets", "ticket-amount"] : ["manual-amount"]; document.querySelectorAll("[data-budget-ticket-field]").forEach(node => node.classList.toggle("budget-form-hidden", !shown.includes(node.dataset.budgetTicketField))); }
+function renderBudgetTicketGroupFieldVisibility(schedule = true) { const type = document.getElementById("budgetTicketGroupType").value; const shown = type === "calendar_people" ? ["people", "calendar", "absence", "ticket-amount"] : type === "manual_tickets" ? ["manual-tickets", "ticket-amount"] : type === "annual_tickets" ? ["annual-tickets", "ticket-amount"] : ["manual-amount"]; document.querySelectorAll("[data-budget-ticket-field]").forEach(node => node.classList.toggle("budget-form-hidden", !shown.includes(node.dataset.budgetTicketField))); if (schedule) scheduleBudgetTicketGroupRecalculation(); }
 async function saveBudgetTicketGroupFromForm(event) { event.preventDefault(); try { const type = document.getElementById("budgetTicketGroupType").value; const people = rrllBudgetInputNumber("budgetTicketGroupPeople", 0); const absence = rrllBudgetRate("budgetTicketGroupAbsence", 0); const ticketAmount = rrllBudgetInputNumber("budgetTicketGroupAmount"); const manualTickets = rrllBudgetInputNumber("budgetTicketGroupManualTickets"); const annualTickets = rrllBudgetInputNumber("budgetTicketGroupAnnualTickets"); const manualAmount = rrllBudgetInputNumber("budgetTicketGroupManualAmount"); const calendar = document.getElementById("budgetTicketGroupCalendar").value; const context = type === "calendar_people" ? await rrllBudgetCalendarContext() : null; rrllBudgetAssert(document.getElementById("budgetTicketGroupName").value.trim(), "El nombre del grupo es obligatorio."); rrllBudgetAssert(["calendar_people", "manual_tickets", "manual_amount", "annual_tickets"].includes(type), "Selecciona un tipo de cálculo válido."); rrllBudgetAssert(Number.isFinite(people) && people >= 0, "El número de personas no puede ser negativo."); rrllBudgetAssert(absence === null || (Number.isFinite(absence) && absence >= 0 && absence <= 1), "El absentismo propio debe estar entre 0 % y 100 %."); rrllBudgetAssert(ticketAmount === null || (Number.isFinite(ticketAmount) && ticketAmount >= 0), "El importe ticket propio no puede ser negativo."); if (type === "calendar_people") { rrllBudgetAssert(calendar, "Selecciona un calendario Ticket."); rrllBudgetAssert(context.isKnownTicketCalendar(calendar) || rrllBudgetCalendarFallback, "El calendario Ticket seleccionado no está disponible."); } if (type === "manual_tickets") rrllBudgetAssert(Number.isFinite(manualTickets) && manualTickets >= 0, "Indica tickets manuales válidos."); if (type === "annual_tickets") rrllBudgetAssert(Number.isFinite(annualTickets) && annualTickets >= 0, "Indica tickets anuales válidos."); if (type === "manual_amount") rrllBudgetAssert(Number.isFinite(manualAmount) && manualAmount >= 0, "Indica un importe mensual manual válido."); rrllBudgetResult(await rrllBudgetBridge().saveBudgetTicketGroup({ id: document.getElementById("budgetTicketGroupId").value || undefined, scenario_id: rrllBudgetSelectedScenarioId, name: document.getElementById("budgetTicketGroupName").value, people_count: people, ticket_calendar: calendar, absence_rate: absence, ticket_amount: ticketAmount, calculation_type: type, manual_tickets: manualTickets, annual_tickets: annualTickets, manual_monthly_amount: manualAmount, notes: document.getElementById("budgetTicketGroupNotes").value })); closeBudgetTicketGroupForm(); await refreshBudgetModule(); } catch (error) { alert(error.message); } }
 async function deleteBudgetTicketGroup(id) { if (!confirm("¿Eliminar este grupo Ticket?")) return; rrllBudgetResult(await rrllBudgetBridge().deleteBudgetTicketGroup(id)); closeBudgetTicketGroupForm(); await refreshBudgetModule(); }
 
