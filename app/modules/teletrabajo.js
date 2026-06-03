@@ -185,6 +185,34 @@
     teleworkRuntimeSnapshot = null;
   }
 
+  function getTeleworkPlantillaSignature(items) {
+    if (!Array.isArray(items) || !items.length) return "0";
+    const first = items[0] || {};
+    const last = items[items.length - 1] || {};
+    return [
+      items.length,
+      first.id || "",
+      first.employeeNumber || "",
+      first.updatedAt || "",
+      last.id || "",
+      last.employeeNumber || "",
+      last.updatedAt || ""
+    ].map(value => String(value || "")).join("|");
+  }
+
+  function buildTeleworkPersonSearchText(person) {
+    return [
+      teleworkPersonFullName(person),
+      person?.employeeNumber,
+      person?.job,
+      person?.puesto,
+      person?.puestoCast,
+      person?.puestoEus,
+      person?.direccionArea,
+      person?.unidad
+    ].map(normalizeTeleworkLookup).filter(Boolean).join(" ");
+  }
+
   function readTeleworkPlantillaItems() {
     try {
       if (typeof getPlantilla === "function") {
@@ -210,19 +238,41 @@
   }
 
   function getTeleworkRuntimeSnapshot(options = {}) {
-    if (options.force || !teleworkRuntimeSnapshot) {
+    if (options.force) invalidateTeleworkRuntimeSnapshot();
+    if (!teleworkRuntimeSnapshot) {
       const plantilla = readTeleworkPlantillaItems();
       const plantillaByEmployee = new Map();
+      const plantillaById = new Map();
+      const plantillaSearchIndex = [];
+
       plantilla.forEach(person => {
-        const key = normalizeTeleworkEmployeeKey(person && person.employeeNumber);
-        if (key && !plantillaByEmployee.has(key)) plantillaByEmployee.set(key, person);
+        const employeeKey = normalizeTeleworkEmployeeKey(person && person.employeeNumber);
+        const idKey = String(person && person.id || "").trim();
+        if (employeeKey && !plantillaByEmployee.has(employeeKey)) plantillaByEmployee.set(employeeKey, person);
+        if (idKey && !plantillaById.has(idKey)) plantillaById.set(idKey, person);
+        plantillaSearchIndex.push({
+          person,
+          id: idKey,
+          employeeKey,
+          fullName: teleworkPersonFullName(person),
+          searchText: buildTeleworkPersonSearchText(person)
+        });
       });
+
       const catalog = getTeleworkJobCatalog();
       const catalogByJob = new Map();
       catalog.forEach(item => {
         if (item.jobKey && !catalogByJob.has(item.jobKey)) catalogByJob.set(item.jobKey, item);
       });
-      teleworkRuntimeSnapshot = { plantilla, plantillaByEmployee, catalog, catalogByJob };
+      teleworkRuntimeSnapshot = {
+        plantilla,
+        plantillaByEmployee,
+        plantillaById,
+        plantillaSearchIndex,
+        catalog,
+        catalogByJob,
+        plantillaSignature: getTeleworkPlantillaSignature(plantilla)
+      };
     }
     return teleworkRuntimeSnapshot;
   }
@@ -667,7 +717,7 @@
 
     // La ficha de Plantilla se consulta mediante una snapshot en memoria.
     // Si no se invalida, la generación Word puede leer la versión anterior.
-    teleworkRuntimeSnapshot = null;
+    invalidateTeleworkRuntimeSnapshot();
     return true;
   }
 
@@ -712,15 +762,11 @@
       hideTeleworkSuggestions(prefix);
       return;
     }
-    const results = getPlantillaForTelework()
-      .filter(person => {
-        const name = normalizeTeleworkLookup(teleworkPersonFullName(person));
-        const employee = normalizeTeleworkLookup(person.employeeNumber);
-        const job = normalizeTeleworkLookup(person.job);
-        return name.includes(query) || employee.includes(query) || job.includes(query);
-      })
-      .sort((a, b) => String(teleworkPersonFullName(a) || "").localeCompare(String(teleworkPersonFullName(b) || ""), "es", { sensitivity: "base" }))
-      .slice(0, 8);
+    const results = getTeleworkRuntimeSnapshot().plantillaSearchIndex
+      .filter(entry => entry.searchText.includes(query))
+      .sort((a, b) => String(a.fullName || "").localeCompare(String(b.fullName || ""), "es", { sensitivity: "base" }))
+      .slice(0, 8)
+      .map(entry => entry.person);
 
     if (!results.length) {
       box.innerHTML = `<div class="rrll-autocomplete-empty">Sin coincidencias en Plantilla. Puedes continuar con entrada manual.</div>`;
@@ -738,7 +784,7 @@
   }
 
   function selectTeleworkPerson(personId, prefix = "new") {
-    const person = getPlantillaForTelework().find(item => String(item.id) === String(personId));
+    const person = getTeleworkRuntimeSnapshot().plantillaById.get(String(personId || "").trim());
     if (person) fillTeleworkPerson(person, prefix);
   }
 
@@ -2712,10 +2758,12 @@
     teleworkDaysChanged,
     writeTeleworkField,
     repairTeleworkItemsFromPlantilla,
-    getTeleworkRuntimeSnapshot
+    getTeleworkRuntimeSnapshot,
+    invalidateTeleworkRuntimeSnapshot
   };
 
   window.TeletrabajoModule = api;
+  window.invalidateTeleworkRuntimeSnapshot = invalidateTeleworkRuntimeSnapshot;
   window.getTeleworkItems = getTeleworkItems;
   window.setTeleworkItems = setTeleworkItems;
   window.toggleTeleworkCreateForm = toggleTeleworkCreateForm;

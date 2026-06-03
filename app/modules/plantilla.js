@@ -141,9 +141,20 @@
     return sanitized;
   }
 
+  function notifyPlantillaChangedForTelework() {
+    try {
+      if (typeof window.invalidateTeleworkRuntimeSnapshot === "function") window.invalidateTeleworkRuntimeSnapshot();
+      if (typeof window.dispatchEvent === "function") window.dispatchEvent(new CustomEvent("rrll:plantilla-updated"));
+    } catch (error) {
+      console.warn("No se pudo invalidar la caché de Teletrabajo tras actualizar Plantilla:", error);
+    }
+  }
+
   function setPlantilla(items, options = {}) {
     const sanitizedItems = Array.isArray(items) ? items.map(stripDeprecatedPlantillaTeleworkFields) : [];
-    return save(KEY, sanitizedItems, options);
+    const result = save(KEY, sanitizedItems, options);
+    Promise.resolve(result).then(notifyPlantillaChangedForTelework, () => {});
+    return result;
   }
 
   function normalizeEmployeeNumber(value) {
