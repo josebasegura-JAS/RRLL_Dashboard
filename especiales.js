@@ -79,7 +79,7 @@
   function buildEspecialesHtmlBody(payload = {}) {
     const evento = String(payload.evento || "").trim();
     const fecha = String(payload.fecha || "").trim();
-    const intranetRaw = String(payload.intranetParagraph || payload.intranetLine || payload.enlace || payload.intranetName || "").trim();
+    const intranetRaw = String(payload.intranetParagraph || payload.intranetLine || payload.enlace || payload.intranetName || "").replace(/\s+/g, " ").trim();
     const dateParts = getDateParts(fecha);
     const year = dateParts.year || detectYearFromText(`${evento} ${fecha} ${getEspecialesMailSubject(payload)}`) || String(new Date().getFullYear());
     const ruta = String(payload.ruta || "").trim() || buildTurnosPath(year);
@@ -99,12 +99,22 @@
     ].join("");
   }
 
+
+  function getEspecialesIntranetFieldValue() {
+    const input = document.getElementById("especialesEnlace");
+    return String(input && input.value ? input.value : "").replace(/\s+/g, " ").trim();
+  }
+
   function collectServiceData() {
+    const intranetField = getEspecialesIntranetFieldValue();
     return {
       evento: String(document.getElementById("especialesEvento")?.value || "").trim(),
       fecha: String(document.getElementById("especialesFecha")?.value || "").trim(),
       hora: String(document.getElementById("especialesHora")?.value || "").trim(),
-      enlace: String(document.getElementById("especialesEnlace")?.value || "").trim(),
+      enlace: intranetField,
+      intranetLine: intranetField,
+      intranetParagraph: intranetField,
+      intranetName: stripIntranetNameFromParagraph(intranetField),
       ruta: String(document.getElementById("especialesRuta")?.value || "").trim(),
       observaciones: String(document.getElementById("especialesObservaciones")?.value || "").trim(),
       msgSubject: selectedMsgSubject
@@ -603,7 +613,10 @@
     selectedMsgSubject = String(data.subject || "").trim();
     const setValue = (id, value) => {
       const input = document.getElementById(id);
-      if (input && value) input.value = value;
+      if (input && value) {
+        input.value = value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
     };
     setValue("especialesEvento", data.evento || data.subject);
     setValue("especialesFecha", data.fecha);
