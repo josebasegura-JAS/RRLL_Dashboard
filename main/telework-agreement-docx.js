@@ -30,8 +30,7 @@ const TELEWORK_AGREEMENT_MARKER_MAP = [
   ["M_1ºdata", "fechaInicioTeletrabajoEusFormatted"],
   ["«M_2ºdata»", "fechaFinTeletrabajoEusFormatted"],
   ["M_2ºdata", "fechaFinTeletrabajoEusFormatted"],
-  ["«fecha»", "fechaPeriodoCast"],
-  ["fecha", "fechaPeriodoCast"]
+  ["«fecha»", "fechaPeriodoCast"]
 ];
 
 const TELEWORK_AGREEMENT_REQUIRED_FIELDS = [
@@ -178,8 +177,25 @@ function replaceMarkersInTextNodes(xml, replacements, foundMarkers) {
   });
   if (!occurrences.length) return xml;
 
-  occurrences.sort((a, b) => b.index - a.index);
-  occurrences.forEach(occurrence => {
+  // Some Word templates contain both guillemet markers (for example «M_1ºdata»)
+  // and the same token can also be searched without guillemets for legacy templates
+  // (M_1ºdata). Those matches overlap in the text stream. Applying both corrupts
+  // the output by replacing the same placeholder twice and can duplicate dates.
+  // Keep only one non-overlapping match, preferring the longest/specific marker.
+  const selectedOccurrences = [];
+  const occupied = new Array(fullText.length).fill(false);
+  occurrences
+    .sort((a, b) => a.index - b.index || (b.end - b.index) - (a.end - a.index))
+    .forEach(occurrence => {
+      for (let pos = occurrence.index; pos < occurrence.end; pos += 1) {
+        if (occupied[pos]) return;
+      }
+      for (let pos = occurrence.index; pos < occurrence.end; pos += 1) occupied[pos] = true;
+      selectedOccurrences.push(occurrence);
+    });
+
+  selectedOccurrences.sort((a, b) => b.index - a.index);
+  selectedOccurrences.forEach(occurrence => {
     const start = charMap[occurrence.index];
     const end = charMap[occurrence.end - 1];
     if (!start || !end) return;
