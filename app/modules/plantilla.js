@@ -1550,7 +1550,7 @@
       const summary = await applyPlantillaImport(rows);
       renderPlantilla({ resetPage: true });
       if (typeof updateQuickCounts === 'function') updateQuickCounts();
-      if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
       const message = `Importación completada. Creadas: ${summary.created}. Actualizadas: ${summary.updated}. Sin cambios: ${summary.unchanged}. Filas ignoradas: ${summary.skipped}. Errores: ${summary.errors}. Total final guardado: ${summary.total}.`;
       if (summaryEl) summaryEl.textContent = message;
       alert(message);
@@ -1574,7 +1574,7 @@
       const summary = await applyCargosImport(rows);
       renderPlantilla({ preserveView: true });
       if (typeof updateQuickCounts === 'function') updateQuickCounts();
-      if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
       const message = `Importación de cargos completada. Cargos incorporados/actualizados: ${summary.imported}. Duplicados sin cambios: ${summary.duplicates}. Filas ignoradas: ${summary.skipped}. Personas actualizadas con Puesto EUS: ${summary.appliedToPlantilla}. Diccionario total guardado: ${summary.persisted || summary.total}.`;
       if (summaryEl) summaryEl.textContent = message;
       alert(message);
