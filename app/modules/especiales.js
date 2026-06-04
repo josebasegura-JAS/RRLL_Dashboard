@@ -50,6 +50,7 @@
   }
 
   function buildEspecialesBullet(payload = {}) {
+    if (payload.messageTitle) return String(payload.messageTitle || "").trim();
     const subject = getEspecialesMailSubject(payload);
     return `Servicio Especial ${subject || "[ASUNTO]"}`.trim();
   }
@@ -247,11 +248,13 @@
 
     try {
       setOutlookStatus("Preparando borrador...");
+      const messageTitle = buildEspecialesBullet(availability.data);
+      const messageData = { ...availability.data, messageTitle };
       const payload = {
         to: availability.toRecipients.map(x => x.email).join("; "),
         cc: availability.ccRecipients.map(x => x.email).join("; "),
-        subject: buildEspecialesSubject(availability.data),
-        htmlBody: buildEspecialesHtmlBody(availability.data)
+        subject: messageTitle,
+        htmlBody: buildEspecialesHtmlBody(messageData)
       };
       setOutlookStatus("Llamando a Outlook...");
       const result = await window.rrllOutlook.createDraft(payload);
