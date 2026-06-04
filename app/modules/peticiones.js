@@ -717,16 +717,19 @@
       updatePetitionSortHeaders();
 
       if (tableBody) {
-        tableBody.innerHTML = filtered.map(renderPetitionRow).join("");
-        tableBody.querySelectorAll(".rrll-petition-row").forEach(row => {
-          row.addEventListener("dblclick", event => {
-            if (event.target && event.target.closest && event.target.closest("button, a, input, select, textarea, label")) return;
+        if (!tableBody.dataset.rrllPetitionDblclickBound) {
+          tableBody.dataset.rrllPetitionDblclickBound = "1";
+          tableBody.addEventListener("dblclick", event => {
+            if (event.target && event.target.closest && event.target.closest("button, a, input, select, textarea, label, .rrll-pro-actions, .rrll-column-resize-handle")) return;
+            const row = event.target && event.target.closest ? event.target.closest(".rrll-petition-row") : null;
+            if (!row || !tableBody.contains(row)) return;
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             const id = row.id.replace("rrll-petition-", "");
             openPetitionUpdateModal(id);
-          });
-        });
+          }, true);
+        }
+        tableBody.innerHTML = filtered.map(renderPetitionRow).join("");
       } else {
         ["petition-pending", "petition-progress", "petition-closed"].forEach(status => {
           const el = document.getElementById(status);

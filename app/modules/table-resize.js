@@ -3,7 +3,9 @@
 
   const STORAGE_PREFIX = "rrll_table_columns_v2";
   const MIN_WIDTH = 72;
+  const MAX_WIDTH = 460;
   const ACTION_MIN_WIDTH = 150;
+  const ACTION_MAX_WIDTH = 360;
   const ACTION_PREFERRED_WIDTH = 220;
   const HANDLE_CLASS = "rrll-column-resize-handle";
   const ENHANCED_CLASS = "rrll-resizable-table";
@@ -65,6 +67,16 @@
     return isActionHeader(th) ? ACTION_MIN_WIDTH : MIN_WIDTH;
   }
 
+  function maxWidthForHeader(th) {
+    return isActionHeader(th) ? ACTION_MAX_WIDTH : MAX_WIDTH;
+  }
+
+  function clampColumnWidth(th, width) {
+    const numeric = Number(width);
+    if (!Number.isFinite(numeric) || numeric <= 0) return minWidthForHeader(th);
+    return Math.min(maxWidthForHeader(th), Math.max(minWidthForHeader(th), Math.round(numeric)));
+  }
+
   function preferredWidthForHeader(th) {
     return isActionHeader(th) ? ACTION_PREFERRED_WIDTH : 0;
   }
@@ -105,7 +117,7 @@
     const headers = Array.from(table.tHead?.rows?.[0]?.cells || []);
     const th = headers[index];
     if (!th) return;
-    const finalWidth = Math.max(minWidthForHeader(th), Math.round(width));
+    const finalWidth = clampColumnWidth(th, width);
     const colgroup = ensureColgroup(table, headers.length);
     const col = colgroup.children[index];
     if (col) {
@@ -133,7 +145,14 @@
       const storedWidth = Number(widths[index]);
       const fallbackWidth = preferredWidthForHeader(th);
       const minWidth = minWidthForHeader(th);
-      if (storedWidth || fallbackWidth) applyColumnWidth(table, index, Math.max(minWidth, storedWidth || fallbackWidth), false);
+      if (storedWidth || fallbackWidth) {
+        const clampedWidth = clampColumnWidth(th, storedWidth || fallbackWidth);
+        applyColumnWidth(table, index, clampedWidth, false);
+        if (storedWidth && clampedWidth !== storedWidth) {
+          widths[index] = clampedWidth;
+          writeWidths(table, widths);
+        }
+      }
       th.style.minWidth = `${minWidth}px`;
     });
   }
@@ -161,7 +180,7 @@
       width = Math.max(width, Math.ceil(cell.scrollWidth + 30));
       cell.style.width = previousWidth;
     });
-    setColumnWidth(table, index, Math.min(width, 560));
+    setColumnWidth(table, index, Math.min(width, maxWidthForHeader(th)));
   }
 
   function removeExistingHandles(table) {
@@ -210,7 +229,7 @@
     if (headers.length < 2) return;
     table.classList.add(ENHANCED_CLASS);
     table.style.tableLayout = "fixed";
-    table.style.minWidth = "max-content";
+    table.style.minWidth = "100%";
     ensureScrollableParent(table);
     ensureColgroup(table, headers.length);
     applyStoredWidths(table);
@@ -251,6 +270,20 @@
   }
 
   window.rrllEnhanceResizableTables = enhanceAllTables;
+  window.rrllResetResizableTableWidths = function rrllResetResizableTableWidths(selector) {
+    const tables = selector ? Array.from(document.querySelectorAll(selector)) : Array.from(document.querySelectorAll("table"));
+    tables.forEach(table => {
+      try { localStorage.removeItem(tableKey(table)); } catch (error) {}
+      const colgroup = table.querySelector(":scope > colgroup[data-rrll-resize=\'1\']");
+      if (colgroup) colgroup.remove();
+      table.querySelectorAll("th, td, col").forEach(cell => {
+        cell.style.width = "";
+        cell.style.minWidth = "";
+      });
+      delete table.dataset.rrllResizeKey;
+    });
+    enhanceAllTables();
+  };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initTableResize);

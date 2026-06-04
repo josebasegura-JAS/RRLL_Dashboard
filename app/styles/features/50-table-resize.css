@@ -124,6 +124,27 @@ body.rrll-column-resizing {
   align-items: flex-start;
 }
 
+/* Tareas/Peticiones: al estar gestionadas por el resize común, los mínimos antiguos
+   no deben impedir reducir columnas ni convertir Acciones en una columna gigante. */
+body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-resizable-table .rrll-table-action-cell.rrll-pro-actions {
+  min-width: 150px;
+  width: auto;
+  overflow: visible;
+}
+
+body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-resizable-table .rrll-table-action-cell.rrll-pro-actions button {
+  min-width: 0;
+}
+
+body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-resizable-table .rrll-table-action-cell.rrll-pro-actions .rrll-delete-icon-button {
+  min-width: 28px;
+  width: 28px;
+}
+
+body.rrll-view-module :is(#gestor-tareas, #gestor-peticiones) .rrll-resizable-table :is(.rrll-pro-title, .rrll-pro-subtitle, .rrll-pro-created, .rrll-pro-update) {
+  overflow-wrap: anywhere;
+}
+
 @media print {
   .rrll-column-resize-handle {
     display: none;

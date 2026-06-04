@@ -880,16 +880,19 @@
         updateTaskSortHeaders();
 
         if (tableBody) {
-          tableBody.innerHTML = filtered.map(renderTaskRow).join("");
-          tableBody.querySelectorAll(".rrll-task-row").forEach(row => {
-            row.addEventListener("dblclick", event => {
-              if (event.target && event.target.closest && event.target.closest("button, a, input, select, textarea, label")) return;
+          if (!tableBody.dataset.rrllTaskDblclickBound) {
+            tableBody.dataset.rrllTaskDblclickBound = "1";
+            tableBody.addEventListener("dblclick", event => {
+              if (event.target && event.target.closest && event.target.closest("button, a, input, select, textarea, label, .rrll-pro-actions, .rrll-column-resize-handle")) return;
+              const row = event.target && event.target.closest ? event.target.closest(".rrll-task-row") : null;
+              if (!row || !tableBody.contains(row)) return;
               event.preventDefault();
-              event.stopPropagation();
+              event.stopImmediatePropagation();
               const id = row.id.replace("rrll-task-", "");
               openTaskUpdateModal(id);
-            });
-          });
+            }, true);
+          }
+          tableBody.innerHTML = filtered.map(renderTaskRow).join("");
         }
         if (empty) empty.style.display = filtered.length ? "none" : "block";
 
