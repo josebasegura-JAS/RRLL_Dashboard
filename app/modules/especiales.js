@@ -440,10 +440,11 @@
     const match = marker.exec(normalized);
     if (!match) return "";
 
-    const afterMarker = normalized.slice(match.index + match[0].length);
-    const stopMatch = /(?:\n|\s{2,})(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo|$)/i.exec(afterMarker)
-      || /\s+(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo)\b/i.exec(afterMarker);
-    const candidate = stopMatch ? afterMarker.slice(0, stopMatch.index) : afterMarker.slice(0, 140);
+    const afterMarker = normalized.slice(match.index + match[0].length).replace(/^\s+/, "");
+    const stopPattern = /(?:\n\s*\n|\n|\s{2,})(?=\s*(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo|Alexander\b|$))/i;
+    const stopMatch = stopPattern.exec(afterMarker)
+      || /\s+(?=(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo)\b)/i.exec(afterMarker);
+    const candidate = stopMatch ? afterMarker.slice(0, stopMatch.index) : afterMarker.split(/\n/)[0];
 
     const cleaned = String(candidate || "")
       .replace(/\n+/g, " ")
