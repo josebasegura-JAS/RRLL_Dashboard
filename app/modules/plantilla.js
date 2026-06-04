@@ -153,7 +153,7 @@
   }
 
   function normalizeEmployeeNumber(value) {
-    return String(value || '').trim();
+    return String(value || '').trim().replace(/\s+/g, '').replace(/\.0+$/, '');
   }
 
   function normalizeText(value) {
@@ -406,6 +406,29 @@
   function normalizeEmployeeKey(value) {
     const raw = normalizeEmployeeNumber(value).toLowerCase();
     return raw.replace(/\.0+$/, '');
+  }
+
+  function findPlantillaDuplicateEmployee(items, employeeNumber, currentId = null) {
+    const key = normalizeEmployeeKey(employeeNumber);
+    if (!key) return null;
+    return (Array.isArray(items) ? items : []).find(item => {
+      if (!item || (currentId && item.id === currentId)) return false;
+      return normalizeEmployeeKey(item.employeeNumber) === key;
+    }) || null;
+  }
+
+  function alertPlantillaDuplicateEmployee(employeeNumber, duplicate) {
+    const name = resolveNombreCompleto(duplicate) || duplicate?.nombreCompleto || duplicate?.name || 'Sin nombre';
+    alert(`Ya existe una persona en Plantilla con el Nº empleado ${normalizeEmployeeNumber(employeeNumber)}: ${name}. No se puede guardar otro registro con el mismo número.`);
+  }
+
+  function isHomeModuleActive() {
+    try {
+      if (typeof activeModule !== 'undefined') return activeModule === 'home';
+      return window.activeModule === 'home';
+    } catch {
+      return false;
+    }
   }
 
   function readImportedLevel(row, map, headers = []) {
@@ -713,9 +736,15 @@
       return;
     }
 
+    const items = getPlantilla();
+    const duplicate = findPlantillaDuplicateEmployee(items, employeeNumber);
+    if (duplicate) {
+      alertPlantillaDuplicateEmployee(employeeNumber, duplicate);
+      return;
+    }
+
     const now = new Date().toISOString();
     const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `plant-${Date.now()}`;
-    const items = getPlantilla();
     items.push({ id, employeeNumber, nombreCompleto: name, fullName: name, name, sindicato, job, positionSeniority, level, ...teletrabajoData, createdAt: now, updatedAt: now });
     setPlantilla(items);
 
@@ -729,15 +758,57 @@
 
     renderPlantilla();
     if (typeof updateQuickCounts === 'function') updateQuickCounts();
-    if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+    if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
+  }
+
+  function plantillaDependencyRecordMatchesEmployee(record, employeeKey) {
+    if (!record || !employeeKey) return false;
+    if (Array.isArray(record)) return record.some(value => plantillaDependencyRecordMatchesEmployee(value, employeeKey));
+    if (typeof record === 'object') {
+      const employeeKeys = ['employeeNumber', 'employee_number', 'numeroEmpleado', 'numEmpleado', 'nEmpleado', 'empleado', 'idEmpleado', 'employeeId'];
+      if (employeeKeys.some(key => normalizeEmployeeKey(record[key]) === employeeKey)) return true;
+      return ['person', 'persona', 'employee', 'trabajador', 'winner', 'winners', 'raw'].some(key => plantillaDependencyRecordMatchesEmployee(record[key], employeeKey));
+    }
+    return false;
+  }
+
+  function countPlantillaDependencyItems(items, employeeKey) {
+    return (Array.isArray(items) ? items : []).filter(item => plantillaDependencyRecordMatchesEmployee(item, employeeKey)).length;
+  }
+
+  function getPlantillaDependencyWarnings(item) {
+    const employeeKey = normalizeEmployeeKey(item?.employeeNumber);
+    if (!employeeKey) return null;
+    const sources = [
+      { label: 'Teletrabajo', items: typeof getTeleworkItems === 'function' ? getTeleworkItems() : load('rrll_telework', []) },
+      { label: 'Ticket Restaurante - personas', items: load('rrll_ticket_restaurant_people', []) },
+      { label: 'Ticket Restaurante - ausencias', items: load('rrll_ticket_restaurant_absences', []) },
+      { label: 'Licencias/Excedencias', items: typeof getLicencias === 'function' ? getLicencias() : load('rrll_licencias_excedencias', []) },
+      { label: 'Vinculograma', items: typeof getVinculogramas === 'function' ? getVinculogramas() : load('rrll_vinculogramas', []) },
+      { label: 'Sorteos - exclusiones', items: load('rrll_draw_exclusions', []) },
+      { label: 'Sorteos - histórico', items: load('rrll_draws', []) }
+    ];
+    return sources
+      .map(source => ({ label: source.label, count: countPlantillaDependencyItems(source.items, employeeKey) }))
+      .filter(source => source.count > 0);
   }
 
   async function deletePlantilla(id) {
     if (!id) return;
-    if (!confirm('La persona se moverá a la papelera. ¿Continuar?')) return;
     const items = getPlantilla();
     const item = items.find(i => i.id === id);
     if (!item) return;
+    const employeeKey = normalizeEmployeeKey(item.employeeNumber);
+    if (!employeeKey) {
+      if (!confirm('No se ha podido comprobar dependencias porque la persona no tiene Nº empleado. ¿Deseas continuar?')) return;
+    } else {
+      const dependencies = getPlantillaDependencyWarnings(item);
+      if (dependencies && dependencies.length) {
+        const detail = dependencies.map(dep => `- ${dep.label}: ${dep.count} registros`).join('\n');
+        if (!confirm(`Esta persona aparece en otros módulos:\n${detail}\n¿Deseas continuar y moverla a la papelera?`)) return;
+      }
+    }
+    if (!confirm('La persona se moverá a la papelera. ¿Continuar?')) return;
     try {
       if (typeof moveToTrash === 'function') {
         try {
@@ -750,7 +821,7 @@
       renderPlantilla({ preserveView: true });
       if (typeof renderTrash === 'function') renderTrash();
       if (typeof updateQuickCounts === 'function') updateQuickCounts();
-      if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
     } catch (error) {
       console.error('No se pudo eliminar la persona de Plantilla:', error);
       alert(`No se pudo eliminar la persona: ${error.message || error}`);
@@ -902,8 +973,14 @@
       alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
       return;
     }
+    const items = getPlantilla();
+    const duplicate = findPlantillaDuplicateEmployee(items, employeeNumber, editingPlantillaId);
+    if (duplicate) {
+      alertPlantillaDuplicateEmployee(employeeNumber, duplicate);
+      return;
+    }
     try {
-      await Promise.resolve(setPlantilla(getPlantilla().map(item => item.id === editingPlantillaId ? {
+      await Promise.resolve(setPlantilla(items.map(item => item.id === editingPlantillaId ? {
         ...item,
         employeeNumber,
         nombreCompleto: name,
@@ -924,7 +1001,7 @@
     await closePlantillaEditModal();
     renderPlantilla({ preserveView: true });
     if (typeof updateQuickCounts === 'function') updateQuickCounts();
-    if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+    if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
   }
 
   async function deleteEditingPlantilla() {
@@ -1009,6 +1086,12 @@
     });
     document.querySelectorAll('#gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button').forEach(button => {
       const label = normalizeText(button.textContent);
+      const isElectoralAction = /elecciones sindicales|vista electoral|importar electoral/i.test(label);
+      if (isElectoralAction) {
+        // Electoral view intentionally disabled until the workflow is defined.
+        button.hidden = true;
+        button.disabled = true;
+      }
       const isTextAction = ['Elecciones sindicales', 'Importar cargos', 'Importar RRLL', '+ Crear plantilla', 'Crear plantilla', 'Descargar modelo'].includes(label);
       button.classList.toggle('plantilla-text-action', isTextAction);
     });
@@ -1037,15 +1120,19 @@
   }
 
   function togglePlantillaElectoralView(open) {
-    plantillaElectoralView = !!open;
-    document.getElementById('plantillaMainListView')?.classList.toggle('hidden', plantillaElectoralView);
-    document.getElementById('plantillaElectoralView')?.classList.toggle('hidden', !plantillaElectoralView);
-    renderPlantillaElectoral();
+    // Electoral view intentionally disabled until the workflow is defined.
+    plantillaElectoralView = false;
+    document.getElementById('plantillaMainListView')?.classList.remove('hidden');
+    document.getElementById('plantillaElectoralView')?.classList.add('hidden');
   }
 
   function renderPlantillaElectoral() {
+    // Electoral view intentionally disabled until the workflow is defined.
+    plantillaElectoralView = false;
     const wrap = document.getElementById('plantillaElectoralView');
-    if (!wrap || !plantillaElectoralView) return;
+    if (wrap) wrap.classList.add('hidden');
+    document.getElementById('plantillaMainListView')?.classList.remove('hidden');
+    return;
     const all = getPlantilla();
     const colegios = ['Todos', ...new Set(all.map(item => plantillaDisplayDefaults(item).colegio))];
     const mesas = ['Todos', ...new Set(all.map(item => plantillaDisplayDefaults(item).mesa))];
@@ -1098,7 +1185,7 @@
 
   function getPlantillaFieldAliases() {
     return {
-      employeeNumber: ['empleado', 'no empleado', 'n empleado', 'numero empleado', 'num empleado', 'numero de empleado', 'no empleado', 'nº empleado'],
+      employeeNumber: ['empleado', 'no empleado', 'n empleado', 'numero empleado', 'num empleado', 'numero de empleado', 'employee number', 'employeenumber', 'nº empleado'],
       name: ['nombre'],
       lastName: ['apellidos'],
       nombreCompleto: ['nombre completo', 'nombre y apellidos', 'apellidos y nombre', 'persona'],
@@ -1120,7 +1207,13 @@
       sexo: ['sexo'],
       positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antig puesto', 'fecha antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
       level: ['nivel retributivo', 'nivel retrib', 'nivel salarial', 'nivel'],
-      sindicato: ['sindicato']
+      sindicato: ['sindicato', 'seccion sindical', 'afiliacion sindical'],
+      colegioElectoral: ['colegio electoral'],
+      mesaElectoral: ['mesa electoral'],
+      participacionEstimada: ['participacion estimada'],
+      recorridoActivo: ['recorrido activo'],
+      estacionBase: ['estacion base'],
+      observacionesRecorrido: ['observaciones recorrido']
     };
   }
 
@@ -1496,17 +1589,137 @@
 
 
 
+  function buildPlantillaUniqueNameMap(items) {
+    const buckets = new Map();
+    (Array.isArray(items) ? items : []).forEach((item, index) => {
+      const key = normalizeHeader(resolveNombreCompleto(item));
+      if (!key) return;
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(index);
+    });
+    return buckets;
+  }
+
+  function readRrllImportedFields(row, map) {
+    const imported = {};
+    const textFields = ['employeeNumber', 'nombreCompleto', 'name', 'lastName', 'job', 'sexo', 'sindicato', 'colegioElectoral', 'mesaElectoral', 'participacionEstimada', 'estacionBase', 'observacionesRecorrido'];
+    textFields.forEach(field => {
+      if (map[field] == null) return;
+      const value = normalizeText(row[map[field]]);
+      if (!value) return;
+      if (field === 'employeeNumber') imported[field] = normalizeEmployeeNumber(value);
+      else if (field === 'mesaElectoral') imported[field] = normalizeMesaElectoral(value);
+      else imported[field] = value;
+    });
+    if (map.positionSeniority != null) {
+      const value = normalizePlantillaDateOrText(row[map.positionSeniority]);
+      if (value) imported.positionSeniority = value;
+    }
+    if (map.level != null) {
+      const value = normalizeText(row[map.level]);
+      if (value) imported.level = normalizeLevel(value);
+    }
+    if (map.recorridoActivo != null && normalizeText(row[map.recorridoActivo])) imported.recorridoActivo = normalizeBoolean(row[map.recorridoActivo]);
+    const fullName = imported.nombreCompleto || normalizeText([imported.name, imported.lastName].filter(Boolean).join(' '));
+    if (fullName) imported.nombreCompleto = fullName;
+    return imported;
+  }
+
+  function mergeRrllImportedRecord(current, imported, now) {
+    const next = { ...current };
+    const fields = ['employeeNumber', 'nombreCompleto', 'job', 'sexo', 'positionSeniority', 'level', 'sindicato', 'colegioElectoral', 'mesaElectoral', 'participacionEstimada', 'recorridoActivo', 'estacionBase', 'observacionesRecorrido'];
+    fields.forEach(field => {
+      if (imported[field] !== '' && imported[field] != null && next[field] !== imported[field]) next[field] = imported[field];
+    });
+    if (imported.nombreCompleto) {
+      next.fullName = imported.nombreCompleto;
+      next.name = imported.nombreCompleto;
+    }
+    if (imported.job) next.puesto = imported.job;
+    if (Object.keys(next).some(key => next[key] !== current[key])) next.updatedAt = now;
+    return next;
+  }
+
+  async function applyPlantillaRrllImport(rows) {
+    const summary = { read: 0, created: 0, updated: 0, unchanged: 0, skipped: 0, ambiguous: 0, rrllFields: new Set() };
+    if (!Array.isArray(rows) || !rows.length) {
+      summary.rrllFields = [];
+      return summary;
+    }
+    const headers = rows[0] || [];
+    const map = buildPlantillaColumnMap(headers);
+    const items = getPlantilla();
+    const now = new Date().toISOString();
+    const byEmployee = new Map(items.map((item, index) => [normalizeEmployeeKey(item.employeeNumber), index]).filter(([key]) => key));
+    const byFullName = buildPlantillaUniqueNameMap(items);
+    const rrllFieldLabels = {
+      sindicato: 'Sindicato', colegioElectoral: 'Colegio electoral', mesaElectoral: 'Mesa electoral', participacionEstimada: 'Participación estimada',
+      recorridoActivo: 'Recorrido activo', estacionBase: 'Estación base', observacionesRecorrido: 'Observaciones recorrido'
+    };
+    rows.slice(1).forEach(row => {
+      if (!row.some(Boolean)) return;
+      summary.read++;
+      const imported = readRrllImportedFields(row, map);
+      const employeeKey = normalizeEmployeeKey(imported.employeeNumber);
+      const fullNameKey = normalizeHeader(imported.nombreCompleto);
+      if (!employeeKey && !fullNameKey) { summary.skipped++; return; }
+      let existingIndex = employeeKey && byEmployee.has(employeeKey) ? byEmployee.get(employeeKey) : null;
+      if (existingIndex == null && fullNameKey) {
+        const matches = byFullName.get(fullNameKey) || [];
+        if (matches.length === 1) existingIndex = matches[0];
+        else if (matches.length > 1) { summary.ambiguous++; summary.skipped++; return; }
+      }
+      if (existingIndex == null && !employeeKey) { summary.skipped++; return; }
+      Object.keys(rrllFieldLabels).forEach(field => { if (imported[field] !== '' && imported[field] != null) summary.rrllFields.add(rrllFieldLabels[field]); });
+      if (existingIndex != null) {
+        const current = items[existingIndex];
+        const merged = mergeRrllImportedRecord(current, imported, now);
+        if (merged.updatedAt !== current.updatedAt) {
+          items[existingIndex] = merged;
+          summary.updated++;
+        } else {
+          summary.unchanged++;
+        }
+        return;
+      }
+      const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `plant-rrll-${Date.now()}-${summary.read}`;
+      const created = mergeRrllImportedRecord({ id, createdAt: now, updatedAt: now }, imported, now);
+      items.push(created);
+      byEmployee.set(employeeKey, items.length - 1);
+      if (fullNameKey) {
+        if (!byFullName.has(fullNameKey)) byFullName.set(fullNameKey, []);
+        byFullName.get(fullNameKey).push(items.length - 1);
+      }
+      summary.created++;
+    });
+    await Promise.resolve(setPlantilla(items, { rejectOnError: true }));
+    summary.rrllFields = [...summary.rrllFields];
+    return summary;
+  }
+
+
   async function importPlantillaRrllFromInput(event) {
-    const input = event?.target; const file = input?.files?.[0]; if (!file) return;
+    const input = event?.target;
+    const file = input?.files?.[0];
+    if (!file) return;
     const summaryEl = document.getElementById('plantillaImportSummary');
     try {
       const rows = await readPlantillaSpreadsheet(file);
-      const message = `Importación RRLL completada: ${Math.max(rows.length-1,0)} filas procesadas.`;
-      if (summaryEl) summaryEl.textContent = message; alert(message);
+      const summary = await applyPlantillaRrllImport(rows);
+      renderPlantilla({ preserveView: true });
+      if (typeof updateQuickCounts === 'function') updateQuickCounts();
+      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
+      const rrllFields = summary.rrllFields.length ? summary.rrllFields.join(', ') : 'ninguno';
+      const message = `Importación RRLL completada. Filas leídas: ${summary.read}. Nuevos registros: ${summary.created}. Registros actualizados: ${summary.updated}. Sin cambios: ${summary.unchanged}. Filas omitidas: ${summary.skipped}. Duplicados/ambigüedades: ${summary.ambiguous}. Campos RRLL importados: ${rrllFields}.`;
+      if (summaryEl) summaryEl.textContent = message;
+      alert(message);
     } catch (error) {
       const message = `No se pudo importar RRLL: ${error.message || error}`;
-      if (summaryEl) summaryEl.textContent = message; alert(message);
-    } finally { if (input) input.value = ''; }
+      if (summaryEl) summaryEl.textContent = message;
+      alert(message);
+    } finally {
+      if (input) input.value = '';
+    }
   }
 
   function printPlantilla() {
