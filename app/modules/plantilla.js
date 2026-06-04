@@ -47,13 +47,7 @@
     { key: 'job', label: 'Puesto' },
     { key: 'sexo', label: 'Sexo' },
     { key: 'level', label: 'Nivel' },
-    { key: 'colegioElectoral', label: 'Colegio electoral' },
-    { key: 'mesaElectoral', label: 'Mesa electoral' },
     { key: 'sindicato', label: 'Sindicato' },
-    { key: 'participacionEstimada', label: 'Participación estimada' },
-    { key: 'recorridoActivo', label: 'Recorrido activo' },
-    { key: 'estacionBase', label: 'Estación base' },
-    { key: 'observacionesRecorrido', label: 'Observaciones recorrido' },
     ...TELETRABAJO_FIELDS.map(({ key, label }) => ({ key, label }))
   ];
 
@@ -706,7 +700,7 @@
     modal.innerHTML = `
       <div class="modal-box rrll-pro-modal-box">
         <div class="modal-header">
-          <h3>Editar persona de plantilla</h3>
+          <h3>Ficha de persona</h3>
           <button type="button" class="icon-button" onclick="closePlantillaEditModal()">×</button>
         </div>
         <div class="rrll-pro-task-form rrll-pro-edit-form">
@@ -718,16 +712,10 @@
             <span>Nombre completo</span>
             <input id="editPlantNombreCompleto" placeholder="Nombre completo" />
           </label>
-          <label class="rrll-pro-field"><span>Colegio electoral</span><input id="editPlantColegioElectoral" list="plantillaColegioElectoralOptions" /></label>
-          <label class="rrll-pro-field"><span>Mesa electoral</span><select id="editPlantMesaElectoral">${ELECTORAL_MESAS.map(m => `<option value="${m}">${m}</option>`).join('')}</select></label>
           <label class="rrll-pro-field"><span>Sindicato</span><select id="editPlantSindicato"></select></label>
-          <label class="rrll-pro-field"><span>Participación estimada (%)</span><input id="editPlantParticipacionEstimada" type="number" min="0" max="100" step="0.01" /></label>
-          <label class="rrll-pro-field rrll-pro-field-checkbox"><span>Recorrido activo</span><input id="editPlantRecorridoActivo" type="checkbox" /></label>
-          <label class="rrll-pro-field"><span>Estación base</span><input id="editPlantEstacionBase" /></label>
-          <label class="rrll-pro-field full"><span>Observaciones recorrido</span><textarea id="editPlantObservacionesRecorrido"></textarea></label>
           <label class="rrll-pro-field">
             <span>Puesto de trabajo</span>
-            <input id="editPlantJob" placeholder="Puesto de trabajo" />
+            <input id="editPlantJob" placeholder="Puesto de trabajo" oninput="syncPlantillaPuestoFromJob()" />
           </label>
           <label class="rrll-pro-field">
             <span>Antigüedad en puesto</span>
@@ -739,17 +727,17 @@
               ${LEVELS.map(level => `<option value="${level}">${level}</option>`).join('')}
             </select>
           </label>
-          <details class="rrll-pro-fieldset full">
-            <summary>Datos Teletrabajo</summary>
+          <section class="rrll-pro-fieldset full plantilla-telework-section">
+            <h4>Datos Teletrabajo</h4>
             <div class="rrll-pro-task-form rrll-pro-teletrabajo-fields">
               ${plantillaTeletrabajoFieldsHtml('editPlant')}
             </div>
-          </details>
+          </section>
         </div>
         <div class="modal-actions">
           <button type="button" class="secondary" onclick="closePlantillaEditModal()">Cancelar</button>
-          <button type="button" class="danger" onclick="deleteEditingPlantilla()">Eliminar</button>
-          <button type="button" class="primary" onclick="saveEditingPlantilla()">Guardar cambios</button>
+          <button id="editPlantDeleteBtn" type="button" class="danger" onclick="deleteEditingPlantilla()">Eliminar</button>
+          <button id="editPlantSaveBtn" type="button" class="primary" onclick="saveEditingPlantilla()">Guardar cambios</button>
         </div>
       </div>`;
     modal.addEventListener('click', event => {
@@ -759,33 +747,57 @@
     return modal;
   }
 
-  async function openPlantillaEditModal(id) {
-    const lock = await window.acquireEditingLock?.("plantilla", id);
-    if (lock && lock.allowed === false) {
-      window.showEditingLockBlockedMessage?.(lock.lock);
-      return;
+
+  function syncPlantillaPuestoFromJob(options = {}) {
+    const jobInput = document.getElementById('editPlantJob');
+    const puestoCastInput = document.getElementById('editPlantpuestoCast');
+    const puestoEusInput = document.getElementById('editPlantpuestoEus');
+    if (!jobInput || !puestoCastInput) return;
+    const job = normalizeText(jobInput.value);
+    puestoCastInput.value = job;
+    const translated = resolveCargoEus(job, buildCargoDictionary());
+    if (!puestoEusInput) return;
+    const currentEus = normalizeText(puestoEusInput.value);
+    const shouldPreserve = options.preserveManualEus && currentEus && currentEus !== job && currentEus !== translated;
+    if (translated && !shouldPreserve) {
+      puestoEusInput.value = translated;
+    } else if (!currentEus || currentEus === job) {
+      puestoEusInput.value = translated || job;
     }
+  }
+
+  async function openPlantillaEditModal(id) {
     const item = getPlantilla().find(entry => entry.id === id);
     if (!item) return;
     editingPlantillaId = id;
-    window.startEditingLockHeartbeat?.("plantilla", id);
     const modal = ensurePlantillaEditModal();
     fillSindicatoSelect('editPlantSindicato', getField(item, 'sindicato'));
     document.getElementById('editPlantEmployeeNumber').value = item.employeeNumber || '';
     document.getElementById('editPlantNombreCompleto').value = resolveNombreCompleto(item) || '';
-    document.getElementById('editPlantColegioElectoral').value = getField(item, 'colegioElectoral', 'colegio_electoral') || '';
-    document.getElementById('editPlantMesaElectoral').value = getField(item, 'mesaElectoral', 'mesa_electoral') || '';
     document.getElementById('editPlantSindicato').value = getField(item, 'sindicato') || '';
-    document.getElementById('editPlantParticipacionEstimada').value = getField(item, 'participacionEstimada', 'participacion_estimada') || '';
-    document.getElementById('editPlantRecorridoActivo').checked = !!getField(item, 'recorridoActivo', 'recorrido_activo');
-    document.getElementById('editPlantEstacionBase').value = getField(item, 'estacionBase', 'estacion_base') || '';
-    document.getElementById('editPlantObservacionesRecorrido').value = getField(item, 'observacionesRecorrido', 'observaciones_recorrido') || '';
     document.getElementById('editPlantJob').value = item.job || '';
     document.getElementById('editPlantPositionSeniority').value = normalizePlantillaDate(item.positionSeniority);
     document.getElementById('editPlantLevel').value = normalizeLevel(item.level);
     applyPlantillaTeletrabajoValues(item, 'editPlant');
+    syncPlantillaPuestoFromJob({ preserveManualEus: true });
+    const saveBtn = document.getElementById('editPlantSaveBtn');
+    const deleteBtn = document.getElementById('editPlantDeleteBtn');
+    if (saveBtn) saveBtn.disabled = !!window.acquireEditingLock;
+    if (deleteBtn) deleteBtn.disabled = !!window.acquireEditingLock;
     modal.classList.add('open');
     setTimeout(() => document.getElementById('editPlantEmployeeNumber')?.focus(), 0);
+
+    if (!window.acquireEditingLock) return;
+    const lock = await window.acquireEditingLock("plantilla", id);
+    if (editingPlantillaId !== id) return;
+    if (lock && lock.allowed === false) {
+      closePlantillaEditModal();
+      window.showEditingLockBlockedMessage?.(lock.lock);
+      return;
+    }
+    window.startEditingLockHeartbeat?.("plantilla", id);
+    if (saveBtn) saveBtn.disabled = false;
+    if (deleteBtn) deleteBtn.disabled = false;
   }
 
   async function closePlantillaEditModal() {
@@ -812,13 +824,8 @@
       ? normalizePlantillaDate(positionSeniorityInput)
       : (normalizePlantillaDate(previousPositionSeniority) ? '' : previousPositionSeniority);
     const level = normalizeLevel(document.getElementById('editPlantLevel')?.value);
-    const colegioElectoral = normalizeText(document.getElementById('editPlantColegioElectoral')?.value);
-    const mesaElectoral = normalizeText(document.getElementById('editPlantMesaElectoral')?.value);
     const sindicato = normalizeText(document.getElementById('editPlantSindicato')?.value);
-    const participacionEstimada = normalizeText(document.getElementById('editPlantParticipacionEstimada')?.value);
-    const recorridoActivo = !!document.getElementById('editPlantRecorridoActivo')?.checked;
-    const estacionBase = normalizeText(document.getElementById('editPlantEstacionBase')?.value);
-    const observacionesRecorrido = normalizeText(document.getElementById('editPlantObservacionesRecorrido')?.value);
+    syncPlantillaPuestoFromJob();
     const teletrabajoData = getPlantillaTeletrabajoData({}, 'editPlant');
     if (!employeeNumber || !name || !job) {
       alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
@@ -830,7 +837,7 @@
       nombreCompleto: name,
       fullName: name,
       name,
-      colegioElectoral, colegio_electoral: colegioElectoral, mesaElectoral, mesa_electoral: mesaElectoral, sindicato, participacionEstimada, participacion_estimada: participacionEstimada, recorridoActivo, recorrido_activo: recorridoActivo, estacionBase, estacion_base: estacionBase, observacionesRecorrido, observaciones_recorrido: observacionesRecorrido,
+      sindicato,
       job,
       positionSeniority,
       level,
@@ -1022,7 +1029,7 @@
       dni: ['nif', 'dni'],
       direccionTeletrabajo: ['direccion teletrabajo'],
       calle: ['calle'],
-      numeroVia: ['no', 'nº', 'numero', 'n'],
+      numeroVia: ['no', 'nº', 'numero', 'n', 'num', 'número'],
       piso: ['piso'],
       codigoPostal: ['cod postal', 'cod.postal', 'codigo postal', 'c postal', 'cp'],
       poblacion: ['poblacion', 'población'],
@@ -1036,13 +1043,7 @@
       sexo: ['sexo'],
       positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antig puesto', 'fecha antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
       level: ['nivel retributivo', 'nivel'],
-      colegioElectoral: ['colegio electoral'],
-      mesaElectoral: ['mesa electoral'],
-      sindicato: ['sindicato'],
-      participacionEstimada: ['participacion estimada'],
-      recorridoActivo: ['recorrido activo'],
-      estacionBase: ['estacion base'],
-      observacionesRecorrido: ['observaciones recorrido']
+      sindicato: ['sindicato']
     };
   }
 
@@ -1237,13 +1238,7 @@
         sexo: map.sexo == null ? '' : normalizeText(row[map.sexo]),
         positionSeniority: map.positionSeniority == null ? '' : normalizePlantillaDateOrText(row[map.positionSeniority]),
         level: map.level == null ? '' : normalizeText(row[map.level]).toUpperCase()
-        ,colegioElectoral: map.colegioElectoral == null ? '' : normalizeText(row[map.colegioElectoral])
-        ,mesaElectoral: map.mesaElectoral == null ? '' : normalizeMesaElectoral(row[map.mesaElectoral])
         ,sindicato: map.sindicato == null ? '' : normalizeText(row[map.sindicato])
-        ,participacionEstimada: map.participacionEstimada == null ? '' : normalizeText(row[map.participacionEstimada])
-        ,recorridoActivo: map.recorridoActivo == null ? false : normalizeBoolean(row[map.recorridoActivo])
-        ,estacionBase: map.estacionBase == null ? '' : normalizeText(row[map.estacionBase])
-        ,observacionesRecorrido: map.observacionesRecorrido == null ? '' : normalizeText(row[map.observacionesRecorrido])
         ,dni: map.dni == null ? '' : normalizePlantillaDni(row[map.dni])
         ,direccionTeletrabajo: buildPlantillaTeleworkAddress(row, map)
         ,residenciaCast: map.residenciaCast == null ? '' : normalizeText(row[map.residenciaCast])
@@ -1253,21 +1248,16 @@
         ,fechaOrdenador: map.fechaOrdenador == null ? '' : normalizePlantillaDateOrText(row[map.fechaOrdenador])
         ,fechaCascos: map.fechaCascos == null ? '' : normalizePlantillaDateOrText(row[map.fechaCascos])
       };
-      if (!imported.residenciaEus && imported.residenciaCast) imported.residenciaEus = imported.residenciaCast;
-      if (!imported.puestoCast && imported.job) imported.puestoCast = imported.job;
-      const translatedPuestoEus = resolveCargoEus(imported.puestoCast || imported.job, cargoDictionary);
-      if (translatedPuestoEus && shouldReplaceCargoEus(imported.puestoEus, imported.puestoCast || imported.job)) imported.puestoEus = translatedPuestoEus;
-      if (!imported.puestoEus && imported.puestoCast) imported.puestoEus = imported.puestoCast;
       TELETRABAJO_FIELD_KEYS.forEach(field => {
         if (!imported[field] && map[field] != null) {
           imported[field] = normalizePlantillaTeletrabajoValue(field, row[map[field]]);
         }
       });
       if (!imported.residenciaEus && imported.residenciaCast) imported.residenciaEus = imported.residenciaCast;
-      if (!imported.puestoCast && imported.job) imported.puestoCast = imported.job;
+      imported.puestoCast = imported.job || imported.puestoCast || '';
+      const translatedPuestoEus = resolveCargoEus(imported.puestoCast || imported.job, cargoDictionary);
       if (translatedPuestoEus && shouldReplaceCargoEus(imported.puestoEus, imported.puestoCast || imported.job)) imported.puestoEus = translatedPuestoEus;
       if (!imported.puestoEus && imported.puestoCast) imported.puestoEus = imported.puestoCast;
-      const hasRecorridoActivoValue = map.recorridoActivo != null && !!normalizeText(row[map.recorridoActivo]);
       const key = normalizeEmployeeKey(employeeNumber);
       const fullNameKey = normalizeHeader(fullName);
       const existingIndex = (key && byEmployee.has(key)) ? byEmployee.get(key) : byFullName.get(fullNameKey);
@@ -1287,19 +1277,7 @@
           unit: imported.sexo || current.unit || '',
           positionSeniority: map.positionSeniority == null || !imported.positionSeniority ? (current.positionSeniority || '') : imported.positionSeniority,
           level: imported.level ? normalizeLevel(imported.level) : (current.level || ''),
-          colegioElectoral: imported.colegioElectoral || normalizeText(getField(current, 'colegioElectoral', 'colegio_electoral')),
-          colegio_electoral: imported.colegioElectoral || normalizeText(getField(current, 'colegioElectoral', 'colegio_electoral')),
-          mesaElectoral: imported.mesaElectoral || normalizeText(getField(current, 'mesaElectoral', 'mesa_electoral')),
-          mesa_electoral: imported.mesaElectoral || normalizeText(getField(current, 'mesaElectoral', 'mesa_electoral')),
           sindicato: imported.sindicato || normalizeText(getField(current, 'sindicato')),
-          participacionEstimada: imported.participacionEstimada || normalizeText(getField(current, 'participacionEstimada', 'participacion_estimada')),
-          participacion_estimada: imported.participacionEstimada || normalizeText(getField(current, 'participacionEstimada', 'participacion_estimada')),
-          recorridoActivo: hasRecorridoActivoValue ? imported.recorridoActivo : !!getField(current, 'recorridoActivo', 'recorrido_activo'),
-          recorrido_activo: hasRecorridoActivoValue ? imported.recorridoActivo : !!getField(current, 'recorridoActivo', 'recorrido_activo'),
-          estacionBase: imported.estacionBase || normalizeText(getField(current, 'estacionBase', 'estacion_base')),
-          estacion_base: imported.estacionBase || normalizeText(getField(current, 'estacionBase', 'estacion_base')),
-          observacionesRecorrido: imported.observacionesRecorrido || normalizeText(getField(current, 'observacionesRecorrido', 'observaciones_recorrido')),
-          observaciones_recorrido: imported.observacionesRecorrido || normalizeText(getField(current, 'observacionesRecorrido', 'observaciones_recorrido')),
           ...mergeNonEmptyPlantillaFields(current, imported, TELETRABAJO_FIELD_KEYS),
           updatedAt: now
         };
@@ -1321,19 +1299,7 @@
           unit: imported.sexo,
           positionSeniority: imported.positionSeniority,
           level: imported.level ? normalizeLevel(imported.level) : '',
-          colegioElectoral: imported.colegioElectoral,
-          colegio_electoral: imported.colegioElectoral,
-          mesaElectoral: imported.mesaElectoral,
-          mesa_electoral: imported.mesaElectoral,
           sindicato: imported.sindicato,
-          participacionEstimada: imported.participacionEstimada,
-          participacion_estimada: imported.participacionEstimada,
-          recorridoActivo: imported.recorridoActivo,
-          recorrido_activo: imported.recorridoActivo,
-          estacionBase: imported.estacionBase,
-          estacion_base: imported.estacionBase,
-          observacionesRecorrido: imported.observacionesRecorrido,
-          observaciones_recorrido: imported.observacionesRecorrido,
           ...mergeNonEmptyPlantillaFields({}, imported, TELETRABAJO_FIELD_KEYS),
           createdAt: now,
           updatedAt: now
