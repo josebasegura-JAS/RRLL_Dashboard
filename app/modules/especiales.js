@@ -386,12 +386,17 @@
     return String(html || "")
       .replace(/<style[\s\S]*?<\/style>/gi, " ")
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<\/(?:p|div|br|li|tr|td|th|h[1-6])\s*>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
       .replace(/<[^>]+>/g, " ")
       .replace(/&nbsp;/gi, " ")
       .replace(/&amp;/gi, "&")
       .replace(/&lt;/gi, "<")
       .replace(/&gt;/gi, ">")
-      .replace(/\s+/g, " ")
+      .replace(/&quot;/gi, '\"')
+      .replace(/&#39;/gi, "'")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
       .trim();
   }
 
@@ -410,6 +415,7 @@
 
   function normalizeDetectionText(value) {
     return String(value || "")
+      .replace(/\u0000/g, " ")
       .replace(/\r/g, "\n")
       .replace(/\u00a0/g, " ")
       .replace(/[ \t]+/g, " ")
@@ -421,14 +427,20 @@
 
   function extractIntranetServiceName(text) {
     const normalized = normalizeDetectionText(text);
-    const match = normalized.match(/Este\s+Servicio\s+Especial\s+aparecer[aá]?\s+en\s+la\s+Intranet\s+como\s*:\s*([\s\S]{4,240})/i);
+    const marker = /(?:Este\s+)?Servicio\s+Especial\s+aparecer(?:[aá])?\s+en\s+la\s+Intranet\s+como\s*:\s*/i;
+    const match = marker.exec(normalized);
     if (!match) return "";
-    const raw = String(match[1] || "")
-      .split(/\n\s*(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|$)/i)[0]
+
+    const afterMarker = normalized.slice(match.index + match[0].length);
+    const stopMatch = /(?:\n|\s{2,})(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|$)/i.exec(afterMarker)
+      || /\s+(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos)\b/i.exec(afterMarker);
+    const candidate = stopMatch ? afterMarker.slice(0, stopMatch.index) : afterMarker.slice(0, 180);
+
+    return String(candidate || "")
       .replace(/\n+/g, " ")
       .replace(/\s+/g, " ")
+      .replace(/[.;,:\-–—]+$/g, "")
       .trim();
-    return raw.replace(/[.;,:\-–—]+$/g, "").trim();
   }
 
   function detectAutoFields(text, subject) {
@@ -458,6 +470,8 @@
         return { ok: false, message: "API de importación no disponible." };
       }
       const buffer = await file.arrayBuffer();
+      const rawUtf16Text = new TextDecoder("utf-16le").decode(buffer);
+      const rawUtf8Text = new TextDecoder("utf-8").decode(buffer);
       const parsed = await window.rrllMsg.parseOutlookMsg(buffer);
       if (!parsed || !parsed.ok) {
         return { ok: false, message: parsed && parsed.message ? parsed.message : "No se ha podido importar el mensaje .msg." };
@@ -469,7 +483,7 @@
       const senderName = String(data.senderName || "").trim();
       const senderEmail = String(data.senderEmail || "").trim();
       const date = normalizeDateInput(data.date || data.messageDeliveryTime || data.deliveryTime || data.creationTime || "");
-      const textForDetection = `${subject}\n${body}\n${stripHtmlToText(htmlBody)}`;
+      const textForDetection = `${subject}\n${body}\n${stripHtmlToText(htmlBody)}\n${rawUtf16Text}\n${rawUtf8Text}`;
       const auto = detectAutoFields(textForDetection, subject);
       const hasMainData = !!(auto.evento && auto.fecha && auto.hora);
       const hasSomeMainData = [auto.evento, auto.fecha, auto.hora].filter(Boolean).length > 0;
