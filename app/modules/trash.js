@@ -1,17 +1,27 @@
 // Papelera de registros.
 // Mantiene funciones globales para compatibilidad con gestores y botones inline.
+// Las referencias a módulos se resuelven en uso para no romper lazy-load.
 
 const TRASH_MODULES = {
-  tasks: { label: "Tareas", getter: getTasks, setter: setTasks, render: renderTasks },
-  minutes: { label: "Actas", getter: getMinutes, setter: setMinutes, render: renderMinutes },
-  agenda: { label: "Comité", getter: getAgendaItems, setter: setAgendaItems, render: renderAgendaItems },
-  paritaria: { label: "Paritaria", getter: getParitariaItems, setter: setParitariaItems, render: renderParitariaItems },
-  petitions: { label: "Peticiones", getter: getPetitions, setter: setPetitions, render: renderPetitions },
-  telework: { label: "Teletrabajo", getter: getTeleworkItems, setter: setTeleworkItems, render: renderTelework },
-  vinculograma: { label: "Vinculograma", getter: getVinculogramas, setter: setVinculogramas, render: renderVinculogramas },
-  licencias: { label: "Licencias y excedencias", getter: getLicencias, setter: setLicencias, render: renderLicencias },
-  plantilla: { label: "Plantilla", getter: getPlantilla, setter: setPlantilla, render: renderPlantilla }
+  tasks: { label: "Tareas", getter: "getTasks", setter: "setTasks", render: "renderTasks" },
+  minutes: { label: "Actas", getter: "getMinutes", setter: "setMinutes", render: "renderMinutes" },
+  agenda: { label: "Comité", getter: "getAgendaItems", setter: "setAgendaItems", render: "renderAgendaItems" },
+  paritaria: { label: "Paritaria", getter: "getParitariaItems", setter: "setParitariaItems", render: "renderParitariaItems" },
+  petitions: { label: "Peticiones", getter: "getPetitions", setter: "setPetitions", render: "renderPetitions" },
+  telework: { label: "Teletrabajo", getter: "getTeleworkItems", setter: "setTeleworkItems", render: "renderTelework" },
+  vinculograma: { label: "Vinculograma", getter: "getVinculogramas", setter: "setVinculogramas", render: "renderVinculogramas" },
+  licencias: { label: "Licencias y excedencias", getter: "getLicencias", setter: "setLicencias", render: "renderLicencias" },
+  plantilla: { label: "Plantilla", getter: "getPlantilla", setter: "setPlantilla", render: "renderPlantilla" }
 };
+
+function getTrashModuleConfig(moduleKey) {
+  const config = TRASH_MODULES[moduleKey];
+  if (!config) return null;
+  const getter = typeof config.getter === 'function' ? config.getter : window[config.getter];
+  const setter = typeof config.setter === 'function' ? config.setter : window[config.setter];
+  const render = typeof config.render === 'function' ? config.render : window[config.render];
+  return { ...config, getter, setter, render };
+}
 
 function getTrashItems() {
   const items = load("rrll_trash", []);
@@ -23,7 +33,7 @@ function setTrashItems(items) {
 }
 
 function moveToTrash(module, item) {
-  if (!item || !TRASH_MODULES[module]) return;
+  if (!item || !getTrashModuleConfig(module)) return;
   const trash = getTrashItems();
   trash.unshift({
     trashId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
@@ -37,9 +47,13 @@ function moveToTrash(module, item) {
 function restoreTrashItem(trashId) {
   const trash = getTrashItems();
   const entry = trash.find(item => item.trashId === trashId);
-  if (!entry || !TRASH_MODULES[entry.module]) return;
+  if (!entry) return;
 
-  const module = TRASH_MODULES[entry.module];
+  const module = getTrashModuleConfig(entry.module);
+  if (!module || typeof module.getter !== 'function' || typeof module.setter !== 'function') {
+    alert('No se puede restaurar este elemento porque el módulo no está disponible en este momento.');
+    return;
+  }
   const current = module.getter();
   const restored = { ...entry.item };
   if (current.some(item => item.id === restored.id)) {
@@ -48,7 +62,7 @@ function restoreTrashItem(trashId) {
 
   module.setter([restored, ...current]);
   setTrashItems(trash.filter(item => item.trashId !== trashId));
-  module.render();
+  if (typeof module.render === 'function') module.render();
   renderTrash();
   restoreAlertsPanelState();
   renderAlertsPanel();
@@ -88,7 +102,7 @@ function renderTrash() {
 
   const trashHtml = trash.map(entry => {
     const item = entry.item || {};
-    const moduleLabel = TRASH_MODULES[entry.module] ? TRASH_MODULES[entry.module].label : entry.module;
+    const moduleLabel = getTrashModuleConfig(entry.module)?.label || entry.module;
     const title = item.title || item.name || "Sin título";
     const notes = item.notes || item.employeeNumber || item.requestDate || "";
     return `

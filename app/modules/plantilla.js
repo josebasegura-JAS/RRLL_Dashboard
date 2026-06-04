@@ -400,16 +400,20 @@
   }
 
   function buildPlantillaTeleworkAddress(row, map) {
-    const explicit = readMappedCell(row, map, 'direccionTeletrabajo');
-    if (explicit) return explicit;
     const calle = readMappedCell(row, map, 'calle');
     const numero = readMappedCell(row, map, 'numeroVia');
     const piso = readMappedCell(row, map, 'piso');
     const codigoPostal = readMappedCell(row, map, 'codigoPostal');
     const poblacion = readMappedCell(row, map, 'poblacion');
     const provincia = readMappedCell(row, map, 'provincia');
-    const via = [calle, numero].filter(Boolean).join(' ');
-    return [via, piso, codigoPostal, poblacion, provincia].filter(Boolean).join(', ');
+    const hasComposedAddress = [calle, numero, piso, codigoPostal, poblacion, provincia].some(Boolean);
+    if (hasComposedAddress) {
+      const via = [calle, numero, piso].filter(Boolean).join(' ');
+      const localidad = [codigoPostal, poblacion].filter(Boolean).join(' ');
+      const localidadProvincia = [localidad, provincia].filter(Boolean).join(' - ');
+      return [via, localidadProvincia].filter(Boolean).join(', ');
+    }
+    return readMappedCell(row, map, 'direccionTeletrabajo');
   }
   function normalizeBoolean(value) {
     const text = normalizeHeader(value);
