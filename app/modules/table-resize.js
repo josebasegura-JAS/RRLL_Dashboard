@@ -236,14 +236,50 @@
     bindHeaders(table);
   }
 
-  function enhanceAllTables() {
-    pendingEnhance = 0;
-    document.querySelectorAll("table").forEach(enhanceTable);
+  function getActiveTableContainer() {
+    return document.querySelector(".rrll-active-module")
+      || document.querySelector(".rrll-view-home #homeDashboard")
+      || document.body;
   }
 
-  function scheduleEnhance() {
+  function enhanceTablesIn(container) {
+    const root = container || getActiveTableContainer();
+    if (!root) return;
+    const tables = root.matches && root.matches("table")
+      ? [root]
+      : Array.from(root.querySelectorAll ? root.querySelectorAll("table") : []);
+    tables.forEach(enhanceTable);
+  }
+
+  function enhanceAllTables() {
+    pendingEnhance = 0;
+    enhanceTablesIn(getActiveTableContainer());
+  }
+
+  function collectTablesFromMutations(mutations) {
+    const tables = new Set();
+    mutations.forEach(mutation => {
+      Array.from(mutation.addedNodes || []).forEach(node => {
+        if (!node || node.nodeType !== 1) return;
+        const table = node.matches?.("table") ? node : node.closest?.("table");
+        if (table) tables.add(table);
+        if (node.querySelectorAll) node.querySelectorAll("table").forEach(found => tables.add(found));
+      });
+    });
+    return Array.from(tables).filter(table => {
+      const activeModule = table.closest?.(".rrll-active-module");
+      const homeView = document.body?.classList?.contains("rrll-view-home") && table.closest?.("#homeDashboard");
+      return activeModule || homeView;
+    });
+  }
+
+  function scheduleEnhance(tables) {
     if (pendingEnhance) return;
-    pendingEnhance = window.requestAnimationFrame(enhanceAllTables);
+    pendingEnhance = window.requestAnimationFrame(() => {
+      pendingEnhance = 0;
+      if (Array.isArray(tables) && tables.length) tables.forEach(enhanceTable);
+      else enhanceTablesIn(getActiveTableContainer());
+    });
   }
 
   document.addEventListener("mousemove", event => {
@@ -262,14 +298,14 @@
   function initTableResize() {
     enhanceAllTables();
     const observer = new MutationObserver(mutations => {
-      if (mutations.some(mutation => Array.from(mutation.addedNodes || []).some(node => node.nodeType === 1 && (node.matches?.("table, thead, tbody, tr, th, td") || node.querySelector?.("table, thead, tbody, tr, th, td"))))) {
-        scheduleEnhance();
-      }
+      const affectedTables = collectTablesFromMutations(mutations);
+      if (affectedTables.length) scheduleEnhance(affectedTables);
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
   window.rrllEnhanceResizableTables = enhanceAllTables;
+  window.rrllEnhanceResizableTablesIn = enhanceTablesIn;
   window.rrllResetResizableTableWidths = function rrllResetResizableTableWidths(selector) {
     const tables = selector ? Array.from(document.querySelectorAll(selector)) : Array.from(document.querySelectorAll("table"));
     tables.forEach(table => {

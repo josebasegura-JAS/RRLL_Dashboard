@@ -680,7 +680,12 @@
         setPie("pie-petitions", petitionPending, petitionProgress);
         setPie("pie-minutes", minutesTodo, minutesDirection + minutesAllegations);
         setPie("pie-telework", teleworkEntry, teleworkProcessing + teleworkDirection);
-        if (typeof window.renderHomeDashboard === "function") window.renderHomeDashboard();
+        window.rrllDashboardDirty = true;
+        const activeModule = document.body && document.body.dataset ? document.body.dataset.activeModule : "home";
+        if ((activeModule === "home" || !activeModule) && typeof window.renderHomeDashboard === "function") {
+          window.rrllDashboardDirty = false;
+          window.renderHomeDashboard();
+        }
       }
 
       let taskViewFilter = "all";

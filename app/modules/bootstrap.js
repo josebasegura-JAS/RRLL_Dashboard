@@ -21,11 +21,56 @@ async function rrllSafeAsyncCall(label, fn) {
   return undefined;
 }
 
+    function rrllGetActiveModuleId() {
+      return document.body && document.body.dataset && document.body.dataset.activeModule
+        ? document.body.dataset.activeModule
+        : "home";
+    }
+
+    function rrllIsActiveModule(...ids) {
+      const activeModule = rrllGetActiveModuleId();
+      return ids.includes(activeModule);
+    }
+
+    function rrllRenderActiveCoreModule(activeModule) {
+      if (activeModule === "gestor-tareas") {
+        rrllSafeCall("tareas", () => renderTasks());
+        return;
+      }
+      if (activeModule === "gestor-peticiones") {
+        rrllSafeCall("peticiones", () => renderPetitions());
+        return;
+      }
+      if (activeModule === "gestor-actas") {
+        rrllSafeCall("sincronización comité-actas", () => syncPastCommitteeSessionsToMinutes());
+        rrllSafeCall("actas", () => renderMinutes());
+        return;
+      }
+      if (activeModule === "gestor-comite" || activeModule === "gestor-puntos-comite") {
+        rrllSafeCall("puntos comité", () => renderAgendaItems());
+        rrllSafeCall("sesiones comité", () => renderCommitteeSessions());
+        return;
+      }
+      if (activeModule === "gestor-sesiones-comite") {
+        rrllSafeCall("sesiones comité", () => renderCommitteeSessions());
+        return;
+      }
+      if (activeModule === "gestor-paritaria" || activeModule === "gestor-puntos-paritaria") {
+        rrllSafeCall("puntos paritaria", () => renderParitariaItems());
+        rrllSafeCall("sesiones paritaria", () => renderParitariaSessions());
+        return;
+      }
+      if (activeModule === "gestor-sesiones-paritaria") {
+        rrllSafeCall("sesiones paritaria", () => renderParitariaSessions());
+      }
+    }
+
     function renderAllDataViews() {
       const rrllRenderFinish = typeof rrllTicketRestaurantPerfStart === "function" ? rrllTicketRestaurantPerfStart("renderAllDataViews") : null;
-      const activeModule = document.body && document.body.dataset ? document.body.dataset.activeModule : "home";
+      const activeModule = rrllGetActiveModuleId();
+      const isHome = !activeModule || activeModule === "home";
       const renderActiveLazyModule = () => {
-        if (!activeModule || activeModule === "home") return;
+        if (isHome) return;
         if (typeof window.ensureRRLLModuleLoaded === "function") {
           Promise.resolve(window.ensureRRLLModuleLoaded(activeModule))
             .then(() => { if (typeof window.renderRRLLLazyModule === "function") return window.renderRRLLLazyModule(activeModule); })
@@ -34,19 +79,12 @@ async function rrllSafeAsyncCall(label, fn) {
       };
 
       rrllSafeCall("fecha", () => renderDate());
-      rrllSafeCall("dashboard", () => renderHomeDashboard());
+      if (isHome) rrllSafeCall("dashboard", () => renderHomeDashboard());
       rrllSafeCall("accesos rápidos", () => renderLinks());
       rrllSafeCall("configuración de accesos", () => renderLinkConfig());
       rrllSafeCall("orígenes de peticiones", () => { if (typeof renderPetitionOriginSettings === "function") renderPetitionOriginSettings(); });
-      rrllSafeCall("tareas", () => renderTasks());
-      rrllSafeCall("sincronización comité-actas", () => syncPastCommitteeSessionsToMinutes());
-      rrllSafeCall("actas", () => renderMinutes());
-      rrllSafeCall("puntos comité", () => renderAgendaItems());
-      rrllSafeCall("puntos paritaria", () => renderParitariaItems());
-      rrllSafeCall("sesiones comité", () => renderCommitteeSessions());
-      rrllSafeCall("sesiones paritaria", () => renderParitariaSessions());
-      rrllSafeCall("peticiones", () => renderPetitions());
-      rrllSafeCall("papelera", () => renderTrash());
+      rrllRenderActiveCoreModule(activeModule);
+      rrllSafeCall("papelera", () => { if (document.getElementById("trashModal")?.classList.contains("open")) renderTrash(); });
       rrllSafeCall("estado de alertas", () => restoreAlertsPanelState());
       rrllSafeCall("alertas", () => renderAlertsPanel());
       rrllSafeCall("columnas cerradas", () => applyAllClosedColumnStates());
