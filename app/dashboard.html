@@ -1198,10 +1198,12 @@
                 </div>
                 <div class="rrll-pro-list-actions">
                   <input id="plantillaExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaExcelFromInput(event)" />
+                  <input id="plantillaCargosExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaCargosFromInput(event)" />
                   <input id="plantillaRrllExcelInput" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden onchange="importPlantillaRrllFromInput(event)" />
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="document.getElementById('plantillaExcelInput')?.click()" title="Importar corporativo" aria-label="Importar Excel"><span aria-hidden="true">⇪</span></button>
                   <button class="rrll-pro-tool-button rrll-icon-only" type="button" onclick="printPlantilla()" title="Imprimir plantilla" aria-label="Imprimir plantilla"><span aria-hidden="true">🖨️</span></button>
                   <button class="rrll-pro-tool-button rrll-icon-only excel" type="button" onclick="exportPlantillaExcel()" title="Exportar plantilla a Excel" aria-label="Exportar plantilla a Excel"><span aria-hidden="true">X</span></button>
+                  <button class="rrll-pro-tool-button" type="button" onclick="document.getElementById('plantillaCargosExcelInput')?.click()">Importar cargos</button>
                   <button class="rrll-pro-tool-button" type="button" onclick="document.getElementById('plantillaRrllExcelInput')?.click()">Importar RRLL</button>
                 </div>
               </div>
