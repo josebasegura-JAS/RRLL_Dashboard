@@ -249,9 +249,9 @@ html[data-theme="light"] body.rrll-view-module #gestor-criterios .criteria-page-
 }
 
 html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-columns {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 16px !important;
+  display: grid ;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) ;
+  gap: 16px ;
 }
 
 html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-column-active {
@@ -259,9 +259,9 @@ html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-colu
 }
 
 html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card {
-  display: block !important;
+  display: block ;
   margin-top: 16px !important;
-  overflow: hidden !important;
+  overflow: hidden ;
 }
 
 html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar {
@@ -270,7 +270,7 @@ html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-hist
 }
 
 html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar::-webkit-details-marker {
-  display: none !important;
+  display: none ;
 }
 
 html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card > summary.licencias-toolbar h3::before {
@@ -286,12 +286,12 @@ html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-hist
 
 html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card:not([open]) #licHistoryList,
 html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-history-card:not([open]) #licHistoryEmpty {
-  display: none !important;
+  display: none ;
 }
 
 @media (max-width: 1250px) {
   html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-columns {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr ;
   }
 }
 
@@ -359,19 +359,19 @@ html[data-theme="light"] body.rrll-view-module #gestor-licencias .licencias-hist
 }
 
 body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-button.rrll-icon-only {
-  width: 38px !important;
-  min-width: 38px !important;
-  max-width: 38px !important;
+  width: 38px ;
+  min-width: 38px ;
+  max-width: 38px ;
   height: 38px !important;
   padding: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  display: inline-flex ;
+  align-items: center ;
+  justify-content: center ;
   border-radius: 11px !important;
   font-size: 15px !important;
   line-height: 1 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
+  white-space: nowrap ;
+  overflow: hidden ;
   flex: 0 0 38px !important;
 }
 
@@ -386,22 +386,22 @@ body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-tool-button
 
 body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button.plantilla-text-action,
 body.rrll-view-module #gestor-plantilla .rrll-pro-task-head .rrll-pro-list-actions .rrll-pro-new-button {
-  width: auto !important;
+  width: auto ;
   max-width: 100%;
-  min-width: max-content !important;
+  min-width: max-content ;
   height: 38px !important;
   min-height: 38px !important;
   padding: 0 14px !important;
   line-height: 1.2;
-  white-space: nowrap !important;
+  white-space: nowrap ;
   flex: 0 1 auto;
   overflow: visible;
 }
 
 body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-list-actions .rrll-pro-tool-button:not(.plantilla-text-action):not(.rrll-pro-new-button) {
-  width: 38px !important;
-  min-width: 38px !important;
-  max-width: 38px !important;
+  width: 38px ;
+  min-width: 38px ;
+  max-width: 38px ;
   height: 38px !important;
   min-height: 38px !important;
   padding: 0 !important;
@@ -441,12 +441,12 @@ body.rrll-view-module #gestor-plantilla .plantilla-toolbar .rrll-pro-list-action
 }
 
 #gestor-plantilla .plantilla-pagination .plantilla-pagination-btn {
-  display: inline-flex !important;
+  display: inline-flex ;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: auto !important;
-  min-width: 112px !important;
+  width: auto ;
+  min-width: 112px ;
   height: 44px !important;
   min-height: 44px !important;
   padding: 0 22px !important;
@@ -531,56 +531,56 @@ html[data-theme="light"] #plantillaEditModal :is(.modal-box, .rrll-pro-modal-box
 }
 
 #committeeSessionOrderModal .session-order-row {
-  display: grid !important;
-  grid-template-columns: 38px minmax(0, 1fr) 32px !important;
-  align-items: start !important;
-  gap: 12px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
+  display: grid ;
+  grid-template-columns: 38px minmax(0, 1fr) 32px ;
+  align-items: start ;
+  gap: 12px ;
+  width: 100% ;
+  max-width: 100% ;
+  overflow: hidden ;
 }
 
 #committeeSessionOrderModal .session-order-content {
-  display: grid !important;
-  gap: 6px !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  overflow: hidden !important;
+  display: grid ;
+  gap: 6px ;
+  min-width: 0 ;
+  width: 100% ;
+  overflow: hidden ;
 }
 
 #committeeSessionOrderModal .session-order-edit {
-  display: block !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
+  display: block ;
+  width: 100% ;
+  min-width: 0 ;
+  max-width: 100% ;
   min-height: 76px !important;
   height: auto !important;
   padding: 10px 12px !important;
   resize: vertical !important;
-  white-space: pre-wrap !important;
+  white-space: pre-wrap ;
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
   overflow-x: hidden !important;
   line-height: 1.35 !important;
-  text-align: left !important;
+  text-align: left ;
 }
 
 #committeeSessionOrderModal .session-item-meta {
-  min-width: 0 !important;
-  max-width: 100% !important;
+  min-width: 0 ;
+  max-width: 100% ;
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
-  white-space: normal !important;
+  white-space: normal ;
 }
 
 #committeeSessionOrderModal .session-order-handle {
   justify-self: end !important;
   align-self: stretch !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 32px !important;
-  min-width: 32px !important;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+  width: 32px ;
+  min-width: 32px ;
   padding: 0 !important;
   flex: 0 0 auto !important;
 }
@@ -699,56 +699,56 @@ html[data-theme="light"] #committeeSessionAddPointModal .committee-session-add-p
 }
 
 #paritariaSessionOrderModal .session-order-row {
-  display: grid !important;
-  grid-template-columns: 38px minmax(0, 1fr) 32px !important;
-  align-items: start !important;
-  gap: 12px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
+  display: grid ;
+  grid-template-columns: 38px minmax(0, 1fr) 32px ;
+  align-items: start ;
+  gap: 12px ;
+  width: 100% ;
+  max-width: 100% ;
+  overflow: hidden ;
 }
 
 #paritariaSessionOrderModal .session-order-content {
-  display: grid !important;
-  gap: 6px !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  overflow: hidden !important;
+  display: grid ;
+  gap: 6px ;
+  min-width: 0 ;
+  width: 100% ;
+  overflow: hidden ;
 }
 
 #paritariaSessionOrderModal .session-order-edit {
-  display: block !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
+  display: block ;
+  width: 100% ;
+  min-width: 0 ;
+  max-width: 100% ;
   min-height: 76px !important;
   height: auto !important;
   padding: 10px 12px !important;
   resize: vertical !important;
-  white-space: pre-wrap !important;
+  white-space: pre-wrap ;
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
   overflow-x: hidden !important;
   line-height: 1.35 !important;
-  text-align: left !important;
+  text-align: left ;
 }
 
 #paritariaSessionOrderModal .session-item-meta {
-  min-width: 0 !important;
-  max-width: 100% !important;
+  min-width: 0 ;
+  max-width: 100% ;
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
-  white-space: normal !important;
+  white-space: normal ;
 }
 
 #paritariaSessionOrderModal .session-order-handle {
   justify-self: end !important;
   align-self: stretch !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 32px !important;
-  min-width: 32px !important;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+  width: 32px ;
+  min-width: 32px ;
   padding: 0 !important;
   flex: 0 0 auto !important;
 }
@@ -816,23 +816,23 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
 
 /* Cierre de sesiones de Comité y Paritaria: listado de puntos tratados legible. */
 :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-modal-box {
-  display: flex !important;
+  display: flex ;
   flex-direction: column !important;
-  width: min(760px, calc(100vw - 32px)) !important;
-  max-width: min(760px, calc(100vw - 32px)) !important;
+  width: min(760px, calc(100vw - 32px)) ;
+  max-width: min(760px, calc(100vw - 32px)) ;
   max-height: min(86vh, 760px) !important;
-  overflow: hidden !important;
+  overflow: hidden ;
   box-sizing: border-box !important;
 }
 
 :is(#committeeSessionCloseList, #paritariaSessionCloseList).session-close-list {
-  display: flex !important;
+  display: flex ;
   flex: 1 1 auto !important;
   flex-direction: column !important;
-  gap: 8px !important;
+  gap: 8px ;
   min-height: 0 !important;
   max-height: min(52vh, 520px) !important;
-  width: 100% !important;
+  width: 100% ;
   margin: 12px 0 !important;
   padding: 10px !important;
   overflow-x: hidden !important;
@@ -844,16 +844,16 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
 }
 
 :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-row {
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 10px !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
+  display: flex ;
+  align-items: flex-start ;
+  gap: 10px ;
+  width: 100% ;
+  min-width: 0 ;
+  max-width: 100% ;
   padding: 10px 12px !important;
   box-sizing: border-box !important;
-  overflow: visible !important;
-  white-space: normal !important;
+  overflow: visible ;
+  white-space: normal ;
   writing-mode: horizontal-tb !important;
   border: 1px solid var(--rrll-border) !important;
   border-radius: 12px !important;
@@ -864,9 +864,9 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
 
 :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-row input[type="checkbox"] {
   flex: 0 0 18px !important;
-  width: 18px !important;
-  min-width: 18px !important;
-  max-width: 18px !important;
+  width: 18px ;
+  min-width: 18px ;
+  max-width: 18px ;
   height: 18px !important;
   min-height: 18px !important;
   margin: 2px 0 0 !important;
@@ -876,14 +876,14 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
 }
 
 :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content {
-  display: flex !important;
+  display: flex ;
   flex: 1 1 auto !important;
   flex-direction: column !important;
-  gap: 4px !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  overflow: visible !important;
-  white-space: normal !important;
+  gap: 4px ;
+  min-width: 0 ;
+  max-width: none ;
+  overflow: visible ;
+  white-space: normal ;
   writing-mode: horizontal-tb !important;
   overflow-wrap: anywhere !important;
   word-break: normal !important;
@@ -893,20 +893,20 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
 :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content strong,
 :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content small,
 :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content span {
-  min-width: 0 !important;
-  max-width: 100% !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
-  white-space: normal !important;
+  min-width: 0 ;
+  max-width: 100% ;
+  overflow: visible ;
+  text-overflow: clip ;
+  white-space: normal ;
   writing-mode: horizontal-tb !important;
   overflow-wrap: anywhere !important;
   line-height: 1.4 !important;
 }
 
 :is(#committeeSessionCloseModal, #paritariaSessionCloseModal) .session-close-content small {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 4px 12px !important;
+  display: flex ;
+  flex-wrap: wrap ;
+  gap: 4px 12px ;
   color: var(--rrll-text-muted) !important;
 }
 
@@ -917,49 +917,49 @@ html[data-theme="light"] #paritariaSessionAddPointModal .paritaria-session-add-p
 
 /* Teletrabajo: acciones inferiores limpias y responsive, acotadas al módulo. */
 body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: flex-end !important;
-  align-items: center !important;
+  display: flex ;
+  flex-wrap: wrap ;
+  justify-content: flex-end ;
+  align-items: center ;
   align-content: center !important;
-  gap: 12px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
+  gap: 12px ;
+  width: 100% ;
+  max-width: 100% ;
+  min-width: 0 ;
   margin: 0 !important;
   padding: 10px 0 0 !important;
-  overflow: visible !important;
+  overflow: visible ;
 }
 
 body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button {
   box-sizing: border-box !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
+  display: inline-flex ;
+  align-items: center ;
+  justify-content: center ;
+  gap: 8px ;
   flex: 0 1 auto !important;
-  min-width: 42px !important;
-  max-width: 100% !important;
+  min-width: 42px ;
+  max-width: 100% ;
   min-height: 42px !important;
   height: 42px !important;
   padding: 0 16px !important;
   border-radius: 12px !important;
   line-height: 1 !important;
-  white-space: nowrap !important;
-  overflow: visible !important;
-  text-align: center !important;
+  white-space: nowrap ;
+  overflow: visible ;
+  text-align: center ;
   vertical-align: middle !important;
 }
 
 body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button:not(.rrll-icon-only) {
-  min-width: max-content !important;
+  min-width: max-content ;
 }
 
 body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-icon-only {
   flex: 0 0 42px !important;
-  width: 42px !important;
-  min-width: 42px !important;
-  max-width: 42px !important;
+  width: 42px ;
+  min-width: 42px ;
+  max-width: 42px ;
   padding: 0 !important;
   font-size: 15px !important;
   line-height: 1 !important;
@@ -971,7 +971,7 @@ body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-a
 
 @media (max-width: 1180px) {
   body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions {
-    justify-content: flex-start !important;
+    justify-content: flex-start ;
     padding-top: 12px !important;
   }
 }
@@ -979,31 +979,31 @@ body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-a
 @media (max-width: 640px) {
   body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-actions.telework-actions .rrll-pro-tool-button:not(.rrll-icon-only) {
     flex: 1 1 100% !important;
-    width: 100% !important;
+    width: 100% ;
   }
 }
 
 /* Teletrabajo: distribución de 6 columnas tras retirar Acciones de la tabla principal. */
 body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(1),
-body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(1) { width: 34% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(1) { width: 34% ; }
 body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(2),
-body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(2) { width: 16% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(2) { width: 16% ; }
 body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(3),
-body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(3) { width: 13% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(3) { width: 13% ; }
 body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(4),
-body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(4) { width: 11% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(4) { width: 11% ; }
 body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(5),
-body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(5) { width: 14% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(5) { width: 14% ; }
 body.rrll-view-module #gestor-teletrabajo .telework-table th:nth-child(6),
-body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { width: 12% !important; }
+body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { width: 12% ; }
 
 /* Header: logo corporativo horizontal de Relaciones Laborales.
    Regla única para inicio y módulos: evita que al cambiar de vista reaparezca
    el logo grande y reduce el tamaño del dashboard alrededor de un 10%. */
 .rrll-main .top-strip,
 .top-strip {
-  min-width: 0 !important;
-  overflow: hidden !important;
+  min-width: 0 ;
+  overflow: hidden ;
 }
 
 .header-logo-wrapper {
@@ -1036,7 +1036,7 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
 }
 
 .top-strip .top-title {
-  min-width: 0 !important;
+  min-width: 0 ;
   flex: 1 1 auto;
 }
 
@@ -1056,14 +1056,14 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
 
 /* Compactación específica del sidebar principal para portátiles de 14". */
 .rrll-sidebar {
-  gap: 9px !important;
+  gap: 9px ;
   overflow-x: hidden !important;
   overflow-y: auto !important;
-  scrollbar-width: thin !important;
+  scrollbar-width: thin ;
   scrollbar-color: rgba(203, 213, 225, .24) transparent !important;
 }
 .rrll-sidebar::-webkit-scrollbar {
-  width: 5px !important;
+  width: 5px ;
   height: 5px !important;
 }
 .rrll-sidebar::-webkit-scrollbar-thumb {
@@ -1076,8 +1076,8 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
 .rrll-nav-item,
 .rrll-nav-subitem,
 .rrll-nav-button {
-  gap: 8px !important;
-  min-width: 0 !important;
+  gap: 8px ;
+  min-width: 0 ;
 }
 .rrll-nav-item {
   min-height: 33px !important;
@@ -1089,7 +1089,7 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
   padding-left: 8px !important;
 }
 .rrll-nav-submenu.open {
-  gap: 3px !important;
+  gap: 3px ;
 }
 .rrll-nav-subitem {
   min-height: 27px !important;
@@ -1097,24 +1097,24 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
   border-radius: 8px !important;
 }
 .rrll-nav-secondary {
-  display: grid !important;
-  grid-template-columns: 34px 34px minmax(0, 1fr) !important;
-  align-items: center !important;
-  justify-content: start !important;
-  gap: 6px !important;
+  display: grid ;
+  grid-template-columns: 34px 34px minmax(0, 1fr) ;
+  align-items: center ;
+  justify-content: start ;
+  gap: 6px ;
 }
 .rrll-nav-folder-link {
   grid-column: 1 / -1 !important;
-  width: 100% !important;
+  width: 100% ;
 }
 .rrll-nav-trash-icon,
 .rrll-nav-settings-icon {
-  width: 34px !important;
-  min-width: 34px !important;
+  width: 34px ;
+  min-width: 34px ;
   height: 34px !important;
   min-height: 34px !important;
   padding: 0 !important;
-  justify-content: center !important;
+  justify-content: center ;
   font-size: 16px !important;
   line-height: 1 !important;
   border-radius: 10px !important;
@@ -1126,38 +1126,38 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
   position: absolute !important;
   top: -5px !important;
   right: -6px !important;
-  min-width: 16px !important;
+  min-width: 16px ;
   height: 16px !important;
   padding: 0 4px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  display: inline-flex ;
+  align-items: center ;
+  justify-content: center ;
   font-size: 10px !important;
   line-height: 1 !important;
   box-shadow: 0 0 0 2px var(--rrll-sidebar-bg-active) !important;
 }
 .rrll-sidebar-sync.save-status-widget {
-  grid-template-columns: 8px minmax(0, 1fr) 28px !important;
-  align-items: center !important;
-  gap: 6px !important;
+  grid-template-columns: 8px minmax(0, 1fr) 28px ;
+  align-items: center ;
+  gap: 6px ;
   margin: auto 8px 8px !important;
   padding: 6px 8px !important;
   border-radius: 11px !important;
 }
 .rrll-sidebar-sync .save-status-text {
   grid-column: 2 !important;
-  display: flex !important;
-  align-items: baseline !important;
-  gap: 4px !important;
-  min-width: 0 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
+  display: flex ;
+  align-items: baseline ;
+  gap: 4px ;
+  min-width: 0 ;
+  white-space: nowrap ;
+  overflow: hidden ;
 }
 .rrll-sidebar-sync .save-status-text b,
 .rrll-sidebar-sync .save-status-text span {
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
+  overflow: hidden ;
+  text-overflow: ellipsis ;
+  white-space: nowrap ;
   font-size: 11px !important;
   line-height: 1 !important;
 }
@@ -1170,8 +1170,8 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
 .rrll-sidebar-sync .sync-now-button {
   grid-column: 3 !important;
   grid-row: 1 !important;
-  width: 28px !important;
-  min-width: 28px !important;
+  width: 28px ;
+  min-width: 28px ;
   height: 28px !important;
   min-height: 28px !important;
   margin: 0 !important;
@@ -1188,12 +1188,12 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
 
 @media (max-height: 820px) {
   .rrll-sidebar {
-    gap: 7px !important;
+    gap: 7px ;
     padding-top: 10px !important;
     padding-bottom: 10px !important;
   }
   .rrll-nav {
-    gap: 3px !important;
+    gap: 3px ;
   }
   .rrll-nav-item {
     min-height: 31px !important;
@@ -1210,7 +1210,7 @@ body.rrll-view-module #gestor-teletrabajo .telework-table td:nth-child(6) { widt
     padding: 6px 8px !important;
   }
   .rrll-sidebar-sync .save-status-text b {
-    display: inline !important;
+    display: inline ;
   }
 }
 
@@ -1226,13 +1226,13 @@ body.rrll-view-home .top-strip {
   min-height: 48px !important;
   padding-top: 6px !important;
   padding-bottom: 6px !important;
-  gap: 17px !important;
+  gap: 17px ;
 }
 
 body.rrll-view-home .header-logo-wrapper {
-  width: clamp(146px, 22.7vw, 227px) !important;
-  max-width: 227px !important;
-  min-width: 0 !important;
+  width: clamp(146px, 22.7vw, 227px) ;
+  max-width: 227px ;
+  min-width: 0 ;
   padding: 3px 7px !important;
 }
 
@@ -1248,17 +1248,17 @@ body.rrll-view-home .top-title p {
 }
 
 body.rrll-view-home .rrll-dashboard {
-  gap: 12px !important;
+  gap: 12px ;
   margin-bottom: 12px !important;
 }
 
 body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-grid {
-  gap: 10px !important;
+  gap: 10px ;
   margin-bottom: 10px !important;
 }
 
 body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card {
-  grid-template-columns: 34px minmax(0, 1fr) 38px !important;
+  grid-template-columns: 34px minmax(0, 1fr) 38px ;
   min-height: 112px !important;
   padding: 10px 11px !important;
   border-radius: 14px !important;
@@ -1266,7 +1266,7 @@ body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card {
 }
 
 body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card .phase4-metric-icon {
-  width: 30px !important;
+  width: 30px ;
   height: 30px !important;
   border-radius: 9px !important;
   font-size: 16px !important;
@@ -1288,7 +1288,7 @@ body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-card small {
 }
 
 body.rrll-view-home .rrll-mini-donut {
-  width: 34px !important;
+  width: 34px ;
   height: 34px !important;
 }
 
@@ -1297,7 +1297,7 @@ body.rrll-view-home .rrll-mini-donut::after {
 }
 
 body.rrll-view-home .rrll-metric-legend {
-  gap: 4px 7px !important;
+  gap: 4px 7px ;
   margin-top: 7px !important;
   padding-top: 7px !important;
 }
@@ -1310,7 +1310,7 @@ body.rrll-view-home .rrll-empty-legend {
 }
 
 body.rrll-view-home .rrll-dashboard .rrll-dashboard-grid-layout {
-  gap: 12px !important;
+  gap: 12px ;
 }
 
 body.rrll-view-home .rrll-dashboard .rrll-dashboard-panel {
@@ -1320,7 +1320,7 @@ body.rrll-view-home .rrll-dashboard .rrll-dashboard-panel {
 }
 
 body.rrll-view-home .rrll-dashboard .phase4-card-head {
-  gap: 8px !important;
+  gap: 8px ;
   margin-bottom: 8px !important;
   padding-bottom: 8px !important;
 }
@@ -1336,8 +1336,8 @@ body.rrll-view-home .rrll-dashboard .phase4-card-head span {
 }
 
 body.rrll-view-home .rrll-due-layout {
-  grid-template-columns: minmax(240px, 1fr) 242px !important;
-  gap: 11px !important;
+  grid-template-columns: minmax(240px, 1fr) 242px ;
+  gap: 11px ;
 }
 
 body.rrll-view-home .rrll-dashboard .phase4-list {
@@ -1345,7 +1345,7 @@ body.rrll-view-home .rrll-dashboard .phase4-list {
 }
 
 body.rrll-view-home .rrll-dashboard .phase4-list-row.rrll-dashboard-row {
-  gap: 2px 8px !important;
+  gap: 2px 8px ;
   min-height: 44px !important;
   padding: 7px 6px !important;
   border-radius: 9px !important;
@@ -1369,7 +1369,7 @@ body.rrll-view-home .rrll-calendar-card {
 }
 
 body.rrll-view-home .rrll-calendar-head {
-  gap: 8px !important;
+  gap: 8px ;
   margin-bottom: 7px !important;
 }
 
@@ -1385,7 +1385,7 @@ body.rrll-view-home .rrll-calendar-head small {
 
 body.rrll-view-home .rrll-calendar-weekdays,
 body.rrll-view-home .rrll-calendar-grid {
-  gap: 4px !important;
+  gap: 4px ;
 }
 
 body.rrll-view-home .rrll-calendar-weekdays {
@@ -1410,18 +1410,18 @@ body.rrll-view-home .rrll-calendar-day b {
 }
 
 body.rrll-view-home .rrll-calendar-day span {
-  gap: 2px !important;
+  gap: 2px ;
   min-height: 4px !important;
 }
 
 body.rrll-view-home .rrll-calendar-day i,
 body.rrll-view-home .rrll-calendar-legend i {
-  width: 4.5px !important;
+  width: 4.5px ;
   height: 4.5px !important;
 }
 
 body.rrll-view-home .rrll-calendar-legend {
-  gap: 5px 8px !important;
+  gap: 5px 8px ;
   margin-top: 8px !important;
   font-size: 9.5px !important;
   line-height: 1.15 !important;
@@ -1438,11 +1438,11 @@ body.rrll-view-home .dashboard-search-header {
 
 @media (max-width: 1400px) {
   body.rrll-view-home .rrll-dashboard .rrll-dashboard-metric-grid {
-    grid-template-columns: repeat(3, minmax(160px, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(160px, 1fr)) ;
   }
 
   body.rrll-view-home .rrll-due-layout {
-    grid-template-columns: minmax(0, 1fr) 242px !important;
+    grid-template-columns: minmax(0, 1fr) 242px ;
   }
 }
 
@@ -1452,18 +1452,18 @@ body.rrll-view-home .dashboard-search-header {
   }
 
   body.rrll-view-home .rrll-due-layout {
-    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr) ;
   }
 }
 
 /* Ticket Restaurante: overrides finales para que los estados del calendario no hereden
    estilos globales de botones cargados después del módulo. */
 body.rrll-view-module #gestor-ticket-restaurante .ticket-days-grid .ticket-day {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  min-width: 0 !important;
+  display: inline-flex ;
+  align-items: center ;
+  justify-content: center ;
+  width: 100% ;
+  min-width: 0 ;
   min-height: 28px !important;
   padding: 0 !important;
   border: 1px solid rgba(148, 163, 184, .22) !important;

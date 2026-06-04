@@ -1,7 +1,9 @@
-/* Resize reutilizable de columnas para tablas RRLL. */
+/* Resize reutilizable de columnas para tablas RRLL. Sin reglas !important. */
 .rrll-table-wrap-enabled,
-.rrll-pro-table-wrap {
+.rrll-pro-table-wrap,
+.telework-history-table-wrapper {
   overflow-x: auto;
+  overflow-y: visible;
 }
 
 .rrll-resizable-table {
@@ -21,15 +23,22 @@
   vertical-align: top;
 }
 
-.rrll-resizable-table .rrll-pro-main-cell {
+.rrll-resizable-table .rrll-pro-main-cell,
+.rrll-resizable-table .rrll-pro-title,
+.rrll-resizable-table .rrll-pro-subtitle,
+.rrll-resizable-table .rrll-pro-created,
+.rrll-resizable-table .rrll-pro-update {
   min-width: 0;
+  max-width: 100%;
 }
 
 .rrll-resizable-table .rrll-status-pill,
 .rrll-resizable-table .rrll-due-pill,
+.rrll-resizable-table .rrll-priority-pill,
 .rrll-resizable-table .priority-badge,
 .rrll-resizable-table .badge,
 .rrll-resizable-table .status-badge,
+.rrll-resizable-table .tag,
 .rrll-resizable-table .chip,
 .rrll-resizable-table .pill {
   white-space: nowrap;
@@ -76,39 +85,48 @@ body.rrll-column-resizing {
 }
 
 .rrll-resizable-table .rrll-resizable-action-header,
-.rrll-resizable-table th:last-child,
-.rrll-resizable-table td:last-child {
-  min-width: 168px;
+.rrll-resizable-table .rrll-table-action-cell {
+  min-width: 150px;
 }
 
-.rrll-resizable-table .rrll-pro-actions,
-.rrll-resizable-table .actions,
-.rrll-resizable-table .action-buttons,
-.rrll-resizable-table .rrll-pro-list-actions {
-  min-width: 0 !important;
-  white-space: normal !important;
-  overflow: visible !important;
+.rrll-resizable-table .rrll-table-action-cell {
+  overflow: visible;
+  text-align: right;
 }
 
-.rrll-resizable-table .rrll-pro-actions,
-.rrll-resizable-table .action-buttons {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 4px !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-}
-
-.rrll-resizable-table .rrll-pro-actions button,
-.rrll-resizable-table .action-buttons button,
-.rrll-resizable-table td:last-child button {
-  flex: 0 0 auto;
+.rrll-resizable-table .rrll-table-action-cell :is(.rrll-pro-actions, .actions, .action-buttons, .rrll-pro-row-actions, .rrll-pro-list-actions, .telework-row-actions) {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 5px;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
   white-space: nowrap;
+}
+
+.rrll-resizable-table .rrll-table-action-cell :is(.rrll-pro-actions, .actions, .action-buttons, .rrll-pro-row-actions, .rrll-pro-list-actions, .telework-row-actions) > button {
+  flex: 0 0 auto;
+  width: auto;
+  white-space: nowrap;
+}
+
+.rrll-resizable-table .rrll-table-action-cell :is(.rrll-delete-icon-button, .rrll-danger-icon-button, .vinculograma-delete-btn) {
+  flex-basis: 28px;
+  width: 28px;
+  min-width: 28px;
+  padding-inline: 0;
+}
+
+.rrll-resizable-table .rrll-table-action-cell[data-rrll-actions-tight="1"] :is(.rrll-pro-actions, .actions, .action-buttons, .rrll-pro-row-actions, .rrll-pro-list-actions, .telework-row-actions) {
+  flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 @media print {
   .rrll-column-resize-handle {
-    display: none !important;
+    display: none;
   }
 
   .rrll-resizable-table {

@@ -1,12 +1,13 @@
 (function () {
   "use strict";
 
-  const STORAGE_PREFIX = "rrll_table_columns_v1";
+  const STORAGE_PREFIX = "rrll_table_columns_v2";
   const MIN_WIDTH = 72;
-  const ACTION_MIN_WIDTH = 168;
-  const ACTION_PREFERRED_WIDTH = 196;
+  const ACTION_MIN_WIDTH = 150;
+  const ACTION_PREFERRED_WIDTH = 220;
   const HANDLE_CLASS = "rrll-column-resize-handle";
   const ENHANCED_CLASS = "rrll-resizable-table";
+  const ACTION_CELL_CLASS = "rrll-table-action-cell";
   const WRAP_CLASS = "rrll-table-wrap-enabled";
   let pendingEnhance = 0;
   let activeResize = null;
@@ -16,7 +17,12 @@
   }
 
   function normalizeKey(value) {
-    return safeText(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "col";
+    return safeText(value)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "col";
   }
 
   function closestModuleId(table) {
@@ -59,6 +65,10 @@
     return isActionHeader(th) ? ACTION_MIN_WIDTH : MIN_WIDTH;
   }
 
+  function preferredWidthForHeader(th) {
+    return isActionHeader(th) ? ACTION_PREFERRED_WIDTH : 0;
+  }
+
   function ensureScrollableParent(table) {
     const parent = table.parentElement;
     if (parent && !parent.classList.contains("rrll-pro-table-wrap")) {
@@ -78,22 +88,53 @@
     return colgroup;
   }
 
+  function cellsForColumn(table, index) {
+    return Array.from(table.rows || [])
+      .map(row => row.cells[index])
+      .filter(Boolean);
+  }
+
+  function markActionColumn(table, headers) {
+    const actionIndex = headers.findIndex(isActionHeader);
+    table.classList.toggle("rrll-table-has-action-column", actionIndex >= 0);
+    if (actionIndex < 0) return;
+    cellsForColumn(table, actionIndex).forEach(cell => cell.classList.add(ACTION_CELL_CLASS));
+  }
+
+  function applyColumnWidth(table, index, width, persist) {
+    const headers = Array.from(table.tHead?.rows?.[0]?.cells || []);
+    const th = headers[index];
+    if (!th) return;
+    const finalWidth = Math.max(minWidthForHeader(th), Math.round(width));
+    const colgroup = ensureColgroup(table, headers.length);
+    const col = colgroup.children[index];
+    if (col) {
+      col.style.width = `${finalWidth}px`;
+      col.style.minWidth = `${minWidthForHeader(th)}px`;
+    }
+    cellsForColumn(table, index).forEach(cell => {
+      cell.style.width = `${finalWidth}px`;
+      cell.style.minWidth = `${minWidthForHeader(th)}px`;
+    });
+    if (persist) {
+      const widths = readWidths(table);
+      widths[index] = finalWidth;
+      writeWidths(table, widths);
+    }
+  }
+
   function applyStoredWidths(table) {
     const headers = Array.from(table.tHead?.rows?.[0]?.cells || []);
     if (!headers.length) return;
-    const colgroup = ensureColgroup(table, headers.length);
+    ensureColgroup(table, headers.length);
+    markActionColumn(table, headers);
     const widths = readWidths(table);
     headers.forEach((th, index) => {
-      const minWidth = minWidthForHeader(th);
       const storedWidth = Number(widths[index]);
-      const fallbackWidth = isActionHeader(th) ? ACTION_PREFERRED_WIDTH : 0;
-      const width = Math.max(minWidth, storedWidth || fallbackWidth || 0);
-      if (width) {
-        colgroup.children[index].style.width = `${width}px`;
-        th.style.width = `${width}px`;
-      }
+      const fallbackWidth = preferredWidthForHeader(th);
+      const minWidth = minWidthForHeader(th);
+      if (storedWidth || fallbackWidth) applyColumnWidth(table, index, Math.max(minWidth, storedWidth || fallbackWidth), false);
       th.style.minWidth = `${minWidth}px`;
-      colgroup.children[index].style.minWidth = `${minWidth}px`;
     });
   }
 
@@ -104,16 +145,7 @@
   }
 
   function setColumnWidth(table, index, width) {
-    const headers = Array.from(table.tHead?.rows?.[0]?.cells || []);
-    const th = headers[index];
-    if (!th) return;
-    const finalWidth = Math.max(minWidthForHeader(th), Math.round(width));
-    const colgroup = ensureColgroup(table, headers.length);
-    colgroup.children[index].style.width = `${finalWidth}px`;
-    th.style.width = `${finalWidth}px`;
-    const widths = readWidths(table);
-    widths[index] = finalWidth;
-    writeWidths(table, widths);
+    applyColumnWidth(table, index, width, true);
   }
 
   function autoFitColumn(table, index) {
@@ -123,13 +155,13 @@
     const minWidth = minWidthForHeader(th);
     const cells = [th, ...Array.from(table.tBodies || []).flatMap(tbody => Array.from(tbody.rows || []).map(row => row.cells[index]).filter(Boolean))];
     let width = minWidth;
-    cells.slice(0, 80).forEach(cell => {
+    cells.slice(0, 100).forEach(cell => {
       const previousWidth = cell.style.width;
       cell.style.width = "auto";
-      width = Math.max(width, Math.ceil(cell.scrollWidth + 28));
+      width = Math.max(width, Math.ceil(cell.scrollWidth + 30));
       cell.style.width = previousWidth;
     });
-    setColumnWidth(table, index, Math.min(width, 520));
+    setColumnWidth(table, index, Math.min(width, 560));
   }
 
   function removeExistingHandles(table) {
@@ -177,6 +209,8 @@
     const headers = Array.from(table.tHead.rows[0].cells || []);
     if (headers.length < 2) return;
     table.classList.add(ENHANCED_CLASS);
+    table.style.tableLayout = "fixed";
+    table.style.minWidth = "max-content";
     ensureScrollableParent(table);
     ensureColgroup(table, headers.length);
     applyStoredWidths(table);
@@ -209,7 +243,7 @@
   function initTableResize() {
     enhanceAllTables();
     const observer = new MutationObserver(mutations => {
-      if (mutations.some(mutation => Array.from(mutation.addedNodes || []).some(node => node.nodeType === 1 && (node.matches?.("table, thead, tbody, tr, th") || node.querySelector?.("table, thead, tbody, tr, th"))))) {
+      if (mutations.some(mutation => Array.from(mutation.addedNodes || []).some(node => node.nodeType === 1 && (node.matches?.("table, thead, tbody, tr, th, td") || node.querySelector?.("table, thead, tbody, tr, th, td"))))) {
         scheduleEnhance();
       }
     });

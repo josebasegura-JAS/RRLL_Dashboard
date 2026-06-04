@@ -165,9 +165,9 @@
 
 /* Teletrabajo profesional: formulario por bloques y listado compacto en tarjetas. */
 .telework-professional-form {
-  display: grid !important;
+  display: grid ;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px !important;
+  gap: 14px ;
   align-items: start;
 }
 
@@ -217,7 +217,7 @@
 .telework-request-card {
   display: grid;
   gap: 12px;
-  padding: 14px !important;
+  padding: 14px ;
   border-radius: 18px;
   cursor: default;
 }
@@ -385,8 +385,8 @@ html[data-theme="light"] .telework-eligibility-warning {
 /* Teletrabajo: alta inicial simplificada.
    La creación registra persona + solicitud. El resto se completa por doble clic. */
 .telework-intake-form {
-  grid-template-columns: minmax(280px, .8fr) minmax(0, 1.2fr) !important;
-  gap: 14px !important;
+  grid-template-columns: minmax(280px, .8fr) minmax(0, 1.2fr) ;
+  gap: 14px ;
 }
 
 .telework-intake-note,
@@ -434,7 +434,7 @@ html[data-theme="light"] .telework-intake-note {
 
 @media (max-width: 980px) {
   .telework-intake-form {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr ;
   }
 }
 
@@ -590,7 +590,7 @@ html[data-theme="light"] .telework-intake-note {
 .telework-catalog-table td:nth-child(6) { min-width: 120px; }
 
 .telework-catalog-empty {
-  padding: 24px !important;
+  padding: 24px ;
   text-align: center;
   color: var(--rrll-text-muted, var(--muted));
 }
@@ -780,20 +780,20 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
    Mantiene la estética existente, pero reparte los bloques para evitar
    que las validaciones caigan al final de una columna larga. */
 .telework-edit-modal .telework-modal-box {
-  width: min(1180px, calc(100vw - 40px)) !important;
-  max-height: calc(100vh - 40px) !important;
+  width: min(1180px, calc(100vw - 40px)) ;
+  max-height: calc(100vh - 40px) ;
   display: flex;
   flex-direction: column;
 }
 
 .telework-edit-modal .telework-professional-form {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  display: grid ;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) ;
   grid-template-areas:
     "person validation"
     "master validation"
     "agreement agreement";
-  gap: 14px !important;
+  gap: 14px ;
   overflow: auto;
   padding-right: 4px;
 }
@@ -834,7 +834,7 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
 
 @media (max-width: 980px) {
   .telework-edit-modal .telework-professional-form {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr ;
     grid-template-areas:
       "person"
       "master"
@@ -858,14 +858,14 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
 
 #gestor-teletrabajo .telework-table th,
 #gestor-teletrabajo .telework-table td {
-  padding: 7px 9px !important;
+  padding: 7px 9px ;
   vertical-align: middle !important;
-  line-height: 1.2 !important;
+  line-height: 1.2 ;
 }
 
 #gestor-teletrabajo .telework-table tbody tr {
-  height: auto !important;
-  min-height: 42px !important;
+  height: auto ;
+  min-height: 42px ;
 }
 
 #gestor-teletrabajo .telework-table th:nth-child(1),
@@ -889,7 +889,7 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
 
 #gestor-teletrabajo .telework-table .rrll-pro-title,
 #gestor-teletrabajo .telework-table .rrll-pro-subtitle {
-  line-height: 1.25 !important;
+  line-height: 1.25 ;
 }
 
 #gestor-teletrabajo .telework-table .rrll-pro-title {
@@ -904,7 +904,7 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
   overflow: hidden;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
-  font-size: 11px !important;
+  font-size: 11px ;
 }
 
 #gestor-teletrabajo .telework-col-status,
@@ -914,13 +914,13 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
 #gestor-teletrabajo .telework-col-start,
 #gestor-teletrabajo .telework-col-end,
 #gestor-teletrabajo .telework-col-created {
-  white-space: nowrap !important;
+  white-space: nowrap ;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 #gestor-teletrabajo .telework-col-actions {
-  white-space: nowrap !important;
+  white-space: nowrap ;
 }
 
 #gestor-teletrabajo .telework-col-actions .rrll-pro-row-actions,
@@ -934,19 +934,19 @@ body.rrll-view-module #gestor-teletrabajo .telework-future-campaign {
 
 #gestor-teletrabajo .telework-col-actions button,
 #gestor-teletrabajo .telework-actions-inline button {
-  min-height: 28px !important;
-  height: 28px !important;
-  padding: 4px 9px !important;
-  border-radius: 8px !important;
-  font-size: 12px !important;
-  line-height: 1 !important;
+  min-height: 28px ;
+  height: 28px ;
+  padding: 4px 9px ;
+  border-radius: 8px ;
+  font-size: 12px ;
+  line-height: 1 ;
 }
 
 #gestor-teletrabajo .rrll-status-pill,
 #gestor-teletrabajo .rrll-pro-source,
 #gestor-teletrabajo .rrll-pro-created {
   max-width: 100%;
-  white-space: nowrap !important;
+  white-space: nowrap ;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -980,46 +980,47 @@ html[data-theme="light"] #gestor-teletrabajo .telework-header-actions .telework-
 }
 
 
-/* Teletrabajo: acciones apiladas dentro de su columna, sin invadir fechas/fin. */
+/* Teletrabajo: acciones homogéneas dentro de su columna, sin invadir fechas/fin. */
 #gestor-teletrabajo .telework-table th:nth-child(9),
 #gestor-teletrabajo .telework-table td:nth-child(9) {
-  width: 158px !important;
-  min-width: 158px !important;
-  max-width: 158px !important;
+  width: 158px ;
+  min-width: 158px ;
+  max-width: none;
 }
 
 #gestor-teletrabajo .telework-col-actions {
-  white-space: normal !important;
-  overflow: visible !important;
+  white-space: nowrap;
+  overflow: visible;
 }
 
 #gestor-teletrabajo .telework-col-actions .rrll-pro-row-actions,
 #gestor-teletrabajo .telework-row-actions,
 #gestor-teletrabajo .telework-actions-inline,
 #gestor-teletrabajo .telework-list-actions {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px !important;
-  align-items: stretch !important;
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 5px;
+  align-items: center;
+  justify-content: flex-end;
   width: 100%;
   min-width: 0;
-  white-space: normal !important;
+  white-space: nowrap;
+  overflow: visible;
 }
 
 #gestor-teletrabajo .telework-col-actions button,
 #gestor-teletrabajo .telework-row-actions button,
 #gestor-teletrabajo .telework-actions-inline button {
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 24px !important;
-  height: 24px !important;
-  padding: 3px 6px !important;
-  border-radius: 7px !important;
-  font-size: 10.5px !important;
-  line-height: 1 !important;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap !important;
+  width: auto;
+  min-width: 0;
+  min-height: 24px;
+  height: 24px;
+  padding: 3px 6px;
+  border-radius: 7px;
+  font-size: 10.5px;
+  line-height: 1;
+  overflow: visible;
+  white-space: nowrap;
 }
 
 #gestor-teletrabajo .telework-word-action,
@@ -1028,7 +1029,7 @@ html[data-theme="light"] #gestor-teletrabajo .telework-header-actions .telework-
 }
 
 #gestor-teletrabajo .telework-table tbody tr {
-  min-height: 60px !important;
+  min-height: 60px ;
 }
 
 /* Modal de alta manual de campañas de teletrabajo */
