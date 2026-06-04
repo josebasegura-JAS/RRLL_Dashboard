@@ -71,6 +71,16 @@
   let teleworkRuntimeSnapshot = null;
   let teleworkRepairCompleted = false;
   let teleworkRenderSignature = "";
+  let teleworkDeferredRefreshTimer = null;
+
+  function runTeleworkWhenIdle(callback) {
+    if (typeof callback !== "function") return;
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(callback, { timeout: 800 });
+      return;
+    }
+    setTimeout(callback, 80);
+  }
 
   function getTeleworkItems() {
     const items = load(KEY, []);
@@ -608,15 +618,29 @@
     return classes[status] || "pending";
   }
 
-  function refreshTeleworkDependents() {
+  function refreshTeleworkDependents(options = {}) {
+    const { deferHeavy = false } = options || {};
+
+    const refreshSecondaryPanels = () => {
+      teleworkDeferredRefreshTimer = null;
+      if (typeof updateQuickCounts === "function") updateQuickCounts();
+      if (typeof renderHomeDashboard === "function") renderHomeDashboard();
+      if (typeof renderTrash === "function") renderTrash();
+      if (typeof restoreAlertsPanelState === "function") restoreAlertsPanelState();
+      if (typeof renderAlertsPanel === "function") renderAlertsPanel();
+      if (typeof applyAllClosedColumnStates === "function") applyAllClosedColumnStates();
+      if (typeof refreshDatabaseInfo === "function") refreshDatabaseInfo();
+    };
+
     renderTelework();
-    if (typeof updateQuickCounts === "function") updateQuickCounts();
-    if (typeof renderHomeDashboard === "function") renderHomeDashboard();
-    if (typeof renderTrash === "function") renderTrash();
-    if (typeof restoreAlertsPanelState === "function") restoreAlertsPanelState();
-    if (typeof renderAlertsPanel === "function") renderAlertsPanel();
-    if (typeof applyAllClosedColumnStates === "function") applyAllClosedColumnStates();
-    if (typeof refreshDatabaseInfo === "function") refreshDatabaseInfo();
+
+    if (!deferHeavy) {
+      refreshSecondaryPanels();
+      return;
+    }
+
+    if (teleworkDeferredRefreshTimer) clearTimeout(teleworkDeferredRefreshTimer);
+    teleworkDeferredRefreshTimer = setTimeout(() => runTeleworkWhenIdle(refreshSecondaryPanels), 0);
   }
 
   function toggleTeleworkCreateForm(forceOpen) {
@@ -948,7 +972,7 @@
 
       resetTeleworkCreateForm();
       toggleTeleworkCreateForm(false);
-      refreshTeleworkDependents();
+      requestAnimationFrame(() => refreshTeleworkDependents({ deferHeavy: true }));
     } catch (error) {
       console.error("[Teletrabajo] No se pudo guardar la solicitud:", error);
       alert(error && error.message ? error.message : "No se pudo guardar la solicitud de teletrabajo. Revisa la consola para más detalle.");
@@ -1279,11 +1303,12 @@
   async function saveEditingTelework() {
     if (!editingTeleworkId) return;
     const id = editingTeleworkId;
-    const previous = getTeleworkItems().find(item => item.id === id);
+    const currentItems = getTeleworkItems();
+    const previous = currentItems.find(item => item.id === id);
     const draft = readTeleworkForm("edit", previous);
     if (!draft) return;
 
-    const nextItems = getTeleworkItems().map(item => item.id === id ? { ...draft, id } : item);
+    const nextItems = currentItems.map(item => item.id === id ? { ...draft, id } : item);
     try {
       await saveTeleworkPlantillaData(draft.employeeNumber, "edit");
       await setTeleworkItems(nextItems, { rejectOnError: true });
@@ -1294,7 +1319,7 @@
     }
 
     closeTeleworkEditModal();
-    refreshTeleworkDependents();
+    requestAnimationFrame(() => refreshTeleworkDependents({ deferHeavy: true }));
   }
 
   function deleteEditingTelework() {
