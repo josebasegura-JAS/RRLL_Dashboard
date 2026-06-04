@@ -252,21 +252,37 @@
     return save(CARGOS_KEY, Array.isArray(items) ? items : [], options);
   }
 
+  function escapePlantillaHtml(value) {
+    if (typeof window.escapeHtml === 'function') return window.escapeHtml(value);
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function normalizeCargoRecord(item) {
+    return {
+      cargoCast: normalizeText(getField(item, 'cargoCast', 'puestoCast', 'castellano', 'puesto')),
+      cargoEus: normalizeText(getField(item, 'cargoEus', 'puestoEus', 'euskera', 'lanpostua'))
+    };
+  }
+
   function hasCargoHeaderRow(row = []) {
     if (!Array.isArray(row)) return false;
     const normalized = row.map(normalizeHeader);
-    const castAliases = ['puesto', 'cargo', 'puesto castellano', 'cargo castellano', 'puesto cast', 'castellano'].map(normalizeHeader);
-    const eusAliases = ['lanpostua', 'puesto euskera', 'cargo euskera', 'puesto eus', 'cargo eus', 'euskera'].map(normalizeHeader);
+    const castAliases = ['puesto', 'cargo', 'puesto trabajo', 'puesto de trabajo', 'puesto castellano', 'cargo castellano', 'puesto cast', 'castellano', 'cast', 'es', 'espanol', 'español'].map(normalizeHeader);
+    const eusAliases = ['lanpostua', 'lan postua', 'puesto euskera', 'cargo euskera', 'puesto eus', 'cargo eus', 'euskera', 'eus', 'eu'].map(normalizeHeader);
     return normalized.some(header => castAliases.includes(header)) && normalized.some(header => eusAliases.includes(header));
   }
 
   function buildCargoDictionary(items = getCargosBilingues()) {
     const dictionary = new Map();
     items.forEach(item => {
-      const cast = normalizeText(getField(item, 'cargoCast', 'puestoCast', 'castellano', 'puesto'));
-      const eus = normalizeText(getField(item, 'cargoEus', 'puestoEus', 'euskera', 'lanpostua'));
-      const key = normalizeCargoKey(cast);
-      if (key && eus) dictionary.set(key, eus);
+      const { cargoCast, cargoEus } = normalizeCargoRecord(item);
+      const key = normalizeCargoKey(cargoCast);
+      if (key && cargoEus) dictionary.set(key, cargoEus);
     });
     return dictionary;
   }
@@ -331,8 +347,8 @@
 
   function buildCargoImportColumnMap(headers) {
     const normalizedHeaders = headers.map(normalizeHeader);
-    const castAliases = ['puesto', 'cargo', 'puesto castellano', 'cargo castellano', 'puesto cast', 'castellano'];
-    const eusAliases = ['lanpostua', 'puesto euskera', 'cargo euskera', 'puesto eus', 'cargo eus', 'euskera'];
+    const castAliases = ['puesto', 'cargo', 'puesto trabajo', 'puesto de trabajo', 'puesto castellano', 'cargo castellano', 'puesto cast', 'castellano', 'cast', 'es', 'espanol', 'español'];
+    const eusAliases = ['lanpostua', 'lan postua', 'puesto euskera', 'cargo euskera', 'puesto eus', 'cargo eus', 'euskera', 'eus', 'eu'];
     const map = {
       cargoCast: normalizedHeaders.findIndex(header => castAliases.map(normalizeHeader).includes(header)),
       cargoEus: normalizedHeaders.findIndex(header => eusAliases.map(normalizeHeader).includes(header))
@@ -343,7 +359,7 @@
   }
 
   async function applyCargosImport(rows) {
-    const summary = { read: 0, imported: 0, skipped: 0, duplicates: 0, appliedToPlantilla: 0, total: 0 };
+    const summary = { read: 0, imported: 0, skipped: 0, duplicates: 0, appliedToPlantilla: 0, total: 0, persisted: 0 };
     if (!rows.length) return summary;
     const hasHeader = hasCargoHeaderRow(rows[0]);
     const map = hasHeader ? buildCargoImportColumnMap(rows[0]) : { cargoCast: 0, cargoEus: 1 };
@@ -379,9 +395,11 @@
     });
     const cargos = [...byCargo.values()].sort((a, b) => normalizeText(a.cargoCast).localeCompare(normalizeText(b.cargoCast), 'es'));
     await Promise.resolve(setCargosBilingues(cargos, { rejectOnError: true }));
-    const applied = await applyCargoTranslationsToPlantilla(buildCargoDictionary(cargos));
+    const persistedCargos = getCargosBilingues();
+    summary.persisted = persistedCargos.length;
+    const applied = await applyCargoTranslationsToPlantilla(buildCargoDictionary(persistedCargos));
     summary.appliedToPlantilla = applied.updated;
-    summary.total = cargos.length;
+    summary.total = persistedCargos.length;
     return summary;
   }
 
@@ -1380,6 +1398,55 @@
     return summary;
   }
 
+
+  function openPlantillaCargosModal() {
+    const cargos = getCargosBilingues()
+      .map(normalizeCargoRecord)
+      .filter(item => item.cargoCast || item.cargoEus)
+      .sort((a, b) => a.cargoCast.localeCompare(b.cargoCast, 'es'));
+    let modal = document.getElementById('plantillaCargosCatalogModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'plantillaCargosCatalogModal';
+      modal.className = 'rrll-modal-backdrop plantilla-cargos-modal-backdrop';
+      document.body.appendChild(modal);
+    }
+    const rowsHtml = cargos.length ? cargos.map((item, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${escapePlantillaHtml(item.cargoCast)}</td>
+        <td>${escapePlantillaHtml(item.cargoEus)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="3" class="muted">No hay cargos bilingües importados.</td></tr>';
+    modal.innerHTML = `
+      <div class="rrll-modal-card plantilla-cargos-modal" role="dialog" aria-modal="true" aria-labelledby="plantillaCargosCatalogTitle">
+        <div class="rrll-modal-head">
+          <div>
+            <h3 id="plantillaCargosCatalogTitle">Puestos bilingües importados</h3>
+            <p class="muted">${cargos.length} puestos guardados en el diccionario de Plantilla.</p>
+          </div>
+          <button type="button" class="rrll-modal-close" onclick="closePlantillaCargosModal()" aria-label="Cerrar">×</button>
+        </div>
+        <div class="rrll-pro-table-wrap plantilla-cargos-table-wrap">
+          <table class="rrll-pro-table plantilla-cargos-table">
+            <thead><tr><th>#</th><th>Puesto CAST</th><th>Puesto EUS</th></tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+        <div class="rrll-pro-form-actions">
+          <button type="button" class="secondary" onclick="closePlantillaCargosModal()">Cerrar</button>
+        </div>
+      </div>
+    `;
+    modal.classList.add('active', 'open');
+  }
+
+  function closePlantillaCargosModal() {
+    const modal = document.getElementById('plantillaCargosCatalogModal');
+    if (!modal) return;
+    modal.classList.remove('active', 'open');
+  }
+
   async function importPlantillaExcelFromInput(event) {
     const input = event?.target;
     const file = input?.files?.[0];
@@ -1415,7 +1482,7 @@
       renderPlantilla({ preserveView: true });
       if (typeof updateQuickCounts === 'function') updateQuickCounts();
       if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
-      const message = `Importación de cargos completada. Cargos incorporados/actualizados: ${summary.imported}. Duplicados sin cambios: ${summary.duplicates}. Filas ignoradas: ${summary.skipped}. Personas actualizadas con Puesto EUS: ${summary.appliedToPlantilla}. Diccionario total: ${summary.total}.`;
+      const message = `Importación de cargos completada. Cargos incorporados/actualizados: ${summary.imported}. Duplicados sin cambios: ${summary.duplicates}. Filas ignoradas: ${summary.skipped}. Personas actualizadas con Puesto EUS: ${summary.appliedToPlantilla}. Diccionario total guardado: ${summary.persisted || summary.total}.`;
       if (summaryEl) summaryEl.textContent = message;
       alert(message);
     } catch (error) {
@@ -1522,10 +1589,12 @@
     });
   }
 
-  window.PlantillaModule = { getPlantilla, setPlantilla, getCargosBilingues, setCargosBilingues, togglePlantillaCreateForm, addPlantilla, deletePlantilla, openPlantillaEditModal, closePlantillaEditModal, saveEditingPlantilla, deleteEditingPlantilla, renderPlantilla, plantillaPreviousPage, plantillaNextPage, importPlantillaExcelFromInput, importPlantillaCargosFromInput, importPlantillaRrllFromInput, printPlantilla, exportPlantillaExcel, downloadPlantillaModelExcel, togglePlantillaElectoralView, setElectoralColegio, setElectoralMesa, setElectoralSindicato, setElectoralRecorrido, exportPlantillaElectoralExcel };
+  window.PlantillaModule = { getPlantilla, setPlantilla, getCargosBilingues, setCargosBilingues, openPlantillaCargosModal, closePlantillaCargosModal, togglePlantillaCreateForm, addPlantilla, deletePlantilla, openPlantillaEditModal, closePlantillaEditModal, saveEditingPlantilla, deleteEditingPlantilla, renderPlantilla, plantillaPreviousPage, plantillaNextPage, importPlantillaExcelFromInput, importPlantillaCargosFromInput, importPlantillaRrllFromInput, printPlantilla, exportPlantillaExcel, downloadPlantillaModelExcel, togglePlantillaElectoralView, setElectoralColegio, setElectoralMesa, setElectoralSindicato, setElectoralRecorrido, exportPlantillaElectoralExcel };
   window.getPlantilla = getPlantilla;
   window.setPlantilla = setPlantilla;
   window.getPlantillaCargosBilingues = getCargosBilingues;
+  window.openPlantillaCargosModal = openPlantillaCargosModal;
+  window.closePlantillaCargosModal = closePlantillaCargosModal;
 
   window.getPlantillaNombreCompleto = getPlantillaNombreCompleto;
   window.normalizePlantillaPerson = normalizePlantillaPerson;
