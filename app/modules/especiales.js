@@ -425,6 +425,15 @@
       .trim();
   }
 
+  function isCleanIntranetCandidate(value) {
+    const text = String(value || "").trim();
+    if (!text || text.length < 4 || text.length > 140) return false;
+    if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffd]/.test(text)) return false;
+    if (/[{}\[\]\x7f]/.test(text)) return false;
+    const readable = (text.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]/g) || []).length;
+    return readable / text.length >= 0.55;
+  }
+
   function extractIntranetServiceName(text) {
     const normalized = normalizeDetectionText(text);
     const marker = /(?:Este\s+)?Servicio\s+Especial\s+aparecer(?:[aá])?\s+en\s+la\s+Intranet\s+como\s*:\s*/i;
@@ -432,25 +441,35 @@
     if (!match) return "";
 
     const afterMarker = normalized.slice(match.index + match[0].length);
-    const stopMatch = /(?:\n|\s{2,})(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|$)/i.exec(afterMarker)
-      || /\s+(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos)\b/i.exec(afterMarker);
-    const candidate = stopMatch ? afterMarker.slice(0, stopMatch.index) : afterMarker.slice(0, 180);
+    const stopMatch = /(?:\n|\s{2,})(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo|$)/i.exec(afterMarker)
+      || /\s+(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo)\b/i.exec(afterMarker);
+    const candidate = stopMatch ? afterMarker.slice(0, stopMatch.index) : afterMarker.slice(0, 140);
 
-    return String(candidate || "")
+    const cleaned = String(candidate || "")
       .replace(/\n+/g, " ")
       .replace(/\s+/g, " ")
       .replace(/[.;,:\-–—]+$/g, "")
       .trim();
+
+    return isCleanIntranetCandidate(cleaned) ? cleaned : "";
   }
 
-  function detectAutoFields(text, subject) {
+  function extractFirstIntranetServiceName(sources) {
+    for (const source of sources || []) {
+      const value = extractIntranetServiceName(source);
+      if (value) return value;
+    }
+    return "";
+  }
+
+  function detectAutoFields(text, subject, extraSources) {
     const source = normalizeDetectionText(text);
     const eventMatch = source.match(/(?:servicio\s+especial|concierto|evento)\s*[:\-]?\s*([^\n\r]{4,120})/i);
     const dateMatch = source.match(/(?:\b(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b\s*)?(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}|\d{1,2}\s+de\s+[a-záéíóúñ]+\s+de\s+\d{2,4})/i);
     const timeMatch = source.match(/\b(\d{1,2}(?::|\.)\d{2}\s*h?)\b/i);
     const uncMatch = source.match(/(?:[A-Za-z]:\\|\\\\)[^\n\r;,"<>]+/);
     const fallbackEvent = cleanEventFromSubject(subject);
-    const intranetName = extractIntranetServiceName(source);
+    const intranetName = extractFirstIntranetServiceName(extraSources && extraSources.length ? extraSources : [source]);
     return {
       evento: eventMatch ? cleanEventFromSubject(eventMatch[1]) : fallbackEvent,
       fecha: dateMatch ? normalizeDateInput(dateMatch[1]) : "",
@@ -471,7 +490,6 @@
       }
       const buffer = await file.arrayBuffer();
       const rawUtf16Text = new TextDecoder("utf-16le").decode(buffer);
-      const rawUtf8Text = new TextDecoder("utf-8").decode(buffer);
       const parsed = await window.rrllMsg.parseOutlookMsg(buffer);
       if (!parsed || !parsed.ok) {
         return { ok: false, message: parsed && parsed.message ? parsed.message : "No se ha podido importar el mensaje .msg." };
@@ -483,8 +501,10 @@
       const senderName = String(data.senderName || "").trim();
       const senderEmail = String(data.senderEmail || "").trim();
       const date = normalizeDateInput(data.date || data.messageDeliveryTime || data.deliveryTime || data.creationTime || "");
-      const textForDetection = `${subject}\n${body}\n${stripHtmlToText(htmlBody)}\n${rawUtf16Text}\n${rawUtf8Text}`;
-      const auto = detectAutoFields(textForDetection, subject);
+      const htmlText = stripHtmlToText(htmlBody);
+      const safeDetectionSources = [body, htmlText, rawUtf16Text, subject].filter(Boolean);
+      const textForDetection = `${subject}\n${body}\n${htmlText}`;
+      const auto = detectAutoFields(textForDetection, subject, safeDetectionSources);
       const hasMainData = !!(auto.evento && auto.fecha && auto.hora);
       const hasSomeMainData = [auto.evento, auto.fecha, auto.hora].filter(Boolean).length > 0;
       return {
