@@ -61,11 +61,9 @@
 .rrll-task-row:not(.expanded) .rrll-pro-subtitle,
 .rrll-task-row:not(.expanded) .rrll-pro-created,
 .rrll-task-row:not(.expanded) .rrll-pro-update,
-.rrll-task-row:not(.expanded) .rrll-pro-actions,
 .rrll-petition-row:not(.expanded) .rrll-pro-subtitle,
 .rrll-petition-row:not(.expanded) .rrll-pro-created,
-.rrll-petition-row:not(.expanded) .rrll-pro-update,
-.rrll-petition-row:not(.expanded) .rrll-pro-actions {
+.rrll-petition-row:not(.expanded) .rrll-pro-update {
   display: none !important;
 }
 .rrll-task-row:not(.expanded) td,

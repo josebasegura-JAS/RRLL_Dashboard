@@ -366,6 +366,29 @@
         console.info("[RRLL TASK] modal reseteado editable");
       }
 
+
+      function setTaskUpdateModalBusyState(isBusy, message = "") {
+        const modal = document.getElementById("taskUpdateModal");
+        if (!modal) return;
+        let status = document.getElementById("taskUpdateModalLockStatus");
+        const title = document.getElementById("taskUpdateModalTitle");
+        if (!status && title) {
+          status = document.createElement("p");
+          status.id = "taskUpdateModalLockStatus";
+          status.className = "muted rrll-modal-lock-status";
+          title.insertAdjacentElement("afterend", status);
+        }
+        if (status) {
+          status.textContent = isBusy ? (message || "Comprobando bloqueo de edición…") : "";
+          status.style.display = isBusy ? "block" : "none";
+        }
+        modal.querySelectorAll("input, select, textarea, button").forEach(control => {
+          const closeButton = control.matches("button") && /closeTaskUpdateModal/.test(control.getAttribute("onclick") || "");
+          if (closeButton) return;
+          control.disabled = !!isBusy;
+        });
+      }
+
       async function openTaskUpdateModal(id) {
         if (isTaskModalOpening) return;
         isTaskModalOpening = true;
@@ -373,28 +396,20 @@
           if (activeTaskUpdateId && activeTaskUpdateId !== id) {
             await closeTaskUpdateModal();
           }
-          const lock = await window.acquireEditingLock?.("tareas", id);
-          if (lock && lock.allowed === false) {
-            console.info("[RRLL TASK] lock bloqueado por otro usuario");
-            window.showEditingLockBlockedMessage?.(lock.lock);
-            return;
-          }
+
           const tasks = getTasks();
           const task = tasks.find(t => t.id === id);
           if (!task) return;
 
           resetTaskUpdateModalEditableState();
-          activeTaskUpdateId = id;
           activeTaskLoadedUpdatedAt = task.updatedAt || "";
-          console.info("[RRLL TASK] lock permitido, abriendo modal editable");
-          window.startEditingLockHeartbeat?.("tareas", id);
+
           const titleEl = document.getElementById("taskUpdateModalTitle");
           const titleInput = document.getElementById("taskEditTitle");
           const dueInput = document.getElementById("taskEditDueDate");
           const priorityInput = document.getElementById("taskEditPriority");
           const statusInput = document.getElementById("taskEditStatus");
           const notesInput = document.getElementById("taskEditNotes");
-          const originInput = document.getElementById("taskEditOrigin");
           const updateInput = document.getElementById("taskUpdateModalText");
 
           if (titleEl) titleEl.textContent = task.title || "Tarea sin título";
@@ -415,7 +430,29 @@
           window.__taskDraftAttachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
           if (typeof renderTaskAttachments === "function") renderTaskAttachments("taskAttachmentsList", window.__taskDraftAttachments);
 
-          document.getElementById("taskUpdateModal").classList.add("open");
+          const modal = document.getElementById("taskUpdateModal");
+          if (!modal) return;
+          modal.classList.add("open");
+          setTaskUpdateModalBusyState(true, "Abriendo registro y comprobando bloqueo de edición…");
+
+          const lock = await window.acquireEditingLock?.("tareas", id);
+          if (lock && lock.allowed === false) {
+            modal.classList.remove("open");
+            setTaskUpdateModalBusyState(false);
+            console.info("[RRLL TASK] lock bloqueado por otro usuario");
+            window.showEditingLockBlockedMessage?.(lock.lock);
+            return;
+          }
+
+          if (!modal.classList.contains("open")) {
+            try { await window.clearEditingLock?.("tareas", id); } catch (error) { console.warn("No se pudo liberar lock tras cierre rápido:", error); }
+            return;
+          }
+
+          activeTaskUpdateId = id;
+          console.info("[RRLL TASK] lock permitido, modal editable");
+          window.startEditingLockHeartbeat?.("tareas", id);
+          setTaskUpdateModalBusyState(false);
           setTimeout(() => (updateInput || titleInput)?.focus(), 0);
         } catch (error) {
           console.warn("Fallo al abrir modal de tarea:", error);

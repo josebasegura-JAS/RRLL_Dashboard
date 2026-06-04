@@ -321,6 +321,29 @@
     let isPetitionModalOpening = false;
     let activePetitionLoadedUpdatedAt = "";
 
+
+    function setPetitionUpdateModalBusyState(isBusy, message = "") {
+      const modal = document.getElementById("petitionUpdateModal");
+      if (!modal) return;
+      let status = document.getElementById("petitionUpdateModalLockStatus");
+      const title = document.getElementById("petitionUpdateModalTitle");
+      if (!status && title) {
+        status = document.createElement("p");
+        status.id = "petitionUpdateModalLockStatus";
+        status.className = "muted rrll-modal-lock-status";
+        title.insertAdjacentElement("afterend", status);
+      }
+      if (status) {
+        status.textContent = isBusy ? (message || "Comprobando bloqueo de edición…") : "";
+        status.style.display = isBusy ? "block" : "none";
+      }
+      modal.querySelectorAll("input, select, textarea, button").forEach(control => {
+        const closeButton = control.matches("button") && /closePetitionUpdateModal/.test(control.getAttribute("onclick") || "");
+        if (closeButton) return;
+        control.disabled = !!isBusy;
+      });
+    }
+
     async function openPetitionUpdateModal(id) {
       if (isPetitionModalOpening) return;
       isPetitionModalOpening = true;
@@ -329,19 +352,11 @@
           await closePetitionUpdateModal();
         }
 
-        const lock = await window.acquireEditingLock?.("peticiones", id);
-        if (lock && lock.allowed === false) {
-          window.showEditingLockBlockedMessage?.(lock.lock);
-          return;
-        }
-
         const items = getPetitions();
         const item = items.find(i => i.id === id);
         if (!item) return;
 
-        activePetitionUpdateId = id;
         activePetitionLoadedUpdatedAt = item.updatedAt || "";
-        window.startEditingLockHeartbeat?.("peticiones", id);
         const sources = Array.isArray(item.sources) ? item.sources : [];
         const titleEl = document.getElementById("petitionUpdateModalTitle");
         if (titleEl) titleEl.textContent = item.title || "Petición sin título";
@@ -376,6 +391,24 @@
         }
 
         modal.classList.add("open");
+        setPetitionUpdateModalBusyState(true, "Abriendo registro y comprobando bloqueo de edición…");
+
+        const lock = await window.acquireEditingLock?.("peticiones", id);
+        if (lock && lock.allowed === false) {
+          modal.classList.remove("open");
+          setPetitionUpdateModalBusyState(false);
+          window.showEditingLockBlockedMessage?.(lock.lock);
+          return;
+        }
+
+        if (!modal.classList.contains("open")) {
+          try { await window.clearEditingLock?.("peticiones", id); } catch (error) { console.warn("No se pudo liberar lock tras cierre rápido de petición:", error); }
+          return;
+        }
+
+        activePetitionUpdateId = id;
+        window.startEditingLockHeartbeat?.("peticiones", id);
+        setPetitionUpdateModalBusyState(false);
         setTimeout(() => (updateInput || titleInput)?.focus(), 0);
       } catch (error) {
         console.warn("Fallo al abrir modal de petición:", error);
@@ -393,7 +426,10 @@
         try { await window.clearEditingLock?.("peticiones", closingId); } catch (error) { console.warn("No se pudo liberar lock al cerrar modal de petición:", error); }
       }
       const modal = document.getElementById("petitionUpdateModal");
-      if (modal) modal.classList.remove("open");
+      if (modal) {
+        modal.classList.remove("open");
+        setPetitionUpdateModalBusyState(false);
+      }
       ["petitionEditTitle", "petitionEditDueDate", "petitionEditNotes", "petitionUpdateModalText"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
