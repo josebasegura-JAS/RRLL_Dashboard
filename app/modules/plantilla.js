@@ -372,7 +372,16 @@
   }
 
   function normalizeEmployeeKey(value) {
-    return normalizeEmployeeNumber(value).toLowerCase();
+    const raw = normalizeEmployeeNumber(value).toLowerCase();
+    return raw.replace(/\.0+$/, '');
+  }
+
+  function readImportedLevel(row, map, headers = []) {
+    const normalizedHeaders = headers.map(normalizeHeader);
+    let index = normalizedHeaders.findIndex(header => header === 'nivel retributivo');
+    if (index < 0) index = normalizedHeaders.findIndex(header => ['nivel retrib', 'nivel salarial'].includes(header));
+    if (index < 0 && map.level != null) index = map.level;
+    return index == null || index < 0 ? '' : normalizeLevel(row[index]);
   }
 
   function normalizeLevel(value) {
@@ -645,10 +654,7 @@
     const colegioElectoral = normalizeText(document.getElementById('newPlantColegioElectoral')?.value);
     const mesaElectoral = normalizeText(document.getElementById('newPlantMesaElectoral')?.value);
     const sindicato = normalizeText(document.getElementById('newPlantSindicato')?.value);
-    const participacionEstimada = normalizeText(document.getElementById('newPlantParticipacionEstimada')?.value);
-    const recorridoActivo = !!document.getElementById('newPlantRecorridoActivo')?.checked;
-    const estacionBase = normalizeText(document.getElementById('newPlantEstacionBase')?.value);
-    const observacionesRecorrido = normalizeText(document.getElementById('newPlantObservacionesRecorrido')?.value);
+    syncPlantillaPuestoFromJob({ prefix: 'newPlant' });
     const teletrabajoData = getPlantillaTeletrabajoData({}, 'newPlant');
 
     if (!employeeNumber || !name || !job) {
@@ -659,7 +665,7 @@
     const now = new Date().toISOString();
     const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `plant-${Date.now()}`;
     const items = getPlantilla();
-    items.push({ id, employeeNumber, nombreCompleto: name, fullName: name, name, colegioElectoral, colegio_electoral: colegioElectoral, mesaElectoral, mesa_electoral: mesaElectoral, sindicato, participacionEstimada, participacion_estimada: participacionEstimada, recorridoActivo, recorrido_activo: recorridoActivo, estacionBase, estacion_base: estacionBase, observacionesRecorrido, observaciones_recorrido: observacionesRecorrido, job, positionSeniority, level, ...teletrabajoData, createdAt: now, updatedAt: now });
+    items.push({ id, employeeNumber, nombreCompleto: name, fullName: name, name, sindicato, job, positionSeniority, level, ...teletrabajoData, createdAt: now, updatedAt: now });
     setPlantilla(items);
 
     employeeEl.value = '';
@@ -675,16 +681,23 @@
     if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
   }
 
-  function deletePlantilla(id) {
+  async function deletePlantilla(id) {
+    if (!id) return;
     if (!confirm('La persona se moverá a la papelera. ¿Continuar?')) return;
     const items = getPlantilla();
     const item = items.find(i => i.id === id);
-    if (item && typeof moveToTrash === 'function') moveToTrash('plantilla', item);
-    setPlantilla(items.filter(i => i.id !== id));
-    renderPlantilla();
-    if (typeof renderTrash === 'function') renderTrash();
-    if (typeof updateQuickCounts === 'function') updateQuickCounts();
-    if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+    if (!item) return;
+    try {
+      if (typeof moveToTrash === 'function') moveToTrash('plantilla', item);
+      await Promise.resolve(setPlantilla(items.filter(i => i.id !== id), { rejectOnError: true }));
+      renderPlantilla({ preserveView: true });
+      if (typeof renderTrash === 'function') renderTrash();
+      if (typeof updateQuickCounts === 'function') updateQuickCounts();
+      if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
+    } catch (error) {
+      console.error('No se pudo eliminar la persona de Plantilla:', error);
+      alert(`No se pudo eliminar la persona: ${error.message || error}`);
+    }
   }
 
 
@@ -749,9 +762,10 @@
 
 
   function syncPlantillaPuestoFromJob(options = {}) {
-    const jobInput = document.getElementById('editPlantJob');
-    const puestoCastInput = document.getElementById('editPlantpuestoCast');
-    const puestoEusInput = document.getElementById('editPlantpuestoEus');
+    const prefix = options.prefix || 'editPlant';
+    const jobInput = document.getElementById(`${prefix}Job`);
+    const puestoCastInput = document.getElementById(`${prefix}puestoCast`);
+    const puestoEusInput = document.getElementById(`${prefix}puestoEus`);
     if (!jobInput || !puestoCastInput) return;
     const job = normalizeText(jobInput.value);
     puestoCastInput.value = job;
@@ -779,7 +793,7 @@
     document.getElementById('editPlantPositionSeniority').value = normalizePlantillaDate(item.positionSeniority);
     document.getElementById('editPlantLevel').value = normalizeLevel(item.level);
     applyPlantillaTeletrabajoValues(item, 'editPlant');
-    syncPlantillaPuestoFromJob({ preserveManualEus: true });
+    syncPlantillaPuestoFromJob({ prefix: 'editPlant', preserveManualEus: true });
     const saveBtn = document.getElementById('editPlantSaveBtn');
     const deleteBtn = document.getElementById('editPlantDeleteBtn');
     if (saveBtn) saveBtn.disabled = !!window.acquireEditingLock;
@@ -812,7 +826,7 @@
     await window.runPendingRemoteRefreshIfNeeded?.();
   }
 
-  function saveEditingPlantilla() {
+  async function saveEditingPlantilla() {
     if (!editingPlantillaId) return;
     const employeeNumber = normalizeEmployeeNumber(document.getElementById('editPlantEmployeeNumber')?.value);
     const name = normalizeText(document.getElementById('editPlantNombreCompleto')?.value);
@@ -825,37 +839,43 @@
       : (normalizePlantillaDate(previousPositionSeniority) ? '' : previousPositionSeniority);
     const level = normalizeLevel(document.getElementById('editPlantLevel')?.value);
     const sindicato = normalizeText(document.getElementById('editPlantSindicato')?.value);
-    syncPlantillaPuestoFromJob();
+    syncPlantillaPuestoFromJob({ prefix: 'editPlant' });
     const teletrabajoData = getPlantillaTeletrabajoData({}, 'editPlant');
     if (!employeeNumber || !name || !job) {
       alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
       return;
     }
-    setPlantilla(getPlantilla().map(item => item.id === editingPlantillaId ? {
-      ...item,
-      employeeNumber,
-      nombreCompleto: name,
-      fullName: name,
-      name,
-      sindicato,
-      job,
-      positionSeniority,
-      level,
-      ...teletrabajoData,
-      updatedAt: new Date().toISOString()
-    } : item));
-    closePlantillaEditModal();
-    renderPlantilla();
+    try {
+      await Promise.resolve(setPlantilla(getPlantilla().map(item => item.id === editingPlantillaId ? {
+        ...item,
+        employeeNumber,
+        nombreCompleto: name,
+        fullName: name,
+        name,
+        sindicato,
+        job,
+        positionSeniority,
+        level,
+        ...teletrabajoData,
+        updatedAt: new Date().toISOString()
+      } : item), { rejectOnError: true }));
+    } catch (error) {
+      console.error('No se pudo guardar la ficha de Plantilla:', error);
+      alert(`No se pudo guardar la ficha: ${error.message || error}`);
+      return;
+    }
+    await closePlantillaEditModal();
+    renderPlantilla({ preserveView: true });
     if (typeof updateQuickCounts === 'function') updateQuickCounts();
     if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
   }
 
-  function deleteEditingPlantilla() {
+  async function deleteEditingPlantilla() {
     if (!editingPlantillaId) return;
     const id = editingPlantillaId;
-    closePlantillaEditModal();
+    await closePlantillaEditModal();
     try { window.clearEditingLock?.("plantilla", id); } catch (error) { console.warn("No se pudo liberar lock al eliminar plantilla:", error); }
-    deletePlantilla(id);
+    await deletePlantilla(id);
   }
 
   function rowHtml(item) {
@@ -1042,7 +1062,7 @@
       fechaCascos: ['fecha cascos'],
       sexo: ['sexo'],
       positionSeniority: ['antiguedad en puesto', 'antiguedad puesto', 'antig puesto', 'fecha antiguedad puesto', 'antiguedad del puesto', 'antiguedad'],
-      level: ['nivel retributivo', 'nivel'],
+      level: ['nivel retributivo', 'nivel retrib', 'nivel salarial', 'nivel'],
       sindicato: ['sindicato']
     };
   }
@@ -1200,7 +1220,7 @@
     return parseCsvRows(text);
   }
 
-  function applyPlantillaImport(rows) {
+  async function applyPlantillaImport(rows) {
     const summary = { read: 0, created: 0, updated: 0, unchanged: 0, skipped: 0, errors: 0, total: 0 };
     if (!rows.length) return summary;
     const headers = rows[0];
@@ -1237,7 +1257,7 @@
         job: map.job == null ? '' : normalizeText(row[map.job]),
         sexo: map.sexo == null ? '' : normalizeText(row[map.sexo]),
         positionSeniority: map.positionSeniority == null ? '' : normalizePlantillaDateOrText(row[map.positionSeniority]),
-        level: map.level == null ? '' : normalizeText(row[map.level]).toUpperCase()
+        level: readImportedLevel(row, map, headers)
         ,sindicato: map.sindicato == null ? '' : normalizeText(row[map.sindicato])
         ,dni: map.dni == null ? '' : normalizePlantillaDni(row[map.dni])
         ,direccionTeletrabajo: buildPlantillaTeleworkAddress(row, map)
@@ -1257,7 +1277,6 @@
       imported.puestoCast = imported.job || imported.puestoCast || '';
       const translatedPuestoEus = resolveCargoEus(imported.puestoCast || imported.job, cargoDictionary);
       if (translatedPuestoEus && shouldReplaceCargoEus(imported.puestoEus, imported.puestoCast || imported.job)) imported.puestoEus = translatedPuestoEus;
-      if (!imported.puestoEus && imported.puestoCast) imported.puestoEus = imported.puestoCast;
       const key = normalizeEmployeeKey(employeeNumber);
       const fullNameKey = normalizeHeader(fullName);
       const existingIndex = (key && byEmployee.has(key)) ? byEmployee.get(key) : byFullName.get(fullNameKey);
@@ -1309,7 +1328,7 @@
         summary.created++;
       }
     });
-    if (items.length) setPlantilla(items);
+    if (items.length) await Promise.resolve(setPlantilla(items, { rejectOnError: true }));
     summary.total = items.length;
     return summary;
   }
@@ -1321,7 +1340,7 @@
     const summaryEl = document.getElementById('plantillaImportSummary');
     try {
       const rows = await readPlantillaSpreadsheet(file);
-      const summary = applyPlantillaImport(rows);
+      const summary = await applyPlantillaImport(rows);
       renderPlantilla({ resetPage: true });
       if (typeof updateQuickCounts === 'function') updateQuickCounts();
       if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
@@ -1469,6 +1488,7 @@
   window.closePlantillaEditModal = closePlantillaEditModal;
   window.saveEditingPlantilla = saveEditingPlantilla;
   window.deleteEditingPlantilla = deleteEditingPlantilla;
+  window.syncPlantillaPuestoFromJob = syncPlantillaPuestoFromJob;
   window.renderPlantilla = renderPlantilla;
   window.plantillaPreviousPage = plantillaPreviousPage;
   window.plantillaNextPage = plantillaNextPage;

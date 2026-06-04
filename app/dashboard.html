@@ -1120,7 +1120,7 @@
               </label>
               <label class="rrll-pro-field">
                 <span>Puesto de trabajo</span>
-                <input id="newPlantJob" placeholder="Puesto de trabajo" />
+                <input id="newPlantJob" placeholder="Puesto de trabajo" oninput="syncPlantillaPuestoFromJob({ prefix: 'newPlant', preserveManualEus: true })" />
               </label>
               <label class="rrll-pro-field">
                 <span>Antigüedad en puesto</span>
