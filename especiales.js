@@ -59,16 +59,31 @@
     return buildEspecialesBullet(payload);
   }
 
+  function buildIntranetParagraphHtml(value) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text) return "";
+    const hasFullLiteral = /(?:^|\b)(?:Este\s+)?Servicio\s+Especial\s+aparecer(?:[aá])?\s+en\s+la\s+Intranet\s+como\s*:/i.test(text);
+    const line = hasFullLiteral
+      ? text.replace(/^ste\s+Servicio/i, "Este Servicio")
+      : `Este Servicio Especial aparecerá en la Intranet como: ${text}`;
+    return `<p>${escapeHtml(line)}</p>`;
+  }
+
+  function stripIntranetNameFromParagraph(value) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    const marker = /(?:^|\b)(?:Este\s+)?Servicio\s+Especial\s+aparecer(?:[aá])?\s+en\s+la\s+Intranet\s+como\s*:\s*/i;
+    const match = marker.exec(text);
+    return match ? text.slice(match.index + match[0].length).trim() : text;
+  }
+
   function buildEspecialesHtmlBody(payload = {}) {
     const evento = String(payload.evento || "").trim();
     const fecha = String(payload.fecha || "").trim();
-    const intranetName = String(payload.enlace || payload.intranetName || "").trim();
+    const intranetRaw = String(payload.intranetParagraph || payload.intranetLine || payload.enlace || payload.intranetName || "").trim();
     const dateParts = getDateParts(fecha);
     const year = dateParts.year || detectYearFromText(`${evento} ${fecha} ${getEspecialesMailSubject(payload)}`) || String(new Date().getFullYear());
     const ruta = String(payload.ruta || "").trim() || buildTurnosPath(year);
-    const intranetLine = intranetName
-      ? `<p>Este Servicio Especial aparecerá en la Intranet como: ${escapeHtml(intranetName)}</p>`
-      : "";
+    const intranetLine = buildIntranetParagraphHtml(intranetRaw);
 
     return [
       '<div style="font-family: Verdana, Arial, sans-serif; font-size: 11pt;">',
@@ -434,47 +449,69 @@
     return readable / text.length >= 0.55;
   }
 
-  function extractIntranetServiceName(text) {
+  function extractIntranetParagraph(text) {
     const normalized = normalizeDetectionText(text);
-    const marker = /(?:Este\s+)?Servicio\s+Especial\s+aparecer(?:[aá])?\s+en\s+la\s+Intranet\s+como\s*:\s*/i;
+    const marker = /(?:^|\b)(?:Este\s+)?Servicio\s+Especial\s+aparecer(?:[aá])?\s+en\s+la\s+Intranet\s+como\s*:\s*/i;
     const match = marker.exec(normalized);
     if (!match) return "";
 
+    const literalStart = match.index;
     const afterMarker = normalized.slice(match.index + match[0].length);
-    const stopMatch = /(?:\n|\s{2,})(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo|$)/i.exec(afterMarker)
+    const stopMatch = /(?:\n\s*\n|\n|\s{3,})(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo|$)/i.exec(afterMarker)
       || /\s+(?:El\s+servicio\s+especial|El\s+PMC|La\s+publicaci[oó]n|Se\s+confirmar[aá]|Los\s+gr[aá]ficos|Un\s+saludo)\b/i.exec(afterMarker);
-    const candidate = stopMatch ? afterMarker.slice(0, stopMatch.index) : afterMarker.slice(0, 140);
-
-    const cleaned = String(candidate || "")
+    const valueCandidate = stopMatch ? afterMarker.slice(0, stopMatch.index) : afterMarker.slice(0, 180);
+    const cleanValue = String(valueCandidate || "")
       .replace(/\n+/g, " ")
       .replace(/\s+/g, " ")
-      .replace(/[.;,:\-–—]+$/g, "")
+      .replace(/[.;,\-–—]+$/g, "")
       .trim();
+    if (!isCleanIntranetCandidate(cleanValue)) return "";
 
-    return isCleanIntranetCandidate(cleaned) ? cleaned : "";
+    const prefix = normalized.slice(literalStart, match.index + match[0].length)
+      .replace(/\n+/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/^ste\s+Servicio/i, "Este Servicio")
+      .trim();
+    const full = `${prefix}${cleanValue}`
+      .replace(/\s+/g, " ")
+      .replace(/^ste\s+Servicio/i, "Este Servicio")
+      .trim();
+    return isCleanIntranetCandidate(cleanValue) ? full : "";
   }
 
-  function extractFirstIntranetServiceName(sources) {
+  function extractIntranetServiceName(text) {
+    return stripIntranetNameFromParagraph(extractIntranetParagraph(text));
+  }
+
+  function extractFirstIntranetParagraph(sources) {
     for (const source of sources || []) {
-      const value = extractIntranetServiceName(source);
+      const value = extractIntranetParagraph(source);
       if (value) return value;
     }
     return "";
   }
 
-  function extractIntranetServiceNameFromMsgBuffer(buffer) {
+  function extractFirstIntranetServiceName(sources) {
+    return stripIntranetNameFromParagraph(extractFirstIntranetParagraph(sources));
+  }
+
+  function extractIntranetParagraphFromMsgBuffer(buffer) {
     if (!buffer) return "";
     const decoders = ["utf-16le", "utf-8", "windows-1252"];
     for (const encoding of decoders) {
       try {
         const text = new TextDecoder(encoding).decode(buffer);
-        const value = extractIntranetServiceName(text);
+        const value = extractIntranetParagraph(text);
         if (value) return value;
       } catch (error) {
         // Continue with the next decoder. Some runtimes may not support all labels.
       }
     }
     return "";
+  }
+
+  function extractIntranetServiceNameFromMsgBuffer(buffer) {
+    return stripIntranetNameFromParagraph(extractIntranetParagraphFromMsgBuffer(buffer));
   }
 
   function detectAutoFields(text, subject, extraSources) {
@@ -484,13 +521,15 @@
     const timeMatch = source.match(/\b(\d{1,2}(?::|\.)\d{2}\s*h?)\b/i);
     const uncMatch = source.match(/(?:[A-Za-z]:\\|\\\\)[^\n\r;,"<>]+/);
     const fallbackEvent = cleanEventFromSubject(subject);
-    const intranetName = extractFirstIntranetServiceName(extraSources && extraSources.length ? extraSources : [source]);
+    const intranetParagraph = extractFirstIntranetParagraph(extraSources && extraSources.length ? extraSources : [source]);
+    const intranetName = stripIntranetNameFromParagraph(intranetParagraph);
     return {
       evento: eventMatch ? cleanEventFromSubject(eventMatch[1]) : fallbackEvent,
       fecha: dateMatch ? normalizeDateInput(dateMatch[1]) : "",
       hora: timeMatch ? normalizeTimeInput(timeMatch[1]) : "",
       enlace: intranetName,
       intranetName,
+      intranetParagraph,
       ruta: uncMatch ? uncMatch[0].trim() : ""
     };
   }
@@ -504,7 +543,8 @@
         return { ok: false, message: "API de importación no disponible." };
       }
       const buffer = await file.arrayBuffer();
-      const rawIntranetName = extractIntranetServiceNameFromMsgBuffer(buffer);
+      const rawIntranetParagraph = extractIntranetParagraphFromMsgBuffer(buffer);
+      const rawIntranetName = stripIntranetNameFromParagraph(rawIntranetParagraph);
       const rawUtf16Text = (() => {
         try { return new TextDecoder("utf-16le").decode(buffer); }
         catch (error) { return ""; }
@@ -524,6 +564,9 @@
       const safeDetectionSources = [body, htmlText, rawUtf16Text, subject].filter(Boolean);
       const textForDetection = `${subject}\n${body}\n${htmlText}`;
       const auto = detectAutoFields(textForDetection, subject, safeDetectionSources);
+      if (rawIntranetParagraph && !auto.intranetParagraph) {
+        auto.intranetParagraph = rawIntranetParagraph;
+      }
       if (rawIntranetName && !auto.intranetName) {
         auto.intranetName = rawIntranetName;
         auto.enlace = rawIntranetName;
@@ -565,7 +608,7 @@
     setValue("especialesEvento", data.evento || data.subject);
     setValue("especialesFecha", data.fecha);
     setValue("especialesHora", normalizeTimeInput(data.hora));
-    setValue("especialesEnlace", data.intranetName || data.enlace);
+    setValue("especialesEnlace", data.intranetParagraph || data.intranetName || data.enlace);
     setValue("especialesRuta", data.ruta || buildTurnosPath(detectYearFromText(`${data.subject} ${data.fecha}`)));
     renderEspecialesPreview();
     if (parsed.hasMainData) {
