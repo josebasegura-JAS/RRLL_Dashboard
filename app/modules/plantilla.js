@@ -468,12 +468,21 @@
     const provincia = readMappedCell(row, map, 'provincia');
     const hasComposedAddress = [calle, numero, piso, codigoPostal, poblacion, provincia].some(Boolean);
     if (hasComposedAddress) {
-      const via = [calle, numero, piso].filter(Boolean).join(' ');
+      const via = [calle, numero].filter(Boolean).join(' ');
       const localidad = [codigoPostal, poblacion].filter(Boolean).join(' ');
-      const localidadProvincia = [localidad, provincia].filter(Boolean).join(' - ');
-      return [via, localidadProvincia].filter(Boolean).join(', ');
+      return [via, piso, localidad, provincia].filter(Boolean).join(', ');
     }
     return readMappedCell(row, map, 'direccionTeletrabajo');
+  }
+
+  function resolveResidenciaEusFromCast(value) {
+    const residencia = normalizeText(value);
+    const translations = {
+      'Oficinas Centrales': 'Bulego Nagusiak',
+      'Sopela Taller': 'Sopela Tailerra',
+      'Ariz Taller': 'Ariz Tailerra'
+    };
+    return translations[residencia] || residencia;
   }
   function normalizeBoolean(value) {
     const text = normalizeHeader(value);
@@ -776,17 +785,41 @@
     return (Array.isArray(items) ? items : []).filter(item => plantillaDependencyRecordMatchesEmployee(item, employeeKey)).length;
   }
 
+  function safeLoadPlantillaDependency(key) {
+    try {
+      const items = typeof load === 'function' ? load(key, []) : [];
+      return Array.isArray(items) ? items : [];
+    } catch (error) {
+      console.warn(`[Plantilla] No se pudo revisar dependencia ${key}; se continuará sin bloquear el borrado:`, error);
+      return [];
+    }
+  }
+
+  function readPlantillaDependencyItems(getters, fallbackKey) {
+    for (const getter of getters) {
+      try {
+        if (typeof getter === 'function') {
+          const items = getter();
+          return Array.isArray(items) ? items : [];
+        }
+      } catch (error) {
+        console.warn('[Plantilla] No se pudo ejecutar un getter de dependencias; se usará fallback si existe:', error);
+      }
+    }
+    return fallbackKey ? safeLoadPlantillaDependency(fallbackKey) : [];
+  }
+
   function getPlantillaDependencyWarnings(item) {
     const employeeKey = normalizeEmployeeKey(item?.employeeNumber);
     if (!employeeKey) return null;
     const sources = [
-      { label: 'Teletrabajo', items: typeof getTeleworkItems === 'function' ? getTeleworkItems() : load('rrll_telework', []) },
-      { label: 'Ticket Restaurante - personas', items: load('rrll_ticket_restaurant_people', []) },
-      { label: 'Ticket Restaurante - ausencias', items: load('rrll_ticket_restaurant_absences', []) },
-      { label: 'Licencias/Excedencias', items: typeof getLicencias === 'function' ? getLicencias() : load('rrll_licencias_excedencias', []) },
-      { label: 'Vinculograma', items: typeof getVinculogramas === 'function' ? getVinculogramas() : load('rrll_vinculogramas', []) },
-      { label: 'Sorteos - exclusiones', items: load('rrll_draw_exclusions', []) },
-      { label: 'Sorteos - histórico', items: load('rrll_draws', []) }
+      { label: 'Teletrabajo', items: readPlantillaDependencyItems([window.getTeleworkItems, window.TeleworkModule?.getTeleworkItems, window.TeletrabajoModule?.getTeleworkItems], 'rrll_telework') },
+      { label: 'Ticket Restaurante - personas', items: readPlantillaDependencyItems([window.getTicketRestaurantPeople, window.TicketRestaurantModule?.getTicketRestaurantPeople], 'rrll_ticket_restaurant_people') },
+      { label: 'Ticket Restaurante - ausencias', items: readPlantillaDependencyItems([window.getTicketRestaurantAbsences, window.TicketRestaurantModule?.getTicketRestaurantAbsences], 'rrll_ticket_restaurant_absences') },
+      { label: 'Licencias/Excedencias', items: readPlantillaDependencyItems([window.getLicencias, window.LicenciasModule?.getLicencias], 'rrll_licencias_excedencias') },
+      { label: 'Vinculograma', items: readPlantillaDependencyItems([window.getVinculogramas, window.VinculogramaModule?.getVinculogramas], 'rrll_vinculogramas') },
+      { label: 'Sorteos - exclusiones', items: readPlantillaDependencyItems([window.getExclusions, window.SorteosModule?.getExclusions], 'rrll_draw_exclusions') },
+      { label: 'Sorteos - histórico', items: readPlantillaDependencyItems([window.getDraws, window.SorteosModule?.getDraws], 'rrll_draws') }
     ];
     return sources
       .map(source => ({ label: source.label, count: countPlantillaDependencyItems(source.items, employeeKey) }))
@@ -1092,7 +1125,7 @@
         button.hidden = true;
         button.disabled = true;
       }
-      const isTextAction = ['Elecciones sindicales', 'Importar cargos', 'Importar RRLL', '+ Crear plantilla', 'Crear plantilla', 'Descargar modelo'].includes(label);
+      const isTextAction = ['Elecciones sindicales', 'Importar cargos', 'Importar personas', '+ Crear plantilla', 'Crear plantilla', 'Descargar modelo'].includes(label);
       button.classList.toggle('plantilla-text-action', isTextAction);
     });
     const tableContainer = document.querySelector('#plantillaMainListView .rrll-pro-table-wrap');
@@ -1424,7 +1457,7 @@
           imported[field] = normalizePlantillaTeletrabajoValue(field, row[map[field]]);
         }
       });
-      if (!imported.residenciaEus && imported.residenciaCast) imported.residenciaEus = imported.residenciaCast;
+      if (!imported.residenciaEus && imported.residenciaCast) imported.residenciaEus = resolveResidenciaEusFromCast(imported.residenciaCast);
       const importedPuesto = imported.job || imported.puestoCast || '';
       const hasImportedJob = !!importedPuesto;
       if (hasImportedJob) {
@@ -1600,7 +1633,7 @@
     return buckets;
   }
 
-  function readRrllImportedFields(row, map) {
+  function readRrllImportedFields(row, map, headers = [], cargoDictionary = new Map()) {
     const imported = {};
     const textFields = ['employeeNumber', 'nombreCompleto', 'name', 'lastName', 'job', 'sexo', 'sindicato', 'colegioElectoral', 'mesaElectoral', 'participacionEstimada', 'estacionBase', 'observacionesRecorrido'];
     textFields.forEach(field => {
@@ -1615,22 +1648,61 @@
       const value = normalizePlantillaDateOrText(row[map.positionSeniority]);
       if (value) imported.positionSeniority = value;
     }
-    if (map.level != null) {
-      const value = normalizeText(row[map.level]);
-      if (value) imported.level = normalizeLevel(value);
-    }
+    const level = readImportedLevel(row, map, headers);
+    if (level) imported.level = level;
     if (map.recorridoActivo != null && normalizeText(row[map.recorridoActivo])) imported.recorridoActivo = normalizeBoolean(row[map.recorridoActivo]);
+    if (map.dni != null) {
+      const value = normalizePlantillaDni(row[map.dni]);
+      if (value) imported.dni = value;
+    }
+    const direccionTeletrabajo = buildPlantillaTeleworkAddress(row, map);
+    if (direccionTeletrabajo) imported.direccionTeletrabajo = direccionTeletrabajo;
+    if (map.residenciaCast != null) {
+      const value = normalizeText(row[map.residenciaCast]);
+      if (value) imported.residenciaCast = value;
+    }
+    if (map.residenciaEus != null) {
+      const value = normalizeText(row[map.residenciaEus]);
+      if (value) imported.residenciaEus = value;
+    }
+    if (!imported.residenciaEus && imported.residenciaCast) imported.residenciaEus = resolveResidenciaEusFromCast(imported.residenciaCast);
+    if (map.puestoCast != null) {
+      const value = normalizeText(row[map.puestoCast]);
+      if (value) imported.puestoCast = value;
+    }
+    if (map.puestoEus != null) {
+      const value = normalizeText(row[map.puestoEus]);
+      if (value) imported.puestoEus = value;
+    }
+    ['fechaOrdenador', 'fechaCascos'].forEach(field => {
+      if (map[field] == null) return;
+      const value = normalizePlantillaDateOrText(row[map[field]]);
+      if (value) imported[field] = value;
+    });
+    TELETRABAJO_FIELD_KEYS.forEach(field => {
+      if (imported[field] || map[field] == null) return;
+      const value = normalizePlantillaTeletrabajoValue(field, row[map[field]]);
+      if (value) imported[field] = value;
+    });
+    const importedPuesto = imported.job || imported.puestoCast || '';
+    if (importedPuesto) {
+      imported.job = importedPuesto;
+      imported.puesto = importedPuesto;
+      imported.puestoCast = imported.puestoCast || importedPuesto;
+      imported.puestoEus = imported.puestoEus || resolveCargoEus(importedPuesto, cargoDictionary) || '';
+    }
     const fullName = imported.nombreCompleto || normalizeText([imported.name, imported.lastName].filter(Boolean).join(' '));
     if (fullName) imported.nombreCompleto = fullName;
     return imported;
   }
 
-  function mergeRrllImportedRecord(current, imported, now) {
+  function mergeRrllImportedRecord(current, imported, now, options = {}) {
     const next = { ...current };
-    const fields = ['employeeNumber', 'nombreCompleto', 'job', 'sexo', 'positionSeniority', 'level', 'sindicato', 'colegioElectoral', 'mesaElectoral', 'participacionEstimada', 'recorridoActivo', 'estacionBase', 'observacionesRecorrido'];
+    const fields = ['employeeNumber', 'nombreCompleto', 'job', 'puesto', 'sexo', 'positionSeniority', 'level', 'sindicato', 'colegioElectoral', 'mesaElectoral', 'participacionEstimada', 'recorridoActivo', 'estacionBase', 'observacionesRecorrido', ...TELETRABAJO_FIELD_KEYS];
     fields.forEach(field => {
       if (imported[field] !== '' && imported[field] != null && next[field] !== imported[field]) next[field] = imported[field];
     });
+    if (options.hasImportedAddress && imported.direccionTeletrabajo && next.direccionTeletrabajo !== imported.direccionTeletrabajo) next.direccionTeletrabajo = imported.direccionTeletrabajo;
     if (imported.nombreCompleto) {
       next.fullName = imported.nombreCompleto;
       next.name = imported.nombreCompleto;
@@ -1648,18 +1720,21 @@
     }
     const headers = rows[0] || [];
     const map = buildPlantillaColumnMap(headers);
+    const cargoDictionary = buildCargoDictionary();
     const items = getPlantilla();
     const now = new Date().toISOString();
     const byEmployee = new Map(items.map((item, index) => [normalizeEmployeeKey(item.employeeNumber), index]).filter(([key]) => key));
     const byFullName = buildPlantillaUniqueNameMap(items);
     const rrllFieldLabels = {
+      employeeNumber: 'Empleado', nombreCompleto: 'Nombre y Apellidos', job: 'Puesto nómina', sexo: 'Sexo', level: 'Nivel retributivo', dni: 'NIF',
+      direccionTeletrabajo: 'Dirección teletrabajo', residenciaCast: 'Residencia', residenciaEus: 'Residencia EUS', puestoCast: 'Puesto CAST', puestoEus: 'Puesto EUS',
       sindicato: 'Sindicato', colegioElectoral: 'Colegio electoral', mesaElectoral: 'Mesa electoral', participacionEstimada: 'Participación estimada',
       recorridoActivo: 'Recorrido activo', estacionBase: 'Estación base', observacionesRecorrido: 'Observaciones recorrido'
     };
     rows.slice(1).forEach(row => {
       if (!row.some(Boolean)) return;
       summary.read++;
-      const imported = readRrllImportedFields(row, map);
+      const imported = readRrllImportedFields(row, map, headers, cargoDictionary);
       const employeeKey = normalizeEmployeeKey(imported.employeeNumber);
       const fullNameKey = normalizeHeader(imported.nombreCompleto);
       if (!employeeKey && !fullNameKey) { summary.skipped++; return; }
@@ -1673,7 +1748,7 @@
       Object.keys(rrllFieldLabels).forEach(field => { if (imported[field] !== '' && imported[field] != null) summary.rrllFields.add(rrllFieldLabels[field]); });
       if (existingIndex != null) {
         const current = items[existingIndex];
-        const merged = mergeRrllImportedRecord(current, imported, now);
+        const merged = mergeRrllImportedRecord(current, imported, now, { hasImportedAddress: hasPlantillaTeleworkAddressInput(row, map) });
         if (merged.updatedAt !== current.updatedAt) {
           items[existingIndex] = merged;
           summary.updated++;
@@ -1683,7 +1758,7 @@
         return;
       }
       const id = (window.crypto && typeof window.crypto.randomUUID === 'function') ? window.crypto.randomUUID() : `plant-rrll-${Date.now()}-${summary.read}`;
-      const created = mergeRrllImportedRecord({ id, createdAt: now, updatedAt: now }, imported, now);
+      const created = mergeRrllImportedRecord({ id, createdAt: now, updatedAt: now }, imported, now, { hasImportedAddress: hasPlantillaTeleworkAddressInput(row, map) });
       items.push(created);
       byEmployee.set(employeeKey, items.length - 1);
       if (fullNameKey) {
@@ -1710,11 +1785,11 @@
       if (typeof updateQuickCounts === 'function') updateQuickCounts();
       if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
       const rrllFields = summary.rrllFields.length ? summary.rrllFields.join(', ') : 'ninguno';
-      const message = `Importación RRLL completada. Filas leídas: ${summary.read}. Nuevos registros: ${summary.created}. Registros actualizados: ${summary.updated}. Sin cambios: ${summary.unchanged}. Filas omitidas: ${summary.skipped}. Duplicados/ambigüedades: ${summary.ambiguous}. Campos RRLL importados: ${rrllFields}.`;
+      const message = `Importación de personas completada. Filas leídas: ${summary.read}. Nuevos registros: ${summary.created}. Registros actualizados: ${summary.updated}. Sin cambios: ${summary.unchanged}. Filas omitidas: ${summary.skipped}. Duplicados/ambigüedades: ${summary.ambiguous}. Campos importados: ${rrllFields}.`;
       if (summaryEl) summaryEl.textContent = message;
       alert(message);
     } catch (error) {
-      const message = `No se pudo importar RRLL: ${error.message || error}`;
+      const message = `No se pudo importar personas: ${error.message || error}`;
       if (summaryEl) summaryEl.textContent = message;
       alert(message);
     } finally {
