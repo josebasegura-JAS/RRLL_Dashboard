@@ -138,10 +138,16 @@
 
   function notifyPlantillaChangedForTelework() {
     try {
-      if (typeof window.invalidateTeleworkRuntimeSnapshot === "function") window.invalidateTeleworkRuntimeSnapshot();
-      if (typeof window.dispatchEvent === "function") window.dispatchEvent(new CustomEvent("rrll:plantilla-updated"));
+      window.invalidateTeleworkRuntimeSnapshot?.();
+      window.TeleworkModule?.invalidateRuntimeSnapshot?.();
+      window.TeletrabajoModule?.invalidateRuntimeSnapshot?.();
     } catch (error) {
       console.warn("No se pudo invalidar la caché de Teletrabajo tras actualizar Plantilla:", error);
+    }
+    try {
+      if (typeof window.dispatchEvent === "function") window.dispatchEvent(new CustomEvent("rrll:plantilla-updated"));
+    } catch (error) {
+      console.warn("No se pudo notificar la actualización de Plantilla a otros módulos:", error);
     }
   }
 
@@ -428,6 +434,24 @@
       return window.activeModule === 'home';
     } catch {
       return false;
+    }
+  }
+
+  function refreshPlantillaViewsSafely(options = {}) {
+    try {
+      renderPlantilla(options);
+    } catch (error) {
+      console.warn('[Plantilla] No se pudo refrescar la vista de Plantilla tras guardar; la operación principal ya se ejecutó:', error);
+    }
+    try {
+      if (typeof updateQuickCounts === 'function') updateQuickCounts();
+    } catch (error) {
+      console.warn('[Plantilla] No se pudieron actualizar los contadores rápidos tras guardar; la operación principal ya se ejecutó:', error);
+    }
+    try {
+      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
+    } catch (error) {
+      console.warn('[Plantilla] No se pudo refrescar el dashboard tras guardar; la operación principal ya se ejecutó:', error);
     }
   }
 
@@ -732,6 +756,14 @@
     const employeeNumber = normalizeEmployeeNumber(employeeEl.value);
     const name = normalizeText(nameEl.value);
     const job = normalizeText(jobEl.value);
+
+    if (!employeeNumber || !name || !job) {
+      alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
+      const missingEl = !employeeNumber ? employeeEl : (!name ? nameEl : jobEl);
+      missingEl?.focus?.();
+      return;
+    }
+
     const positionSeniority = normalizePlantillaDate(ageEl?.value);
     const level = normalizeLevel(levelEl.value);
     const colegioElectoral = normalizeText(document.getElementById('newPlantColegioElectoral')?.value);
@@ -739,11 +771,6 @@
     const sindicato = normalizeText(document.getElementById('newPlantSindicato')?.value);
     syncPlantillaPuestoFromJob({ prefix: 'newPlant' });
     const teletrabajoData = getPlantillaTeletrabajoData({}, 'newPlant');
-
-    if (!employeeNumber || !name || !job) {
-      alert('Introduce Nº empleado, nombre completo, y puesto de trabajo.');
-      return;
-    }
 
     const items = getPlantilla();
     const duplicate = findPlantillaDuplicateEmployee(items, employeeNumber);
@@ -765,9 +792,7 @@
     resetPlantillaTeletrabajoForm('newPlant');
     togglePlantillaCreateForm(false);
 
-    renderPlantilla();
-    if (typeof updateQuickCounts === 'function') updateQuickCounts();
-    if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
+    refreshPlantillaViewsSafely();
   }
 
   function plantillaDependencyRecordMatchesEmployee(record, employeeKey) {
@@ -851,13 +876,16 @@
         }
       }
       await Promise.resolve(setPlantilla(items.filter(i => i.id !== id), { rejectOnError: true }));
-      renderPlantilla({ preserveView: true });
-      if (typeof renderTrash === 'function') renderTrash();
-      if (typeof updateQuickCounts === 'function') updateQuickCounts();
-      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
     } catch (error) {
       console.error('No se pudo eliminar la persona de Plantilla:', error);
       alert(`No se pudo eliminar la persona: ${error.message || error}`);
+      return;
+    }
+    refreshPlantillaViewsSafely({ preserveView: true });
+    try {
+      if (typeof renderTrash === 'function') renderTrash();
+    } catch (error) {
+      console.warn('[Plantilla] No se pudo refrescar la papelera tras borrar; el borrado ya se ejecutó:', error);
     }
   }
 
@@ -1581,9 +1609,7 @@
     try {
       const rows = await readPlantillaSpreadsheet(file);
       const summary = await applyPlantillaImport(rows);
-      renderPlantilla({ resetPage: true });
-      if (typeof updateQuickCounts === 'function') updateQuickCounts();
-      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
+      refreshPlantillaViewsSafely({ resetPage: true });
       const message = `Importación completada. Creadas: ${summary.created}. Actualizadas: ${summary.updated}. Sin cambios: ${summary.unchanged}. Filas ignoradas: ${summary.skipped}. Errores: ${summary.errors}. Total final guardado: ${summary.total}.`;
       if (summaryEl) summaryEl.textContent = message;
       alert(message);
@@ -1605,9 +1631,7 @@
     try {
       const rows = await readPlantillaSpreadsheet(file);
       const summary = await applyCargosImport(rows);
-      renderPlantilla({ preserveView: true });
-      if (typeof updateQuickCounts === 'function') updateQuickCounts();
-      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
+      refreshPlantillaViewsSafely({ preserveView: true });
       const message = `Importación de cargos completada. Cargos incorporados/actualizados: ${summary.imported}. Duplicados sin cambios: ${summary.duplicates}. Filas ignoradas: ${summary.skipped}. Personas actualizadas con Puesto EUS: ${summary.appliedToPlantilla}. Diccionario total guardado: ${summary.persisted || summary.total}.`;
       if (summaryEl) summaryEl.textContent = message;
       alert(message);
@@ -1781,9 +1805,7 @@
     try {
       const rows = await readPlantillaSpreadsheet(file);
       const summary = await applyPlantillaRrllImport(rows);
-      renderPlantilla({ preserveView: true });
-      if (typeof updateQuickCounts === 'function') updateQuickCounts();
-      if (isHomeModuleActive() && typeof renderHomeDashboard === 'function') renderHomeDashboard();
+      refreshPlantillaViewsSafely({ preserveView: true });
       const rrllFields = summary.rrllFields.length ? summary.rrllFields.join(', ') : 'ninguno';
       const message = `Importación de personas completada. Filas leídas: ${summary.read}. Nuevos registros: ${summary.created}. Registros actualizados: ${summary.updated}. Sin cambios: ${summary.unchanged}. Filas omitidas: ${summary.skipped}. Duplicados/ambigüedades: ${summary.ambiguous}. Campos importados: ${rrllFields}.`;
       if (summaryEl) summaryEl.textContent = message;
