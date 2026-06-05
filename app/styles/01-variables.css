@@ -89,14 +89,14 @@
   --rrll-sidebar-hover: var(--rrll-sidebar-hover-light);
 
   /* Familia tipográfica */
-  --rrll-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --rrll-font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
 
   /* Escala tipográfica */
   --rrll-font-2xs: 10px;
   --rrll-font-xs: 11px;
   --rrll-font-sm: 12px;
-  --rrll-font-md: 13px;
-  --rrll-font-base: 14px;
+  --rrll-font-base: 13px;
+  --rrll-font-md: 14px;
   --rrll-font-lg: 16px;
   --rrll-font-xl: 18px;
   --rrll-font-2xl: 22px;
@@ -106,10 +106,21 @@
   --rrll-line-normal: 1.35;
   --rrll-line-relaxed: 1.55;
 
+  --rrll-fw-normal: 400;
+  --rrll-fw-medium: 600;
+  --rrll-fw-bold: 700;
+  --rrll-fw-heavy: 800;
+
   /* Compatibilidad con variables antiguas */
   --rrll-fs-page: var(--rrll-font-xl);
-  --rrll-fs-section: var(--rrll-font-base);
-  --rrll-fs-card: var(--rrll-font-md);
+  --rrll-fs-section: var(--rrll-font-md);
+  --rrll-fs-card: var(--rrll-font-base);
+  --rrll-fs-base: var(--rrll-font-base);
+  --rrll-fs-secondary: var(--rrll-font-sm);
+  --rrll-fs-small: var(--rrll-font-xs);
+  --rrll-fs-micro: var(--rrll-font-2xs);
+  --rrll-lh-base: var(--rrll-line-normal);
+  --rrll-lh-compact: var(--rrll-line-tight);
 
   /* Espaciado */
   --rrll-space-2xs: 2px;
@@ -138,8 +149,8 @@
   --rrll-control-padding-y: 7px;
 
   /* Tablas */
-  --rrll-table-font: var(--rrll-font-md);
-  --rrll-table-head-font: var(--rrll-font-sm);
+  --rrll-table-font: var(--rrll-font-sm);
+  --rrll-table-head-font: var(--rrll-font-xs);
   --rrll-table-cell-padding-y: 8px;
   --rrll-table-cell-padding-x: 10px;
 
@@ -181,10 +192,10 @@
   --rrll-border-soft-dark: rgba(148, 163, 184, .12);
 
   /* Zonas funcionales */
-  --rrll-sidebar-font: var(--rrll-font-md);
-  --rrll-form-font: var(--rrll-font-md);
-  --rrll-button-font: var(--rrll-font-md);
-  --rrll-modal-font: var(--rrll-font-md);
+  --rrll-sidebar-font: var(--rrll-font-base);
+  --rrll-form-font: var(--rrll-font-base);
+  --rrll-button-font: var(--rrll-font-sm);
+  --rrll-modal-font: var(--rrll-font-base);
 }
 
 html[data-theme="light"] {

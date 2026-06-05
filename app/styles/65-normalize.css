@@ -29,7 +29,7 @@ section,
 .panel-card,
 .module-card,
 .rrll-pro-card {
-  font-size: var(--rrll-font-md);
+  font-size: var(--rrll-font-base);
 }
 
 /* Títulos */
@@ -45,7 +45,7 @@ label,
 .rrll-form-label {
   font-size: var(--rrll-font-sm);
   line-height: var(--rrll-line-normal);
-  font-weight: 800;
+  font-weight: var(--rrll-fw-medium);
 }
 
 input,
@@ -120,7 +120,7 @@ th,
 .rrll-table th {
   font-size: var(--rrll-table-head-font);
   line-height: var(--rrll-line-tight);
-  font-weight: 900;
+  font-weight: var(--rrll-fw-bold);
 }
 
 td,
@@ -138,14 +138,18 @@ th {
 .plantilla-item,
 .saved-item,
 .list-item {
-  font-size: var(--rrll-font-md);
+  font-size: var(--rrll-font-base);
   line-height: var(--rrll-line-normal);
 }
 
-.item-title,
+.item-title {
+  font-size: var(--rrll-font-base);
+  line-height: var(--rrll-line-tight);
+}
+
 .card-title,
 .module-title {
-  font-size: var(--rrll-font-base);
+  font-size: var(--rrll-font-lg);
   line-height: var(--rrll-line-tight);
 }
 
@@ -186,7 +190,7 @@ small {
 /* Métricas y dashboard: mantener jerarquía, pero con escala controlada */
 .phase4-metric-card span:not(.phase4-metric-icon),
 .rrll-dashboard-metric-card span:not(.phase4-metric-icon) {
-  font-size: var(--rrll-font-md);
+  font-size: var(--rrll-font-base);
 }
 
 .phase4-metric-card strong,

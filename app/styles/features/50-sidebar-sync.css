@@ -51,7 +51,7 @@
   background: rgba(52,59,70,.78) !important;
   color: #e5e7eb !important;
   font-size: 12px !important;
-  font-weight: 750 !important;
+  font-weight: 700 !important;
 }
 .rrll-sidebar-sync .sync-now-button:hover { background: rgba(59,130,246,.16) !important; border-color: rgba(59,130,246,.34) !important; }
 .rrll-sidebar-sync.synced .save-status-dot,

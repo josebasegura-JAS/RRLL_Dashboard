@@ -315,7 +315,7 @@
 .column-header h3 {
   font-size: var(--rrll-font-lg) ;
   line-height: var(--rrll-line-tight) ;
-  font-weight: 900 !important;
+  font-weight: 800 !important;
   letter-spacing: -.01em;
 }
 
@@ -853,7 +853,7 @@ table th {
   background: var(--rrll-component-bg-soft) !important;
   color: var(--rrll-component-muted) !important;
   font-size: var(--rrll-table-head-font) ;
-  font-weight: 900 !important;
+  font-weight: var(--rrll-fw-bold) !important;
   letter-spacing: .02em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -942,7 +942,7 @@ table tr:last-child td {
 .item-title,
 .session-item-title {
   font-size: var(--rrll-font-base) ;
-  font-weight: 900 !important;
+  font-weight: var(--rrll-fw-bold) !important;
   line-height: var(--rrll-line-tight) ;
 }
 
@@ -967,7 +967,7 @@ table tr:last-child td {
   justify-content: center;
   gap: var(--rrll-space-xs);
   font-size: var(--rrll-font-xs);
-  font-weight: 900;
+  font-weight: var(--rrll-fw-bold);
   line-height: 1;
   border-radius: var(--rrll-radius-pill);
   padding: var(--rrll-space-2xs) var(--rrll-space-md);
@@ -1000,7 +1000,7 @@ table tr:last-child td {
   background: var(--rrll-component-bg-soft);
   color: var(--rrll-component-muted);
   font-size: var(--rrll-font-xs) ;
-  font-weight: 900;
+  font-weight: var(--rrll-fw-bold);
   line-height: var(--rrll-line-tight);
   white-space: nowrap;
 }
@@ -1056,7 +1056,7 @@ table tr:last-child td {
 .modal-title {
   margin: 0;
   font-size: var(--rrll-font-lg) ;
-  font-weight: 900 !important;
+  font-weight: var(--rrll-fw-bold) !important;
 }
 
 /* =========================================================
@@ -3369,7 +3369,7 @@ textarea,
 :is(table:not(.print-frame table):not(.print-document table):not(.print-preview-content table), .rrll-table, .rrll-pro-table, .rrll-pro-committee-table, .professional-table, .data-table, .licencias-table, .vinculograma-table) th {
   font-size: var(--rrll-table-head-font) ;
   line-height: var(--rrll-line-tight) ;
-  font-weight: 900 !important;
+  font-weight: var(--rrll-fw-bold) !important;
   letter-spacing: .02em;
   text-transform: uppercase;
 }
@@ -3394,7 +3394,7 @@ textarea,
   border-radius: var(--rrll-radius-pill) ;
   box-sizing: border-box;
   font-size: var(--rrll-font-xs) ;
-  font-weight: 900 !important;
+  font-weight: var(--rrll-fw-bold) !important;
   line-height: var(--rrll-line-tight) ;
   gap: 4px ;
   white-space: nowrap;

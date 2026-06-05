@@ -409,7 +409,7 @@ html[data-theme="light"] .telework-eligibility-warning {
 
 .telework-intake-note strong {
   font-size: .86rem;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .telework-intake-note span {
@@ -1025,7 +1025,7 @@ html[data-theme="light"] #gestor-teletrabajo .telework-header-actions .telework-
 
 #gestor-teletrabajo .telework-word-action,
 #gestor-teletrabajo .rrll-delete-icon-button {
-  font-weight: 900 !important;
+  font-weight: 800 !important;
 }
 
 #gestor-teletrabajo .telework-table tbody tr {

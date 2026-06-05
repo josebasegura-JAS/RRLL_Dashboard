@@ -620,7 +620,7 @@ html[data-theme="dark"] .phase4-home-dashboard .phase4-card-head {
 html[data-theme="dark"] .phase4-home-dashboard .phase4-card-head h3 {
   color: rgba(248,250,252,.96) !important;
   font-size: 16px !important;
-  font-weight: 850 !important;
+  font-weight: 800 !important;
   letter-spacing: -.02em !important;
 }
 
@@ -660,7 +660,7 @@ html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row span {
   text-transform: none !important;
   letter-spacing: 0 !important;
   font-size: 12px !important;
-  font-weight: 850 !important;
+  font-weight: 800 !important;
 }
 
 html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row span::before {
@@ -679,7 +679,7 @@ html[data-theme="dark"] .phase4-home-dashboard .phase4-list-row b {
   grid-row: 1 !important;
   color: rgba(248,250,252,.92) !important;
   font-size: 13px !important;
-  font-weight: 750 !important;
+  font-weight: 700 !important;
   line-height: 1.25 !important;
 }
 
