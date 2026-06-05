@@ -12,7 +12,7 @@ html, body {
 }
 
 body {
-  font-family: Inter, Segoe UI, Arial, Helvetica, sans-serif !important;
+  font-family: var(--rrll-font-family) !important;
 }
 
 /* Shell principal */

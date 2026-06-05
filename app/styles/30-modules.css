@@ -884,7 +884,7 @@ body.rrll-view-module #gestor-paritaria > summary,
 
 .session-title {
   color: #fff !important;
-  font-weight: 850 !important;
+  font-weight: 800 !important;
 }
 
 .session-meta,
@@ -1809,7 +1809,7 @@ small,
 .brand-title{
   font-size: 18px !important;
   line-height: 1.15 !important;
-  font-weight: 750 !important;
+  font-weight: 700 !important;
 }
 .sidebar-section-title,
 .nav-section-title,
@@ -1841,7 +1841,7 @@ small,
 .kpi-value {
   font-size: 22px !important;
   line-height: 1.05 !important;
-  font-weight: 750 !important;
+  font-weight: 700 !important;
   letter-spacing: -0.04em !important;
 }
 .metric-label,
@@ -1881,7 +1881,7 @@ small,
 .recent-row b {
   font-size: var(--rrll-fs-base) !important;
   line-height: 1.28 !important;
-  font-weight: 650 !important;
+  font-weight: 600 !important;
 }
 
 /* Tablas/listados profesionales */
@@ -1896,7 +1896,7 @@ table {
 table th {
   font-size: var(--rrll-fs-small) !important;
   line-height: 1.2 !important;
-  font-weight: 750 !important;
+  font-weight: 700 !important;
   letter-spacing: .045em !important;
   text-transform: uppercase;
   padding-top: 9px !important;
@@ -1928,7 +1928,7 @@ table td {
 .paritaria-title {
   font-size: var(--rrll-fs-base) !important;
   line-height: 1.28 !important;
-  font-weight: 650 !important;
+  font-weight: 600 !important;
   letter-spacing: -0.015em !important;
 }
 
@@ -2016,7 +2016,7 @@ button,
 .trash-count {
   font-size: var(--rrll-fs-micro) !important;
   line-height: 1.1 !important;
-  font-weight: 750 !important;
+  font-weight: 700 !important;
   letter-spacing: .015em !important;
   padding: 4px 7px !important;
 }

@@ -1784,7 +1784,7 @@ html[data-theme="light"] :is(input::placeholder, textarea::placeholder, .rrll-pr
 
 html[data-theme="light"] :is(label, .form-label, .field-label, .rrll-pro-field > span, .rrll-pro-field label, .professional-form label, .session-form label, .committee-subsection label, .paritaria-subsection label) {
   color: var(--text-secondary) !important;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 html[data-theme="light"] :is(table:not(.print-frame table):not(.print-document table):not(.print-preview-content table), .rrll-table, .rrll-pro-table, .rrll-pro-committee-table, .professional-table, .data-table, .licencias-table, .vinculograma-table) {
@@ -1799,7 +1799,7 @@ html[data-theme="light"] :is(table:not(.print-frame table):not(.print-document t
   background: var(--rrll-surface-header) !important;
   color: var(--text-secondary) !important;
   border-color: var(--border-soft) !important;
-  font-weight: 720 !important;
+  font-weight: 700 !important;
   letter-spacing: .035em;
   text-transform: uppercase;
 }
@@ -1826,7 +1826,7 @@ html[data-theme="light"] :is(td, th, table:not(.print-frame table):not(.print-do
 
 html[data-theme="light"] :is(button, .btn, .primary, .secondary, .danger, .excel, .black, .icon-button, .summary-icon-button, .rrll-pro-tool-button, .quick-link-icon, .session-order-edit, .theme-choice) {
   border-radius: 10px !important;
-  font-weight: 650;
+  font-weight: 600;
   transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease !important;
 }
 
@@ -1872,7 +1872,7 @@ html[data-theme="light"] :is(.badge, .rrll-badge, .status-badge, .state-badge, .
   background: #f3f6f9 !important;
   border: 1px solid var(--border-soft) !important;
   color: var(--text-secondary) !important;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 html[data-theme="light"] :is(.rrll-status-pill.closed, .status-success, .success, .state-done) {

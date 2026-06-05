@@ -43,7 +43,7 @@
   background: rgba(15,23,42,.88) !important;
   border: 1px solid rgba(148,163,184,.18) !important;
   font-size: 12px !important;
-  font-weight: 900 !important;
+  font-weight: 800 !important;
   letter-spacing: .02em !important;
 }
 
@@ -93,7 +93,7 @@
 .dashboard-timeline-content strong {
   color: #f8fafc !important;
   font-size: 13px !important;
-  font-weight: 850 !important;
+  font-weight: 800 !important;
   line-height: 1.25 !important;
 }
 
@@ -118,7 +118,7 @@
   border-radius: 999px !important;
   padding: 4px 7px !important;
   font-size: 11px !important;
-  font-weight: 750 !important;
+  font-weight: 700 !important;
 }
 
 .dashboard-timeline-badge {
@@ -129,7 +129,7 @@
   padding: 5px 8px !important;
   border-radius: 999px !important;
   font-size: 11px !important;
-  font-weight: 900 !important;
+  font-weight: 800 !important;
   letter-spacing: .02em !important;
 }
 

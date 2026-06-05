@@ -1770,7 +1770,7 @@ html body.rrll-view-module :is(.rrll-pro-title,
 .vinculograma-table .rrll-pro-title) {
   font-size: 13px ;
   line-height: 1.22 ;
-  font-weight: 750 !important;
+  font-weight: 700 !important;
 }
 
 html body.rrll-view-module :is(.rrll-pro-subtitle,
@@ -1996,7 +1996,7 @@ body.rrll-view-module :is(
   gap: 10px ;
   font-size: 15px ;
   line-height: 1.15 ;
-  font-weight: 850 !important;
+  font-weight: 800 !important;
   letter-spacing: -.015em !important;
   color: #f8fafc !important;
 }
@@ -2838,7 +2838,7 @@ body.rrll-view-module #gestor-teletrabajo .rrll-pro-list-actions.telework-list-a
   color: #fff !important;
   border-color: rgba(239, 68, 68, .72) !important;
   font-size: 20px ;
-  font-weight: 900 !important;
+  font-weight: 800 !important;
 }
 
 body.rrll-view-module #gestor-teletrabajo .rrll-pro-search-wrap {
